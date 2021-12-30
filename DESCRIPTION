@@ -1,0 +1,28 @@
+Package: colSBM
+Title: Stochastic Block Model for Collection of Networks
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Saint-Clair",
+           family = "Chabert-Liddell",
+           role = c("aut", "cre"),
+           email = "saint-clair.chabert-liddell@inrae.fr",
+           comment = c(ORCID = "0000-0001-5604-7308"))
+Description: Finds a common mesoscale structure in a collection of networks by 
+    using a Stochastic Block Model (SBM) extension for the joint modeling of 
+    collection of networks. Provides a clustering of the nodes of each networks.
+    Classifies networks in groups of networks with similar mesoscale structures.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
+Imports: 
+    ape,
+    magrittr,
+    sbm,
+    stats,
+    utils
+Suggests: 
+    covr,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
