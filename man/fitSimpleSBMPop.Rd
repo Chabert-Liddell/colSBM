@@ -46,6 +46,7 @@ once $optimize() is done
 \item \href{#method-optimize}{\code{fitSimpleSBMPop$optimize()}}
 \item \href{#method-show}{\code{fitSimpleSBMPop$show()}}
 \item \href{#method-print}{\code{fitSimpleSBMPop$print()}}
+\item \href{#method-plot}{\code{fitSimpleSBMPop$plot()}}
 \item \href{#method-clone}{\code{fitSimpleSBMPop$clone()}}
 }
 }
@@ -354,6 +355,15 @@ once $optimize() is done
 \subsection{Method \code{print()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$print()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-plot"></a>}}
+\if{latex}{\out{\hypertarget{method-plot}{}}}
+\subsection{Method \code{plot()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$plot(ord = NULL, title = NULL, tag = NULL)}\if{html}{\out{</div>}}
 }
 
 }

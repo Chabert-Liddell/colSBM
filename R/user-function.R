@@ -1,3 +1,23 @@
+#' Estimate a colSBM on a collection of networks
+#'
+#' @param netlist A list of matrices.
+#' @param colsbm_model Which colSBM to use, one of "iid", "pi", "delta",
+#' "deltapi".
+#' @param net_id A vector of string, the name of the networks.
+#' @param directed A boolean, are the networks directed or not.
+#' @param model A string, the emission distribution, either "bernoulli"
+#' (the default) or "poissons"
+#' @param fit_sbm A list of model using the \code{sbm} package. Use to speed up
+#' the initialization.
+#' @param nb_run An integer, the number of run the algorithm do.
+#' @param global_opts
+#' @param fit_opts
+#' @param fit_init
+#'
+#' @return A bmpop object listing a collection of models for the collection.
+#' @export
+#'
+#' @examples
 estimate_colSBM <-
   function(    netlist,
                colsbm_model,

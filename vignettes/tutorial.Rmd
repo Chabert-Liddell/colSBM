@@ -1,0 +1,48 @@
+---
+title: "Tutorial on food webs"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Tutorial on food webs}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(colSBM)
+data("foodwebs")
+```
+
+
+
+
+```{r}
+global_opts = list(nb_cores = 1L,
+                   nb_models = 5L,
+                   nb_init = 10L,
+                   depth = 2L,
+                   verbosity = 2, spectral_init = FALSE,
+                   Q_max = 8L, plot_details = 1)
+
+set.seed(1234)
+res_fw_iid <- estimate_colSBM(netlist = foodwebs[1:3],
+                              colsbm_model = "iid", 
+                              directed = TRUE,
+                              net_id = names(foodwebs)[1:3],
+                              nb_run = 3L, 
+                              global_opts = global_opts)
+```
+```{r}
+res_fw_iid$ICL_clustering
+```
+
+```{r}
+plot(res_fw_iid$best_fit, ord = c(3,4,5,2,1))
+```
+

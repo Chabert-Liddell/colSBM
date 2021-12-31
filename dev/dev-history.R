@@ -15,8 +15,13 @@ use_package("utils")
 use_pipe()
 
 ### ADD R FUNCTIONS AND THEIR DOCUMENTATION
-use_r("name_of_r_file")
+#use_r("name_of_r_file")
 # Code > Insert Roxygen Skeleton (Ctrl+Alt+Shift+R)
+use_data_raw()
+use_r("data")
+use_r("generic-function")
+use_vignette("tutorial", "Tutorial on food webs")
+
 
 ### ADD VIGNETTE-LIKE RMD TO YOUR PACKAGE
 use_readme_rmd()
@@ -24,6 +29,7 @@ use_readme_rmd()
 ### ADD UNITARY TESTS
 use_testthat()
 use_test("name_of_test_file")
+
 test()
 
 
