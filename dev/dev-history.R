@@ -12,6 +12,12 @@ use_package("sbm")
 use_package("ape")
 use_package("stats")
 use_package("utils")
+use_package("bettermc")
+use_package("ggplot2")
+use_package("purrr")
+use_package("dplyr")
+use_package("tidyr")
+use_package("patchwork")
 use_pipe()
 
 ### ADD R FUNCTIONS AND THEIR DOCUMENTATION

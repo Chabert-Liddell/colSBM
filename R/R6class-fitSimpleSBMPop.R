@@ -1022,30 +1022,7 @@ fitSimpleSBMPop <- R6::R6Class(
 
     print = function() {
       self$show()
-      },
-
-    plot = function(ord = NULL,  title = NULL, tag = NULL) {
-      if(is.null(ord)) ord <- order(diag(self$alpha), decreasing = TRUE)
-      p_alpha_pr_res <- (self$alpha[ord, ord]*mean(self$delta)) %>% t() %>%
-        reshape2::melt() %>%
-        dplyr::mutate(xmax = rep(c(0,cumsum(self$pi[[1]][ord][1:(self$Q-1)])), self$Q),
-               xmin = rep(cumsum(self$pi[[1]][ord]), self$Q),
-               ymax = rep(c(0,cumsum(self$pi[[1]][ord][1:(self$Q-1)])), each = self$Q),
-               ymin = rep(cumsum(self$pi[[1]][ord]), each = self$Q)) %>%
-        ggplot2::ggplot(ggplot2::aes(xmin = xmin, ymin = ymin,
-                                     xmax = xmax, ymax = ymax, fill = value)) +
-        ggplot2::geom_rect() +
-        ggplot2::scale_fill_gradient2("alpha", low = "white", mid = "red", midpoint = 1) +
-        ggplot2::geom_hline(yintercept = cumsum(self$pi[[1]][ord][1:(self$Q-1)]), size = .2) +
-        ggplot2::geom_vline(xintercept = cumsum(self$pi[[1]][ord][1:(self$Q-1)]), size = .2) +
-        ggplot2::scale_y_reverse() +
-        ggplot2::theme_bw(base_size = 15, base_rect_size = 1, base_line_size  = 1) +
-        ggplot2::xlab("") +
-        ggplot2::ylab("") +
-        ggplot2::coord_equal(expand = FALSE) +
-        ggplot2::labs(tag =  tag)
-      return(p_alpha_pr_res)
-    }
+      }
 
   ),
   active = list(

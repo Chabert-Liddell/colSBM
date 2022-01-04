@@ -43,6 +43,8 @@ res_fw_iid$ICL_clustering
 ```
 
 ```{r}
-plot(res_fw_iid$best_fit, ord = c(3,4,5,2,1))
+plot(res_fw_iid$best_fit, type = "graphon", ord = c(3,4,5,2,1))
+plot(res_fw_iid$best_fit, type = "meso", mixture = TRUE)
+plot(res_fw_iid$best_fit, type = "block")
 ```
 
