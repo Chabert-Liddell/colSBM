@@ -16,6 +16,7 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(colSBM)
+library(patchwork)
 data("foodwebs")
 ```
 
@@ -44,7 +45,9 @@ res_fw_iid$ICL_clustering
 
 ```{r}
 plot(res_fw_iid$best_fit, type = "graphon", ord = c(3,4,5,2,1))
-plot(res_fw_iid$best_fit, type = "meso", mixture = TRUE)
-plot(res_fw_iid$best_fit, type = "block")
+plot(res_fw_iid$best_fit, type = "meso", mixture = FALSE, ord = c(3,4,5,2,1))
+plot(res_fw_iid$best_fit, type = "block", net_id = 1) + 
+  plot(res_fw_iid$best_fit, type = "block", net_id = 2) +
+  plot(res_fw_iid$best_fit, type = "block", net_id = 3) 
 ```
 

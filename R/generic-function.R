@@ -58,26 +58,27 @@ fitSimpleSBMPop$set("public", "plot",
           ggplot2::ylab("") +
           ggplot2::ylab(xl) +
           ggplot2::theme_bw(base_size = 15)
-        p_alpha <- ( p_alpha + p_pi) + patchwork::plot_layout(guides = 'collect', widths = c(.65,.35)) +
+        p_alpha <- ( p_alpha | p_pi) + patchwork::plot_layout(guides = 'collect', widths = c(.65,.35)) +
           patchwork::plot_annotation(title = NULL)
       }
       return(p_alpha)
     },
     "block" = {self$A[[net_id]][order(self$Z[[net_id]]),
-                               order(self$Z[[net_id]])] %>% t() %>%
+                               order(self$Z[[net_id]])] %>%
       reshape2::melt() %>%
       ggplot2::ggplot(ggplot2::aes(x = Var2, y = Var1, fill = value)) +
       ggplot2::geom_tile(show.legend = FALSE) +
       ggplot2::geom_hline(yintercept = cumsum(tabulate(self$Z[[net_id]])[1:(self$Q-1)])+.5,
                  col = "red", size = .5) +
-        ggplot2::geom_vline(xintercept = cumsum(tabulate(self$Z[[net_id]])[1:(self$Q-1)])+.5,
+        ggplot2::geom_vline(xintercept = cumsum(tabulate(self$Z[[net_id]])[(self$Q):2])+.5,
                  col = "red", size = .5) +
         ggplot2::scale_fill_gradient(low = "white", high = "black") +
         ggplot2::ylab("") + ggplot2::xlab(self$net_id[net_id]) +
-        ggplot2::scale_x_discrete(#limits = rev,
+        ggplot2::scale_x_discrete(limits = rev,
         breaks = "") +
         #ggplot2::scale_y_reverse() +
-       ggplot2::scale_y_discrete(limits = rev, breaks = "",#label = rev(custom_lab3),
+       ggplot2::scale_y_discrete(#limits = rev,
+                                 breaks = "",#label = rev(custom_lab3),
                         guide = ggplot2::guide_axis(angle = 0) ) +
         ggplot2::coord_equal(expand = FALSE) +
         ggplot2::theme_bw(base_size = 15) +
