@@ -18,9 +18,15 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
 Imports: 
     ape,
+    bettermc,
+    dplyr,
+    ggplot2,
     magrittr,
+    patchwork,
+    purrr,
     sbm,
     stats,
+    tidyr,
     utils
 Suggests: 
     knitr,

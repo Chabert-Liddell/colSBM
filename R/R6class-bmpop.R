@@ -181,7 +181,8 @@ bmpop <- R6::R6Class(
               Z_init <- lapply(
                 seq_along(Z_sbm),
                 function(m) {
-                  ord <- sample(seq_along(prob[[m]]), prob[[m]])
+                  ord <- sample(seq_along(prob[[m]]),
+                                size = length(prob[[m]]), prob = prob[[m]])
                   ord[match(Z_sbm[[m]], unique(Z_sbm[[m]]))]
                 }
               )

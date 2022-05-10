@@ -651,7 +651,7 @@ fitBipartiteSBMPop <- R6::R6Class(
               self$nmqr[m,,] <- .tquadform(tau_tmp, self$mask[[m]])
               a <- self$emqr[m,,]/self$nmqr[m,,]
               prob <- self$Q*diag(a) #+ rowSums(a)
-              p <- sample(self$Q, prob = prob)
+              p <- sample.int(self$Q, prob = prob)
               tau_tmp <- tau_tmp[,p]
               self$emqr[m,,] <- self$emqr[m,p,p]
               self$nmqr[m,,] <- self$nmqr[m,p,p]
@@ -669,7 +669,7 @@ fitBipartiteSBMPop <- R6::R6Class(
               self$nmqr[m,,] <- .tquadform(tau_tmp, self$mask[[m]])
               a <- self$emqr[m,,]/self$nmqr[m,,]
               prob <- self$Q*diag(a)# + rowSums(a)
-              p <- sample(self$Q, prob = prob)
+              p <- sample.int(self$Q, prob = prob)
               tau_tmp <- tau_tmp[,p]
               self$emqr[m,,] <- self$emqr[m,p,p]
               self$nmqr[m,,] <- self$nmqr[m,p,p]
@@ -788,7 +788,7 @@ fitBipartiteSBMPop <- R6::R6Class(
             )
             self$m_step(...)
           } else {
-            seq_m <- sample(self$M)
+            seq_m <- sample.int(self$M)
             lapply(seq(self$M),
                    function(m) {
                      switch (self$fit_opts$algo_ve,
