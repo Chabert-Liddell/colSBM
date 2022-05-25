@@ -3,7 +3,7 @@ pkgdown: 2.0.3
 pkgdown_sha: ~
 articles:
   tutorial: tutorial.html
-last_built: 2022-05-10T17:10Z
+last_built: 2022-05-25T16:01Z
 urls:
   reference: https://Chabert-Liddel.github.io/colSBM/reference
   article: https://Chabert-Liddel.github.io/colSBM/articles
