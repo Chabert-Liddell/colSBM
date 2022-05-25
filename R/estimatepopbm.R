@@ -105,7 +105,7 @@ EstimatePopBM <- function(netlist = NULL,
   # list_model_binary <- list(my_bmpop)
   # list_icl_binary <- list(my_bmpop$best_fit$ICL)
   recursive_clustering <- function(fit) {
-    if(fit$best_fit$M == 1) return(fit)
+    if(fit$best_fit$M == 1) return(fit$best_fit)
     dist_bm <- diag(0, fit$best_fit$M)
     for (i in seq(nrow(dist_bm))) {
       for (j in seq(ncol(dist_bm))) {
@@ -181,23 +181,19 @@ EstimatePopBM <- function(netlist = NULL,
                return(res)
              })
     if (full_inference) {
-      return(list(fit,
-                  list(recursive_clustering(fits[[1]]),
-                       recursive_clustering(fits[[2]]))))
+      return(list(fit$best_fit,
+                  recursive_clustering(fits[[1]]),
+                  recursive_clustering(fits[[2]])))
     } else {
       if (fits[[1]]$best_fit$ICL_clustering + fits[[2]]$best_fit$ICL_clustering >
           fit$best_fit$ICL_clustering) {
-        return(list(fit,
-                    list(recursive_clustering(fits[[1]]),
-                         recursive_clustering(fits[[2]]))))
+        return(list(fit$best_fit,
+                    recursive_clustering(fits[[1]]),
+                    recursive_clustering(fits[[2]])))
       } else {
-        return(list(fit))
+        return(fit$best_fit)
       }
     }
-
-
-
-
     #   return (list(list(model = model, id = model$net_id, ICL = model$best_fit$ICL, Q = model$best_fit$Q),
     #                list(list(model = models[[1]], id = models[[1]]$net_id, ICL = models[[1]]$best_fit$ICL, Q = models[[1]]$best_fit$Q),
     #                     list(model = models[[2]], id = models[[2]]$net_id, ICL = models[[2]]$best_fit$ICL, Q = models[[2]]$best_fit$Q))))
@@ -297,4 +293,14 @@ EstimatePopBM <- function(netlist = NULL,
   #             id = partial_id,
   #             fit = partial_fit))
 
+}
+
+
+
+
+best_list <- function(l) {
+  if(length(l) == 1)  return(l[[1]])
+  if(length(l) == 2) return(l[[2]])
+  return(list(best_list(l[[2]]),
+              best_list(l[[3]])))
 }
