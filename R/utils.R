@@ -135,7 +135,7 @@ dist_param <- function(param, param_old) {
 #' @return A matrix of the same size than X with class integer as coefficient
 build_fold_matrix <- function(X, K) {
   n <- ncol(X)
-  arrange     <- sample(x = seq(n))
+  arrange     <- sample.int(n)
   labels      <- cut(seq(n), breaks = K, labels = FALSE)
   fold_matrix <- diag(n)
   for (i in seq(n)) {
