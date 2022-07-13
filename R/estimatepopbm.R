@@ -146,7 +146,7 @@ EstimatePopBM <- function(netlist = NULL,
                    seq(min(sum(cl == k), nb_run)),
                    function(x) {
                      global_opts$nb_cores <- max(1L, floor(global_opts$nb_cores/nb_run))
-                     tmp_fit <- bmpop::bmpop$new(fit$A[cl == k], fit$net_id[cl == k],
+                     tmp_fit <- bmpop$new(fit$A[cl == k], fit$net_id[cl == k],
                                       directed = directed,
                                       model = model,
                                       free_density = free_density,
