@@ -54,45 +54,62 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">estimate_colSBM</span><span class="op">(</span>
-  <span class="va">netlist</span>,
-  <span class="va">colsbm_model</span>,
-  net_id <span class="op">=</span> <span class="cn">NULL</span>,
-  directed <span class="op">=</span> <span class="cn">NULL</span>,
-  model <span class="op">=</span> <span class="st">"bernoulli"</span>,
-  fit_sbm <span class="op">=</span> <span class="cn">NULL</span>,
-  nb_run <span class="op">=</span> <span class="fl">3L</span>,
-  global_opts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,
-  fit_opts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,
-  fit_init <span class="op">=</span> <span class="cn">NULL</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">estimate_colSBM</span><span class="op">(</span></span>
+<span>  <span class="va">netlist</span>,</span>
+<span>  <span class="va">colsbm_model</span>,</span>
+<span>  net_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  directed <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  model <span class="op">=</span> <span class="st">"bernoulli"</span>,</span>
+<span>  fit_sbm <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  nb_run <span class="op">=</span> <span class="fl">3L</span>,</span>
+<span>  global_opts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  fit_opts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  fit_init <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>netlist</dt>
 <dd><p>A list of matrices.</p></dd>
+
+
 <dt>colsbm_model</dt>
 <dd><p>Which colSBM to use, one of "iid", "pi", "delta",
 "deltapi".</p></dd>
+
+
 <dt>net_id</dt>
 <dd><p>A vector of string, the name of the networks.</p></dd>
+
+
 <dt>directed</dt>
 <dd><p>A boolean, are the networks directed or not.</p></dd>
+
+
 <dt>model</dt>
 <dd><p>A string, the emission distribution, either "bernoulli"
 (the default) or "poissons"</p></dd>
+
+
 <dt>fit_sbm</dt>
 <dd><p>A list of model using the <code>sbm</code> package. Use to speed up
 the initialization.</p></dd>
+
+
 <dt>nb_run</dt>
 <dd><p>An integer, the number of run the algorithm do.</p></dd>
+
+
 <dt>fit_init</dt>
 <dd></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>A bmpop object listing a collection of models for the collection.</p>
+    
+
+<p>A bmpop object listing a collection of models for the collection.</p>
     </div>
 
   </div>
@@ -107,7 +124,7 @@ the initialization.</p></dd>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
       </footer></div>

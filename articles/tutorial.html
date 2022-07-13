@@ -79,162 +79,162 @@
     
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">colSBM</span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"foodwebs"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">colSBM</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"foodwebs"</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">global_opts</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>nb_cores <span class="op">=</span> <span class="fl">1L</span>,
-                   nb_models <span class="op">=</span> <span class="fl">5L</span>,
-                   nb_init <span class="op">=</span> <span class="fl">10L</span>,
-                   depth <span class="op">=</span> <span class="fl">2L</span>,
-                   verbosity <span class="op">=</span> <span class="fl">2</span>, spectral_init <span class="op">=</span> <span class="cn">FALSE</span>,
-                   Q_max <span class="op">=</span> <span class="fl">8L</span>, plot_details <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>
-
-<span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span>
-<span class="va">res_fw_iid</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimate_colSBM.html">estimate_colSBM</a></span><span class="op">(</span>netlist <span class="op">=</span> <span class="va">foodwebs</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>,
-                              colsbm_model <span class="op">=</span> <span class="st">"iid"</span>, 
-                              directed <span class="op">=</span> <span class="cn">TRUE</span>,
-                              net_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">foodwebs</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>,
-                              nb_run <span class="op">=</span> <span class="fl">3L</span>, 
-                              global_opts <span class="op">=</span> <span class="va">global_opts</span><span class="op">)</span>
-<span class="co">#&gt; 0/1: </span>
-<span class="co">#&gt; 0/1: </span>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<span class="co">#&gt; 0/2: </span>
-<span class="co">#&gt; 0/2: </span>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<span class="co">#&gt; 0/3: </span>
-<span class="co">#&gt; 0/3: </span>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<span class="co">#&gt; Please install the progress-package in order to get a progress bar.</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">global_opts</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>nb_cores <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>                   nb_models <span class="op">=</span> <span class="fl">5L</span>,</span>
+<span>                   nb_init <span class="op">=</span> <span class="fl">10L</span>,</span>
+<span>                   depth <span class="op">=</span> <span class="fl">2L</span>,</span>
+<span>                   verbosity <span class="op">=</span> <span class="fl">2</span>, spectral_init <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>                   Q_max <span class="op">=</span> <span class="fl">8L</span>, plot_details <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span></span>
+<span><span class="va">res_fw_iid</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimate_colSBM.html">estimate_colSBM</a></span><span class="op">(</span>netlist <span class="op">=</span> <span class="va">foodwebs</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>,</span>
+<span>                              colsbm_model <span class="op">=</span> <span class="st">"iid"</span>, </span>
+<span>                              directed <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>                              net_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">foodwebs</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>,</span>
+<span>                              nb_run <span class="op">=</span> <span class="fl">3L</span>, </span>
+<span>                              global_opts <span class="op">=</span> <span class="va">global_opts</span><span class="op">)</span></span>
+<span><span class="co">#&gt; 0/1: </span></span>
+<span><span class="co">#&gt; 0/1: </span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span><span class="co">#&gt; 0/2: </span></span>
+<span><span class="co">#&gt; 0/2: </span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span><span class="co">#&gt; 0/3: </span></span>
+<span><span class="co">#&gt; 0/3: </span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span><span class="co">#&gt; Please install the progress-package in order to get a progress bar.</span></span></code></pre></div>
 <p><img src="tutorial_files/figure-html/unnamed-chunk-2-1.png" width="700"><img src="tutorial_files/figure-html/unnamed-chunk-2-2.png" width="700"></p>
-<pre><code><span class="co">#&gt; 0/1: Starting optimization of  3 SBMsStarting initialization from SBMs fit. </span>
-<span class="co">#&gt; 0/1: ==== Finish Burn in  for networks  M_Martins NC_Cooper NC_Herlzier  ===</span>
-<span class="co">#&gt; 0/1: ICL    :  -2733 -2370 -2183 -1978 -2070 -2064 -2035 -2276 </span>
-<span class="co">#&gt; 0/1: ICL Cl :  -2733 -2368 -2175 -1976 -2060 -2050 -2016 -2273 </span>
-<span class="co">#&gt; 0/1: ==== Starting pass number  1  for networks  M_Martins NC_Cooper NC_Herlzier  ===</span>
-<span class="co">#&gt; 0/1: ICL    :  -2733 -2370 -2183 -1978 -2070 -2064 -2035 -2276 </span>
-<span class="co">#&gt; 0/1: ICL Cl :  -2733 -2368 -2175 -1976 -2060 -2050 -2016 -2273 </span>
-<span class="co">#&gt; 0/1: 2 :  -2368.365  --  FALSE   3 :  -2114.924  --  TRUE    4 :  -1976.098  --  FALSE   5 :  -1971.33  --  TRUE     6 :  -2008.02  --  TRUE     7 :  -2016.042  --  FALSE   6 :  -1977.331  --  TRUE    5 :  -1971.33  --  FALSE    4 :  -1973.238  --  TRUE    3 :  -2114.924  --  FALSE   ==== Starting pass number  2  for networks  M_Martins NC_Cooper NC_Herlzier  ===</span>
-<span class="co">#&gt; 0/1: ICL    :  -2733 -2370 -2115 -1976 -1975 -1984 -2035 -2276 </span>
-<span class="co">#&gt; 0/1: ICL Cl :  -2733 -2368 -2115 -1973 -1971 -1977 -2016 -2273 </span>
-<span class="co">#&gt; 0/1: 4 :  -1973.238  --  FALSE   5 :  -1970.001  --  TRUE    6 :  -1977.331  --  FALSE   7 :  -2016.042  --  FALSE   6 :  -1971.898  --  TRUE    5 :  -1968.35  --  TRUE     4 :  -1973.238  --  FALSE   3 :  -2114.924  --  FALSE   ==== Starting pass number  3  for networks  M_Martins NC_Cooper NC_Herlzier  ===</span>
-<span class="co">#&gt; 0/1: ICL    :  -2733 -2370 -2115 -1976 -1975 -1981 -2035 -2276 </span>
-<span class="co">#&gt; 0/1: ICL Cl :  -2733 -2368 -2115 -1973 -1968 -1972 -2016 -2273 </span>
-<span class="co">#&gt; 0/1: 4 :  -1973.238  --  FALSE   5 :  -1968.35  --  FALSE    6 :  -1971.898  --  FALSE   7 :  -2016.042  --  FALSE   6 :  -1971.822  --  TRUE    5 :  -1968.35  --  FALSE    4 :  -1973.238  --  FALSE   3 :  -2114.924  --  FALSE   </span>
-<span class="co">#&gt; 0/2: Starting optimization of  3 SBMsStarting initialization from SBMs fit. </span>
-<span class="co">#&gt; 0/2: ==== Finish Burn in  for networks  M_Martins NC_Cooper NC_Herlzier  ===</span>
-<span class="co">#&gt; 0/2: ICL    :  -2733 -2367 -2290 -1978 -2106 -2067 -2042 -2118 </span>
-<span class="co">#&gt; 0/2: ICL Cl :  -2733 -2366 -2279 -1976 -2090 -2032 -2034 -2099 </span>
-<span class="co">#&gt; 0/2: ==== Starting pass number  1  for networks  M_Martins NC_Cooper NC_Herlzier  ===</span>
-<span class="co">#&gt; 0/2: ICL    :  -2733 -2367 -2290 -1978 -2106 -2067 -2042 -2118 </span>
-<span class="co">#&gt; 0/2: ICL Cl :  -2733 -2366 -2279 -1976 -2090 -2032 -2034 -2099 </span>
-<span class="co">#&gt; 0/2: 2 :  -2365.927  --  FALSE   3 :  -2114.591  --  TRUE    4 :  -1976.098  --  FALSE   5 :  -1968.772  --  TRUE    6 :  -1975.136  --  TRUE    7 :  -2022.825  --  TRUE    6 :  -1975.136  --  FALSE   5 :  -1968.772  --  FALSE   4 :  -1973.563  --  TRUE    3 :  -2114.591  --  FALSE   ==== Starting pass number  2  for networks  M_Martins NC_Cooper NC_Herlzier  ===</span>
-<span class="co">#&gt; 0/2: ICL    :  -2733 -2367 -2115 -1976 -1970 -1979 -2028 -2118 </span>
-<span class="co">#&gt; 0/2: ICL Cl :  -2733 -2366 -2115 -1974 -1969 -1975 -2023 -2099 </span>
-<span class="co">#&gt; 0/2: 4 :  -1973.563  --  FALSE   5 :  -1968.772  --  FALSE   6 :  -1975.136  --  FALSE   7 :  -2011.313  --  TRUE    6 :  -1975.136  --  FALSE   5 :  -1968.772  --  FALSE   4 :  -1973.563  --  FALSE   3 :  -2114.591  --  FALSE   </span>
-<span class="co">#&gt; 0/3: Starting optimization of  3 SBMsStarting initialization from SBMs fit. </span>
-<span class="co">#&gt; 0/3: ==== Finish Burn in  for networks  M_Martins NC_Cooper NC_Herlzier  ===</span>
-<span class="co">#&gt; 0/3: ICL    :  -2733 -2367 -2300 -1979 -1992 -2040 -2028 -2166 </span>
-<span class="co">#&gt; 0/3: ICL Cl :  -2733 -2366 -2295 -1977 -1983 -2038 -2021 -2151 </span>
-<span class="co">#&gt; 0/3: ==== Starting pass number  1  for networks  M_Martins NC_Cooper NC_Herlzier  ===</span>
-<span class="co">#&gt; 0/3: ICL    :  -2733 -2367 -2300 -1979 -1992 -2040 -2028 -2166 </span>
-<span class="co">#&gt; 0/3: ICL Cl :  -2733 -2366 -2295 -1977 -1983 -2038 -2021 -2151 </span>
-<span class="co">#&gt; 0/3: 2 :  -2365.927  --  FALSE   3 :  -2114.533  --  TRUE    4 :  -1977.237  --  FALSE   5 :  -1973.039  --  TRUE    6 :  -1992.662  --  TRUE    7 :  -2020.568  --  FALSE   6 :  -1970.787  --  TRUE    5 :  -1971.26  --  TRUE     4 :  -1976.339  --  TRUE    ==== Starting pass number  2  for networks  M_Martins NC_Cooper NC_Herlzier  ===</span>
-<span class="co">#&gt; 0/3: ICL    :  -2733 -2367 -2115 -1981 -1973 -1974 -2028 -2166 </span>
-<span class="co">#&gt; 0/3: ICL Cl :  -2733 -2366 -2115 -1976 -1971 -1971 -2021 -2151 </span>
-<span class="co">#&gt; 0/3: 5 :  -1971.26  --  FALSE    6 :  -1970.787  --  FALSE   7 :  -2006.42  --  TRUE     8 :  -2068.175  --  TRUE    7 :  -2006.42  --  FALSE    6 :  -1970.787  --  FALSE   5 :  -1971.26  --  FALSE    4 :  -1976.339  --  FALSE   </span>
-<span class="co">#&gt; Warning in pmax(self$ICL_clustering, rep(-Inf, Q_max)): 0/1: an argument will be</span>
-<span class="co">#&gt; fractionally recycled</span>
-
-<span class="co">#&gt; Warning in pmax(self$ICL_clustering, rep(-Inf, Q_max)): 0/1: an argument will be</span>
-<span class="co">#&gt; fractionally recycled</span>
-
-<span class="co">#&gt; Warning in pmax(self$ICL_clustering, rep(-Inf, Q_max)): 0/1: an argument will be</span>
-<span class="co">#&gt; fractionally recycled</span>
-<span class="co">#&gt; Warning in pmax(self$ICL_clustering, rep(-Inf, Q_max)): 0/2: an argument will be</span>
-<span class="co">#&gt; fractionally recycled</span>
-
-<span class="co">#&gt; Warning in pmax(self$ICL_clustering, rep(-Inf, Q_max)): 0/2: an argument will be</span>
-<span class="co">#&gt; fractionally recycled</span>
-<span class="co">#&gt; Warning in pmax(self$ICL_clustering, rep(-Inf, Q_max)): 0/3: an argument will be</span>
-<span class="co">#&gt; fractionally recycled</span></code></pre>
+<pre><code><span><span class="co">#&gt; 0/1: Starting optimization of  3 SBMsStarting initialization from SBMs fit. </span></span>
+<span><span class="co">#&gt; 0/1: ==== Finish Burn in  for networks  M_Martins NC_Cooper NC_Herlzier  ===</span></span>
+<span><span class="co">#&gt; 0/1: ICL    :  -2733 -2370 -2183 -1978 -2070 -2064 -2035 -2276 </span></span>
+<span><span class="co">#&gt; 0/1: ICL Cl :  -2733 -2368 -2175 -1976 -2060 -2050 -2016 -2273 </span></span>
+<span><span class="co">#&gt; 0/1: ==== Starting pass number  1  for networks  M_Martins NC_Cooper NC_Herlzier  ===</span></span>
+<span><span class="co">#&gt; 0/1: ICL    :  -2733 -2370 -2183 -1978 -2070 -2064 -2035 -2276 </span></span>
+<span><span class="co">#&gt; 0/1: ICL Cl :  -2733 -2368 -2175 -1976 -2060 -2050 -2016 -2273 </span></span>
+<span><span class="co">#&gt; 0/1: 2 :  -2368.365  --  FALSE   3 :  -2114.924  --  TRUE    4 :  -1976.098  --  FALSE   5 :  -1971.33  --  TRUE     6 :  -2008.02  --  TRUE     7 :  -2016.042  --  FALSE   6 :  -1977.331  --  TRUE    5 :  -1971.33  --  FALSE    4 :  -1973.238  --  TRUE    3 :  -2114.924  --  FALSE   ==== Starting pass number  2  for networks  M_Martins NC_Cooper NC_Herlzier  ===</span></span>
+<span><span class="co">#&gt; 0/1: ICL    :  -2733 -2370 -2115 -1976 -1975 -1984 -2035 -2276 </span></span>
+<span><span class="co">#&gt; 0/1: ICL Cl :  -2733 -2368 -2115 -1973 -1971 -1977 -2016 -2273 </span></span>
+<span><span class="co">#&gt; 0/1: 4 :  -1973.238  --  FALSE   5 :  -1970.001  --  TRUE    6 :  -1977.331  --  FALSE   7 :  -2016.042  --  FALSE   6 :  -1971.898  --  TRUE    5 :  -1968.35  --  TRUE     4 :  -1973.238  --  FALSE   3 :  -2114.924  --  FALSE   ==== Starting pass number  3  for networks  M_Martins NC_Cooper NC_Herlzier  ===</span></span>
+<span><span class="co">#&gt; 0/1: ICL    :  -2733 -2370 -2115 -1976 -1975 -1981 -2035 -2276 </span></span>
+<span><span class="co">#&gt; 0/1: ICL Cl :  -2733 -2368 -2115 -1973 -1968 -1972 -2016 -2273 </span></span>
+<span><span class="co">#&gt; 0/1: 4 :  -1973.238  --  FALSE   5 :  -1968.35  --  FALSE    6 :  -1971.898  --  FALSE   7 :  -2016.042  --  FALSE   6 :  -1971.822  --  TRUE    5 :  -1968.35  --  FALSE    4 :  -1973.238  --  FALSE   3 :  -2114.924  --  FALSE   </span></span>
+<span><span class="co">#&gt; 0/2: Starting optimization of  3 SBMsStarting initialization from SBMs fit. </span></span>
+<span><span class="co">#&gt; 0/2: ==== Finish Burn in  for networks  M_Martins NC_Cooper NC_Herlzier  ===</span></span>
+<span><span class="co">#&gt; 0/2: ICL    :  -2733 -2367 -2290 -1978 -2106 -2067 -2042 -2118 </span></span>
+<span><span class="co">#&gt; 0/2: ICL Cl :  -2733 -2366 -2279 -1976 -2090 -2032 -2034 -2099 </span></span>
+<span><span class="co">#&gt; 0/2: ==== Starting pass number  1  for networks  M_Martins NC_Cooper NC_Herlzier  ===</span></span>
+<span><span class="co">#&gt; 0/2: ICL    :  -2733 -2367 -2290 -1978 -2106 -2067 -2042 -2118 </span></span>
+<span><span class="co">#&gt; 0/2: ICL Cl :  -2733 -2366 -2279 -1976 -2090 -2032 -2034 -2099 </span></span>
+<span><span class="co">#&gt; 0/2: 2 :  -2365.927  --  FALSE   3 :  -2114.591  --  TRUE    4 :  -1976.098  --  FALSE   5 :  -1968.772  --  TRUE    6 :  -1975.136  --  TRUE    7 :  -2022.825  --  TRUE    6 :  -1975.136  --  FALSE   5 :  -1968.772  --  FALSE   4 :  -1973.563  --  TRUE    3 :  -2114.591  --  FALSE   ==== Starting pass number  2  for networks  M_Martins NC_Cooper NC_Herlzier  ===</span></span>
+<span><span class="co">#&gt; 0/2: ICL    :  -2733 -2367 -2115 -1976 -1970 -1979 -2028 -2118 </span></span>
+<span><span class="co">#&gt; 0/2: ICL Cl :  -2733 -2366 -2115 -1974 -1969 -1975 -2023 -2099 </span></span>
+<span><span class="co">#&gt; 0/2: 4 :  -1973.563  --  FALSE   5 :  -1968.772  --  FALSE   6 :  -1975.136  --  FALSE   7 :  -2011.313  --  TRUE    6 :  -1975.136  --  FALSE   5 :  -1968.772  --  FALSE   4 :  -1973.563  --  FALSE   3 :  -2114.591  --  FALSE   </span></span>
+<span><span class="co">#&gt; 0/3: Starting optimization of  3 SBMsStarting initialization from SBMs fit. </span></span>
+<span><span class="co">#&gt; 0/3: ==== Finish Burn in  for networks  M_Martins NC_Cooper NC_Herlzier  ===</span></span>
+<span><span class="co">#&gt; 0/3: ICL    :  -2733 -2367 -2300 -1979 -1992 -2040 -2028 -2166 </span></span>
+<span><span class="co">#&gt; 0/3: ICL Cl :  -2733 -2366 -2295 -1977 -1983 -2038 -2021 -2151 </span></span>
+<span><span class="co">#&gt; 0/3: ==== Starting pass number  1  for networks  M_Martins NC_Cooper NC_Herlzier  ===</span></span>
+<span><span class="co">#&gt; 0/3: ICL    :  -2733 -2367 -2300 -1979 -1992 -2040 -2028 -2166 </span></span>
+<span><span class="co">#&gt; 0/3: ICL Cl :  -2733 -2366 -2295 -1977 -1983 -2038 -2021 -2151 </span></span>
+<span><span class="co">#&gt; 0/3: 2 :  -2365.927  --  FALSE   3 :  -2114.533  --  TRUE    4 :  -1977.237  --  FALSE   5 :  -1973.039  --  TRUE    6 :  -1992.662  --  TRUE    7 :  -2020.568  --  FALSE   6 :  -1970.787  --  TRUE    5 :  -1971.26  --  TRUE     4 :  -1976.339  --  TRUE    ==== Starting pass number  2  for networks  M_Martins NC_Cooper NC_Herlzier  ===</span></span>
+<span><span class="co">#&gt; 0/3: ICL    :  -2733 -2367 -2115 -1981 -1973 -1974 -2028 -2166 </span></span>
+<span><span class="co">#&gt; 0/3: ICL Cl :  -2733 -2366 -2115 -1976 -1971 -1971 -2021 -2151 </span></span>
+<span><span class="co">#&gt; 0/3: 5 :  -1971.26  --  FALSE    6 :  -1970.787  --  FALSE   7 :  -2006.42  --  TRUE     8 :  -2068.175  --  TRUE    7 :  -2006.42  --  FALSE    6 :  -1970.787  --  FALSE   5 :  -1971.26  --  FALSE    4 :  -1976.339  --  FALSE   </span></span>
+<span><span class="co">#&gt; Warning in pmax(self$ICL_clustering, rep(-Inf, Q_max)): 0/1: an argument will be</span></span>
+<span><span class="co">#&gt; fractionally recycled</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in pmax(self$ICL_clustering, rep(-Inf, Q_max)): 0/1: an argument will be</span></span>
+<span><span class="co">#&gt; fractionally recycled</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in pmax(self$ICL_clustering, rep(-Inf, Q_max)): 0/1: an argument will be</span></span>
+<span><span class="co">#&gt; fractionally recycled</span></span>
+<span><span class="co">#&gt; Warning in pmax(self$ICL_clustering, rep(-Inf, Q_max)): 0/2: an argument will be</span></span>
+<span><span class="co">#&gt; fractionally recycled</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in pmax(self$ICL_clustering, rep(-Inf, Q_max)): 0/2: an argument will be</span></span>
+<span><span class="co">#&gt; fractionally recycled</span></span>
+<span><span class="co">#&gt; Warning in pmax(self$ICL_clustering, rep(-Inf, Q_max)): 0/3: an argument will be</span></span>
+<span><span class="co">#&gt; fractionally recycled</span></span></code></pre>
 <p><img src="tutorial_files/figure-html/unnamed-chunk-2-3.png" width="700"></p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">res_fw_iid</span><span class="op">$</span><span class="va">ICL_clustering</span>
-<span class="co">#&gt; [1] -2732.899 -2365.927 -2114.533 -1973.238 -1968.350 -1970.787 -2006.420</span>
-<span class="co">#&gt; [8] -2068.175</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">res_fw_iid</span><span class="op">$</span><span class="va">ICL_clustering</span></span>
+<span><span class="co">#&gt; [1] -2732.899 -2365.927 -2114.533 -1973.238 -1968.350 -1970.787 -2006.420</span></span>
+<span><span class="co">#&gt; [8] -2068.175</span></span></code></pre></div>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res_fw_iid</span><span class="op">$</span><span class="va">best_fit</span>, type <span class="op">=</span> <span class="st">"graphon"</span>, ord <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">4</span>,<span class="fl">5</span>,<span class="fl">2</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res_fw_iid</span><span class="op">$</span><span class="va">best_fit</span>, type <span class="op">=</span> <span class="st">"graphon"</span>, ord <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">4</span>,<span class="fl">5</span>,<span class="fl">2</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="tutorial_files/figure-html/unnamed-chunk-4-1.png" width="700"></p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res_fw_iid</span><span class="op">$</span><span class="va">best_fit</span>, type <span class="op">=</span> <span class="st">"meso"</span>, mixture <span class="op">=</span> <span class="cn">FALSE</span>, ord <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">4</span>,<span class="fl">5</span>,<span class="fl">2</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span>
-<span class="co">#&gt; New names:</span>
-<span class="co">#&gt; <span style="color: #00BBBB;">•</span> `` -&gt; `...1`</span>
-<span class="co">#&gt; <span style="color: #00BBBB;">•</span> `` -&gt; `...2`</span>
-<span class="co">#&gt; <span style="color: #00BBBB;">•</span> `` -&gt; `...3`</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res_fw_iid</span><span class="op">$</span><span class="va">best_fit</span>, type <span class="op">=</span> <span class="st">"meso"</span>, mixture <span class="op">=</span> <span class="cn">FALSE</span>, ord <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">4</span>,<span class="fl">5</span>,<span class="fl">2</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; New names:</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> `` -&gt; `...1`</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> `` -&gt; `...2`</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> `` -&gt; `...3`</span></span></code></pre></div>
 <p><img src="tutorial_files/figure-html/unnamed-chunk-4-2.png" width="700"></p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res_fw_iid</span><span class="op">$</span><span class="va">best_fit</span>, type <span class="op">=</span> <span class="st">"block"</span>, net_id <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span> 
-  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res_fw_iid</span><span class="op">$</span><span class="va">best_fit</span>, type <span class="op">=</span> <span class="st">"block"</span>, net_id <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span>
-  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res_fw_iid</span><span class="op">$</span><span class="va">best_fit</span>, type <span class="op">=</span> <span class="st">"block"</span>, net_id <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> </code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res_fw_iid</span><span class="op">$</span><span class="va">best_fit</span>, type <span class="op">=</span> <span class="st">"block"</span>, net_id <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res_fw_iid</span><span class="op">$</span><span class="va">best_fit</span>, type <span class="op">=</span> <span class="st">"block"</span>, net_id <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res_fw_iid</span><span class="op">$</span><span class="va">best_fit</span>, type <span class="op">=</span> <span class="st">"block"</span>, net_id <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> </span></code></pre></div>
 <p><img src="tutorial_files/figure-html/unnamed-chunk-4-3.png" width="700"></p>
   </div>
 
@@ -253,7 +253,7 @@
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
       </footer>
