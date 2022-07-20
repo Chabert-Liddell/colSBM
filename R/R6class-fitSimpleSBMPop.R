@@ -211,7 +211,7 @@ fitSimpleSBMPop <- R6::R6Class(
         },
         "poisson" = {
 #          tau_tmp <- self$tau[[m]]
-          self$dircoef * (sum(self$Calpha * .xlogy(emqr, alpha*delta, eps = 1e-12)) -
+          self$dircoef * (sum(self$Calpha * emqr *log(pmax( alpha*delta, 1e-12))) -
                                sum(nmqr * self$Calpha * alpha * delta) -
                                self$logfactA[m])
           # self$dircoef*sum(
@@ -599,7 +599,7 @@ fitSimpleSBMPop <- R6::R6Class(
               t(matrix(.xlogy(self$Cpi[,m],self$pi[[m]]), self$Q, self$n[m])) +
               (self$mask[[m]] * self$A[[m]]) %*%
               tau_old %*%
-              t(.log(self$delta[m]*self$alpha, eps = 1e-9)) -
+              t(log(pmax(self$delta[m]*self$alpha,  1e-12))) -
               self$mask[[m]] %*%
               tau_old %*%
               t(self$alpha*self$delta[m])
@@ -607,7 +607,7 @@ fitSimpleSBMPop <- R6::R6Class(
               tau_new <- tau_new +
                 crossprod(self$mask[[m]]*self$A[[m]],
                           tau_old %*%
-                            .log(self$delta[m]*self$alpha, eps = 1e-9)) -
+                            log(pmax(self$delta[m]*self$alpha, 1e-12))) -
                 crossprod(self$mask[[m]],
                           tau_old %*%
                             self$alpha*self$delta[m])
@@ -633,15 +633,26 @@ fitSimpleSBMPop <- R6::R6Class(
         emqr[is.nan(emqr)] <- 0
         nmqr[is.nan(nmqr)] <- 0
         if (it >= 1) {
-          self$vloss[[m]] <-
-            c(self$vloss[[m]],
-              self$dircoef*sum(
-                outer(self$Cpi[,m], self$Cpi[,m]) * (
-                  .xlogy(emqr, self$alpha*self$delta[m], eps = 1e-12) +
+          if (self$model == "bernoulli") {
+            vl <- self$dircoef*sum(
+              outer(self$Cpi[,m], self$Cpi[,m]) * (
+                .xlogy(emqr, self$alpha*self$delta[m], eps = 1e-12) +
                   .xlogy(nmqr - emqr, 1 - self$alpha*self$delta[m], eps = 1e-12))) +
-                sum(tau_new[, which(self$Cpi[,m]), drop = FALSE]  %*%
-                      log(self$pi[[m]][which(self$Cpi[,m])])) -
-                sum(.xlogx(tau_new[which(self$Cpi[,m])])))
+              sum(tau_new[, which(self$Cpi[,m]), drop = FALSE]  %*%
+                    log(self$pi[[m]][which(self$Cpi[,m])])) -
+              sum(.xlogx(tau_new[which(self$Cpi[,m])]))
+
+          }
+          if (self$model == "poisson") {
+            vl <- self$dircoef*sum(
+              outer(self$Cpi[,m], self$Cpi[,m]) * (
+                emqr * log(pmax(self$alpha*self$delta[m], 1e-12)) -
+                nmqr * self$alpha * self$delta[m])) +
+              sum(tau_new[, which(self$Cpi[,m]), drop = FALSE]  %*%
+                    log(self$pi[[m]][which(self$Cpi[,m])])) -
+              sum(.xlogx(tau_new[which(self$Cpi[,m])])) - self$logfactA[m]
+          }
+          self$vloss[[m]] <-  c(self$vloss[[m]], vl)
           up <- self$vloss[[m]][length(self$vloss[[m]])] >
             self$vloss[[m]][length(self$vloss[[m]]) - 1]
         } else {
