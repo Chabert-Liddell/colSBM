@@ -1,6 +1,6 @@
 Package: colSBM
 Title: Stochastic Block Model for Collection of Networks
-Version: 0.0.1
+Version: 0.1.0
 Authors@R: 
     person(given = "Saint-Clair",
            family = "Chabert-Liddell",
@@ -15,10 +15,11 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.0
 Imports: 
     ape,
     bettermc,
+    cluster,
     dplyr,
     ggplot2,
     magrittr,
