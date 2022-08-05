@@ -8,3 +8,4 @@
 ^\.github$
 ^data-raw$
 ^README\.Rmd$
+^references\.bib$

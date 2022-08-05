@@ -6,7 +6,7 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-colSBM is an R package that implement methods for clustering and
+colSBM is an R package which implements methods for clustering and
 inferring the mesoscale structure for collection of networks. In
 particular, it allows to:
 
