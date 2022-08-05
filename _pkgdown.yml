@@ -1,10 +1,7 @@
 url: https://Chabert-Liddel.github.io/colSBM
 template:
   bootstrap: 5
-  bslib:
-    bg: "#FFFFFF"
-    fg: "#000000"
-    primary: "#FA8072"
+  bootswatch: sandstone
 reference:
 - title: Use functions
   contents:
@@ -17,7 +14,7 @@ reference:
   - '`dist_bmpop_max`'
 - title: Generic methods
   contents:
-  - '`c("#7EC0EE", "#FA8072", "#00EE76")plot.fitSimpleSBMPop`'
+  - '`plot.fitSimpleSBMPop`'
 - title: "Data"
   contents:
   - foodwebs

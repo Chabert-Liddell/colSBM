@@ -24,12 +24,14 @@ data("foodwebs")
 
 
 ```{r}
-global_opts = list(nb_cores = 1L,
-                   nb_models = 5L,
+global_opts = list(nb_cores = 1L, 
+                   nb_models = 5L, 
                    nb_init = 10L,
                    depth = 2L,
-                   verbosity = 1, spectral_init = FALSE,
-                   Q_max = 8L, plot_details = 1)
+                   verbosity = 1, 
+                   spectral_init = FALSE,
+                   Q_max = 8L, 
+                   plot_details = 1)
 
 set.seed(1234)
 res_fw_iid <- estimate_colSBM(netlist = foodwebs[1:3],
@@ -44,8 +46,8 @@ res_fw_iid$BICL
 ```
 
 ```{r}
-plot(res_fw_iid$best_fit, type = "graphon", ord = c(3,4,5,2,1))
-plot(res_fw_iid$best_fit, type = "meso", mixture = FALSE, ord = c(3,4,5,2,1))
+plot(res_fw_iid$best_fit, type = "graphon")
+plot(res_fw_iid$best_fit, type = "meso", mixture = FALSE)
 plot(res_fw_iid$best_fit, type = "block", net_id = 1) + 
   plot(res_fw_iid$best_fit, type = "block", net_id = 2) +
   plot(res_fw_iid$best_fit, type = "block", net_id = 3) 
