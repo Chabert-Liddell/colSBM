@@ -22,13 +22,13 @@
     <loc>https://Chabert-Liddel.github.io/colSBM/index.html</loc>
   </url>
   <url>
-    <loc>https://Chabert-Liddel.github.io/colSBM/reference/EstimatePopBM.html</loc>
+    <loc>https://Chabert-Liddel.github.io/colSBM/news/index.html</loc>
   </url>
   <url>
     <loc>https://Chabert-Liddel.github.io/colSBM/reference/bmpop.html</loc>
   </url>
   <url>
-    <loc>https://Chabert-Liddel.github.io/colSBM/reference/build_fold_matrix.html</loc>
+    <loc>https://Chabert-Liddel.github.io/colSBM/reference/clusterize_networks.html</loc>
   </url>
   <url>
     <loc>https://Chabert-Liddel.github.io/colSBM/reference/colSBM-package.html</loc>
@@ -37,13 +37,7 @@
     <loc>https://Chabert-Liddel.github.io/colSBM/reference/dist_bmpop_max.html</loc>
   </url>
   <url>
-    <loc>https://Chabert-Liddel.github.io/colSBM/reference/dist_bmpop_mean.html</loc>
-  </url>
-  <url>
     <loc>https://Chabert-Liddel.github.io/colSBM/reference/estimate_colSBM.html</loc>
-  </url>
-  <url>
-    <loc>https://Chabert-Liddel.github.io/colSBM/reference/fitBipartiteSBMPop.html</loc>
   </url>
   <url>
     <loc>https://Chabert-Liddel.github.io/colSBM/reference/fitSimpleSBMPop.html</loc>
@@ -52,24 +46,12 @@
     <loc>https://Chabert-Liddel.github.io/colSBM/reference/foodwebs.html</loc>
   </url>
   <url>
-    <loc>https://Chabert-Liddel.github.io/colSBM/reference/hierarClust.html</loc>
-  </url>
-  <url>
     <loc>https://Chabert-Liddel.github.io/colSBM/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>https://Chabert-Liddel.github.io/colSBM/reference/merge_clust.html</loc>
   </url>
   <url>
     <loc>https://Chabert-Liddel.github.io/colSBM/reference/pipe.html</loc>
   </url>
   <url>
     <loc>https://Chabert-Liddel.github.io/colSBM/reference/plot.fitSimpleSBMPop.html</loc>
-  </url>
-  <url>
-    <loc>https://Chabert-Liddel.github.io/colSBM/reference/spectral_clustering.html</loc>
-  </url>
-  <url>
-    <loc>https://Chabert-Liddel.github.io/colSBM/reference/split_clust.html</loc>
   </url>
 </urlset>
