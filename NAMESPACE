@@ -2,10 +2,9 @@
 
 S3method(plot,fitSimpleSBMPop)
 export("%>%")
-export(EstimatePopBM)
 export(bmpop)
+export(clusterize_networks)
 export(dist_bmpop_max)
-export(dist_bmpop_mean)
 export(estimate_colSBM)
 export(fitSimpleSBMPop)
 importFrom(ape,additive)

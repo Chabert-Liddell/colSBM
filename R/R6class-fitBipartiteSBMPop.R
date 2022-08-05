@@ -1,6 +1,7 @@
 #' An R6 Class object, a fitted population of netowrks sbm
 #' once $optimize() is done
-#'
+#' @noMd
+#' @noRd
 
 fitBipartiteSBMPop <- R6::R6Class(
   classname = "fitBipartiteSBMPop",
@@ -102,7 +103,7 @@ fitBipartiteSBMPop <- R6::R6Class(
         self$logfactA <- vapply(
           seq_along(self$A),
           function(m) {
-            sum(lfactorial(self$A[[m]],na.rm = TRUE))
+            sum(lfactorial(self$A[[m]]),na.rm = TRUE)
           },
           FUN.VALUE = .1)
       }

@@ -14,45 +14,60 @@ once $optimize() is done
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{fitSimpleSBMPop$new()}}
-\item \href{#method-compute_map}{\code{fitSimpleSBMPop$compute_map()}}
-\item \href{#method-objective}{\code{fitSimpleSBMPop$objective()}}
-\item \href{#method-vb_tau_alpha}{\code{fitSimpleSBMPop$vb_tau_alpha()}}
-\item \href{#method-vb_tau_pi}{\code{fitSimpleSBMPop$vb_tau_pi()}}
-\item \href{#method-entropy_tau}{\code{fitSimpleSBMPop$entropy_tau()}}
-\item \href{#method-fn_vb_alpha_delta}{\code{fitSimpleSBMPop$fn_vb_alpha_delta()}}
-\item \href{#method-gr_vb_alpha_delta}{\code{fitSimpleSBMPop$gr_vb_alpha_delta()}}
-\item \href{#method-eval_g0_vb_alpha_delta}{\code{fitSimpleSBMPop$eval_g0_vb_alpha_delta()}}
-\item \href{#method-eval_jac_g0_vb_alpha_delta}{\code{fitSimpleSBMPop$eval_jac_g0_vb_alpha_delta()}}
-\item \href{#method-update_alpha_delta}{\code{fitSimpleSBMPop$update_alpha_delta()}}
-\item \href{#method-compute_vbound}{\code{fitSimpleSBMPop$compute_vbound()}}
-\item \href{#method-compute_penalty}{\code{fitSimpleSBMPop$compute_penalty()}}
-\item \href{#method-compute_icl}{\code{fitSimpleSBMPop$compute_icl()}}
-\item \href{#method-compute_icl_clustering}{\code{fitSimpleSBMPop$compute_icl_clustering()}}
-\item \href{#method-compute_exact_icl}{\code{fitSimpleSBMPop$compute_exact_icl()}}
-\item \href{#method-compute_exact_icl_iid}{\code{fitSimpleSBMPop$compute_exact_icl_iid()}}
-\item \href{#method-update_map_parameters}{\code{fitSimpleSBMPop$update_map_parameters()}}
-\item \href{#method-fixed_point_tau}{\code{fitSimpleSBMPop$fixed_point_tau()}}
-\item \href{#method-fixed_point_alpha_delta}{\code{fitSimpleSBMPop$fixed_point_alpha_delta()}}
-\item \href{#method-update_pi}{\code{fitSimpleSBMPop$update_pi()}}
-\item \href{#method-update_pim}{\code{fitSimpleSBMPop$update_pim()}}
-\item \href{#method-update_alpham}{\code{fitSimpleSBMPop$update_alpham()}}
-\item \href{#method-update_alpha}{\code{fitSimpleSBMPop$update_alpha()}}
-\item \href{#method-init_clust}{\code{fitSimpleSBMPop$init_clust()}}
-\item \href{#method-make_permutation}{\code{fitSimpleSBMPop$make_permutation()}}
-\item \href{#method-m_step}{\code{fitSimpleSBMPop$m_step()}}
-\item \href{#method-ve_step}{\code{fitSimpleSBMPop$ve_step()}}
-\item \href{#method-update_mqr}{\code{fitSimpleSBMPop$update_mqr()}}
-\item \href{#method-optimize}{\code{fitSimpleSBMPop$optimize()}}
-\item \href{#method-show}{\code{fitSimpleSBMPop$show()}}
-\item \href{#method-print}{\code{fitSimpleSBMPop$print()}}
-\item \href{#method-plot}{\code{fitSimpleSBMPop$plot()}}
-\item \href{#method-clone}{\code{fitSimpleSBMPop$clone()}}
+\item \href{#method-fitSimpleSBMPop-plot}{\code{fitSimpleSBMPop$plot()}}
+\item \href{#method-fitSimpleSBMPop-new}{\code{fitSimpleSBMPop$new()}}
+\item \href{#method-fitSimpleSBMPop-compute_map}{\code{fitSimpleSBMPop$compute_map()}}
+\item \href{#method-fitSimpleSBMPop-objective}{\code{fitSimpleSBMPop$objective()}}
+\item \href{#method-fitSimpleSBMPop-vb_tau_alpha}{\code{fitSimpleSBMPop$vb_tau_alpha()}}
+\item \href{#method-fitSimpleSBMPop-vb_tau_pi}{\code{fitSimpleSBMPop$vb_tau_pi()}}
+\item \href{#method-fitSimpleSBMPop-entropy_tau}{\code{fitSimpleSBMPop$entropy_tau()}}
+\item \href{#method-fitSimpleSBMPop-fn_vb_alpha_delta}{\code{fitSimpleSBMPop$fn_vb_alpha_delta()}}
+\item \href{#method-fitSimpleSBMPop-gr_vb_alpha_delta}{\code{fitSimpleSBMPop$gr_vb_alpha_delta()}}
+\item \href{#method-fitSimpleSBMPop-eval_g0_vb_alpha_delta}{\code{fitSimpleSBMPop$eval_g0_vb_alpha_delta()}}
+\item \href{#method-fitSimpleSBMPop-eval_jac_g0_vb_alpha_delta}{\code{fitSimpleSBMPop$eval_jac_g0_vb_alpha_delta()}}
+\item \href{#method-fitSimpleSBMPop-update_alpha_delta}{\code{fitSimpleSBMPop$update_alpha_delta()}}
+\item \href{#method-fitSimpleSBMPop-compute_vbound}{\code{fitSimpleSBMPop$compute_vbound()}}
+\item \href{#method-fitSimpleSBMPop-compute_penalty}{\code{fitSimpleSBMPop$compute_penalty()}}
+\item \href{#method-fitSimpleSBMPop-compute_icl}{\code{fitSimpleSBMPop$compute_icl()}}
+\item \href{#method-fitSimpleSBMPop-compute_BICL}{\code{fitSimpleSBMPop$compute_BICL()}}
+\item \href{#method-fitSimpleSBMPop-compute_exact_icl}{\code{fitSimpleSBMPop$compute_exact_icl()}}
+\item \href{#method-fitSimpleSBMPop-compute_exact_icl_iid}{\code{fitSimpleSBMPop$compute_exact_icl_iid()}}
+\item \href{#method-fitSimpleSBMPop-update_map_parameters}{\code{fitSimpleSBMPop$update_map_parameters()}}
+\item \href{#method-fitSimpleSBMPop-fixed_point_tau}{\code{fitSimpleSBMPop$fixed_point_tau()}}
+\item \href{#method-fitSimpleSBMPop-fixed_point_alpha_delta}{\code{fitSimpleSBMPop$fixed_point_alpha_delta()}}
+\item \href{#method-fitSimpleSBMPop-update_pi}{\code{fitSimpleSBMPop$update_pi()}}
+\item \href{#method-fitSimpleSBMPop-update_pim}{\code{fitSimpleSBMPop$update_pim()}}
+\item \href{#method-fitSimpleSBMPop-update_alpham}{\code{fitSimpleSBMPop$update_alpham()}}
+\item \href{#method-fitSimpleSBMPop-update_alpha}{\code{fitSimpleSBMPop$update_alpha()}}
+\item \href{#method-fitSimpleSBMPop-init_clust}{\code{fitSimpleSBMPop$init_clust()}}
+\item \href{#method-fitSimpleSBMPop-make_permutation}{\code{fitSimpleSBMPop$make_permutation()}}
+\item \href{#method-fitSimpleSBMPop-m_step}{\code{fitSimpleSBMPop$m_step()}}
+\item \href{#method-fitSimpleSBMPop-ve_step}{\code{fitSimpleSBMPop$ve_step()}}
+\item \href{#method-fitSimpleSBMPop-update_mqr}{\code{fitSimpleSBMPop$update_mqr()}}
+\item \href{#method-fitSimpleSBMPop-optimize}{\code{fitSimpleSBMPop$optimize()}}
+\item \href{#method-fitSimpleSBMPop-show}{\code{fitSimpleSBMPop$show()}}
+\item \href{#method-fitSimpleSBMPop-print}{\code{fitSimpleSBMPop$print()}}
+\item \href{#method-fitSimpleSBMPop-clone}{\code{fitSimpleSBMPop$clone()}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-plot"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-plot}{}}}
+\subsection{Method \code{plot()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$plot(
+  type = "graphon",
+  ord = NULL,
+  mixture = FALSE,
+  net_id = NULL,
+  ...
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-new"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$new(
@@ -76,8 +91,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-compute_map"></a>}}
-\if{latex}{\out{\hypertarget{method-compute_map}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-compute_map"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-compute_map}{}}}
 \subsection{Method \code{compute_map()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$compute_map()}\if{html}{\out{</div>}}
@@ -85,8 +100,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-objective"></a>}}
-\if{latex}{\out{\hypertarget{method-objective}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-objective"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-objective}{}}}
 \subsection{Method \code{objective()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$objective()}\if{html}{\out{</div>}}
@@ -94,8 +109,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-vb_tau_alpha"></a>}}
-\if{latex}{\out{\hypertarget{method-vb_tau_alpha}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-vb_tau_alpha"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-vb_tau_alpha}{}}}
 \subsection{Method \code{vb_tau_alpha()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$vb_tau_alpha(m, map = FALSE)}\if{html}{\out{</div>}}
@@ -103,8 +118,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-vb_tau_pi"></a>}}
-\if{latex}{\out{\hypertarget{method-vb_tau_pi}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-vb_tau_pi"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-vb_tau_pi}{}}}
 \subsection{Method \code{vb_tau_pi()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$vb_tau_pi(m, map = FALSE)}\if{html}{\out{</div>}}
@@ -112,8 +127,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-entropy_tau"></a>}}
-\if{latex}{\out{\hypertarget{method-entropy_tau}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-entropy_tau"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-entropy_tau}{}}}
 \subsection{Method \code{entropy_tau()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$entropy_tau(m)}\if{html}{\out{</div>}}
@@ -121,8 +136,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-fn_vb_alpha_delta"></a>}}
-\if{latex}{\out{\hypertarget{method-fn_vb_alpha_delta}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-fn_vb_alpha_delta"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-fn_vb_alpha_delta}{}}}
 \subsection{Method \code{fn_vb_alpha_delta()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$fn_vb_alpha_delta(par, emqr, nmqr)}\if{html}{\out{</div>}}
@@ -130,8 +145,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-gr_vb_alpha_delta"></a>}}
-\if{latex}{\out{\hypertarget{method-gr_vb_alpha_delta}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-gr_vb_alpha_delta"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-gr_vb_alpha_delta}{}}}
 \subsection{Method \code{gr_vb_alpha_delta()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$gr_vb_alpha_delta(par, emqr, nmqr)}\if{html}{\out{</div>}}
@@ -139,8 +154,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-eval_g0_vb_alpha_delta"></a>}}
-\if{latex}{\out{\hypertarget{method-eval_g0_vb_alpha_delta}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-eval_g0_vb_alpha_delta"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-eval_g0_vb_alpha_delta}{}}}
 \subsection{Method \code{eval_g0_vb_alpha_delta()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$eval_g0_vb_alpha_delta(par, emqr, nmqr)}\if{html}{\out{</div>}}
@@ -148,8 +163,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-eval_jac_g0_vb_alpha_delta"></a>}}
-\if{latex}{\out{\hypertarget{method-eval_jac_g0_vb_alpha_delta}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-eval_jac_g0_vb_alpha_delta"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-eval_jac_g0_vb_alpha_delta}{}}}
 \subsection{Method \code{eval_jac_g0_vb_alpha_delta()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$eval_jac_g0_vb_alpha_delta(par, emqr, nmqr)}\if{html}{\out{</div>}}
@@ -157,8 +172,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-update_alpha_delta"></a>}}
-\if{latex}{\out{\hypertarget{method-update_alpha_delta}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-update_alpha_delta"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-update_alpha_delta}{}}}
 \subsection{Method \code{update_alpha_delta()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$update_alpha_delta(map = FALSE)}\if{html}{\out{</div>}}
@@ -166,8 +181,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-compute_vbound"></a>}}
-\if{latex}{\out{\hypertarget{method-compute_vbound}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-compute_vbound"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-compute_vbound}{}}}
 \subsection{Method \code{compute_vbound()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$compute_vbound()}\if{html}{\out{</div>}}
@@ -175,8 +190,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-compute_penalty"></a>}}
-\if{latex}{\out{\hypertarget{method-compute_penalty}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-compute_penalty"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-compute_penalty}{}}}
 \subsection{Method \code{compute_penalty()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$compute_penalty()}\if{html}{\out{</div>}}
@@ -184,8 +199,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-compute_icl"></a>}}
-\if{latex}{\out{\hypertarget{method-compute_icl}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-compute_icl"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-compute_icl}{}}}
 \subsection{Method \code{compute_icl()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$compute_icl(map = FALSE)}\if{html}{\out{</div>}}
@@ -193,17 +208,17 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-compute_icl_clustering"></a>}}
-\if{latex}{\out{\hypertarget{method-compute_icl_clustering}{}}}
-\subsection{Method \code{compute_icl_clustering()}}{
+\if{html}{\out{<a id="method-fitSimpleSBMPop-compute_BICL"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-compute_BICL}{}}}
+\subsection{Method \code{compute_BICL()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$compute_icl_clustering(map = TRUE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$compute_BICL(map = TRUE)}\if{html}{\out{</div>}}
 }
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-compute_exact_icl"></a>}}
-\if{latex}{\out{\hypertarget{method-compute_exact_icl}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-compute_exact_icl"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-compute_exact_icl}{}}}
 \subsection{Method \code{compute_exact_icl()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$compute_exact_icl()}\if{html}{\out{</div>}}
@@ -211,8 +226,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-compute_exact_icl_iid"></a>}}
-\if{latex}{\out{\hypertarget{method-compute_exact_icl_iid}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-compute_exact_icl_iid"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-compute_exact_icl_iid}{}}}
 \subsection{Method \code{compute_exact_icl_iid()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$compute_exact_icl_iid()}\if{html}{\out{</div>}}
@@ -220,8 +235,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-update_map_parameters"></a>}}
-\if{latex}{\out{\hypertarget{method-update_map_parameters}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-update_map_parameters"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-update_map_parameters}{}}}
 \subsection{Method \code{update_map_parameters()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$update_map_parameters()}\if{html}{\out{</div>}}
@@ -229,8 +244,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-fixed_point_tau"></a>}}
-\if{latex}{\out{\hypertarget{method-fixed_point_tau}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-fixed_point_tau"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-fixed_point_tau}{}}}
 \subsection{Method \code{fixed_point_tau()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$fixed_point_tau(m, max_iter = 10, tol = 0.01)}\if{html}{\out{</div>}}
@@ -238,8 +253,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-fixed_point_alpha_delta"></a>}}
-\if{latex}{\out{\hypertarget{method-fixed_point_alpha_delta}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-fixed_point_alpha_delta"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-fixed_point_alpha_delta}{}}}
 \subsection{Method \code{fixed_point_alpha_delta()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$fixed_point_alpha_delta(
@@ -251,8 +266,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-update_pi"></a>}}
-\if{latex}{\out{\hypertarget{method-update_pi}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-update_pi"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-update_pi}{}}}
 \subsection{Method \code{update_pi()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$update_pi(m, map = FALSE)}\if{html}{\out{</div>}}
@@ -260,8 +275,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-update_pim"></a>}}
-\if{latex}{\out{\hypertarget{method-update_pim}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-update_pim"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-update_pim}{}}}
 \subsection{Method \code{update_pim()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$update_pim(m, map = FALSE)}\if{html}{\out{</div>}}
@@ -269,8 +284,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-update_alpham"></a>}}
-\if{latex}{\out{\hypertarget{method-update_alpham}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-update_alpham"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-update_alpham}{}}}
 \subsection{Method \code{update_alpham()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$update_alpham(m, map = FALSE)}\if{html}{\out{</div>}}
@@ -278,8 +293,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-update_alpha"></a>}}
-\if{latex}{\out{\hypertarget{method-update_alpha}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-update_alpha"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-update_alpha}{}}}
 \subsection{Method \code{update_alpha()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$update_alpha(map = FALSE)}\if{html}{\out{</div>}}
@@ -287,8 +302,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-init_clust"></a>}}
-\if{latex}{\out{\hypertarget{method-init_clust}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-init_clust"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-init_clust}{}}}
 \subsection{Method \code{init_clust()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$init_clust()}\if{html}{\out{</div>}}
@@ -296,8 +311,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-make_permutation"></a>}}
-\if{latex}{\out{\hypertarget{method-make_permutation}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-make_permutation"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-make_permutation}{}}}
 \subsection{Method \code{make_permutation()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$make_permutation()}\if{html}{\out{</div>}}
@@ -305,8 +320,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-m_step"></a>}}
-\if{latex}{\out{\hypertarget{method-m_step}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-m_step"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-m_step}{}}}
 \subsection{Method \code{m_step()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$m_step(map = FALSE, max_iter = 100, tol = 0.001, ...)}\if{html}{\out{</div>}}
@@ -314,8 +329,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ve_step"></a>}}
-\if{latex}{\out{\hypertarget{method-ve_step}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-ve_step"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-ve_step}{}}}
 \subsection{Method \code{ve_step()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$ve_step(m, max_iter = 20, tol = 0.001, ...)}\if{html}{\out{</div>}}
@@ -323,8 +338,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-update_mqr"></a>}}
-\if{latex}{\out{\hypertarget{method-update_mqr}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-update_mqr"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-update_mqr}{}}}
 \subsection{Method \code{update_mqr()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$update_mqr(m)}\if{html}{\out{</div>}}
@@ -332,8 +347,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-optimize"></a>}}
-\if{latex}{\out{\hypertarget{method-optimize}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-optimize"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-optimize}{}}}
 \subsection{Method \code{optimize()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$optimize(max_step = self$fit_opts$max_step, tol = 0.001, ...)}\if{html}{\out{</div>}}
@@ -341,8 +356,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-show"></a>}}
-\if{latex}{\out{\hypertarget{method-show}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-show"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-show}{}}}
 \subsection{Method \code{show()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$show(type = "Fitted Collection of Simple SBM")}\if{html}{\out{</div>}}
@@ -350,8 +365,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-print"></a>}}
-\if{latex}{\out{\hypertarget{method-print}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-print"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-print}{}}}
 \subsection{Method \code{print()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$print()}\if{html}{\out{</div>}}
@@ -359,17 +374,8 @@ once $optimize() is done
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-plot"></a>}}
-\if{latex}{\out{\hypertarget{method-plot}{}}}
-\subsection{Method \code{plot()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$plot(ord = NULL, title = NULL, tag = NULL)}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-clone"></a>}}
-\if{latex}{\out{\hypertarget{method-clone}{}}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{

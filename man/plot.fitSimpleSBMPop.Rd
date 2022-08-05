@@ -2,16 +2,27 @@
 % Please edit documentation in R/generic-function.R
 \name{plot.fitSimpleSBMPop}
 \alias{plot.fitSimpleSBMPop}
-\title{Title}
+\title{Plot matrix summaries of the collection mesoscale structure}
 \usage{
-\method{plot}{fitSimpleSBMPop}(x, ord = NULL, title = NULL, tag = NULL)
+\method{plot}{fitSimpleSBMPop}(x, type = "graphon", ord = NULL, mixture = FALSE, net_id = 1, ...)
 }
 \arguments{
-\item{tag}{}
+\item{x}{a fitSimpleSBMPOP object.}
+
+\item{type}{The type of the plot. Could be "graphon", "meso" or "block".}
+
+\item{ord}{A reordering of the blocks.}
+
+\item{mixture}{Should the block proportions of each network be plotted as
+well?}
+
+\item{net_id}{Use to plot only on network in "graphon" view.}
+
+\item{...}{Further argument to be passed}
 }
 \value{
-
+A plot, a ggplot2 object.
 }
 \description{
-Title
+Plot matrix summaries of the collection mesoscale structure
 }

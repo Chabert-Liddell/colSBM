@@ -5,6 +5,9 @@
 #' @param X an Adjacency matrix
 #' @param K the number of clusters
 #'
+#' @noMd
+#' @noRd
+#'
 #' @return A vector : The clusters labels
 spectral_clustering <- function(X, K){
   if (K == 1) return (rep(1L, nrow(X)))
@@ -37,6 +40,9 @@ spectral_clustering <- function(X, K){
 #' @param X An Adjacency Matrix
 #' @param K the number of wanted clusters
 #'
+#' @noMd
+#' @noRd
+#'
 #' @return A vector : The clusters labels
 hierarClust <- function(X, K){
   if (K == 1) return (rep(1L, nrow(X)))
@@ -59,6 +65,9 @@ hierarClust <- function(X, K){
 #' @param X an adjacency matrix
 #' @param Z a vector of cluster memberships
 #' @param Q The number of maximal clusters
+#'
+#' @noMd
+#' @noRd
 #'
 #' @return A list of Q clustering of Q+1 clusters
 split_clust <- function(X, Z, Q) {
@@ -95,6 +104,9 @@ split_clust <- function(X, Z, Q) {
 #' @param Q the number of original clusters
 #'
 #' @return A list of Q(Q-1)/2 clustering of Q-1 clusters
+#'
+#'  @noMd
+#' @noRd
 merge_clust <- function(Z, Q) {
   Z_merge <- lapply(
     X = 1:choose(Q,2),
@@ -133,6 +145,9 @@ dist_param <- function(param, param_old) {
 #' @param K An integer, the number of folds
 #'
 #' @return A matrix of the same size than X with class integer as coefficient
+#'
+#' @noMd
+#' @noRd
 build_fold_matrix <- function(X, K) {
   n <- ncol(X)
   arrange     <- sample.int(n)

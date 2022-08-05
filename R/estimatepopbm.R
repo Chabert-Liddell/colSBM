@@ -1,35 +1,65 @@
 
 
-#' Title
+#' Partition of a collection of networks based on their common
+#' mesoscale structures
 #'
-#' @param netlist
-#' @param net_id
-#' @param directed
-#' @param model
-#' @param free_density
-#' @param free_mixture
-#' @param fit_sbm
-#' @param global_opts
-#' @param fit_opts
+#' @param netlist A list of matrices.
+#' @param colsbm_model Which colSBM to use, one of "iid", "pi", "delta",
+#' "deltapi".
+#' @param net_id A vector of string, the name of the networks.
+#' @param directed A boolean, are the networks directed or not.
+#' @param model A string, the emission distribution, either "bernoulli"
+#' (the default) or "poisson"
+#' @param fit_sbm A list of model using the \code{sbm} package. Use to speed up
+#' the initialization.
+#' @param nb_run An integer, the number of run the algorithm do.
+#' @param global_opts Global options for the outer algorithm and the output
+#' @param fit_opts Fit options for the VEM algorithm
+#' @param fit_init Do not use!
+#' Optional fit init from where initializing the algorithm.
+#' @param full_inference The default "FALSE", the algorithm stop once splitting
+#' groups of networks does not improve the BICL criterion. If "TRUE", then
+#' continue to split groups until a trivial classification of one network per
+#' group.
 #'
-#' @return
+#' @return A list of models for the partition of a collection of networks
 #' @export
 #'
 #' @examples
-EstimatePopBM <- function(netlist = NULL,
+clusterize_networks <- function(netlist,
+                          colsbm_model,
                           net_id = NULL,
                           directed = NULL,
                           model = "bernoulli",
-                          free_density = FALSE,
-                          free_mixture = TRUE,
                           fit_sbm = NULL,
                           nb_run = 3L,
                           global_opts = list(),
                           fit_opts = list(),
-                          full_inference = FALSE,
-                          fit_init = NULL) {
+                          fit_init = NULL,
+                          full_inference = FALSE) {
 
   ## Ajouter une sorte de smoothing par les clusters de reseaux
+  ##
+  ##
+  switch (colsbm_model,
+          "iid" = {
+            free_density <-  FALSE
+            free_mixture <-  FALSE
+          },
+          "pi" = {
+            free_density <-  FALSE
+            free_mixture <-  TRUE
+          },
+          "delta" = {
+            free_density <-  TRUE
+            free_mixture <-  FALSE
+          },
+          "deltapi" = {
+            free_density <-  TRUE
+            free_mixture <-  TRUE
+          },
+          stop("colsbm_model unknown. Must be one of iid, pi, delta or deltapi"))
+
   if (is.null(global_opts$nb_cores)) {
     global_opts$nb_cores <- 1L
   }
@@ -125,7 +155,7 @@ EstimatePopBM <- function(netlist = NULL,
       if (fit$M >= 3) {
         cl <- cluster::pam(x = sqrt(dist_bm), k = 2, diss = TRUE)$clustering
       } else {
-        cl <- stats::cutree(stats::hclust(as.dist(dist_bm), method = "ward.D2"), 2)
+        cl <- stats::cutree(stats::hclust(stats::as.dist(dist_bm), method = "ward.D2"), 2)
       }
 
     fits <-
@@ -201,6 +231,7 @@ EstimatePopBM <- function(netlist = NULL,
 
   list_model_binary <- recursive_clustering(my_bmpop)
 
+  invisible(list_model_binary)
 
   #======================= Clustering par empty cluster
 
@@ -298,6 +329,9 @@ EstimatePopBM <- function(netlist = NULL,
 
 
 
+
+#' @noRd
+#' @noMd
 best_list <- function(l) {
   if(length(l) == 1)  return(l[[1]])
   if(length(l) == 2) return(l[[2]])

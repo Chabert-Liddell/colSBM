@@ -11,26 +11,26 @@ An R6 Class object, a collection of model for population of sbm netowrks
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{bmpop$new()}}
-\item \href{#method-optimize_sbm}{\code{bmpop$optimize_sbm()}}
-\item \href{#method-optimize_from_sbm}{\code{bmpop$optimize_from_sbm()}}
-\item \href{#method-optimize_spectral}{\code{bmpop$optimize_spectral()}}
-\item \href{#method-optimize_init}{\code{bmpop$optimize_init()}}
-\item \href{#method-optimize_from_zinit}{\code{bmpop$optimize_from_zinit()}}
-\item \href{#method-burn_in}{\code{bmpop$burn_in()}}
-\item \href{#method-forward_pass}{\code{bmpop$forward_pass()}}
-\item \href{#method-backward_pass}{\code{bmpop$backward_pass()}}
-\item \href{#method-optimize}{\code{bmpop$optimize()}}
-\item \href{#method-forward_backward}{\code{bmpop$forward_backward()}}
-\item \href{#method-choose_models}{\code{bmpop$choose_models()}}
-\item \href{#method-show}{\code{bmpop$show()}}
-\item \href{#method-print}{\code{bmpop$print()}}
-\item \href{#method-clone}{\code{bmpop$clone()}}
+\item \href{#method-bmpop-new}{\code{bmpop$new()}}
+\item \href{#method-bmpop-optimize_sbm}{\code{bmpop$optimize_sbm()}}
+\item \href{#method-bmpop-optimize_from_sbm}{\code{bmpop$optimize_from_sbm()}}
+\item \href{#method-bmpop-optimize_spectral}{\code{bmpop$optimize_spectral()}}
+\item \href{#method-bmpop-optimize_init}{\code{bmpop$optimize_init()}}
+\item \href{#method-bmpop-optimize_from_zinit}{\code{bmpop$optimize_from_zinit()}}
+\item \href{#method-bmpop-burn_in}{\code{bmpop$burn_in()}}
+\item \href{#method-bmpop-forward_pass}{\code{bmpop$forward_pass()}}
+\item \href{#method-bmpop-backward_pass}{\code{bmpop$backward_pass()}}
+\item \href{#method-bmpop-optimize}{\code{bmpop$optimize()}}
+\item \href{#method-bmpop-forward_backward}{\code{bmpop$forward_backward()}}
+\item \href{#method-bmpop-choose_models}{\code{bmpop$choose_models()}}
+\item \href{#method-bmpop-show}{\code{bmpop$show()}}
+\item \href{#method-bmpop-print}{\code{bmpop$print()}}
+\item \href{#method-bmpop-clone}{\code{bmpop$clone()}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
+\if{html}{\out{<a id="method-bmpop-new"></a>}}
+\if{latex}{\out{\hypertarget{method-bmpop-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{bmpop$new(
@@ -49,8 +49,8 @@ An R6 Class object, a collection of model for population of sbm netowrks
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-optimize_sbm"></a>}}
-\if{latex}{\out{\hypertarget{method-optimize_sbm}{}}}
+\if{html}{\out{<a id="method-bmpop-optimize_sbm"></a>}}
+\if{latex}{\out{\hypertarget{method-bmpop-optimize_sbm}{}}}
 \subsection{Method \code{optimize_sbm()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{bmpop$optimize_sbm()}\if{html}{\out{</div>}}
@@ -58,8 +58,8 @@ An R6 Class object, a collection of model for population of sbm netowrks
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-optimize_from_sbm"></a>}}
-\if{latex}{\out{\hypertarget{method-optimize_from_sbm}{}}}
+\if{html}{\out{<a id="method-bmpop-optimize_from_sbm"></a>}}
+\if{latex}{\out{\hypertarget{method-bmpop-optimize_from_sbm}{}}}
 \subsection{Method \code{optimize_from_sbm()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{bmpop$optimize_from_sbm(index, Q, nb_clusters)}\if{html}{\out{</div>}}
@@ -67,8 +67,8 @@ An R6 Class object, a collection of model for population of sbm netowrks
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-optimize_spectral"></a>}}
-\if{latex}{\out{\hypertarget{method-optimize_spectral}{}}}
+\if{html}{\out{<a id="method-bmpop-optimize_spectral"></a>}}
+\if{latex}{\out{\hypertarget{method-bmpop-optimize_spectral}{}}}
 \subsection{Method \code{optimize_spectral()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{bmpop$optimize_spectral(index, Q, nb_clusters)}\if{html}{\out{</div>}}
@@ -76,8 +76,8 @@ An R6 Class object, a collection of model for population of sbm netowrks
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-optimize_init"></a>}}
-\if{latex}{\out{\hypertarget{method-optimize_init}{}}}
+\if{html}{\out{<a id="method-bmpop-optimize_init"></a>}}
+\if{latex}{\out{\hypertarget{method-bmpop-optimize_init}{}}}
 \subsection{Method \code{optimize_init()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{bmpop$optimize_init(index, Z, Q, nb_clusters, Cpi = NULL, Calpha = NULL)}\if{html}{\out{</div>}}
@@ -85,8 +85,8 @@ An R6 Class object, a collection of model for population of sbm netowrks
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-optimize_from_zinit"></a>}}
-\if{latex}{\out{\hypertarget{method-optimize_from_zinit}{}}}
+\if{html}{\out{<a id="method-bmpop-optimize_from_zinit"></a>}}
+\if{latex}{\out{\hypertarget{method-bmpop-optimize_from_zinit}{}}}
 \subsection{Method \code{optimize_from_zinit()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{bmpop$optimize_from_zinit(index, Q, nb_clusters)}\if{html}{\out{</div>}}
@@ -94,8 +94,8 @@ An R6 Class object, a collection of model for population of sbm netowrks
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-burn_in"></a>}}
-\if{latex}{\out{\hypertarget{method-burn_in}{}}}
+\if{html}{\out{<a id="method-bmpop-burn_in"></a>}}
+\if{latex}{\out{\hypertarget{method-bmpop-burn_in}{}}}
 \subsection{Method \code{burn_in()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{bmpop$burn_in()}\if{html}{\out{</div>}}
@@ -103,8 +103,8 @@ An R6 Class object, a collection of model for population of sbm netowrks
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-forward_pass"></a>}}
-\if{latex}{\out{\hypertarget{method-forward_pass}{}}}
+\if{html}{\out{<a id="method-bmpop-forward_pass"></a>}}
+\if{latex}{\out{\hypertarget{method-bmpop-forward_pass}{}}}
 \subsection{Method \code{forward_pass()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{bmpop$forward_pass(
@@ -117,8 +117,8 @@ An R6 Class object, a collection of model for population of sbm netowrks
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-backward_pass"></a>}}
-\if{latex}{\out{\hypertarget{method-backward_pass}{}}}
+\if{html}{\out{<a id="method-bmpop-backward_pass"></a>}}
+\if{latex}{\out{\hypertarget{method-bmpop-backward_pass}{}}}
 \subsection{Method \code{backward_pass()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{bmpop$backward_pass(
@@ -131,8 +131,8 @@ An R6 Class object, a collection of model for population of sbm netowrks
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-optimize"></a>}}
-\if{latex}{\out{\hypertarget{method-optimize}{}}}
+\if{html}{\out{<a id="method-bmpop-optimize"></a>}}
+\if{latex}{\out{\hypertarget{method-bmpop-optimize}{}}}
 \subsection{Method \code{optimize()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{bmpop$optimize()}\if{html}{\out{</div>}}
@@ -140,8 +140,8 @@ An R6 Class object, a collection of model for population of sbm netowrks
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-forward_backward"></a>}}
-\if{latex}{\out{\hypertarget{method-forward_backward}{}}}
+\if{html}{\out{<a id="method-bmpop-forward_backward"></a>}}
+\if{latex}{\out{\hypertarget{method-bmpop-forward_backward}{}}}
 \subsection{Method \code{forward_backward()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{bmpop$forward_backward()}\if{html}{\out{</div>}}
@@ -149,8 +149,8 @@ An R6 Class object, a collection of model for population of sbm netowrks
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-choose_models"></a>}}
-\if{latex}{\out{\hypertarget{method-choose_models}{}}}
+\if{html}{\out{<a id="method-bmpop-choose_models"></a>}}
+\if{latex}{\out{\hypertarget{method-bmpop-choose_models}{}}}
 \subsection{Method \code{choose_models()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{bmpop$choose_models(models, Q, index = seq(self$M), nb_clusters = 1L)}\if{html}{\out{</div>}}
@@ -158,8 +158,8 @@ An R6 Class object, a collection of model for population of sbm netowrks
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-show"></a>}}
-\if{latex}{\out{\hypertarget{method-show}{}}}
+\if{html}{\out{<a id="method-bmpop-show"></a>}}
+\if{latex}{\out{\hypertarget{method-bmpop-show}{}}}
 \subsection{Method \code{show()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{bmpop$show(type = "Fitted Collection of Simple SBM")}\if{html}{\out{</div>}}
@@ -167,8 +167,8 @@ An R6 Class object, a collection of model for population of sbm netowrks
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-print"></a>}}
-\if{latex}{\out{\hypertarget{method-print}{}}}
+\if{html}{\out{<a id="method-bmpop-print"></a>}}
+\if{latex}{\out{\hypertarget{method-bmpop-print}{}}}
 \subsection{Method \code{print()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{bmpop$print()}\if{html}{\out{</div>}}
@@ -176,8 +176,8 @@ An R6 Class object, a collection of model for population of sbm netowrks
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-clone"></a>}}
-\if{latex}{\out{\hypertarget{method-clone}{}}}
+\if{html}{\out{<a id="method-bmpop-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-bmpop-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{

@@ -6,10 +6,7 @@
 \alias{colSBM-package}
 \title{colSBM: Stochastic Block Model for Collection of Networks}
 \description{
-Finds a common mesoscale structure in a collection of networks by 
-    using a Stochastic Block Model (SBM) extension for the joint modeling of 
-    collection of networks. Provides a clustering of the nodes of each networks.
-    Classifies networks in groups of networks with similar mesoscale structures.
+Finds a common mesoscale structure in a collection of networks by using a Stochastic Block Model (SBM) extension for the joint modeling of collection of networks. Provides a clustering of the nodes of each networks. Classifies networks in groups of networks with similar mesoscale structures.
 }
 \author{
 \strong{Maintainer}: Saint-Clair Chabert-Liddell \email{saint-clair.chabert-liddell@inrae.fr} (\href{https://orcid.org/0000-0001-5604-7308}{ORCID})

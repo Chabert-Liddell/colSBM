@@ -6,15 +6,17 @@
 #' @param net_id A vector of string, the name of the networks.
 #' @param directed A boolean, are the networks directed or not.
 #' @param model A string, the emission distribution, either "bernoulli"
-#' (the default) or "poissons"
+#' (the default) or "poisson"
 #' @param fit_sbm A list of model using the \code{sbm} package. Use to speed up
 #' the initialization.
 #' @param nb_run An integer, the number of run the algorithm do.
-#' @param global_opts
-#' @param fit_opts
-#' @param fit_init
+#' @param global_opts Global options for the outer algorithm and the outpur
+#' @param fit_opts Fit options for the VEM algorithm
+#' @param fit_init Do not use!
+#' Optional fit init from where initializing the algorithm.
 #'
 #' @return A bmpop object listing a collection of models for the collection.
+#' of networks
 #' @export
 #'
 #' @examples
@@ -74,7 +76,7 @@ estimate_colSBM <-
                 estimOptions = list(verbosity = 0,
                                     plot = FALSE, nbCores = 1L,
                                     exploreMin = Q_max))
-            }, mc.cores = nb_cores
+            }, mc.cores = nb_cores, mc.silent = TRUE
           )
       }
       tmp_fits <-
@@ -114,13 +116,13 @@ estimate_colSBM <-
                                         function (fit) fit[[1]]$BICL, FUN.VALUE = .1)
       if(my_bmpop$global_opts$verbosity >=1) {
         cat("==== Optimization finished for networks ", my_bmpop$net_id, " ====\n")
-        cat("Best model for Q = ", which.max(my_bmpop$BICL))
         cat("vbound : ", round(my_bmpop$vbound), "\n")
         cat("ICL    : ", round(my_bmpop$ICL), "\n")
         cat("BICL   : ", round(my_bmpop$BICL), "\n")
+        cat("Best model for Q = ", which.max(my_bmpop$BICL), "\n")
         if (! is.null(my_bmpop$ICL_sbm)) {
-          icl_sbm <- vapply(seq(res_fw_iid$M),
-                            function(m) max(res_fw_iid$fit_sbm[[m]]$storedModels$ICL),
+          icl_sbm <- vapply(seq(my_bmpop$M),
+                            function(m) max(my_bmpop$fit_sbm[[m]]$storedModels$ICL),
                             FUN.VALUE = .1)
           if (max(my_bmpop$BICL) > sum(icl_sbm)) {
             cat("Joint modelisation preferred over separated one. BICL: " )

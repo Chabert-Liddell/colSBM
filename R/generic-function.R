@@ -1,5 +1,5 @@
 fitSimpleSBMPop$set("public", "plot",
-  function(type = "graphon", ord = NULL, mixture = FALSE, net_id = NULL, title = NULL) {
+  function(type = "graphon", ord = NULL, mixture = FALSE, net_id = NULL, ...) {
   if(is.null(ord)) ord <- order(diag(self$alpha), decreasing = TRUE)
   p <- switch(
     type,
@@ -88,23 +88,24 @@ fitSimpleSBMPop$set("public", "plot",
 })
 
 
-#' Title
+#' Plot matrix summaries of the collection mesoscale structure
 #'
-#' @param fit
-#' @param ord
-#' @param title
-#' @param tag
-#'
-#' @return
+#' @param x a fitSimpleSBMPOP object.
+#' @param type The type of the plot. Could be "graphon", "meso" or "block".
+#' @param ord A reordering of the blocks.
+#' @param mixture Should the block proportions of each network be plotted as
+#' well?
+#' @param net_id Use to plot only on network in "graphon" view.
+#' @param ... Further argument to be passed
+#' @return A plot, a ggplot2 object.
 #' @export
 #'
 #' @examples
 plot.fitSimpleSBMPop <- function(x, type = "graphon",
-                                 ord = NULL, mixture = FALSE, net_id = 1,
-                                 title = NULL) {
+                                 ord = NULL, mixture = FALSE, net_id = 1, ...) {
   stopifnot(inherits(x, "fitSimpleSBMPop"))
   p <- x$plot(type = type, ord = ord, mixture = mixture,
-              net_id = net_id, title = title)
+              net_id = net_id, ...)
   p
 }
 

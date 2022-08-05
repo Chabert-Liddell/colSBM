@@ -2,7 +2,7 @@
 % Please edit documentation in R/bmpop_distance.R
 \name{dist_bmpop_max}
 \alias{dist_bmpop_max}
-\title{Title}
+\title{Compute the dissimilarity between 2 mesoscale structures}
 \usage{
 dist_bmpop_max(
   pi,
@@ -14,11 +14,27 @@ dist_bmpop_max(
 )
 }
 \arguments{
-\item{directed}{}
+\item{pi}{A list of two probability vectors}
+
+\item{alpha}{A list of two connectivity matrices}
+
+\item{delta}{A vector of 2 density parameters (optional)}
+
+\item{weight}{One of "max" (default) or "mean". See details}
+
+\item{norm}{"L1"or "L2" norm for the computation}
+
+\item{directed}{Are the structure of the networks directed?}
 }
 \value{
-
+The dissimilarity between two mesoscale structure.
 }
 \description{
-Title
+Compute the dissimilarity between 2 mesoscale structures
+}
+\details{
+If weight is "max" then the weight of each block is computed as
+\code{pmax(pi[[1]], pi[[2]])}. If "mean", then we take the average. "max"
+penalize to a greater extent the difference in block proportion between
+structure.
 }

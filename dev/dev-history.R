@@ -19,6 +19,7 @@ use_package("dplyr")
 use_package("tidyr")
 use_package("patchwork")
 use_pipe()
+use_package("cluster")
 
 ### ADD R FUNCTIONS AND THEIR DOCUMENTATION
 #use_r("name_of_r_file")
@@ -87,3 +88,6 @@ private_key
 ### ADD TEST COVERAGE REPORTS
 use_coverage(type="codecov")
 # Go to the codecov repository page - then Add a repository > 'repo_name' > Copy Token. Then go to the Travis repository page - then More Options > Settings. Add an environment-variable named CODECOV_TOKEN. Paste your clipboard-contents into its value.
+
+
+use_version(which = "minor")
