@@ -22,7 +22,8 @@ bmpop <- R6::R6Class(
     free_mixture = NULL,
     ICL_sbm = NULL,
     ICL = NULL,
-    ICL_clustering = NULL,
+    BICL = NULL,
+    vbound = NULL,
     best_fit = NULL,
     logfactA = NULL,
     improved = list(forward = TRUE,
@@ -78,8 +79,9 @@ bmpop <- R6::R6Class(
                                verbosity = 0L,
                                nb_cores = 1L)
       self$global_opts <- utils::modifyList(self$global_opts, global_opts)
+      self$vbound <- rep(-Inf, self$global_opts$Q_max)
       self$ICL <- rep(-Inf, self$global_opts$Q_max)
-      self$ICL_clustering <- rep(-Inf, self$global_opts$Q_max)
+      self$BICL <- rep(-Inf, self$global_opts$Q_max)
       if (self$model == "poisson") {
         self$logfactA <- vapply(
           seq_along(self$A),
@@ -124,6 +126,7 @@ bmpop <- R6::R6Class(
         plot(seq(self$global_opts$Q_min, self$global_opts$Q_max),
              self$ICL_sbm[self$global_opts$Q_min : self$global_opts$Q_max],
              col = "green", pch = 5,
+             xlab = "Q", ylab = "BICL",
              xlim = c(self$global_opts$Q_min-1, self$global_opts$Q_max+1),
              ylim = c(1.1*max(self$ICL_sbm), .8*max(self$ICL_sbm)))
       }
@@ -206,19 +209,17 @@ bmpop <- R6::R6Class(
       )
       best_models <- self$choose_models(models = models, Q = Q)
       self$model_list[[1]][[Q]] <- best_models
+      self$vbound[Q] <- rev(best_models[[1]]$vbound)[1]
       self$ICL[Q] <- best_models[[1]]$map$ICL
-      self$ICL_clustering[Q] <- best_models[[1]]$ICL_clustering
+      self$BICL[Q] <- best_models[[1]]$BICL
       # }
     },
 
 
     optimize_spectral = function(index, Q, nb_clusters) {
-    #  p <- progressr::progressor(along = seq(self$global_opts$nb_init))
-
       lapply(
         X = seq(self$global_opts$nb_init),
         FUN = function(it) {
-        #  p(sprintf("it=%g", it))
           mypopbm <- fitSimpleSBMPop$new(A = self$A[index],
                                          mask = self$mask[index],
                                          model = self$model,
@@ -260,69 +261,61 @@ bmpop <- R6::R6Class(
                        function(Z) self$optimize_init(index, Z, Q, nb_clusters))
       best_models <- self$choose_models(models = models, Q = Q)
       self$model_list[[1]][[Q]] <- best_models
+      self$vbound[Q] <- rev(best_models[[1]]$vbound)[1]
       self$ICL[Q] <- best_models[[1]]$map$ICL
-      self$ICL_clustering[Q] <-
-        best_models[[1]]$ICL_clustering
+      self$BICL[Q] <- best_models[[1]]$BICL
     },
 
     burn_in = function() {
       # browser()
       if (self$global_opts$sbm_init | ! is.null(self$fit_sbm)) {
-        if(self$global_opts$verbosity >=1) {
+        if(self$global_opts$verbosity >=2) {
           cat("Starting optimization of ", self$M, "SBMs")}
         self$optimize_sbm()
       }
       if(! is.null(self$fit_sbm)) {
-    #    p <- progressr::progressor(along = seq(self$global_opts$Q_min, self$global_opts$Q_max))
-        if(self$global_opts$verbosity >=1) {
+        if(self$global_opts$verbosity >=2) {
           cat("Starting initialization from SBMs fit. \n")}
         purrr::map(
           .x = seq(self$global_opts$Q_min, self$global_opts$Q_max),
           .f = function(Q) {
-        #    p(sprintf("Q=%g", Q))
-            #cat("Starting initialization from SBMs fit for Q =", Q, ".\n")
             self$optimize_from_sbm(index = seq(self$M),
                                    Q = Q, nb_clusters = 1)}
         )
       }
       if (! is.null(self$Z_init)) {
-    #    p <- progressr::progressor(along = seq(self$global_opts$Q_min, self$global_opts$Q_max))
-        if(self$global_opts$verbosity >=1) {
+        if(self$global_opts$verbosity >=2) {
           cat("Starting initialization from given clustering. \n")}
         purrr::map(
           .x = seq(self$global_opts$Q_min, self$global_opts$Q_max),
           .f = function(Q) {
-         #   p(sprintf("Q=%g", Q))
             self$optimize_from_zinit(index = seq(self$M),
                                      Q = Q, nb_clusters = 1)})
       }
       if(self$global_opts$spectral_init) {
-   #     p <- progressr::progressor(along = seq(self$global_opts$Q_min, self$global_opts$Q_max))
-        if(self$global_opts$verbosity >=1) {
+        if(self$global_opts$verbosity >=2) {
           cat("Starting initialization from spectral clustering.\n")}
         bettermc::mclapply(
           X = seq(self$global_opts$Q_min, self$global_opts$Q_max),
           FUN = function(Q) {
-
-            #p(sprintf("Q=%g", Q))
-           # cat("Starting initialization from spectral clustering for Q =", Q, ".\n")
             models <- self$optimize_spectral(index = seq(self$M),
                                              Q = Q, nb_clusters = 1)
             best_models <- self$choose_models(models = models, Q = Q)
             self$model_list[[1]][[Q]] <- best_models
+            self$vbound[Q] <- rev(best_models[[1]]$vbound)[1]
             self$ICL[Q] <- best_models[[1]]$map$ICL
-            self$ICL_clustering[Q] <- best_models[[1]]$ICL_clustering
+            self$BICL[Q] <- best_models[[1]]$BICL
             rm(models)
-            #gc()
           }, mc.cores = self$global_opts$nb_cores, mc.share.copy = FALSE
         )
         # voir pour l'init spectral.
       }
-      if(self$global_opts$verbosity >=1) {
+      if(self$global_opts$verbosity >=3) {
         cat("==== Finish Burn in",
             " for networks ", self$net_id, " ===\n")
+        cat("vbound : ", round(self$vbound), "\n")
         cat("ICL    : ", round(self$ICL), "\n")
-        cat("ICL Cl : ", round(self$ICL_clustering), "\n")
+        cat("BICL   : ", round(self$BICL), "\n")
       }
       # self$forward_pass()
       # self$backward_pass()
@@ -333,9 +326,14 @@ bmpop <- R6::R6Class(
                             Q_max = self$global_opts$Q_max,
                             index = seq(self$M), nb_clusters = 1L) {
       #browser()
-      old_icl <- pmax(self$ICL_clustering, rep(-Inf, Q_max))
+      # if (length(self$BICL) != length(rep(-Inf, Q_max))) {
+      #   cat("forward")
+      #   cat(self$BICL)
+      #   cat(rep(-Inf, Q_max), "\n")
+      # }
+      old_icl <- pmax(self$BICL, rep(-Inf, self$global_opts$Q_max))
       max_icl <- rep(-Inf, length(old_icl))
-      #     max_icl[Q_min] <- self$ICL_clustering[Q_min]
+      #     max_icl[Q_min] <- self$BICL[Q_min]
       counter <- 0
       #      nb_pass <- 0
       Q <- Q_min +1
@@ -349,9 +347,10 @@ bmpop <- R6::R6Class(
                                             index = index, nb_clusters = nb_clusters)
           best_models <- self$choose_models(models = list_popbm, Q = Q,
                                             index = index, nb_clusters = nb_clusters)
+          self$vbound[Q] <- rev(best_models[[1]]$vbound)[1]
           self$ICL[Q] <- best_models[[1]]$map$ICL
-          self$ICL_clustering[Q] <- best_models[[1]]$ICL_clustering
-          max_icl[Q-1] <- best_models[[1]]$ICL_clustering
+          self$BICL[Q] <- best_models[[1]]$BICL
+          max_icl[Q-1] <- best_models[[1]]$BICL
 
         }
         #        list_popbm <- list()
@@ -459,8 +458,9 @@ bmpop <- R6::R6Class(
                                             Q = Q,
                                             index = index,
                                             nb_clusters = nb_clusters)
+          self$vbound[Q] <- rev(best_models[[1]]$vbound)[1]
           self$ICL[Q] <- best_models[[1]]$map$ICL
-          self$ICL_clustering[Q] <- best_models[[1]]$ICL_clustering
+          self$BICL[Q] <- best_models[[1]]$BICL
           self$model_list[[nb_clusters]][[Q]] <- best_models
           lapply(self$model_list[[nb_clusters]][[Q]],
                  function(fit) {
@@ -468,9 +468,9 @@ bmpop <- R6::R6Class(
                    fit$mask <- self$mask
                  }
           )
-          max_icl[Q] <- best_models[[1]]$ICL_clustering
-          if(self$global_opts$verbosity >= 2) {
-            cat(Q, ": ", self$ICL_clustering[Q], " -- ", max_icl[Q] > old_icl[Q], "\t")
+          max_icl[Q] <- best_models[[1]]$BICL
+          if(self$global_opts$verbosity >= 3) {
+            cat(Q, ": ", self$BICL[Q], " -- ", max_icl[Q] > old_icl[Q], "\t")
           }
           if(max_icl[Q] > max_icl[Q-1])  {
             counter <- 0
@@ -498,10 +498,15 @@ bmpop <- R6::R6Class(
     backward_pass = function(Q_min = self$global_opts$Q_min,
                              Q_max = self$global_opts$Q_max,
                              index = seq(self$M), nb_clusters = 1L) {
-      old_icl <- pmax(self$ICL_clustering, rep(-Inf, Q_max))
+      # if (length(self$BICL) != length(rep(-Inf, Q_max))) {
+      #   cat("backward")
+      #   cat(self$BICL)
+      #   cat(rep(-Inf, Q_max), "\n")
+      # }
+      old_icl <- pmax(self$BICL, rep(-Inf, self$global_opts$Q_max))
       max_icl <- rep(-Inf, length(old_icl))
 
-      #     max_icl[Q_max] <- self$ICL_clustering[Q_max]
+      #     max_icl[Q_max] <- self$BICL[Q_max]
       counter <- 0
       Q <- Q_max - 1
       while(Q >= Q_min & counter < self$global_opts$depth) {
@@ -585,7 +590,7 @@ bmpop <- R6::R6Class(
             )
           #  browser()
             models <- unlist(models)
-            ord_mod <- order(purrr::map_dbl(models, ~.$ICL_clustering),
+            ord_mod <- order(purrr::map_dbl(models, ~.$BICL),
                              decreasing = TRUE)
             best_models <- models[ord_mod[1]]
             for(id in ord_mod) {
@@ -616,8 +621,9 @@ bmpop <- R6::R6Class(
         } else {
           best_models <- self$choose_models(models = list_popbm, Q = Q,
                                             index = index, nb_clusters = nb_clusters)
+          self$vbound[Q] <- rev(best_models[[1]]$vbound)[1]
           self$ICL[Q] <- best_models[[1]]$map$ICL
-          self$ICL_clustering[Q] <- best_models[[1]]$ICL_clustering
+          self$BICL[Q] <- best_models[[1]]$BICL
           self$model_list[[nb_clusters]][[Q]] <- best_models
           lapply(self$model_list[[nb_clusters]][[Q]],
                  function(res) {
@@ -625,9 +631,9 @@ bmpop <- R6::R6Class(
                    res$mask <- self$mask
                  }
           )
-          max_icl[Q] <- best_models[[1]]$ICL_clustering
-          if(self$global_opts$verbosity >= 2) {
-            cat(Q, ": ", self$ICL_clustering[Q], " -- ", max_icl[Q] > old_icl[Q], "\t")
+          max_icl[Q] <- best_models[[1]]$BICL
+          if(self$global_opts$verbosity >= 3) {
+            cat(Q, ": ", self$BICL[Q], " -- ", max_icl[Q] > old_icl[Q], "\t")
           }
           if(max_icl[Q] > max_icl[Q+1])  {
             counter <- 0
@@ -663,18 +669,19 @@ bmpop <- R6::R6Class(
       Q <- 1
       self$global_opts$nb_models <- ceiling(self$global_opts$nb_models/2)
       while (improved & nb_pass < self$global_opts$max_pass) {
-        if(self$global_opts$verbosity >=1) {
+        if(self$global_opts$verbosity >=2) {
           cat("==== Starting pass number ", nb_pass + 1,
               " for networks ", self$net_id, " ===\n")
+          cat("vbound : ", round(self$vbound), "\n")
           cat("ICL    : ", round(self$ICL), "\n")
-          cat("ICL Cl : ", round(self$ICL_clustering), "\n")
+          cat("BICL   : ", round(self$BICL), "\n")
         }
         Q <- self$forward_pass(Q_min = max(Q, self$global_opts$Q_min))
         Q <- self$backward_pass(Q_max = min(Q, self$global_opts$Q_max))
         improved <- self$improved$backward | self$improved$forward
         nb_pass <- nb_pass + 1
       }
-      self$best_fit <- self$model_list[[1]][[which.max(self$ICL_clustering)]][[1]]
+      self$best_fit <- self$model_list[[1]][[which.max(self$BICL)]][[1]]
       self$model_list[[1]] <- lapply(seq_along(self$model_list[[1]]),
                                      function (Q) self$model_list[[1]][[Q]][1])
     },
@@ -733,13 +740,13 @@ bmpop <- R6::R6Class(
             }
           )
           list_popbm <- c(list_popbm, list_res, list_spec, best_models[[Q]])
-          ord_mod <- order(purrr::map_dbl(list_popbm, ~max(.$map$ICL, .$ICL_clustering)), decreasing = TRUE)
+          ord_mod <- order(purrr::map_dbl(list_popbm, ~max(.$map$ICL, .$BICL)), decreasing = TRUE)
           if(max_icl[Q] < list_popbm[[ord_mod[1]]]$map$ICL) global_counter <- TRUE
           max_icl[Q] <- list_popbm[[ord_mod[1]]]$map$ICL
           if (max_icl[Q] <= max_icl[Q-1]) counter <- counter + 1
           best_models[[Q]] <- list_popbm[ord_mod[1]]
           # points(purrr::map_dbl(unlist(best_models), "Q"), purrr::map_dbl(unlist(best_models), ~.$map$ICL))
-          # points(purrr::map_dbl(unlist(best_models), "Q"), purrr::map_dbl(unlist(best_models), "ICL_clustering"), col = "red")
+          # points(purrr::map_dbl(unlist(best_models), "Q"), purrr::map_dbl(unlist(best_models), "BICL"), col = "red")
           for(id in ord_mod) {
             if (length(best_models[[Q]]) < top_models) {
               ari <- purrr::map_dbl(
@@ -753,7 +760,7 @@ bmpop <- R6::R6Class(
               if (all(ari < best_models[[Q]][[1]]$M)) {
                 best_models[[Q]] <- c(best_models[[Q]], list_popbm[[id]])
                 # points(purrr::map_dbl(unlist(best_models), "Q"), purrr::map_dbl(unlist(best_models), ~.$map$ICL))
-                # points(purrr::map_dbl(unlist(best_models), "Q"), purrr::map_dbl(unlist(best_models), "ICL_clustering"), col = "red")
+                # points(purrr::map_dbl(unlist(best_models), "Q"), purrr::map_dbl(unlist(best_models), "BICL"), col = "red")
               }
             }
           }
@@ -786,10 +793,10 @@ bmpop <- R6::R6Class(
             )
             list_popbm <- c(list_popbm, list_res)
             # points(purrr::map_dbl(unlist(list_res), "Q"), purrr::map_dbl(unlist(list_res), ~.$map$ICL))
-            # points(purrr::map_dbl(unlist(list_res), "Q"), purrr::map_dbl(unlist(list_res), "ICL_clustering"), col = "red")
+            # points(purrr::map_dbl(unlist(list_res), "Q"), purrr::map_dbl(unlist(list_res), "BICL"), col = "red")
           }
           list_popbm <- c(list_popbm, best_models[[Q]])
-          ord_mod <- order(purrr::map_dbl(list_popbm, ~max(.$map$ICL, .$ICL_clustering)), decreasing = TRUE)
+          ord_mod <- order(purrr::map_dbl(list_popbm, ~max(.$map$ICL, .$BICL)), decreasing = TRUE)
           if(max_icl[Q] < list_popbm[[ord_mod[1]]]$map$ICL) global_counter <- TRUE
 
           best_models[[Q]] <- list_popbm[ord_mod[1]]
@@ -798,7 +805,7 @@ bmpop <- R6::R6Class(
           # points(purrr::map_dbl(unlist(best_models), "Q"),
           #        purrr::map_dbl(unlist(best_models), ~.$map$ICL))
           # points(purrr::map_dbl(unlist(best_models), "Q"),
-          #        purrr::map_dbl(unlist(best_models), "ICL_clustering"), col = "red")
+          #        purrr::map_dbl(unlist(best_models), "BICL"), col = "red")
           for(id in ord_mod) {
             if (length(best_models[[Q]]) < top_models) {
               ari <- purrr::map_dbl(
@@ -812,7 +819,7 @@ bmpop <- R6::R6Class(
               if (all(ari < best_models[[Q]][[1]]$M)) {
                 best_models[[Q]] <- c(best_models[[Q]], list_popbm[[id]])
                 # points(purrr::map_dbl(unlist(best_models), "Q"), purrr::map_dbl(unlist(best_models), ~.$map$ICL))
-                # points(purrr::map_dbl(unlist(best_models), "Q"), purrr::map_dbl(unlist(best_models), "ICL_clustering"), col = "red")
+                # points(purrr::map_dbl(unlist(best_models), "Q"), purrr::map_dbl(unlist(best_models), "BICL"), col = "red")
               }
             }
           }
@@ -827,16 +834,16 @@ bmpop <- R6::R6Class(
 
     choose_models = function(models, Q, index = seq(self$M), nb_clusters = 1L) {
       # browser()
-      ord_mod <- order(purrr::map_dbl(models, ~ .$ICL_clustering),#~max(.$map$ICL, .$ICL_clustering)),
+      ord_mod <- order(purrr::map_dbl(models, ~ .$BICL),#~max(.$map$ICL, .$BICL)),
                        decreasing = TRUE)
       #      max_icl <- models[[ord_mod[1]]]$map$ICL
       #      icl_improved <- max_icl > self$ICL[[Q]]
       if ( length(self$model_list[[nb_clusters]]) >= Q) {
         models <- c(self$model_list[[nb_clusters]][[Q]], models)
       }
-      ord_mod <- order(purrr::map_dbl(models, ~.$ICL_clustering),
+      ord_mod <- order(purrr::map_dbl(models, ~.$BICL),
                        decreasing = TRUE)
-      # self$ICL_clustering[Q] <- models[ord_mod[1]][[1]]$ICL_clustering
+      # self$BICL[Q] <- models[ord_mod[1]][[1]]$BICL
       best_models <- models[ord_mod[1]]
       for(id in ord_mod) {
         if (length(best_models) >= self$global_opts$nb_models) {
@@ -857,7 +864,7 @@ bmpop <- R6::R6Class(
       }
       if (self$global_opts$plot_details >= 1) {
         points(purrr::map_dbl(unlist(best_models), "Q"),
-               purrr::map_dbl(unlist(best_models), ~.$ICL_clustering))
+               purrr::map_dbl(unlist(best_models), ~.$BICL))
       }
       return(best_models)
     },
@@ -869,7 +876,7 @@ bmpop <- R6::R6Class(
       cat("net_id = (", self$net_id, ")\n")
       cat("Dimension = (", self$n, ") - (",
           self$best_fit$Q,  ") blocks.\n")
-      cat("ICL = ", self$best_fit$ICL_clustering, " -- #Empty blocks : ", sum(!self$best_fit$Cpi), " \n")
+      cat("BICL = ", self$best_fit$BICL, " -- #Empty blocks : ", sum(!self$best_fit$Cpi), " \n")
       cat("=====================================================================")
     },
 

@@ -1,0 +1,21 @@
+citHeader("To cite colSBM in publications use:")
+
+citEntry(
+  entry    = "Article",
+  title    = "Learning common structures in a collection of networks. An application to food webs",
+  author   = "Chabert-Liddell, Saint-Clair and Barbillon, Pierre and Donnet, Sophie",
+  journal  = "arXiv preprint arXiv:2206.00560",
+  year     = "2022",
+  textVersion = paste(
+    "Chabert-Liddell, S. C., Barbillon, P., & Donnet, S. (2022). Learning common
+    structures in a collection of networks.
+    An application to food webs. arXiv preprint arXiv:2206.00560."
+  )
+)
+
+@article{chabert2022learning,
+  title={Learning common structures in a collection of networks. An application to food webs},
+  author={Chabert-Liddell, Saint-Clair and Barbillon, Pierre and Donnet, Sophie},
+  journal={arXiv preprint arXiv:2206.00560},
+  year={2022}
+}

@@ -28,7 +28,7 @@ global_opts = list(nb_cores = 1L,
                    nb_models = 5L,
                    nb_init = 10L,
                    depth = 2L,
-                   verbosity = 2, spectral_init = FALSE,
+                   verbosity = 1, spectral_init = FALSE,
                    Q_max = 8L, plot_details = 1)
 
 set.seed(1234)
@@ -36,11 +36,11 @@ res_fw_iid <- estimate_colSBM(netlist = foodwebs[1:3],
                               colsbm_model = "iid", 
                               directed = TRUE,
                               net_id = names(foodwebs)[1:3],
-                              nb_run = 3L, 
+                              nb_run = 1L, 
                               global_opts = global_opts)
 ```
 ```{r}
-res_fw_iid$ICL_clustering
+res_fw_iid$BICL
 ```
 
 ```{r}

@@ -95,21 +95,41 @@ estimate_colSBM <-
             return(tmp_fit)
           }, mc.progress = TRUE, mc.cores = min(nb_run,nb_cores)
         )
-      my_bmpop <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$ICL_clustering,
+      my_bmpop <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$BICL,
                                              FUN.VALUE = .1))]]
       my_bmpop$model_list[[1]] <-
         lapply(X = seq_along(my_bmpop$model_list[[1]]),
                FUN = function(q) {
                  tmp_fits[[which.max(vapply(
                    tmp_fits,
-                   function(fit) fit$model_list[[1]][[q]][[1]]$ICL_clustering,
+                   function(fit) fit$model_list[[1]][[q]][[1]]$BICL,
                    FUN.VALUE = .1))]]$model_list[[1]][[q]]
                }
         )
+      my_bmpop$vbound <- vapply(my_bmpop$model_list[[1]],
+                             function (fit) rev(fit[[1]]$vbound)[1], FUN.VALUE = .1)
       my_bmpop$ICL <- vapply(my_bmpop$model_list[[1]],
                              function (fit) fit[[1]]$ICL, FUN.VALUE = .1)
-      my_bmpop$ICL_clustering <- vapply(my_bmpop$model_list[[1]],
-                                        function (fit) fit[[1]]$ICL_clustering, FUN.VALUE = .1)
+      my_bmpop$BICL <- vapply(my_bmpop$model_list[[1]],
+                                        function (fit) fit[[1]]$BICL, FUN.VALUE = .1)
+      if(my_bmpop$global_opts$verbosity >=1) {
+        cat("==== Optimization finished for networks ", my_bmpop$net_id, " ====\n")
+        cat("Best model for Q = ", which.max(my_bmpop$BICL))
+        cat("vbound : ", round(my_bmpop$vbound), "\n")
+        cat("ICL    : ", round(my_bmpop$ICL), "\n")
+        cat("BICL   : ", round(my_bmpop$BICL), "\n")
+        if (! is.null(my_bmpop$ICL_sbm)) {
+          icl_sbm <- vapply(seq(res_fw_iid$M),
+                            function(m) max(res_fw_iid$fit_sbm[[m]]$storedModels$ICL),
+                            FUN.VALUE = .1)
+          if (max(my_bmpop$BICL) > sum(icl_sbm)) {
+            cat("Joint modelisation preferred over separated one. BICL: " )
+          } else {
+            cat("Joint modelisation not preferred over separated one. BICL: " )
+          }
+          cat(max(my_bmpop$BICL), " vs ", sum(icl_sbm))
+        }
+      }
       rm(tmp_fits)
       gc()
     }

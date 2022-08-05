@@ -50,7 +50,7 @@ fitSimpleSBMPop <- R6::R6Class(
     parameters = NULL,
     ICL = NULL,
     penalty_clustering = NULL,
-    ICL_clustering = NULL,
+    BICL = NULL,
     net_clustering = NULL,
     counter_merge = 0,
     counter_split = 0,
@@ -431,7 +431,7 @@ fitSimpleSBMPop <- R6::R6Class(
     },
 
 
-    compute_icl_clustering = function(map = TRUE) {
+    compute_BICL = function(map = TRUE) {
       # browser()
    #    Z_unique <- lapply(self$Z, function(Z) sort(unique(Z)))
    #    uz <- unique(Z_unique)
@@ -449,7 +449,7 @@ fitSimpleSBMPop <- R6::R6Class(
    #                          sum(df_mixture *log(self$n[self$net_clustering == g])))
    #    }
    #    self$penalty_clustering <- pen
-      self$ICL_clustering <- self$compute_vbound() - self$compute_penalty() -
+      self$BICL <- self$compute_vbound() - self$compute_penalty() -
         ifelse(self$free_mixture, sum(log(choose(self$Q, colSums(self$Cpi)))) + self$M*log(self$Q), 0) #-
 #        ifelse(self$free_mixture, self$Q*self$M*log(2), 0)
       # nqr <- colSums(self$map$nmqr, dim = 1)
@@ -463,12 +463,12 @@ fitSimpleSBMPop <- R6::R6Class(
       # if (self$free_density) df_connect <- df_connect + self$M - 1
       # pen <- .5*(df_connect * log(sum(self$nb_inter)) +
       #              sum(df_mixture*log(self$n)) ) + (self$M*self$Q*log(2))
-      # self$ICL_clustering <-
+      # self$BICL <-
       #   sum(vapply(
       #   seq_along(self$A),
       #   function(m) self$vb_tau_pi(m, map = map) + self$vb_tau_alpha(m, map = map),
       #   FUN.VALUE = .1)) - pen
-      invisible(self$ICL_clustering)
+      invisible(self$BICL)
     },
 
 
@@ -943,6 +943,7 @@ fitSimpleSBMPop <- R6::R6Class(
                          alpham = self$alpham,
                          emqr = self$emqr,
                          nmqr = self$nmqr)
+        self$vbound <- self$compute_vbound()
       } else {
         #  browser()
         self$init_clust()
@@ -1017,7 +1018,7 @@ fitSimpleSBMPop <- R6::R6Class(
       self$compute_icl()
 
       self$compute_icl(map = TRUE)
-      self$compute_icl_clustering()
+      self$compute_BICL()
     },
 
     show = function(type = "Fitted Collection of Simple SBM") {
