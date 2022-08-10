@@ -233,7 +233,7 @@ bmpop <- R6::R6Class(
                                          fit_opts = utils::modifyList(self$fit_opts, list(max_iter = 10L)))
           mypopbm$optimize()
           return(mypopbm)
-        }#, mc.cores = self$global_opts$nb_cores#.options = furrr::furrr_options(globals = NULL)
+        }
       )
     },
 

@@ -15,7 +15,7 @@ fitSimpleSBMPop <- R6::R6Class(
     nb_inter = NULL, # A vector of length M the number of unique non NA entries
     directed = NULL, # Boolean for network direction, Constant
     Q = NULL, # Number of clusters, Constant
-    tau = NULL, # List of size M variational parameters n[m]xQ matrices
+    tau = NULL, # List of length M, variational parameters n[m]xQ[m] matrices
     alpha = NULL, # Matrix of size QxQ, connection parameters
     delta = NULL, # Vector of M,  density parameters with delta[1] = 1
     pi = NULL, # List of M vectors of size Q, the mixture parameters
@@ -197,14 +197,6 @@ fitSimpleSBMPop <- R6::R6Class(
       switch(
         self$model,
         "bernoulli" = {
-          #tau_tmp <- self$tau[[m]]
-          # self$dircoef*sum(
-          #   self$M[[m]] *
-          #     (self$A[[m]] *
-          #        tcrossprod(tau_tmp %*% .logit(self$alpha*self$delta[m], eps=1e-6),
-          #                   tau_tmp) +
-          #        tcrossprod(tau_tmp %*% .log(1-self$alpha*self$delta[m], eps = 1e-6),
-          #                   tau_tmp)))
           self$dircoef*sum(
             self$Calpha * .xlogy(emqr, alpha*delta, eps = 1e-12) +
               self$Calpha * .xlogy(nmqr - emqr, 1 - alpha*delta, eps = 1e-12))
@@ -214,13 +206,6 @@ fitSimpleSBMPop <- R6::R6Class(
           self$dircoef * (sum(self$Calpha * emqr *log(pmax( alpha*delta, 1e-12))) -
                                sum(nmqr * self$Calpha * alpha * delta) -
                                self$logfactA[m])
-          # self$dircoef*sum(
-          #   self$M[[m]] * (self$A[[m]] *
-          #                    tcrossprod(tau_tmp %*% .log(self$alpha*self$delta[m], eps=1e-9),
-          #                               tau_tmp) -
-          #                    tcrossprod(tau_tmp %*% (self$alpha*self$delta[m]),
-          #                               tau_tmp)) -
-          #   lgamma(A[[m]]+1))
         }
       )
     },
