@@ -47,7 +47,6 @@ fitSimpleSBMPop <- R6::R6Class(
     Z = NULL,
     map = NULL,
     map_parameters = NULL,
-    parameters = NULL,
     ICL = NULL,
     penalty_clustering = NULL,
     BICL = NULL,
@@ -87,9 +86,9 @@ fitSimpleSBMPop <- R6::R6Class(
         self$mask <- lapply(
           seq_along(self$A),
           function(m) {
-            mask <- diag(-1, self$n[m]) + 1
-            if(sum(is.na(self$A[[m]] > 0))) {
-              mask[is.na(self$A[[m]])] <- 0
+            mask <- Matrix::Matrix(diag(1, self$n[m]), sparse = TRUE)
+            if(sum(is.na(self$A[[m]])) > 0) {
+              mask[is.na(self$A[[m]])] <- 1
             }
             mask
           })
@@ -117,7 +116,7 @@ fitSimpleSBMPop <- R6::R6Class(
           self$logfactA <- vapply(
             seq_along(self$A),
             function(m) {
-              sum(lfactorial(self$A[[m]]) * self$mask[[m]], na.rm = TRUE)
+              sum(lfactorial(self$A[[m]]) * (1-self$mask[[m]]), na.rm = TRUE)
             },
             FUN.VALUE = .1)
         } else {
@@ -531,11 +530,13 @@ fitSimpleSBMPop <- R6::R6Class(
           })
       lapply(
         seq_along(Z),
-        function(m) self$map$emqr[m,,] <- .tquadform(Z[[m]], self$A[[m]] * self$mask[[m]])
+        function(m) self$map$emqr[m,,] <- .tquadform(Z[[m]],
+                        as.matrix(self$A[[m]]) * (1-as.matrix(self$mask[[m]])))
       )
       lapply(
         seq_along(Z),
-        function(m) self$map$nmqr[m,,] <- .tquadform(Z[[m]], self$mask[[m]])
+        function(m) self$map$nmqr[m,,] <- .tquadform(Z[[m]],
+                                                  1 - as.matrix(self$mask[[m]]))
       )
       self$map$Z <- Z
       self$map$alpha <- self$alpha
@@ -556,24 +557,26 @@ fitSimpleSBMPop <- R6::R6Class(
       self$vloss[[m]] <-
         c(self$vloss[[m]], self$vb_tau_alpha(m) + self$vb_tau_pi(m) + self$entropy_tau(m))
       tau_old <- t(self$Cpi[, m] * t(self$tau[[m]]))
+      Um <- 1 - as.matrix(self$mask[[m]])
+      Am <- Um * as.matrix(self$A[[m]])
       while(condition) {
         tau_new <- switch (
           self$model,
           "bernoulli" = {
             tau_new <-
               t(matrix(.xlogy(self$Cpi[,m],self$pi[[m]]), self$Q, self$n[m]))+
-              (self$mask[[m]] * self$A[[m]]) %*%
+              Am %*%
               tau_old %*%
               t(.logit(self$delta[m]*self$alpha, eps = 1e-9)) +
-              self$mask[[m]] %*%
+              Um %*%
               tau_old %*%
               t(.log(1-self$alpha*self$delta[m], eps = 1e-9))
             if (self$directed) {
               tau_new <- tau_new +
-                crossprod(self$mask[[m]]*self$A[[m]],
+                crossprod(Am,
                           tau_old %*%
                             .logit(self$delta[m]*self$alpha, eps=1e-9)) +
-                crossprod(self$mask[[m]],
+                crossprod(Um,
                           tau_old %*%
                             .log(1-self$alpha*self$delta[m], eps = 1e-9))
             }
@@ -582,18 +585,18 @@ fitSimpleSBMPop <- R6::R6Class(
           "poisson" = {
             tau_new <-
               t(matrix(.xlogy(self$Cpi[,m],self$pi[[m]]), self$Q, self$n[m])) +
-              (self$mask[[m]] * self$A[[m]]) %*%
+              Am %*%
               tau_old %*%
               t(log(pmax(self$delta[m]*self$alpha,  1e-12))) -
-              self$mask[[m]] %*%
+              Um %*%
               tau_old %*%
               t(self$alpha*self$delta[m])
             if (self$directed) {
               tau_new <- tau_new +
-                crossprod(self$mask[[m]]*self$A[[m]],
+                crossprod(Am,
                           tau_old %*%
                             log(pmax(self$delta[m]*self$alpha, 1e-12))) -
-                crossprod(self$mask[[m]],
+                crossprod(Um,
                           tau_old %*%
                             self$alpha*self$delta[m])
             }
@@ -613,8 +616,8 @@ fitSimpleSBMPop <- R6::R6Class(
           .rowSums(tau_new[, which(self$Cpi[,m]),drop=FALSE], self$n[m], sum(self$Cpi[,m]))
         tau_new[, which(!self$Cpi[,m])] <- 0
         it <- it+1
-        emqr <- .tquadform(tau_new, self$A[[m]]*self$mask[[m]])
-        nmqr <- .tquadform(tau_new, self$mask[[m]])
+        emqr <- .tquadform(tau_new, Am)
+        nmqr <- .tquadform(tau_new, Um)
         emqr[is.nan(emqr)] <- 0
         nmqr[is.nan(nmqr)] <- 0
         if (it >= 1) {
@@ -783,9 +786,11 @@ fitSimpleSBMPop <- R6::R6Class(
           "random" = lapply(
             X = seq_along(self$A),
             FUN = function(m) {
+              Um <- 1 - as.matrix(self$mask[[m]])
+              Am <- as.matrix(self$A[[m]]) * Um
               tau_tmp <- gtools::rdirichlet(self$n[m], rep(1, self$Q))
-              self$emqr[m,,] <- .tquadform(tau_tmp, self$A[[m]]*self$mask[[m]])
-              self$nmqr[m,,] <- .tquadform(tau_tmp, self$mask[[m]])
+              self$emqr[m,,] <- .tquadform(tau_tmp, Am)
+              self$nmqr[m,,] <- .tquadform(tau_tmp, Um)
               a <- self$emqr[m,,]/self$nmqr[m,,]
               prob <- self$Q*diag(a) #+ rowSums(a)
               p <- sample.int(self$Q, prob = prob)
@@ -798,12 +803,15 @@ fitSimpleSBMPop <- R6::R6Class(
           "spectral" = lapply(
             X = seq_along(self$A),
             FUN = function(m) {
-              tau_tmp <- .one_hot(spectral_clustering(self$A[[m]], self$Q), self$Q)
+              Um <- 1 - as.matrix(self$mask[[m]])
+              Am <- as.matrix(self$A[[m]]) * Um
+              tau_tmp <- .one_hot(spectral_clustering(
+                as.matrix(self$A[[m]]), self$Q), self$Q)
               tau_tmp[tau_tmp < 1e-6] <- 1e-6
               tau_tmp[tau_tmp > 1-1e-6] <- 1-1e-6
               tau_tmp <- tau_tmp / .rowSums(tau_tmp, self$n[m], self$Q)
-              self$emqr[m,,] <- .tquadform(tau_tmp, self$A[[m]]*self$mask[[m]])
-              self$nmqr[m,,] <- .tquadform(tau_tmp, self$mask[[m]])
+              self$emqr[m,,] <- .tquadform(tau_tmp, Am)
+              self$nmqr[m,,] <- .tquadform(tau_tmp, Um)
               a <- self$emqr[m,,]/self$nmqr[m,,]
               prob <- self$Q*diag(a)# + rowSums(a)
               p <- sample.int(self$Q, prob = prob)
@@ -816,12 +824,15 @@ fitSimpleSBMPop <- R6::R6Class(
           "given" = lapply(
             X = seq_along(self$Z),
             FUN = function(m) {
+              Um <- 1 - as.matrix(self$mask[[m]])
+              Am <- as.matrix(self$A[[m]]) * Um
               if (is.matrix(self$Z[[m]])) {
+
                 tau_tmp <- self$Z[[m]]
                 tau_tmp[,self$Cpi[,m]] <-
                   .threshold(tau_tmp[,self$Cpi[,m], drop = FALSE])
-                self$emqr[m,,] <- .tquadform(tau_tmp, self$A[[m]]*self$mask[[m]])
-                self$nmqr[m,,] <- .tquadform(tau_tmp, self$mask[[m]])
+                self$emqr[m,,] <- .tquadform(tau_tmp, Am)
+                self$nmqr[m,,] <- .tquadform(tau_tmp, Um)
                 tau_tmp
               } else {
                 tau_tmp <- .one_hot(self$Z[[m]], self$Q)
@@ -831,8 +842,8 @@ fitSimpleSBMPop <- R6::R6Class(
                 # tau_tmp[,self$Cpi[,m]][tau_tmp[,self$Cpi[,m]] > 1-1e-9] <- 1-1e-9
                 # tau_tmp[,self$Cpi[,m]] <- tau_tmp[,self$Cpi[,m], drop = FALSE] /
                 #   .rowSums(tau_tmp[,self$Cpi[,m], drop = FALSE], self$n[m], sum(self$Cpi[,m]))
-                self$emqr[m,,] <- .tquadform(tau_tmp, self$A[[m]]*self$mask[[m]])
-                self$nmqr[m,,] <- .tquadform(tau_tmp, self$mask[[m]])
+                self$emqr[m,,] <- .tquadform(tau_tmp, Am)
+                self$nmqr[m,,] <- .tquadform(tau_tmp, Um)
                 # a <- self$emqr[m,,]/self$nmqr[m,,]
                 # prob <- self$Q*diag(a) #+ rowSums(a)
                 # p <- sample(self$Q, prob = prob)
@@ -847,12 +858,14 @@ fitSimpleSBMPop <- R6::R6Class(
           "empty" = lapply(
             X = seq_along(self$tau),
             FUN = function(m) {
+              Um <- 1 - as.matrix(self$mask[[m]])
+              Am <- as.matrix(self$A[[m]]) * Um
               tau_tmp <- self$tau[[m]]
               tau_tmp[,which(!self$Cpi[,m])] <- 0
               tau_tmp[,self$Cpi[,m]] <-
                 .threshold(tau_tmp[,self$Cpi[,m], drop = FALSE])
-              self$emqr[m,,] <- .tquadform(tau_tmp, self$A[[m]]*self$mask[[m]])
-              self$nmqr[m,,] <- .tquadform(tau_tmp, self$mask[[m]])
+              self$emqr[m,,] <- .tquadform(tau_tmp, Am)
+              self$nmqr[m,,] <- .tquadform(tau_tmp, Um)
               tau_tmp
             }
           )
@@ -896,10 +909,10 @@ fitSimpleSBMPop <- R6::R6Class(
 
     update_mqr = function(m) {
       tau_tmp <- self$tau[[m]]
-      self$emqr[m,,] <- outer(self$Cpi[,m], self$Cpi[,m]) *
-        .tquadform(tau_tmp, self$A[[m]] * self$mask[[m]])
-      self$nmqr[m,,] <- outer(self$Cpi[,m], self$Cpi[,m]) *
-        .tquadform(tau_tmp, self$mask[[m]])
+      Um <- 1 - as.matrix(self$mask[[m]])
+      Am <- as.matrix(self$A[[m]]) * Um
+      self$emqr[m,,] <- outer(self$Cpi[,m], self$Cpi[,m]) * .tquadform(tau_tmp, Am)
+      self$nmqr[m,,] <- outer(self$Cpi[,m], self$Cpi[,m]) * .tquadform(tau_tmp, Um)
     },
 
 
@@ -1009,12 +1022,12 @@ fitSimpleSBMPop <- R6::R6Class(
     show = function(type = "Fitted Collection of Simple SBM") {
       cat(type, "--", self$model, "variant for", self$M, "networks \n")
       cat("=====================================================================\n")
-      cat("Dimension = (", self$n, ") - (",
-          self$Q,  ") blocks.\n")
+      cat("Dimension = (", self$n, ") - (", self$Q,  ") blocks.\n")
+      cat("BICL = ", self$BICL, " -- #Empty blocks : ", sum(!self$Cpi), " \n")
       cat("=====================================================================\n")
       cat("* Useful fields \n")
-      cat("  $independent, $model, $nb_nodes, $nb_clusters, $Z \n")
-      cat("  $membership, $parameters, $ICL, $vbound, $X_hat \n")
+      cat("  $model, $nb_nodes, $nb_clusters, $support, $Z \n")
+      cat("  $memberships, $parameters, $BICL, $vbound, $pred_dyads \n")
     },
 
     print = function() {
@@ -1023,6 +1036,23 @@ fitSimpleSBMPop <- R6::R6Class(
 
   ),
   active = list(
-    dircoef =  function() ifelse (self$directed, 1, .5)
+    dircoef =  function() ifelse (self$directed, 1, .5),
+    nb_nodes = function(value) self$n,
+    nb_clusters = function(value) self$Q,
+    support = function(value) self$Cpi,
+    memberships = function(value) self$tau,
+    parameters = function(value) {
+      list(alpha = self$alpha,
+           pi = self$pi,
+           delta = self$delta)
+    },
+    pred_dyads = function(value) {
+      lapply(seq(self$M),
+             function(m) {
+        A_hat <- .quadform(self$tau[[m]], self$delta[m] * self$alpha)
+        diag(A_hat) <- 0
+        A_hat
+      })
+    }
   )
 )

@@ -63,7 +63,7 @@ fitSimpleSBMPop$set("public", "plot",
       }
       return(p_alpha)
     },
-    "block" = {self$A[[net_id]][order(self$Z[[net_id]]),
+    "block" = {as.matrix(self$A[[net_id]])[order(self$Z[[net_id]]),
                                order(self$Z[[net_id]])] %>%
       reshape2::melt() %>%
       ggplot2::ggplot(ggplot2::aes(x = Var2, y = Var1, fill = value)) +
@@ -168,3 +168,54 @@ plot.fitSimpleSBMPop <- function(x, type = "graphon",
 #   coord_equal(expand = FALSE) +
 #   theme_bw(base_size = 15) +
 #   theme(axis.ticks =  element_blank())
+
+#' Plot the trace of the different criteria in function of the number of
+#' clusters
+#'
+#' @param x a bmpop object.
+#' @param type The type of the plot. "trace".
+#' @param ... Further argument to be passed
+#' @return A plot, a ggplot2 object.
+#' @export
+#'
+#'
+plot.bmpop <- function(x, type = "trace", ...) {
+  stopifnot(inherits(x, "bmpop"))
+  p <- x$plot(type = type, ...)
+  p
+}
+
+
+
+bmpop$set(
+  "public",
+  "plot",
+  function(type = "trace", ...) {
+    tb <-           tibble::tibble(
+      Q = seq(length(self$BICL)),
+      ICL = self$ICL,
+      BICL = self$BICL,
+      vbound = self$vbound)
+  if (! is.null(self$ICL_sbm)) {
+    tb %>% dplyr::mutate(SBM = self$ICL_sbm)
+  }
+    tb %>%
+      tidyr::pivot_longer(cols = -Q, names_to = "Criterion") %>%
+      ggplot2::ggplot(ggplot2::aes(x = Q, y = value,
+                                   linetype = Criterion, color = Criterion,
+                                   shape = Criterion)) +
+      ggplot2::annotate(geom = "rect",
+                        xmin = max(which.max(self$BICL) -
+                                     self$global_opts$depth, 1),
+                        xmax = min(which.max(self$BICL) +
+                                     self$global_opts$depth, length(self$BICL)),
+                        ymin = -Inf,
+                        ymax = Inf,
+                        fill = "gray90"
+      ) +
+      ggplot2::geom_line() +
+      ggplot2::geom_point(size = 3) +
+      ggplot2::ylab("") +
+      ggplot2::theme_bw()
+  }
+)

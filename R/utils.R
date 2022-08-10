@@ -50,7 +50,7 @@ hierarClust <- function(X, K){
   # X[X == -1] <- NA
   # distance[which(A == 1)] <- distance[which(A == 1)] - 2
   # distance <- stats::as.dist(ape::additive(distance))
-  diss <- cluster::daisy(x = X, metric = "manhattan")
+  diss <- cluster::daisy(x = X, metric = "manhattan", warnBin = FALSE)
   if (! any(is.na(diss))) {
     clust <- cluster::agnes(x = X, metric = "manhattan", method = "ward")
   } else {
@@ -76,16 +76,25 @@ split_clust <- function(X, Z, Q) {
     FUN =  function(q) {
       if (sum(Z==q) <= 3) return(Z)
       Z_new        <-  Z
- #     Z_new[Z==q]  <-  hierarClust(X[Z==q,] + t(X[,Z==q]), 2) + Q#stats::kmeans(x = .5 * (X[Z==q,] + t(X[,Z==q])), centers = 2)$cluster + Q
       mx <- mean(X[Z==q, Z==q], na.rm = TRUE)
       X[is.na(X)] <- mx
-      Xsub <- cbind(X[Z==q,], t(X[,Z==q]))
+      if (isSymmetric.matrix(X)) {
+        Xsub <- X[Z==q,,drop=FALSE]
+      } else {
+        Xsub <- cbind(X[Z==q,,drop=FALSE], t(X[,Z==q,drop=FALSE]))
+      }
       if(nrow(unique(Xsub, MARGIN =1)) <=3 ) return(Z)
       C <- stats::kmeans(x = Xsub, centers = 2)$cluster
+      #C  <-  hierarClust(Xsub, 2)# + Q#stats::kmeans(x = .5 * (X[Z==q,] + t(X[,Z==q])), centers = 2)$cluster + Q
       if (length(unique(C)) == 2) {
+        p1 <- c(mean(X[Z==q,,drop=FALSE][C==1,]),
+                mean(X[,Z==q,drop=FALSE][,C==1]))
+        p2 <- c(mean(X[Z==q,,drop=FALSE][C==2,]),
+                mean(X[,Z==q,drop=FALSE][,C==2]))
+        c <- which.max(abs(p1 - p2))
         md <- sample(x = 2,size =  2, replace = FALSE,
-                     prob = c(max(1/ncol(Xsub), mean(Xsub[C == 1,])),
-                              max(1/ncol(Xsub),mean(Xsub[C == 2,]))))
+                     prob = c(max(1/ncol(Xsub), p1[c]),
+                              max(1/ncol(Xsub), p2[c])))
         Z_new[Z == q][C == which.min(md)] <- Q+1
       }
       # Z_new[Z==q]  <-  stats::kmeans(x = Xsub, centers = 2)$cluster + Q

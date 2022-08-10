@@ -35,7 +35,7 @@ the initialization.}
 
 \item{nb_run}{An integer, the number of run the algorithm do.}
 
-\item{global_opts}{Global options for the outer algorithm and the outpur}
+\item{global_opts}{Global options for the outer algorithm and the output}
 
 \item{fit_opts}{Fit options for the VEM algorithm}
 
@@ -48,4 +48,23 @@ of networks
 }
 \description{
 Estimate a colSBM on a collection of networks
+}
+\examples{
+# Trivial example with Gnp networks:
+Net <- lapply(list(.7, .7, .2, .2),
+              function(p) {
+                A <- matrix(0, 15, 15 )
+               A[lower.tri(A)][sample(15*14/2, size = round(p*15*14/2))] <- 1
+                A <- A + t(A)
+              })
+\dontrun{cl <- estimate_colSBM(Net,
+                     colsbm_model = "delta",
+                     directed = FALSE,
+                     model = "bernoulli",
+                     nb_run = 1
+                     )}
+}
+\seealso{
+\code{\link[=clusterize_networks]{clusterize_networks()}}, \code{\link[colSBM]{bmpop}},
+\code{\link[colSBM]{fitSimpleSBMPop}}, \code{browseVignettes("colSBM")}
 }

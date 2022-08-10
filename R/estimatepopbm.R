@@ -22,10 +22,32 @@
 #' continue to split groups until a trivial classification of one network per
 #' group.
 #'
-#' @return A list of models for the partition of a collection of networks
+#' @return A list of models for the recursive partition of
+#' the collection of networks.
+#'
+#' @details The best partition could be extract with the function
+#' `extract_best_partition()`. The object of the list are FitSimpleSBMPop object,
+#' so it is a model for a given number of blocks Q.
 #' @export
 #'
+#' @seealso [colSBM::extract_best_partition()], [colSBM::estimate_colSBM()],
+#' \code{\link[colSBM]{fitSimpleSBMPop}}, `browseVignettes("colSBM")`
+#'
 #' @examples
+#'
+#' #' # Trivial example with Gnp networks:
+#' Net <- lapply(list(.7, .7, .2, .2),
+#'               function(p) {
+#'                A <- matrix(0, 15, 15 )
+#'                A[lower.tri(A)][sample(15*14/2, size = round(p*15*14/2))] <- 1
+#'                A <- A + t(A)
+#'               })
+#' \dontrun{cl <- clusterized_networks(Net,
+#'                            colsbm_model = "iid",
+#'                            directed = FALSE,
+#'                            model = "bernoulli",
+#'                            nb_run = 1
+#'                            )}
 clusterize_networks <- function(netlist,
                           colsbm_model,
                           net_id = NULL,
@@ -90,7 +112,9 @@ clusterize_networks <- function(netlist,
                 estimOptions = list(verbosity = 0,
                                     plot = FALSE, nbCores = 1L,
                                     exploreMin = Q_max))
-            }, mc.cores = nb_cores
+            },
+            mc.cores = nb_cores,
+            mc.silent = TRUE
           )
       }
       tmp_fits <-
@@ -189,7 +213,8 @@ clusterize_networks <- function(netlist,
                      #                    nb_init = 100, verbosity = 1))
                      tmp_fit$optimize()
                      return(tmp_fit)
-                   }, mc.progress = TRUE, mc.cores = min(nb_run,nb_cores)
+                   }, mc.progress = TRUE, mc.cores = min(nb_run,nb_cores),
+                   mc.stdout = "output"
                    )
                res <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$BICL,
                                          FUN.VALUE = .1))]]
@@ -330,11 +355,19 @@ clusterize_networks <- function(netlist,
 
 
 
-#' @noRd
-#' @noMd
-best_list <- function(l) {
+#' Extract the best partition from the list of model given by the function
+#' `clusterize_networks()`.
+#'
+#' @param l A list of model obtained from the function  `clusterize_networks()`
+#'
+#' @return A list of model giving the best partition.
+#' @export
+#'
+#' @examples
+extract_best_partition <- function(l) {
+  stopifnot(inherits(l[[1]], "fitSimpleSBMPop"))
   if(length(l) == 1)  return(l[[1]])
   if(length(l) == 2) return(l[[2]])
-  return(list(best_list(l[[2]]),
-              best_list(l[[3]])))
+  return(list(extract_best_partition(l[2]),
+              extract_best_partition(l[3])))
 }

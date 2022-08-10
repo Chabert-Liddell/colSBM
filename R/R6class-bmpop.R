@@ -40,15 +40,15 @@ bmpop <- R6::R6Class(
                           Z_init = NULL,
                           global_opts = list(),
                           fit_opts = list()) {
-      self$A <- netlist
+      self$A <- lapply(netlist, Matrix::Matrix, sparse=TRUE)
       self$n <- vapply(self$A, nrow, FUN.VALUE = .1)
       self$M <- length(self$A)
       self$mask <- lapply(
         seq_along(self$A),
         function(m) {
-          mask <- diag(-1, self$n[m]) + 1
-          if(sum(is.na(self$A[[m]] > 0))) {
-            mask[is.na(self$A[[m]])] <- 0
+          mask <- Matrix::Matrix(diag(1, self$n[m]), sparse = TRUE)
+          if (sum(is.na(self$A[[m]])) > 0) {
+            mask[is.na(self$A[[m]])] <- 1
           }
           mask
         })
@@ -86,7 +86,7 @@ bmpop <- R6::R6Class(
         self$logfactA <- vapply(
           seq_along(self$A),
           function(m) {
-            sum(lfactorial(self$A[[m]]) * self$mask[[m]], na.rm = TRUE)
+            sum(lfactorial(self$A[[m]]) * (1-self$mask[[m]]), na.rm = TRUE)
           },
           FUN.VALUE = .1)
       }
@@ -110,11 +110,14 @@ bmpop <- R6::R6Class(
          #     p(sprintf("m=%g", m))
               sbm::estimateSimpleSBM(
                 model = self$model,
-                netMat = self$A[[m]],
+                netMat = as.matrix(self$A[[m]]),
                 estimOptions = list(verbosity = 0,
                                     plot = FALSE, nbCores = 1L,
                                     exploreMin = self$global_opts$Q_max))
-            }, mc.cores = self$global_opts$nb_cores, mc.share.copy = FALSE
+            },
+         mc.cores = self$global_opts$nb_cores,
+         mc.share.copy = FALSE,
+         mc.silent = TRUE
           )
       }
       self$ICL_sbm <- rep(-Inf, self$global_opts$Q_max)
@@ -355,7 +358,7 @@ bmpop <- R6::R6Class(
         }
         #        list_popbm <- list()
         model_list <- self$model_list[[1]][[Q-1]]
-      #  browser()
+        #browser()
         list_Zinit <- lapply(
           X = model_list,
           FUN = function(fit) #for (fit in self$model_list[[1]][[Q-1]])
@@ -363,7 +366,7 @@ bmpop <- R6::R6Class(
             if (fit$counter_split < 3) {
               fit$counter_split <- fit$counter_split + 1
               Z_init <- purrr::map(seq_along(index),
-                                   ~ split_clust(fit$A[[.]], fit$Z[[.]],Q-1))
+                                   ~ split_clust(as.matrix(fit$A[[.]]), fit$Z[[.]],Q-1))
               Z_init <- purrr::transpose(Z_init)
               return(Z_init)
             } else {
@@ -385,7 +388,8 @@ bmpop <- R6::R6Class(
         # k <- min(self$global_opts$nb_cores, ceiling(length(list_Zinit/3)))
     #     browser()
         fold <- split(seq_along(list_Zinit),
-                      rep(1:ceiling(length(list_Zinit)/max(Q, 10)), each=max(Q, 10))[1:length(list_Zinit)])
+                      rep(1:ceiling(length(list_Zinit)/max(Q, 10)),
+                          each=max(Q, 10))[1:length(list_Zinit)])
         list_popbm <- bettermc::mclapply(
           seq_along(fold),
           function(x) {
@@ -436,12 +440,12 @@ bmpop <- R6::R6Class(
                     }
                   }
                 }
-                lapply(seq_along(tmp_list),
-                       function(j) {
-                         tmp_list[[j]]$A <- NULL
-                         tmp_list[[j]]$mask <- NULL
-                       }
-                )
+                # lapply(seq_along(tmp_list),
+                #        function(j) {
+                #          tmp_list[[j]]$A <- NULL
+                #          tmp_list[[j]]$mask <- NULL
+                #        }
+                # )
                 #gc()
                 return(tmp_list)
               }
@@ -462,12 +466,12 @@ bmpop <- R6::R6Class(
           self$ICL[Q] <- best_models[[1]]$map$ICL
           self$BICL[Q] <- best_models[[1]]$BICL
           self$model_list[[nb_clusters]][[Q]] <- best_models
-          lapply(self$model_list[[nb_clusters]][[Q]],
-                 function(fit) {
-                   fit$A <- self$A
-                   fit$mask <- self$mask
-                 }
-          )
+          # lapply(self$model_list[[nb_clusters]][[Q]],
+          #        function(fit) {
+          #          fit$A <- self$A
+          #          fit$mask <- self$mask
+          #        }
+          # )
           max_icl[Q] <- best_models[[1]]$BICL
           if(self$global_opts$verbosity >= 3) {
             cat(Q, ": ", self$BICL[Q], " -- ", max_icl[Q] > old_icl[Q], "\t")
@@ -578,12 +582,12 @@ bmpop <- R6::R6Class(
                     }
                   }
                 }
-                lapply(seq_along(tmp_list),
-                       function(j) {
-                         tmp_list[[j]]$A <- NULL
-                         tmp_list[[j]]$mask <- NULL
-                       }
-                )
+                # lapply(seq_along(tmp_list),
+                #        function(j) {
+                #          tmp_list[[j]]$A <- NULL
+                #          tmp_list[[j]]$mask <- NULL
+                #        }
+                # )
                 #gc()
                 return(tmp_list)
               }
@@ -625,12 +629,12 @@ bmpop <- R6::R6Class(
           self$ICL[Q] <- best_models[[1]]$map$ICL
           self$BICL[Q] <- best_models[[1]]$BICL
           self$model_list[[nb_clusters]][[Q]] <- best_models
-          lapply(self$model_list[[nb_clusters]][[Q]],
-                 function(res) {
-                   res$A <- self$A
-                   res$mask <- self$mask
-                 }
-          )
+          # lapply(self$model_list[[nb_clusters]][[Q]],
+          #        function(res) {
+          #          res$A <- self$A
+          #          res$mask <- self$mask
+          #        }
+          # )
           max_icl[Q] <- best_models[[1]]$BICL
           if(self$global_opts$verbosity >= 3) {
             cat(Q, ": ", self$BICL[Q], " -- ", max_icl[Q] > old_icl[Q], "\t")

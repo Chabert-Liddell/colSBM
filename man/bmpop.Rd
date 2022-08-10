@@ -11,6 +11,7 @@ An R6 Class object, a collection of model for population of sbm netowrks
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
+\item \href{#method-bmpop-plot}{\code{bmpop$plot()}}
 \item \href{#method-bmpop-new}{\code{bmpop$new()}}
 \item \href{#method-bmpop-optimize_sbm}{\code{bmpop$optimize_sbm()}}
 \item \href{#method-bmpop-optimize_from_sbm}{\code{bmpop$optimize_from_sbm()}}
@@ -27,6 +28,15 @@ An R6 Class object, a collection of model for population of sbm netowrks
 \item \href{#method-bmpop-print}{\code{bmpop$print()}}
 \item \href{#method-bmpop-clone}{\code{bmpop$clone()}}
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-bmpop-plot"></a>}}
+\if{latex}{\out{\hypertarget{method-bmpop-plot}{}}}
+\subsection{Method \code{plot()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{bmpop$plot(type = "trace", ...)}\if{html}{\out{</div>}}
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-bmpop-new"></a>}}

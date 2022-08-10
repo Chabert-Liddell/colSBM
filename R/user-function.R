@@ -10,7 +10,7 @@
 #' @param fit_sbm A list of model using the \code{sbm} package. Use to speed up
 #' the initialization.
 #' @param nb_run An integer, the number of run the algorithm do.
-#' @param global_opts Global options for the outer algorithm and the outpur
+#' @param global_opts Global options for the outer algorithm and the output
 #' @param fit_opts Fit options for the VEM algorithm
 #' @param fit_init Do not use!
 #' Optional fit init from where initializing the algorithm.
@@ -19,7 +19,23 @@
 #' of networks
 #' @export
 #'
+#' @seealso [colSBM::clusterize_networks()], \code{\link[colSBM]{bmpop}},
+#' \code{\link[colSBM]{fitSimpleSBMPop}}, `browseVignettes("colSBM")`
+#'
 #' @examples
+#' # Trivial example with Gnp networks:
+#' Net <- lapply(list(.7, .7, .2, .2),
+#'               function(p) {
+#'                 A <- matrix(0, 15, 15 )
+#'                A[lower.tri(A)][sample(15*14/2, size = round(p*15*14/2))] <- 1
+#'                 A <- A + t(A)
+#'               })
+#' \dontrun{cl <- estimate_colSBM(Net,
+#'                      colsbm_model = "delta",
+#'                      directed = FALSE,
+#'                      model = "bernoulli",
+#'                      nb_run = 1
+#'                      )}
 estimate_colSBM <-
   function(    netlist,
                colsbm_model,
@@ -76,7 +92,9 @@ estimate_colSBM <-
                 estimOptions = list(verbosity = 0,
                                     plot = FALSE, nbCores = 1L,
                                     exploreMin = Q_max))
-            }, mc.cores = nb_cores, mc.silent = TRUE
+            },
+            mc.cores = nb_cores,
+            mc.silent = TRUE
           )
       }
       tmp_fits <-
@@ -95,7 +113,8 @@ estimate_colSBM <-
                                  fit_opts = fit_opts)
             tmp_fit$optimize()
             return(tmp_fit)
-          }, mc.progress = TRUE, mc.cores = min(nb_run,nb_cores)
+          }, mc.progress = TRUE, mc.cores = min(nb_run,nb_cores),
+          mc.stdout = "output"
         )
       my_bmpop <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$BICL,
                                              FUN.VALUE = .1))]]
