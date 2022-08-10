@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">colSBM</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -99,7 +99,7 @@ the initialization.</p></dd>
 
 
 <dt>global_opts</dt>
-<dd><p>Global options for the outer algorithm and the outpur</p></dd>
+<dd><p>Global options for the outer algorithm and the output</p></dd>
 
 
 <dt>fit_opts</dt>
@@ -118,7 +118,29 @@ Optional fit init from where initializing the algorithm.</p></dd>
 <p>A bmpop object listing a collection of models for the collection.
 of networks</p>
     </div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p><code><a href="clusterize_networks.html">clusterize_networks()</a></code>, <code><a href="bmpop.html">bmpop</a></code>,
+<code><a href="fitSimpleSBMPop.html">fitSimpleSBMPop</a></code>, <code>browseVignettes("colSBM")</code></p></div>
+    </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Trivial example with Gnp networks:</span></span></span>
+<span class="r-in"><span><span class="va">Net</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fl">.7</span>, <span class="fl">.7</span>, <span class="fl">.2</span>, <span class="fl">.2</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>              <span class="kw">function</span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>                <span class="va">A</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">15</span>, <span class="fl">15</span> <span class="op">)</span></span></span>
+<span class="r-in"><span>               <span class="va">A</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/lower.tri.html" class="external-link">lower.tri</a></span><span class="op">(</span><span class="va">A</span><span class="op">)</span><span class="op">]</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">15</span><span class="op">*</span><span class="fl">14</span><span class="op">/</span><span class="fl">2</span>, size <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">p</span><span class="op">*</span><span class="fl">15</span><span class="op">*</span><span class="fl">14</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">1</span></span></span>
+<span class="r-in"><span>                <span class="va">A</span> <span class="op">&lt;-</span> <span class="va">A</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="va">A</span><span class="op">)</span></span></span>
+<span class="r-in"><span>              <span class="op">}</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="va">cl</span> <span class="op">&lt;-</span> <span class="fu">estimate_colSBM</span><span class="op">(</span><span class="va">Net</span>,</span></span>
+<span class="r-in"><span>                     colsbm_model <span class="op">=</span> <span class="st">"delta"</span>,</span></span>
+<span class="r-in"><span>                     directed <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span>                     model <span class="op">=</span> <span class="st">"bernoulli"</span>,</span></span>
+<span class="r-in"><span>                     nb_run <span class="op">=</span> <span class="fl">1</span></span></span>
+<span class="r-in"><span>                     <span class="op">)</span></span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside></div>
 

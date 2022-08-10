@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">colSBM</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,29 +44,7 @@
     </div>
 
     <div class="section level2">
-      <h2 id="use-functions">Use functions<a class="anchor" aria-label="anchor" href="#use-functions"></a></h2>
-      
-      
-
-      
-    </div><div id="" class="section level2">
-      
-      
-      
-
-      <dl><dt>
-          
-          <code><a href="bmpop.html">bmpop</a></code> 
-        </dt>
-        <dd>An R6 Class object, a collection of model for population of sbm netowrks</dd>
-      </dl><dl><dt>
-          
-          <code><a href="fitSimpleSBMPop.html">fitSimpleSBMPop</a></code> 
-        </dt>
-        <dd>An R6 Class object, a fitted population of netowrks sbm
-once $optimize() is done</dd>
-      </dl></div><div class="section level2">
-      <h2 id="colsbm-r-class-objects">colSBM R6 class objects<a class="anchor" aria-label="anchor" href="#colsbm-r-class-objects"></a></h2>
+      <h2 id="user-functions">User functions<a class="anchor" aria-label="anchor" href="#user-functions"></a></h2>
       
       
 
@@ -92,6 +70,34 @@ mesoscale structures</dd>
           <code><a href="dist_bmpop_max.html">dist_bmpop_max()</a></code> 
         </dt>
         <dd>Compute the dissimilarity between 2 mesoscale structures</dd>
+      </dl><dl><dt>
+          
+          <code><a href="extract_best_partition.html">extract_best_partition()</a></code> 
+        </dt>
+        <dd>Extract the best partition from the list of model given by the function
+<code><a href="../reference/clusterize_networks.html">clusterize_networks()</a></code>.</dd>
+      </dl></div><div class="section level2">
+      <h2 id="colsbm-r-class-objects">colSBM R6 class objects<a class="anchor" aria-label="anchor" href="#colsbm-r-class-objects"></a></h2>
+      
+      
+
+      
+    </div><div id="" class="section level2">
+      
+      
+      
+
+      <dl><dt>
+          
+          <code><a href="bmpop.html">bmpop</a></code> 
+        </dt>
+        <dd>An R6 Class object, a collection of model for population of sbm netowrks</dd>
+      </dl><dl><dt>
+          
+          <code><a href="fitSimpleSBMPop.html">fitSimpleSBMPop</a></code> 
+        </dt>
+        <dd>An R6 Class object, a fitted population of netowrks sbm
+once $optimize() is done</dd>
       </dl></div><div class="section level2">
       <h2 id="generic-methods">Generic methods<a class="anchor" aria-label="anchor" href="#generic-methods"></a></h2>
       
@@ -108,6 +114,12 @@ mesoscale structures</dd>
           <code><a href="plot.fitSimpleSBMPop.html">plot(<i>&lt;fitSimpleSBMPop&gt;</i>)</a></code> 
         </dt>
         <dd>Plot matrix summaries of the collection mesoscale structure</dd>
+      </dl><dl><dt>
+          
+          <code><a href="plot.bmpop.html">plot(<i>&lt;bmpop&gt;</i>)</a></code> 
+        </dt>
+        <dd>Plot the trace of the different criteria in function of the number of
+clusters</dd>
       </dl></div><div class="section level2">
       <h2 id="data">Data<a class="anchor" aria-label="anchor" href="#data"></a></h2>
       

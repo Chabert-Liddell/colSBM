@@ -40,6 +40,9 @@
     <loc>https://Chabert-Liddel.github.io/colSBM/reference/estimate_colSBM.html</loc>
   </url>
   <url>
+    <loc>https://Chabert-Liddel.github.io/colSBM/reference/extract_best_partition.html</loc>
+  </url>
+  <url>
     <loc>https://Chabert-Liddel.github.io/colSBM/reference/fitSimpleSBMPop.html</loc>
   </url>
   <url>
@@ -50,6 +53,9 @@
   </url>
   <url>
     <loc>https://Chabert-Liddel.github.io/colSBM/reference/pipe.html</loc>
+  </url>
+  <url>
+    <loc>https://Chabert-Liddel.github.io/colSBM/reference/plot.bmpop.html</loc>
   </url>
   <url>
     <loc>https://Chabert-Liddel.github.io/colSBM/reference/plot.fitSimpleSBMPop.html</loc>
