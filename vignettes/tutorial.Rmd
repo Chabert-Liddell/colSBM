@@ -85,7 +85,7 @@ your goal is dyad prediction, then you should use `model = "delta"`, instead of
 `model = "iid"`.
 
 ```{r}
-best_fit$pred_dyads[[3]]
+best_fit$pred_dyads[[3]][1:10, 1:5]
 ```
 
 We can also plot the networks individually:
@@ -133,6 +133,7 @@ net_clust <- clusterize_networks(netlist = c(foodwebs[1:3], sim_net), # A list o
                               net_id = c(names(foodwebs)[1:3], "sim1", "sim2", "sim3"), # Name of the networks
                               nb_run = 1L, # Nmber of runs of the algorithm
                               global_opts = list(verbosity = 2L,
+                                                 plot_details = 0,
                                                  Q_max = 9) #Max number of clusters
                               )
 ```
@@ -159,6 +160,7 @@ but then we can compare the mesoscale structures of the 2 groups:
 plot(best_partition[[1]], type = "graphon",
      ord = order(best_partition[[1]]$alpha %*% best_partition[[1]]$pi[[1]]))  + 
   plot(best_partition[[2]], type = "graphon", 
-       ord = order(best_partition[[2]]$alpha %*% best_partition[[2]]$pi[[1]]))
+       ord = order(best_partition[[2]]$alpha %*% best_partition[[2]]$pi[[1]])) +
+  plot_layout(guides = "collect") + plot_annotation(tag_levels = "1")
 ```
 

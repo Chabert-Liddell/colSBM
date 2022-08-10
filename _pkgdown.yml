@@ -3,18 +3,20 @@ template:
   bootstrap: 5
   bootswatch: sandstone
 reference:
-- title: Use functions
-  contents:
-  - bmpop
-  - fitSimpleSBMPop
-- title: colSBM R6 class objects
+- title: User functions
   contents:
   - '`clusterize_networks`'
   - '`estimate_colSBM`'
   - '`dist_bmpop_max`'
+  - '`extract_best_partition`'
+- title: colSBM R6 class objects
+  contents:
+  - bmpop
+  - fitSimpleSBMPop
 - title: Generic methods
   contents:
   - '`plot.fitSimpleSBMPop`'
+  - '`plot.bmpop`'
 - title: "Data"
   contents:
   - foodwebs

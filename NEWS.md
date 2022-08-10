@@ -1,4 +1,9 @@
-# colSBM (development version)
+# colSBM 0.2.0
+
+* Added sparse matrix with the `Matrix` package leading to less intensive 
+  memory usage
+* Added `extract_best_partition()` function
+* Improved documentation, references and vignette
 
 # colSBM 0.1.1
 

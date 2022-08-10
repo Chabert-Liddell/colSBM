@@ -91,3 +91,4 @@ use_coverage(type="codecov")
 
 
 use_version(which = "minor")
+usethis::use_version(which = "minor")
