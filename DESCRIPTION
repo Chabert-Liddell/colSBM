@@ -1,6 +1,6 @@
 Package: colSBM
 Title: Stochastic Block Model for Collection of Networks
-Version: 0.1.1
+Version: 0.1.1.9000
 Authors@R: 
     person(given = "Saint-Clair",
            family = "Chabert-Liddell",

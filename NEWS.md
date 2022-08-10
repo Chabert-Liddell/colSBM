@@ -1,3 +1,5 @@
+# colSBM (development version)
+
 # colSBM 0.1.1
 
 # colSBM 0.1.0

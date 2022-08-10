@@ -111,21 +111,21 @@ clusterize_networks <- function(netlist,
             return(tmp_fit)
           }, mc.progress = TRUE, mc.cores = min(nb_run,nb_cores)
         )
-      my_bmpop <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$ICL_clustering,
+      my_bmpop <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$BICL,
                                              FUN.VALUE = .1))]]
       my_bmpop$model_list[[1]] <-
         lapply(X = seq_along(my_bmpop$model_list[[1]]),
                FUN = function(q) {
                  tmp_fits[[which.max(vapply(
                    tmp_fits,
-                   function(fit) fit$model_list[[1]][[q]][[1]]$ICL_clustering,
+                   function(fit) fit$model_list[[1]][[q]][[1]]$BICL,
                                             FUN.VALUE = .1))]]$model_list[[1]][[q]]
                }
         )
       my_bmpop$ICL <- vapply(my_bmpop$model_list[[1]],
                              function (fit) fit[[1]]$ICL, FUN.VALUE = .1)
-      my_bmpop$ICL_clustering <- vapply(my_bmpop$model_list[[1]],
-                             function (fit) fit[[1]]$ICL_clustering, FUN.VALUE = .1)
+      my_bmpop$BICL <- vapply(my_bmpop$model_list[[1]],
+                             function (fit) fit[[1]]$BICL, FUN.VALUE = .1)
       rm(tmp_fits)
       gc()
     }
@@ -191,21 +191,21 @@ clusterize_networks <- function(netlist,
                      return(tmp_fit)
                    }, mc.progress = TRUE, mc.cores = min(nb_run,nb_cores)
                    )
-               res <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$ICL_clustering,
+               res <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$BICL,
                                          FUN.VALUE = .1))]]
                res$model_list[[1]] <-
                  lapply(X = seq_along(res$model_list[[1]]),
                         FUN = function(q) {
                           tmp_fits[[which.max(vapply(
                             tmp_fits,
-                            function(fit) fit$model_list[[1]][[q]][[1]]$ICL_clustering,
+                            function(fit) fit$model_list[[1]][[q]][[1]]$BICL,
                             FUN.VALUE = .1))]]$model_list[[1]][[q]]
                         }
                  )
                res$ICL <- vapply(res$model_list[[1]],
                                       function (fit) fit[[1]]$ICL, FUN.VALUE = .1)
-               res$ICL_clustering <- vapply(res$model_list[[1]],
-                                      function (fit) fit[[1]]$ICL_clustering, FUN.VALUE = .1)
+               res$BICL <- vapply(res$model_list[[1]],
+                                      function (fit) fit[[1]]$BICL, FUN.VALUE = .1)
                rm(tmp_fits)
                gc()
                return(res)
@@ -215,8 +215,8 @@ clusterize_networks <- function(netlist,
                   recursive_clustering(fits[[1]]),
                   recursive_clustering(fits[[2]])))
     } else {
-      if (fits[[1]]$best_fit$ICL_clustering + fits[[2]]$best_fit$ICL_clustering >
-          fit$best_fit$ICL_clustering) {
+      if (fits[[1]]$best_fit$BICL + fits[[2]]$best_fit$BICL >
+          fit$best_fit$BICL) {
         return(list(fit$best_fit,
                     recursive_clustering(fits[[1]]),
                     recursive_clustering(fits[[2]])))
@@ -235,7 +235,7 @@ clusterize_networks <- function(netlist,
 
   #======================= Clustering par empty cluster
 
-  # rk <- rev(rank(my_bmpop$ICL_clustering))
+  # rk <- rev(rank(my_bmpop$BICL))
   # net_cl <- purrr::map(rk, ~my_bmpop$model_list[[1]][[.]][[1]]$net_clustering)
   # net_cl <- unique(net_cl)
   # net_cl <- net_cl[1:(min(length(net_cl), 5))]
@@ -284,7 +284,7 @@ clusterize_networks <- function(netlist,
   #               global_opts = global_opts,
   #               fit_opts = fit_opts)
   #   partial_fit[[it]]$optimize()
-  #   tmp_rk <- rev(rank(partial_fit[[it]]$ICL_clustering))
+  #   tmp_rk <- rev(rank(partial_fit[[it]]$BICL))
   #   tmp_cl <- purrr::map(tmp_rk,
   #                        ~ partial_fit[[it]]$model_list[[1]][[.]][[1]]$net_clustering)
   #
