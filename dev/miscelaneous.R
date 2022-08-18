@@ -62,3 +62,16 @@ tibble::tibble(
   ggplot2::geom_point(size = 3) +
   ggplot2::ylab("") +
   ggplot2::theme_bw()
+
+
+data(foodwebs)
+
+sbm <- sbm::estimateSimpleSBM(foodwebs[[1]])
+sbm$setModel(2)
+Z <- sbm$memberships
+
+Xs <- sbm$networkData[sbm$memberships == 1, sbm$memberships == 1]
+eqr <- rbind(rowSums(sbm$networkData[Z==1,Z==2]), colSums(sbm$networkData[Z==2,Z==1]))
+nqr <- rbind(rowSums(pmax(sbm$networkData[Z==1,Z==2],1)), colSums(pmax(sbm$networkData[Z==2,Z==1],1)))
+
+

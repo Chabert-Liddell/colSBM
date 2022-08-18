@@ -1,4 +1,9 @@
 fitSimpleSBMPop$set("public", "plot",
+#' Title
+#'
+#' @importFrom patchwork
+#' @importFrom reshape2
+#' @importFrom purrr
   function(type = "graphon", ord = NULL, mixture = FALSE, net_id = NULL, ...) {
   if(is.null(ord)) ord <- order(diag(self$alpha), decreasing = TRUE)
   p <- switch(
@@ -190,6 +195,15 @@ plot.bmpop <- function(x, type = "trace", ...) {
 bmpop$set(
   "public",
   "plot",
+#' Title
+#'
+#' @param type
+#' @param ...
+#'
+#' @importFrom tibble
+#' @importFrom ggplot2
+#' @importFrom tidyr
+#' @importFrom dplyr
   function(type = "trace", ...) {
     tb <-           tibble::tibble(
       Q = seq(length(self$BICL)),

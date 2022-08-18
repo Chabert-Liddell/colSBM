@@ -9,26 +9,51 @@ test_that("split_clust", {
   )
 })
 
-test_that("clusterize_networks_iid",
+test_that("clusterize_networks_iid", {
   expect_equal(
-    {Net <- lapply(list(.7, .7, .2, .2),
-                  function(p) {
-                    A <- matrix(0, 15, 15 )
-                    A[lower.tri(A)][sample(15*14/2, size = round(p*15*14/2))] <- 1
-                    A <- A + t(A)
-                  })
-    set.seed(1234)
-    cl <- clusterize_networks(Net,
-                               colsbm_model = "iid",
-                               directed = FALSE,
-                               model = "bernoulli",
-                               nb_run = 1,
-                              fit_opts = list(Q_max = 2,
-                                              nb_init = 1,
-                                              nb_models = 1,
-                                              depth = 1))
-    c(diff(cl[[2]]$net_id), diff(cl[[3]]$net_id))},
+    {
+      set.seed(1234)
+      Net <- lapply(list(.7, .7, .2, .2),
+                    function(p) {
+                      A <- matrix(0, 15, 15 )
+                      A[lower.tri(A)][sample(15*14/2, size = round(p*15*14/2))] <- 1
+                      A <- A + t(A)
+                    })
+      cl <- clusterize_networks(Net,
+                                colsbm_model = "iid",
+                                directed = FALSE,
+                                model = "bernoulli",
+                                nb_run = 1,
+                                fit_opts = list(Q_max = 2,
+                                                nb_init = 1,
+                                                nb_models = 1,
+                                                depth = 1))
+      c(diff(cl[[2]]$net_id), diff(cl[[3]]$net_id))},
     c(1,1)
   )
-
+}
+)
+test_that("estimate_colsbm_poisson_delta", {
+  expect_equal(
+    {
+      set.seed(1234)
+      Net <- lapply(list(.7, .7, .2, .2),
+                    function(p) {
+                      A <- matrix(0, 15, 15 )
+                      A[lower.tri(A)][sample(15*14/2, size = round(p*15*14/2))] <- 1
+                      A <- A + t(A)
+                    })
+      fit <- estimate_colSBM(Net,
+                             colsbm_model = "delta",
+                             directed = FALSE,
+                             model = "poisson",
+                             nb_run = 1,
+                             fit_opts = list(Q_max = 2,
+                                             nb_init = 1,
+                                             nb_models = 1,
+                                             depth = 1))
+      fit$best_fit$Q},
+    1
+  )
+}
 )

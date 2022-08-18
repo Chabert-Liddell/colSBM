@@ -5,7 +5,7 @@ Authors@R:
     person(given = "Saint-Clair",
            family = "Chabert-Liddell",
            role = c("aut", "cre"),
-           email = "saint-clair.chabert-liddell@inrae.fr",
+           email = "academic@chabert-liddell.com",
            comment = c(ORCID = "0000-0001-5604-7308"))
 Description: Finds a common mesoscale structure in a collection of networks by 
     using a Stochastic Block Model (SBM) extension for the joint modeling of 
