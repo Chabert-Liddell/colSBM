@@ -96,96 +96,24 @@
 <span>                              directed <span class="op">=</span> <span class="cn">TRUE</span>, <span class="co"># Foodwebs are directed networks</span></span>
 <span>                              net_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">foodwebs</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>, <span class="co"># Name of the networks</span></span>
 <span>                              nb_run <span class="op">=</span> <span class="fl">1L</span>, <span class="co"># Nmber of runs of the algorithm</span></span>
-<span>                              global_opts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>verbosity <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>                              global_opts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>verbosity <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>                                                 plot_detail <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>                                                 Q_max <span class="op">=</span> <span class="fl">8</span><span class="op">)</span> <span class="co">#Max number of clusters</span></span>
 <span>                              <span class="op">)</span></span>
-<span><span class="co">#&gt; 0/1: </span></span>
-<span><span class="co">#&gt; 0/1: </span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span><span class="co">#&gt; 0/2: </span></span>
-<span><span class="co">#&gt; 0/2: </span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span><span class="co">#&gt; 0/3: </span></span>
-<span><span class="co">#&gt; 0/3: </span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
 <span><span class="co">#&gt; Please install the progress-package in order to get a progress bar.</span></span></code></pre></div>
 <p><img src="tutorial_files/figure-html/unnamed-chunk-2-1.png" width="700"></p>
-<pre><code><span><span class="co">#&gt; ==== Optimization finished for networks  M_Martins NC_Cooper NC_Herlzier  ====</span></span>
-<span><span class="co">#&gt; vbound :  -2728 -2346 -2064 -1889 -1832 -1779 -1745 -1734 </span></span>
-<span><span class="co">#&gt; ICL    :  -2731 -2371 -2099 -1952 -1927 -1921 -1939 -1948 </span></span>
-<span><span class="co">#&gt; BICL   :  -2731 -2360 -2094 -1941 -1911 -1891 -1895 -1927 </span></span>
-<span><span class="co">#&gt; Best model for Q =  6 </span></span>
-<span><span class="co">#&gt; Joint modelisation preferred over separated one. BICL: -1891.194  vs  -2120.216</span></span></code></pre>
 <p>We can look at how the variational bound and the model selection criteria evolve with the number of clusters. Here, the BICL criterion selects Q = 6 blocks.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res_fw_iid</span><span class="op">)</span></span></code></pre></div>
 <p><img src="tutorial_files/figure-html/unnamed-chunk-3-1.png" width="700"></p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">best_fit</span> <span class="op">&lt;-</span> <span class="va">res_fw_iid</span><span class="op">$</span><span class="va">best_fit</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="results-and-analysis">Results and analysis<a class="anchor" aria-label="anchor" href="#results-and-analysis"></a>
 </h2>
 <p>Here are some useful fields to analyze the results.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">best_fit</span></span>
 <span><span class="co">#&gt; Fitted Collection of Simple SBM -- bernoulli variant for 3 networks </span></span>
 <span><span class="co">#&gt; =====================================================================</span></span>
@@ -199,7 +127,7 @@
 <ul>
 <li>the estimation of the model parameters</li>
 </ul>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">best_fit</span><span class="op">$</span><span class="va">parameters</span></span>
 <span><span class="co">#&gt; $alpha</span></span>
 <span><span class="co">#&gt;              [,1]         [,2]         [,3]         [,4]         [,5]</span></span>
@@ -233,7 +161,7 @@
 <ul>
 <li>The block memberships:</li>
 </ul>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">best_fit</span><span class="op">$</span><span class="va">Z</span></span>
 <span><span class="co">#&gt; [[1]]</span></span>
 <span><span class="co">#&gt;   [1] 2 2 1 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4</span></span>
@@ -250,7 +178,7 @@
 <ul>
 <li>The prediction for each dyads in the networks, here for network number 3. If your goal is dyad prediction, then you should use <code>model = "delta"</code>, instead of <code>model = "iid"</code>.</li>
 </ul>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">best_fit</span><span class="op">$</span><span class="va">pred_dyads</span><span class="op">[[</span><span class="fl">3</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span>
 <span><span class="co">#&gt;               [,1]         [,2]        [,3]         [,4]         [,5]</span></span>
 <span><span class="co">#&gt;  [1,] 0.000000e+00 3.200856e-08 0.023062008 1.911173e-06 9.890801e-09</span></span>
@@ -264,16 +192,16 @@
 <span><span class="co">#&gt;  [9,] 1.700178e-09 1.700178e-09 0.001588076 1.719226e-07 8.956513e-10</span></span>
 <span><span class="co">#&gt; [10,] 1.700178e-09 1.700178e-09 0.001588076 1.719226e-07 8.956519e-10</span></span></code></pre></div>
 <p>We can also plot the networks individually:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res_fw_iid</span><span class="op">$</span><span class="va">best_fit</span>, type <span class="op">=</span> <span class="st">"block"</span>, net_id <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res_fw_iid</span><span class="op">$</span><span class="va">best_fit</span>, type <span class="op">=</span> <span class="st">"block"</span>, net_id <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res_fw_iid</span><span class="op">$</span><span class="va">best_fit</span>, type <span class="op">=</span> <span class="st">"block"</span>, net_id <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> </span></code></pre></div>
 <p><img src="tutorial_files/figure-html/plot-block-1.png" width="700"></p>
 <p>Or make different plots to exhibit the mesoscale structure:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res_fw_iid</span><span class="op">$</span><span class="va">best_fit</span>, type <span class="op">=</span> <span class="st">"graphon"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="tutorial_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res_fw_iid</span><span class="op">$</span><span class="va">best_fit</span>, type <span class="op">=</span> <span class="st">"meso"</span>, mixture <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; New names:</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> `` -&gt; `...1`</span></span>
@@ -285,7 +213,7 @@
 <h2 id="clustering-of-networks">Clustering of networks<a class="anchor" aria-label="anchor" href="#clustering-of-networks"></a>
 </h2>
 <p>Let simulate some directed networks with a lower triangular structure that looks alike foodwebs.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span></span>
 <span><span class="va">alpha</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.05</span>, <span class="fl">.01</span>, <span class="fl">.01</span>, <span class="fl">.01</span>,</span>
 <span>                  <span class="fl">.3</span>, <span class="fl">.05</span>, <span class="fl">.01</span>, <span class="fl">.01</span>,</span>
@@ -299,220 +227,18 @@
 <span>                     directed <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span>            <span class="va">X</span><span class="op">$</span><span class="va">rNetwork</span></span>
 <span>            <span class="va">X</span><span class="op">$</span><span class="va">networkData</span><span class="op">}</span>, simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span></span>
 <span><span class="va">net_clust</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/clusterize_networks.html">clusterize_networks</a></span><span class="op">(</span>netlist <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">foodwebs</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>, <span class="va">sim_net</span><span class="op">)</span>, <span class="co"># A list of networks</span></span>
 <span>                              colsbm_model <span class="op">=</span> <span class="st">"iid"</span>, <span class="co"># The name of the model</span></span>
 <span>                              directed <span class="op">=</span> <span class="cn">TRUE</span>, <span class="co"># Foodwebs are directed networks</span></span>
 <span>                              net_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">foodwebs</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>, <span class="st">"sim1"</span>, <span class="st">"sim2"</span>, <span class="st">"sim3"</span><span class="op">)</span>, <span class="co"># Name of the networks</span></span>
 <span>                              nb_run <span class="op">=</span> <span class="fl">1L</span>, <span class="co"># Nmber of runs of the algorithm</span></span>
-<span>                              global_opts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>verbosity <span class="op">=</span> <span class="fl">2L</span>,</span>
+<span>                              global_opts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>verbosity <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>                                                 plot_details <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>                                                 Q_max <span class="op">=</span> <span class="fl">9</span><span class="op">)</span> <span class="co">#Max number of clusters</span></span>
 <span>                              <span class="op">)</span></span>
-<span><span class="co">#&gt; 0/1: </span></span>
-<span><span class="co">#&gt; 0/1: </span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span><span class="co">#&gt; 0/2: </span></span>
-<span><span class="co">#&gt; 0/2: </span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span><span class="co">#&gt; 0/3: </span></span>
-<span><span class="co">#&gt; 0/3: </span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span><span class="co">#&gt; 0/4: </span></span>
-<span><span class="co">#&gt; 0/4: </span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span><span class="co">#&gt; 0/5: </span></span>
-<span><span class="co">#&gt; 0/5: </span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span><span class="co">#&gt; 0/6: </span></span>
-<span><span class="co">#&gt; 0/6: </span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
-<span></span>
 <span><span class="co">#&gt; Please install the progress-package in order to get a progress bar.</span></span>
-<span><span class="co">#&gt; 0/1: Starting optimization of  6 SBMsStarting initialization from SBMs fit. </span></span>
-<span><span class="co">#&gt; 0/1: Starting initialization from spectral clustering.</span></span>
-<span><span class="co">#&gt; 0/1: ==== Starting pass number  1  for networks  M_Martins NC_Cooper NC_Herlzier sim1 sim2 sim3  ===</span></span>
-<span><span class="co">#&gt; 0/1: vbound :  -14699 -11086 -10736 -10654 -10295 -10398 -10260 -10353 -10499 </span></span>
-<span><span class="co">#&gt; 0/1: ICL    :  -14702 -11102 -10775 -10751 -10392 -10575 -10453 -10618 -10773 </span></span>
-<span><span class="co">#&gt; 0/1: BICL   :  -14702 -11102 -10770 -10713 -10386 -10526 -10432 -10576 -10778 </span></span>
-<span><span class="co">#&gt; 0/1: ==== Starting pass number  2  for networks  M_Martins NC_Cooper NC_Herlzier sim1 sim2 sim3  ===</span></span>
-<span><span class="co">#&gt; 0/1: vbound :  -14699 -11086 -10736 -10541 -10287 -10199 -10149 -10139 -10203 </span></span>
-<span><span class="co">#&gt; 0/1: ICL    :  -14702 -11102 -10775 -10608 -10387 -10335 -10336 -10382 -10497 </span></span>
-<span><span class="co">#&gt; 0/1: BICL   :  -14702 -11102 -10770 -10600 -10378 -10327 -10322 -10362 -10482</span></span>
 <span><span class="co">#&gt; Please install the progress-package in order to get a progress bar.</span></span>
 <span><span class="co">#&gt; Please install the progress-package in order to get a progress bar.</span></span>
 <span><span class="co">#&gt; Please install the progress-package in order to get a progress bar.</span></span>
@@ -520,15 +246,15 @@
 <span><span class="co">#&gt; Please install the progress-package in order to get a progress bar.</span></span>
 <span><span class="co">#&gt; Please install the progress-package in order to get a progress bar.</span></span></code></pre></div>
 <p>We obtain a list of 3 models. The first one is for the full collection, and the second and third one are for the 3 foodwebs and the three collected networks. Here is a plot of the mesoscale structure obtained from the group of simulated networks. We can extract the best partition:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">best_partition</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/extract_best_partition.html">extract_best_partition</a></span><span class="op">(</span><span class="va">net_clust</span><span class="op">)</span></span></code></pre></div>
 <p>The plot of the mesoscale structure of the whole collection is the following:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">net_clust</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>,</span>
 <span>    ord <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">net_clust</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">alpha</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">net_clust</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">pi</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="tutorial_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
 <p>but then we can compare the mesoscale structures of the 2 groups:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">best_partition</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, type <span class="op">=</span> <span class="st">"graphon"</span>,</span>
 <span>     ord <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">best_partition</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">alpha</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">best_partition</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">pi</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>  <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">best_partition</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span>, type <span class="op">=</span> <span class="st">"graphon"</span>, </span>
