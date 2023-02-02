@@ -9,7 +9,7 @@ bmpop <- R6::R6Class(
     n = NULL,
     A = NULL,
     M = NULL,
-    mask = NULL,
+    mask = NULL, # 1 for NA and 0 for observed
     directed = NULL,
     model = NULL,
     net_id = NULL,
@@ -98,7 +98,7 @@ bmpop <- R6::R6Class(
       self$fit_opts <- utils::modifyList(self$fit_opts, fit_opts)
     },
 
-
+    # Fit a list of SBM if fit_sbm == TRUE
     optimize_sbm = function() {
       ## Need to change ICL computation for Z^map
       if (is.null(self$fit_sbm)) {
@@ -153,13 +153,13 @@ bmpop <- R6::R6Class(
             mypopbm <- fitSimpleSBMPop$new(A = self$A[index],
                                            mask = self$mask[index],
                                            model = self$model,
-                                           net_id = self$net_id,
+                                           net_id = self$net_id[index],
                                            directed = self$directed,
                                            free_density = self$free_density,
                                            free_mixture = self$free_mixture,
                                            Q = Q,
-                                           Z = Z_sbm,
-                                           logfactA = self$logfactA,
+                                           Z = Z_sbm[index],
+                                           logfactA = self$logfactA[index],
                                            init_method = "given",
                                            fit_opts = self$fit_opts)
           } else {
@@ -455,7 +455,7 @@ bmpop <- R6::R6Class(
           #            future.options = list(seed = TRUE)#, mc.cores = 6
         )
         list_popbm <- unlist(list_popbm)
-        if (purrr::is_empty(list_popbm) & old_icl[Q] < old_icl[Q-1]) {
+        if (purrr::is_empty(list_popbm) & old_icl[Q] < old_icl[Q-1]) { # a verifier et ou ou
           counter <- counter + 1
         } else {
           best_models <- self$choose_models(models = list_popbm,

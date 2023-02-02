@@ -22,8 +22,8 @@ fitSimpleSBMPop <- R6::R6Class(
     e = NULL, # Vector of size M, the sum of unique entries
     emqr = NULL, # List of M QxQ matrix, the sum of edges between q and r in m
     nmqr = NULL, # list of M QxQ matrix, the number of entries between q and r in m
-    pim = NULL,
-    alpham = NULL, # list of M QxQ matrix, the classic sbm parameters
+    pim = NULL, # List of M vectors of size Q, the mixture parameters (pi_tilde)
+    alpham = NULL, # list of M QxQ matrix, the classic sbm parameters (alpha_tilde)
     free_mixture = NULL, # A boolean
     free_density = NULL, # A boolean
     weight = NULL, # A vector of size M for weighted likelihood
@@ -164,7 +164,7 @@ fitSimpleSBMPop <- R6::R6Class(
       self$alpha <- matrix(.5, Q, Q) * self$Calpha
       self$init_method <- init_method
       self$nb_inter <- self$dircoef *
-        vapply(seq(self$M), function(m) sum(self$mask[[m]]), FUN.VALUE = .1)
+        vapply(seq(self$M), function(m) self$n[m]**2 - sum(self$mask[[m]]), FUN.VALUE = .1)
       self$vbound <- vector("list", self$M)
     },
 
@@ -550,7 +550,7 @@ fitSimpleSBMPop <- R6::R6Class(
     },
 
 
-    fixed_point_tau = function(m, max_iter = 10, tol = 1e-2) {
+    fixed_point_tau = function(m, max_iter = 1, tol = 1e-2) {
       condition <- TRUE
       it <- 0
       # reup_counter <- 0
@@ -871,6 +871,7 @@ fitSimpleSBMPop <- R6::R6Class(
           )
         )
       lapply(seq(self$M), function(m) self$update_alpham(m))
+      # To have a good initialization point for gradient descent
       if(self$model == "bernoulli" & self$free_density &
          ! self$fit_opts$approx_pois)
         self$fixed_point_alpha_delta()

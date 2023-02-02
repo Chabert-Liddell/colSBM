@@ -97,6 +97,8 @@ estimate_colSBM <-
             mc.silent = TRUE
           )
       }
+      # tmp_fits run nb_run times a full model selection procedure
+      # (the one from the research paper)
       tmp_fits <-
         bettermc::mclapply(
           seq(nb_run),
@@ -118,6 +120,7 @@ estimate_colSBM <-
         )
       my_bmpop <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$BICL,
                                              FUN.VALUE = .1))]]
+      # Aggregate all runs for all model sizes
       my_bmpop$model_list[[1]] <-
         lapply(X = seq_along(my_bmpop$model_list[[1]]),
                FUN = function(q) {
