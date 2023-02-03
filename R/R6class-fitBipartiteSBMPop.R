@@ -7,6 +7,7 @@ fitBipartiteSBMPop <- R6::R6Class(
   classname = "fitBipartiteSBMPop",
   # inherit = "bmpop",
   #
+  # TODO : fix the comments to adapt to bipartite
   public = list(
     nr = NULL, # a vector of size M counting the number of rows for each matrix
     nc = NULL, # a vector of size M counting the number of columns for each matrix
@@ -130,13 +131,21 @@ fitBipartiteSBMPop <- R6::R6Class(
         function(m) self$A[[m]][is.na(self$A[[m]])] <- -1
       )
 
+      # Setting default fit options
       self$fit_opts <- list(
         algo_ve = "fp",
         approx_pois = TRUE,
         minibatch = TRUE,
         verbosity = 1
       )
+      # If the user provided custom fit options they are applied here
       self$fit_opts <- utils::modifyList(self$fit_opts, fit_opts)
+
+      # Registering the colSBM model to fit
+      # iid : free_mixture = F, free_density = F
+      # pi colSBM : free_mixture = T, free_density = F
+      # delta colSBM : free_mixture = F, free_density = T 
+      # pi-delta colSBM : free_mixture = T, free_density = T
       self$free_mixture <- free_mixture
       self$free_density <- free_density
 
@@ -149,29 +158,38 @@ fitBipartiteSBMPop <- R6::R6Class(
       self$vloss <- vector("list", self$M)
       self$emqr <- array(1, dim = c(self$M, self$Q[1], self$Q[2]))
       self$nmqr <- array(1, dim = c(self$M, self$Q[1], self$Q[2]))
+
+      # Maximum a posteriori
       self$MAP <- list()
       self$MAP$emqr <- self$emqr
       self$MAP$nmqr <- self$nmqr
       self$MAP$pi <- self$pi
+
+      # Degrees of freedom
       self$df_mixture <- self$Q - 1
       self$df_density <- self$M - 1
       self$df_connect <- self$Q[1] * self$Q[2]
+
       self$Z <- if (is.null(Z)) {
         vector("list", self$M)
       } else {
         Z
       }
+
+      # Computing the density of the m networks
       self$delta <- rep(1, self$M)
       if (self$free_density) {
         self$delta <- (self$e / (self$nr * self$nc)) /
           (self$e[1] / ((self$nr[1] * self$nc[1])))
       }
+
       self$alpha <- matrix(.5, Q[1], Q[2])
       self$init_method <- init_method
       self$nb_inter <- self$dircoef *
         vapply(seq(self$M), function(m) sum(self$mask[[m]]), FUN.VALUE = .1)
       self$vbound <- vector("list", self$M)
     },
+
     compute_MAP = function() {
       self$Z <- lapply(
         self$tau,
@@ -184,11 +202,14 @@ fitBipartiteSBMPop <- R6::R6Class(
       )
       invisible(self$Z)
     },
+
     objective = function() {
       sum(vapply(seq_along(self$A), function(m) vb(m)), FUN.VALUE = .1)
     },
+
     vb_tau_alpha = function(m, MAP = FALSE) {
       if (MAP) {
+        # If we are calculating the maximum a posteriori
         emqr <- self$MAP$emqr[m, , ]
         nmqr <- self$MAP$nmqr[m, , ]
         alpha <- self$MAP$alpha
@@ -522,6 +543,8 @@ fitBipartiteSBMPop <- R6::R6Class(
       lapply(seq.int(self$M), function(m) self$update_alpham(m, MAP = TRUE))
       invisible(Z)
     },
+
+    # The fixed point algorithm to update the tau
     fixed_point_tau = function(m, d, max_iter = 10, tol = 1e-3) {
       condition <- TRUE
       it <- 0
@@ -546,12 +569,12 @@ fitBipartiteSBMPop <- R6::R6Class(
           if (d == 2) {
             tau_new <-
               t(matrix(log(self$pi[[m]][[d]]), self$Q[d], self$nc[m])) +
-              (self$mask[[m]] * self$A[[m]]) %*%
+              (self$mask[[m]] * self$A[[m]]) %*% # TODO : check t(self$mask[[m]] * self$A[[m]])
               self$tau[[m]][[1]] %*%
               .logit(self$delta[m] * self$alpha, eps = 1e-9) +
-              self$mask[[m]] %*%
+              self$mask[[m]] %*% # TODO : check t(self$mask[[m]])
               self$tau[[m]][[1]] %*%
-              .log(1 - self$alpha * self$delta[m], eps = 1e-9)
+              .log(1 - self$alpha * self$delta[m], eps = 1e-9) 
           }
           invisible(tau_new)
         },
@@ -569,12 +592,12 @@ fitBipartiteSBMPop <- R6::R6Class(
           if (d == 2) {
             tau_new <-
               t(matrix(log(self$pi[[m]][[d]]), self$Q[d], self$nc[m])) +
-              (self$mask[[m]] * self$A[[m]]) %*%
+              (self$mask[[m]] * self$A[[m]]) %*% # TODO : check shouldn't it be t(self$mask[[m]] * self$A[[m]]) %*%
               self$tau[[m]][[1]] %*%
-              t(log(self$delta[m] * self$alpha)) -
-              self$mask[[m]] %*%
+              t(log(self$delta[m] * self$alpha)) - # TODO : check, just log(self$delta[m] * self$alpha)
+              self$mask[[m]] %*% # TODO : check, t(self$mask[[m]])
               self$tau[[m]][[1]] %*%
-              t(self$alpha * self$delta[m])
+              t(self$alpha * self$delta[m]) # TODO : check, (self$alpha$ * self$delta[m])
           }
           invisible(tau_new)
         }
