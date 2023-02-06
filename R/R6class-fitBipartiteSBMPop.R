@@ -144,7 +144,7 @@ fitBipartiteSBMPop <- R6::R6Class(
       # Registering the colSBM model to fit
       # iid : free_mixture = F, free_density = F
       # pi colSBM : free_mixture = T, free_density = F
-      # delta colSBM : free_mixture = F, free_density = T 
+      # delta colSBM : free_mixture = F, free_density = T
       # pi-delta colSBM : free_mixture = T, free_density = T
       self$free_mixture <- free_mixture
       self$free_density <- free_density
@@ -189,7 +189,6 @@ fitBipartiteSBMPop <- R6::R6Class(
         vapply(seq(self$M), function(m) sum(self$mask[[m]]), FUN.VALUE = .1)
       self$vbound <- vector("list", self$M)
     },
-
     compute_MAP = function() {
       self$Z <- lapply(
         self$tau,
@@ -202,11 +201,9 @@ fitBipartiteSBMPop <- R6::R6Class(
       )
       invisible(self$Z)
     },
-
     objective = function() {
       sum(vapply(seq_along(self$A), function(m) vb(m)), FUN.VALUE = .1)
     },
-
     vb_tau_alpha = function(m, MAP = FALSE) {
       if (MAP) {
         # If we are calculating the maximum a posteriori
@@ -569,12 +566,12 @@ fitBipartiteSBMPop <- R6::R6Class(
           if (d == 2) {
             tau_new <-
               t(matrix(log(self$pi[[m]][[d]]), self$Q[d], self$nc[m])) +
-              (self$mask[[m]] * self$A[[m]]) %*% # TODO : check t(self$mask[[m]] * self$A[[m]])
+              (self$mask[[m]] * self$A[[m]]) %*% # FIXME : check t(self$mask[[m]] * self$A[[m]])
               self$tau[[m]][[1]] %*%
               .logit(self$delta[m] * self$alpha, eps = 1e-9) +
-              self$mask[[m]] %*% # TODO : check t(self$mask[[m]])
+              self$mask[[m]] %*% # FIXME : check t(self$mask[[m]])
               self$tau[[m]][[1]] %*%
-              .log(1 - self$alpha * self$delta[m], eps = 1e-9) 
+              .log(1 - self$alpha * self$delta[m], eps = 1e-9)
           }
           invisible(tau_new)
         },
@@ -592,12 +589,12 @@ fitBipartiteSBMPop <- R6::R6Class(
           if (d == 2) {
             tau_new <-
               t(matrix(log(self$pi[[m]][[d]]), self$Q[d], self$nc[m])) +
-              (self$mask[[m]] * self$A[[m]]) %*% # TODO : check shouldn't it be t(self$mask[[m]] * self$A[[m]]) %*%
+              (self$mask[[m]] * self$A[[m]]) %*% # FIXME : check shouldn't it be t(self$mask[[m]] * self$A[[m]]) %*%
               self$tau[[m]][[1]] %*%
-              t(log(self$delta[m] * self$alpha)) - # TODO : check, just log(self$delta[m] * self$alpha)
-              self$mask[[m]] %*% # TODO : check, t(self$mask[[m]])
+              t(log(self$delta[m] * self$alpha)) - # FIXME : check, just log(self$delta[m] * self$alpha)
+              self$mask[[m]] %*% # FIXME : check, t(self$mask[[m]])
               self$tau[[m]][[1]] %*%
-              t(self$alpha * self$delta[m]) # TODO : check, (self$alpha$ * self$delta[m])
+              t(self$alpha * self$delta[m]) # FIXME : check, (self$alpha$ * self$delta[m])
           }
           invisible(tau_new)
         }
@@ -772,6 +769,9 @@ fitBipartiteSBMPop <- R6::R6Class(
       # Place holder for gradient ascent or other optimization methods
     },
     update_mqr = function(m) {
+      # Compute the "mqr" quantities
+      # emqr : the realised edges observed
+      # nmqr : all the possible edges
       tau_tmp <- self$tau[[m]]
       self$emqr[m, , ] <- .tquadform(tau_tmp, self$A[[m]] * self$mask[[m]])
       self$nmqr[m, , ] <- .tquadform(tau_tmp, self$mask[[m]])
