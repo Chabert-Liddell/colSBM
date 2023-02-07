@@ -34,6 +34,8 @@ spectral_clustering <- function(X, K){
   return(clustering)
 }
 
+# TODO : implement a spectral bi-clustering
+
 #' Perform a Hierarchical Clustering
 #' @importFrom stats cutree dist hclust
 #' @importFrom ape additive

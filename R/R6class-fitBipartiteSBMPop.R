@@ -686,6 +686,7 @@ fitBipartiteSBMPop <- R6::R6Class(
     init_clust = function() {
       self$tau <-
         switch(self$init_method,
+        # TODO later : adapt init_clust "random" to bipartite
           "random" = lapply(
             X = seq_along(self$A),
             FUN = function(m) {
@@ -701,6 +702,7 @@ fitBipartiteSBMPop <- R6::R6Class(
               tau_tmp
             }
           ),
+          # TODO : adapt "spectral" clustering to bipartite
           "spectral" = lapply(
             X = seq_along(self$A),
             FUN = function(m) {
@@ -783,6 +785,7 @@ fitBipartiteSBMPop <- R6::R6Class(
         self$pi <- lapply(seq(self$M), function(m) 1)
         lapply(seq(self$M), function(m) self$update_mqr(m))
         if (self$free_density) {
+          # TODO later : implement the free density
           self$alpha <- matrix(sum(self$emqr[1, , ]) / sum(self$nmqr[1, , ]), 1, 1)
           self$delta <- vapply(
             seq(self$M),
@@ -809,6 +812,7 @@ fitBipartiteSBMPop <- R6::R6Class(
           nmqr = self$nmqr
         )
       } else {
+        # If there is more than one cluster
         #  browser()
         self$init_clust()
         # lapply(seq(self$M), function(m) self$update_mqr(m))
