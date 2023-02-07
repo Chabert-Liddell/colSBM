@@ -28,7 +28,7 @@ fitBipartiteSBMPop <- R6::R6Class(
     free_mixture = NULL, # A boolean
     free_density = NULL, # A boolean
     weight = NULL, # A vector of size M for weighted likelihood
-    probablityDistribution = NULL, # "poisson", "bernoulli"
+    probabilityDistribution = NULL, # "poisson", "bernoulli"
     mloss = Inf, # Loss on the M step of the VEM
     vloss = NULL, # Loss on the VE step of the VEM
     vbound = NULL, # The Variational bound
@@ -59,7 +59,7 @@ fitBipartiteSBMPop <- R6::R6Class(
                           Z = NULL,
                           mask = NULL,
                           net_id = NULL,
-                          probablityDistribution = "bernoulli",
+                          probabilityDistribution = "bernoulli",
                           free_mixture = TRUE,
                           free_density = TRUE,
                           directed = NULL,
@@ -76,9 +76,10 @@ fitBipartiteSBMPop <- R6::R6Class(
       #   directed <- ! isSymmetric.matrix(A[[1]])
       # }
       # TODO : let the user specify is the directed network represented, ie Yij = {-1,0,1}
-      self$directed <- directed
+      # self$directed <- directed
 
-      # TODO : implement sanity checks ?
+      # TODO : implement sanity checks
+      # testthat : package to check the output of functions, unitary test
 
 
       self$A <- A
@@ -113,8 +114,8 @@ fitBipartiteSBMPop <- R6::R6Class(
       }
 
       self$Q <- Q
-      self$probablityDistribution <- probablityDistribution
-      if (self$probablityDistribution == "poisson") {
+      self$probabilityDistribution <- probabilityDistribution
+      if (self$probabilityDistribution == "poisson") {
         self$logfactA <- vapply(
           seq_along(self$A),
           function(m) {
@@ -124,8 +125,9 @@ fitBipartiteSBMPop <- R6::R6Class(
         )
       }
 
-      # TODO: check if needed
+      # TODO: ask Saint Clair
       # Replacing NAs by -1 in the incidence matrices
+      # Check if its to have no problems with the initializations
       lapply(
         seq_along(self$A),
         function(m) self$A[[m]][is.na(self$A[[m]])] <- -1
@@ -149,7 +151,7 @@ fitBipartiteSBMPop <- R6::R6Class(
       self$free_mixture <- free_mixture
       self$free_density <- free_density
 
-      # TODO: check if needed
+      # TODO: check Saint Clair
       self$weight <- weight
 
       self$pi <- vector("list", self$M)
@@ -185,7 +187,7 @@ fitBipartiteSBMPop <- R6::R6Class(
 
       self$alpha <- matrix(.5, Q[1], Q[2])
       self$init_method <- init_method
-      self$nb_inter <- self$dircoef *
+      self$nb_inter <- self$dircoef * # TODO : Check to delete
         vapply(seq(self$M), function(m) sum(self$mask[[m]]), FUN.VALUE = .1)
       self$vbound <- vector("list", self$M)
     },
@@ -205,6 +207,8 @@ fitBipartiteSBMPop <- R6::R6Class(
       sum(vapply(seq_along(self$A), function(m) vb(m)), FUN.VALUE = .1)
     },
     vb_tau_alpha = function(m, MAP = FALSE) {
+      # Loading all the quantities useful for the computation
+
       if (MAP) {
         # If we are calculating the maximum a posteriori
         emqr <- self$MAP$emqr[m, , ]
@@ -217,7 +221,7 @@ fitBipartiteSBMPop <- R6::R6Class(
         alpha <- self$alpha
         delta <- self$delta[m]
       }
-      switch(self$probablityDistribution,
+      switch(self$probabilityDistribution,
         "bernoulli" = {
           # tau_tmp <- self$tau[[m]]
           # self$dircoef*sum(
@@ -550,7 +554,7 @@ fitBipartiteSBMPop <- R6::R6Class(
         c(self$vloss[[m]], self$vb_tau_alpha(m) + self$vb_tau_pi(m) +
           self$entropy_tau(m))
       tau_old <- self$tau[[m]][[d]]
-      tau_new <- switch(self$probablityDistribution,
+      tau_new <- switch(self$probabilityDistribution,
         "bernoulli" = {
           tau_new <-
             if (d == 1) {
@@ -564,12 +568,13 @@ fitBipartiteSBMPop <- R6::R6Class(
                 t(.log(1 - self$alpha * self$delta[m], eps = 1e-9))
             }
           if (d == 2) {
+            # nc * Q2
             tau_new <-
               t(matrix(log(self$pi[[m]][[d]]), self$Q[d], self$nc[m])) +
-              (self$mask[[m]] * self$A[[m]]) %*% # FIXME : check t(self$mask[[m]] * self$A[[m]])
+              t(self$mask[[m]] * self$A[[m]]) %*%
               self$tau[[m]][[1]] %*%
               .logit(self$delta[m] * self$alpha, eps = 1e-9) +
-              self$mask[[m]] %*% # FIXME : check t(self$mask[[m]])
+              t(self$mask[[m]]) %*%
               self$tau[[m]][[1]] %*%
               .log(1 - self$alpha * self$delta[m], eps = 1e-9)
           }
@@ -589,12 +594,13 @@ fitBipartiteSBMPop <- R6::R6Class(
           if (d == 2) {
             tau_new <-
               t(matrix(log(self$pi[[m]][[d]]), self$Q[d], self$nc[m])) +
-              (self$mask[[m]] * self$A[[m]]) %*% # FIXME : check shouldn't it be t(self$mask[[m]] * self$A[[m]]) %*%
+              t(self$mask[[m]] * self$A[[m]]) %*%
               self$tau[[m]][[1]] %*%
-              t(log(self$delta[m] * self$alpha)) - # FIXME : check, just log(self$delta[m] * self$alpha)
-              self$mask[[m]] %*% # FIXME : check, t(self$mask[[m]])
+              log(self$delta[m] * self$alpha) -
+              t(self$mask[[m]]) %*%
               self$tau[[m]][[1]] %*%
-              t(self$alpha * self$delta[m]) # FIXME : check, (self$alpha$ * self$delta[m])
+              (self$alpha * self$delta[m])
+            # See later the reason why lfactorial(k) isn't present
           }
           invisible(tau_new)
         }
@@ -608,7 +614,7 @@ fitBipartiteSBMPop <- R6::R6Class(
     },
     fixed_point_alpha_delta = function(MAP = FALSE, max_iter = 50, tol = 1e-6) {
       # switch(
-      #   self$probablityDistribution,
+      #   self$probabilityDistribution,
       #   "poisson" = {
       condition <- TRUE
       d <- self$delta
@@ -646,10 +652,14 @@ fitBipartiteSBMPop <- R6::R6Class(
     },
     update_pi = function(m, MAP = FALSE) {
       if (!MAP) {
+        # The pi are the mean of all the tau for each column, ie the mean tau per block
         pi1 <- .colMeans(self$tau[[m]][[1]], self$nr[m], self$Q[1])
         pi2 <- .colMeans(self$tau[[m]][[2]], self$nr[m], self$Q[2])
+
         self$pi[[m]] <- list(row = pi1, col = pi2)
+        # pi1 is accessed by self$pi[[m]]$row and pi2 by self$pi[[m]]$col
       } else {
+        # The MAP Pi are obtained by counting the number of nodes in each block and dividing by the total (nr or nc)
         pi1 <- tabulate(self$Z[[m]][[1]], self$Q[1]) / self$nr[m]
         pi2 <- tabulate(self$Z[[m]][[2]], self$Q[2]) / self$nc[m]
         self$MAP$pi[[m]] <- list(row = pi1, col = pi2)
@@ -669,6 +679,7 @@ fitBipartiteSBMPop <- R6::R6Class(
       invisible(alpham)
     },
     update_alpha = function(MAP = FALSE) {
+      # For iid and pi-colSBM
       if (!MAP) {
         alpha <- colSums(self$emqr, dims = 1) / colSums(self$nmqr, dims = 1)
         alpha[is.nan(alpha)] <- 0
@@ -683,7 +694,7 @@ fitBipartiteSBMPop <- R6::R6Class(
     init_clust = function() {
       self$tau <-
         switch(self$init_method,
-        # TODO later : adapt init_clust "random" to bipartite
+          # TODO later : adapt init_clust "random" to bipartite
           "random" = lapply(
             X = seq_along(self$A),
             FUN = function(m) {
@@ -699,7 +710,8 @@ fitBipartiteSBMPop <- R6::R6Class(
               tau_tmp
             }
           ),
-          # TODO : adapt "spectral" clustering to bipartite
+          # TODO : adapt hierarchical clustering
+          # TODO : adapt "spectral" clustering to bipartite with two clustering on the rows and columns
           "spectral" = lapply(
             X = seq_along(self$A),
             FUN = function(m) {
@@ -743,7 +755,7 @@ fitBipartiteSBMPop <- R6::R6Class(
           )
         )
       lapply(seq(self$M), function(m) self$update_alpham(m))
-      if (self$probablityDistribution == "bernoulli" & self$free_density &
+      if (self$probabilityDistribution == "bernoulli" & self$free_density &
         !self$fit_opts$approx_pois) {
         self$fixed_point_alpha_delta()
       }
@@ -755,9 +767,10 @@ fitBipartiteSBMPop <- R6::R6Class(
       # browser()
       lapply(seq_along(self$pi), function(m) self$update_pi(m, MAP = MAP))
       if (self$free_density == FALSE) {
+        # deltas are all equals to 1
         self$update_alpha(MAP = MAP)
       } else {
-        switch(self$probablityDistribution,
+        switch(self$probabilityDistribution,
           "poisson" = self$fixed_point_alpha_delta(MAP = MAP),
           "bernoulli" =
             ifelse(self$fit_opts$approx_pois,
@@ -772,11 +785,14 @@ fitBipartiteSBMPop <- R6::R6Class(
     },
     update_mqr = function(m) {
       # Compute the "mqr" quantities
-      # emqr : the realised edges observed
+      # emqr : the observed edges
       # nmqr : all the possible edges
-      tau_tmp <- self$tau[[m]]
-      self$emqr[m, , ] <- .tquadform(tau_tmp, self$A[[m]] * self$mask[[m]])
-      self$nmqr[m, , ] <- .tquadform(tau_tmp, self$mask[[m]])
+
+      tau_m_1 <- self$tau[[m]][[1]]
+      tau_m_2 <- self$tau[[m]][[2]]
+
+      self$emqr[m, , ] <- t(tau_m_1) %*% self$A[[m]] * self$mask[[m]] %*% tau_m_2
+      self$nmqr[m, , ] <- t(tau_m_1) %*% self$mask[[m]] %*% tau_m_2
     },
     optimize = function(max_step = 100, tol = 1e-3, ...) {
       if (self$Q == 1) {
@@ -818,7 +834,7 @@ fitBipartiteSBMPop <- R6::R6Class(
         # lapply(seq(self$M), function(m) self$update_mqr(m))
         self$m_step(...)
         step <- 0
-        vb <- self$compute_vbound()
+        vb <- self$compute_vbound() # LAST WORK
         self$vbound <- vb
         step_condition <- TRUE
         while (step_condition) {
