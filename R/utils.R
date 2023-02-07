@@ -178,7 +178,7 @@ build_fold_matrix <- function(X, K) {
   ifelse(x < 2*.Machine$double.eps, 0, x*.log(y, eps = eps))
 }
 .quadform  <- function(x, y)  tcrossprod(x %*% y, x)
-.tquadform  <- function(x, y)  crossprod(x, y %*% x)
+.tquadform  <- function(x, y)  crossprod(x, y %*% x) # TODO : check if naming is consistent with R functions
 logistic   <- function(x) 1/(1 + exp(-x))
 logit      <- function(x) log(x/(1 - x))
 .logit <- function(x, eps = NULL) {
