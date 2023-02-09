@@ -558,6 +558,7 @@ fitBipartiteSBMPop <- R6::R6Class(
         "bernoulli" = {
           tau_new <-
             if (d == 1) {
+              # nr * Q1
               tau_new <-
                 t(matrix(log(self$pi[[m]][[d]]), self$Q[d], self$nr[m])) +
                 (self$mask[[m]] * self$A[[m]]) %*%
@@ -834,7 +835,7 @@ fitBipartiteSBMPop <- R6::R6Class(
         # lapply(seq(self$M), function(m) self$update_mqr(m))
         self$m_step(...)
         step <- 0
-        vb <- self$compute_vbound() # LAST WORK
+        vb <- self$compute_vbound()
         self$vbound <- vb
         step_condition <- TRUE
         while (step_condition) {
@@ -843,7 +844,10 @@ fitBipartiteSBMPop <- R6::R6Class(
               seq(self$M),
               function(m) {
                 switch(self$fit_opts$algo_ve,
-                  "fp" = self$fixed_point_tau(m),
+                  "fp" = {
+                    self$fixed_point_tau(m, d = 1)
+                    self$fixed_point_tau(m, d = 2)
+                  },
                   self$ve_step(m, ...)
                 )
                 self$update_mqr(m)
@@ -856,7 +860,10 @@ fitBipartiteSBMPop <- R6::R6Class(
               seq(self$M),
               function(m) {
                 switch(self$fit_opts$algo_ve,
-                  "fp" = self$fixed_point_tau(seq_m[m]),
+                  "fp" = {
+                    self$fixed_point_tau(m, d = 1)
+                    self$fixed_point_tau(m, d = 2)
+                  },
                   self$ve_step(seq_m[m], ...)
                 )
                 self$update_mqr(seq_m[m])
