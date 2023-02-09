@@ -9,6 +9,8 @@ fitBipartiteSBMPop <- R6::R6Class(
   #
   # TODO : fix the comments to adapt to bipartite
   public = list(
+    # TODO later : consider changing nr, nc for n[[m]][[1]] and n[[m]][[2]]
+    # For user function add helpful n[[m]]$row and n[[m]]$col
     nr = NULL, # a vector of size M counting the number of rows for each matrix
     nc = NULL, # a vector of size M counting the number of columns for each matrix
     M = NULL, # Number of networks
@@ -75,8 +77,7 @@ fitBipartiteSBMPop <- R6::R6Class(
       # Bipartite networks have rectangular matrices so no symmetry
       #   directed <- ! isSymmetric.matrix(A[[1]])
       # }
-      # TODO : let the user specify is the directed network represented, ie Yij = {-1,0,1}
-      # self$directed <- directed
+
 
       # TODO : implement sanity checks
       # testthat : package to check the output of functions, unitary test
@@ -91,6 +92,7 @@ fitBipartiteSBMPop <- R6::R6Class(
       )
 
       # Getting or computing the NA Mask
+      # TODO invert the mask (1 means NA)
       if (!is.null(mask)) {
         self$mask <- mask
       } else {
@@ -125,9 +127,8 @@ fitBipartiteSBMPop <- R6::R6Class(
         )
       }
 
-      # TODO: ask Saint Clair
       # Replacing NAs by -1 in the incidence matrices
-      # Check if its to have no problems with the initializations
+      # To have no problems with the spectral clustering
       lapply(
         seq_along(self$A),
         function(m) self$A[[m]][is.na(self$A[[m]])] <- -1
@@ -151,8 +152,8 @@ fitBipartiteSBMPop <- R6::R6Class(
       self$free_mixture <- free_mixture
       self$free_density <- free_density
 
-      # TODO: check Saint Clair
-      self$weight <- weight
+      # TODO if time
+      # self$weight <- weight
 
       self$pi <- vector("list", self$M)
       self$tau <- vector("list", self$M)
@@ -187,8 +188,7 @@ fitBipartiteSBMPop <- R6::R6Class(
 
       self$alpha <- matrix(.5, Q[1], Q[2])
       self$init_method <- init_method
-      self$nb_inter <- self$dircoef * # TODO : Check to delete
-        vapply(seq(self$M), function(m) sum(self$mask[[m]]), FUN.VALUE = .1)
+      self$nb_inter <- vapply(seq(self$M), function(m) sum(self$mask[[m]]), FUN.VALUE = .1)
       self$vbound <- vector("list", self$M)
     },
     compute_MAP = function() {
@@ -196,7 +196,9 @@ fitBipartiteSBMPop <- R6::R6Class(
         self$tau,
         function(tau) {
           list(
+            # Retrieves the block membership for row
             row = apply(tau[[1]], 1, which.max),
+            # Retrieves the block membership for col
             col = apply(tau[[2]], 1, which.max)
           )
         }
@@ -416,6 +418,7 @@ fitBipartiteSBMPop <- R6::R6Class(
     },
     ################################################################################
     ## A modifier
+    # TODO change name and copy compute_BICL
     compute_icl_clustering = function(MAP = TRUE) {
       # browser()
       Z_unique <- lapply(self$Z, function(Z) sort(unique(Z[[1]])))
@@ -546,7 +549,8 @@ fitBipartiteSBMPop <- R6::R6Class(
     },
 
     # The fixed point algorithm to update the tau
-    fixed_point_tau = function(m, d, max_iter = 10, tol = 1e-3) {
+    fixed_point_tau = function(m, d, max_iter = 1, tol = 1e-3) {
+      # Just 1 step is necessary because tau1 depends only on tau2
       condition <- TRUE
       it <- 0
       # reup_counter <- 0
@@ -792,11 +796,12 @@ fitBipartiteSBMPop <- R6::R6Class(
       tau_m_1 <- self$tau[[m]][[1]]
       tau_m_2 <- self$tau[[m]][[2]]
 
-      self$emqr[m, , ] <- t(tau_m_1) %*% self$A[[m]] * self$mask[[m]] %*% tau_m_2
+      self$emqr[m, , ] <- t(tau_m_1) %*% (self$A[[m]] * self$mask[[m]]) %*% tau_m_2
       self$nmqr[m, , ] <- t(tau_m_1) %*% self$mask[[m]] %*% tau_m_2
     },
     optimize = function(max_step = 100, tol = 1e-3, ...) {
       if (self$Q == 1) {
+        # TODO Two dimensions for tau, Z and pi
         self$tau <- lapply(seq(self$M), function(m) matrix(1, self$n[m], 1))
         self$Z <- lapply(seq(self$M), function(m) rep(1, self$n[m]))
         self$pi <- lapply(seq(self$M), function(m) 1)
@@ -846,15 +851,21 @@ fitBipartiteSBMPop <- R6::R6Class(
                 switch(self$fit_opts$algo_ve,
                   "fp" = {
                     self$fixed_point_tau(m, d = 1)
+                    self$update_mqr(m)
+                    self$m_step(...)
+
                     self$fixed_point_tau(m, d = 2)
+                    self$update_mqr(m)
+                    self$m_step(...)
                   },
+                  # If we're not using the previous methods default to gradient ascent
                   self$ve_step(m, ...)
                 )
-                self$update_mqr(m)
               }
             )
-            self$m_step(...)
           } else {
+            # Minibatch
+            # TODO sample an order m,d (2m) in which update the fixed point tau (VE), mqr and m_step
             seq_m <- sample.int(self$M)
             lapply(
               seq(self$M),
@@ -864,6 +875,7 @@ fitBipartiteSBMPop <- R6::R6Class(
                     self$fixed_point_tau(m, d = 1)
                     self$fixed_point_tau(m, d = 2)
                   },
+                  # If we're not using the previous methods default to gradient ascent
                   self$ve_step(seq_m[m], ...)
                 )
                 self$update_mqr(seq_m[m])
@@ -884,15 +896,16 @@ fitBipartiteSBMPop <- R6::R6Class(
             }
           }
         }
-        self$compute_MAP()
+        # TODO disable MAP
+        #self$compute_MAP()
         lapply(seq(self$M), function(m) self$update_alpham(m))
         # self$compute_parameters()
         self$compute_icl()
-        self$update_MAP_parameters()
+        #self$update_MAP_parameters()
       }
       self$compute_icl()
-      self$compute_icl(MAP = TRUE)
-      self$compute_icl_clustering()
+      #self$compute_icl(MAP = TRUE)
+      self$compute_icl_clustering() # TODO change for compute_BICL()
     }
   ),
   active = list(
