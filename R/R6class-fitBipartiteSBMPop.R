@@ -99,7 +99,7 @@ fitBipartiteSBMPop <- R6::R6Class(
         self$mask <- lapply(
           seq_along(self$A),
           function(m) {
-            mask <- matrix(1, nrow(self$A), ncol(self$A))
+            mask <- matrix(1, nrow(self$A[[m]]), ncol(self$A[[m]]))
             if (sum(is.na(self$A[[m]] > 0))) {
               mask[is.na(self$A[[m]])] <- 0
             }
