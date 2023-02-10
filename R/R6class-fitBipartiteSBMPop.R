@@ -15,7 +15,8 @@ fitBipartiteSBMPop <- R6::R6Class(
     nc = NULL, # a vector of size M counting the number of columns for each matrix
     M = NULL, # Number of networks
     A = NULL, # List of incidence Matrix of size nr[m]xnc[m]
-    mask = NULL, # List of NA Matrices
+    mask = NULL, # List of M masks, indicating NAs in the matrices. 1 for NA, 0 else
+    nonNAs = NULL, # List of M masks, indicating non NAs in the matrices. 1 - mask, so 0 for NA, 1 for non NA
     nb_inter = NULL, # A vector of length M the number of unique non NA entries
     directed = NULL, # Boolean for network direction, Constant
     Q = NULL, # Number of clusters, vectors of size2
@@ -91,22 +92,30 @@ fitBipartiteSBMPop <- R6::R6Class(
         FUN.VALUE = .1
       )
 
-      # Getting or computing the NA Mask
-      # TODO invert the mask (1 means NA)
+      # Getting or computing the NA mask
       if (!is.null(mask)) {
         self$mask <- mask
       } else {
         self$mask <- lapply(
           seq_along(self$A),
           function(m) {
-            mask <- matrix(1, nrow(self$A[[m]]), ncol(self$A[[m]]))
+            mask <- matrix(0, nrow(self$A[[m]]), ncol(self$A[[m]]))
             if (sum(is.na(self$A[[m]] > 0))) {
-              mask[is.na(self$A[[m]])] <- 0
+              mask[is.na(self$A[[m]])] <- 1
             }
             mask
           }
         )
       }
+
+      # Computing the non NA mask from the NA mask
+      self$nonNAs <- lapply(
+        seq_along(self$A),
+        function(m) {
+          nonNAs <- 1 - self$mask[[m]]
+          nonNAs
+        }
+      )
 
       # Setting the net_id, if none is given, it's the position in the list that's used
       if (is.null(net_id)) {
@@ -188,7 +197,7 @@ fitBipartiteSBMPop <- R6::R6Class(
 
       self$alpha <- matrix(.5, Q[1], Q[2])
       self$init_method <- init_method
-      self$nb_inter <- vapply(seq(self$M), function(m) sum(self$mask[[m]]), FUN.VALUE = .1)
+      self$nb_inter <- vapply(seq(self$M), function(m) sum(self$nonNAs[[m]]), FUN.VALUE = .1)
       self$vbound <- vector("list", self$M)
     },
     compute_MAP = function() {
@@ -507,14 +516,14 @@ fitBipartiteSBMPop <- R6::R6Class(
         seq_along(Z),
         function(m) {
           self$MAP$emqr[m, , ] <-
-            crossprod(ZR[[m]], (self$A[[m]] * self$mask[[m]]) %*% ZC[[m]])
+            crossprod(ZR[[m]], (self$A[[m]] * (self$nonNAs[[m]])) %*% ZC[[m]])
         }
       )
       lapply(
         seq_along(Z),
         function(m) {
           self$MAP$nmqr[m, , ] <-
-            crossprod(ZR[[m]], self$mask[[m]] %*% ZC[[m]])
+            crossprod(ZR[[m]], (self$nonNAs[[m]]) %*% ZC[[m]])
         }
       )
       self$MAP$Z <- Z
@@ -545,10 +554,10 @@ fitBipartiteSBMPop <- R6::R6Class(
               # nr * Q1
               tau_new <-
                 t(matrix(log(self$pi[[m]][[d]]), self$Q[d], self$nr[m])) +
-                (self$mask[[m]] * self$A[[m]]) %*%
+                ((self$nonNAs[[m]]) * self$A[[m]]) %*%
                 self$tau[[m]][[2]] %*%
                 t(.logit(self$delta[m] * self$alpha, eps = 1e-9)) +
-                self$mask[[m]] %*%
+                (self$nonNAs[[m]]) %*%
                 self$tau[[m]][[2]] %*%
                 t(.log(1 - self$alpha * self$delta[m], eps = 1e-9))
             }
@@ -556,10 +565,10 @@ fitBipartiteSBMPop <- R6::R6Class(
             # nc * Q2
             tau_new <-
               t(matrix(log(self$pi[[m]][[d]]), self$Q[d], self$nc[m])) +
-              t(self$mask[[m]] * self$A[[m]]) %*%
+              t((self$nonNAs[[m]]) * self$A[[m]]) %*%
               self$tau[[m]][[1]] %*%
               .logit(self$delta[m] * self$alpha, eps = 1e-9) +
-              t(self$mask[[m]]) %*%
+              t(self$nonNAs[[m]]) %*%
               self$tau[[m]][[1]] %*%
               .log(1 - self$alpha * self$delta[m], eps = 1e-9)
           }
@@ -569,20 +578,20 @@ fitBipartiteSBMPop <- R6::R6Class(
           if (d == 1) {
             tau_new <-
               t(matrix(log(self$pi[[m]][[d]]), self$Q[d], self$nr[m])) +
-              (self$mask[[m]] * self$A[[m]]) %*%
+              ((self$nonNAs[[m]]) * self$A[[m]]) %*%
               self$tau[[m]][[2]] %*%
               t(log(self$delta[m] * self$alpha)) -
-              self$mask[[m]] %*%
+              (self$nonNAs[[m]]) %*%
               self$tau[[m]][[2]] %*%
               t(self$alpha * self$delta[m])
           }
           if (d == 2) {
             tau_new <-
               t(matrix(log(self$pi[[m]][[d]]), self$Q[d], self$nc[m])) +
-              t(self$mask[[m]] * self$A[[m]]) %*%
+              t((self$nonNAs[[m]]) * self$A[[m]]) %*%
               self$tau[[m]][[1]] %*%
               log(self$delta[m] * self$alpha) -
-              t(self$mask[[m]]) %*%
+              t(self$nonNAs[[m]]) %*%
               self$tau[[m]][[1]] %*%
               (self$alpha * self$delta[m])
             # See later the reason why lfactorial(k) isn't present
@@ -684,8 +693,8 @@ fitBipartiteSBMPop <- R6::R6Class(
             X = seq_along(self$A),
             FUN = function(m) {
               tau_tmp <- gtools::rdirichlet(self$n[m], rep(1, self$Q))
-              self$emqr[m, , ] <- .tquadform(tau_tmp, self$A[[m]] * self$mask[[m]])
-              self$nmqr[m, , ] <- .tquadform(tau_tmp, self$mask[[m]])
+              self$emqr[m, , ] <- .tquadform(tau_tmp, self$A[[m]] * (self$nonNAs[[m]]))
+              self$nmqr[m, , ] <- .tquadform(tau_tmp, (self$nonNAs[[m]]))
               a <- self$emqr[m, , ] / self$nmqr[m, , ]
               prob <- self$Q * diag(a) #+ rowSums(a)
               p <- sample.int(self$Q, prob = prob)
@@ -704,8 +713,8 @@ fitBipartiteSBMPop <- R6::R6Class(
               tau_tmp[tau_tmp < 1e-6] <- 1e-6
               tau_tmp[tau_tmp > 1 - 1e-6] <- 1 - 1e-6
               tau_tmp <- tau_tmp / .rowSums(tau_tmp, self$n[m], self$Q)
-              self$emqr[m, , ] <- .tquadform(tau_tmp, self$A[[m]] * self$mask[[m]])
-              self$nmqr[m, , ] <- .tquadform(tau_tmp, self$mask[[m]])
+              self$emqr[m, , ] <- .tquadform(tau_tmp, self$A[[m]] * (self$nonNAs[[m]]))
+              self$nmqr[m, , ] <- .tquadform(tau_tmp, (self$nonNAs[[m]]))
               a <- self$emqr[m, , ] / self$nmqr[m, , ]
               prob <- self$Q * diag(a) # + rowSums(a)
               p <- sample.int(self$Q, prob = prob)
@@ -725,8 +734,8 @@ fitBipartiteSBMPop <- R6::R6Class(
                 tau_tmp[tau_tmp < 1e-6] <- 1e-6
                 tau_tmp[tau_tmp > 1 - 1e-6] <- 1 - 1e-6
                 tau_tmp <- tau_tmp / .rowSums(tau_tmp, self$n[m], self$Q)
-                self$emqr[m, , ] <- .tquadform(tau_tmp, self$A[[m]] * self$mask[[m]])
-                self$nmqr[m, , ] <- .tquadform(tau_tmp, self$mask[[m]])
+                self$emqr[m, , ] <- .tquadform(tau_tmp, self$A[[m]] * (self$nonNAs[[m]]))
+                self$nmqr[m, , ] <- .tquadform(tau_tmp, (self$nonNAs[[m]]))
                 # a <- self$emqr[m,,]/self$nmqr[m,,]
                 # prob <- self$Q*diag(a) #+ rowSums(a)
                 # p <- sample(self$Q, prob = prob)
@@ -776,11 +785,11 @@ fitBipartiteSBMPop <- R6::R6Class(
       tau_m_1 <- self$tau[[m]][[1]]
       tau_m_2 <- self$tau[[m]][[2]]
 
-      self$emqr[m, , ] <- t(tau_m_1) %*% (self$A[[m]] * self$mask[[m]]) %*% tau_m_2
-      self$nmqr[m, , ] <- t(tau_m_1) %*% self$mask[[m]] %*% tau_m_2
+      self$emqr[m, , ] <- t(tau_m_1) %*% (self$A[[m]] * (self$nonNAs[[m]])) %*% tau_m_2
+      self$nmqr[m, , ] <- t(tau_m_1) %*% (self$nonNAs[[m]]) %*% tau_m_2
     },
     optimize = function(max_step = 100, tol = 1e-3, ...) {
-      if (sum(self$Q) == 1) {
+      if (all(self$Q == c(1, 1))) {
         # TODO Two dimensions for tau, Z and pi
         self$tau <- lapply(seq(self$M), function(m) matrix(1, self$n[m], 1))
         self$Z <- lapply(seq(self$M), function(m) rep(1, self$n[m]))
@@ -876,7 +885,7 @@ fitBipartiteSBMPop <- R6::R6Class(
             }
           }
         }
-        # TODO disable MAP
+        # DONE disable MAP
         # self$compute_MAP()
         lapply(seq(self$M), function(m) self$update_alpham(m))
         # self$compute_parameters()
