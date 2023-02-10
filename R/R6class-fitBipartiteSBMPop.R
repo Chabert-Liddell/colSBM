@@ -419,30 +419,10 @@ fitBipartiteSBMPop <- R6::R6Class(
     ################################################################################
     ## A modifier
     # TODO change name and copy compute_BICL
-    compute_icl_clustering = function(MAP = TRUE) {
-      # browser()
-      Z_unique <- lapply(self$Z, function(Z) sort(unique(Z[[1]])))
-      uz <- unique(Z_unique)
-      self$net_clustering <- match(Z_unique, uz)
-      #   nb_netclusters <- max(self$net_clustering)
-      pen <- 0
-      for (g in seq_along(uz)) {
-        Q <- length(uz[[g]]) # + self$Q - length(unique(unlist(uz)))
-        M <- sum(self$net_clustering == g)
-        df_mixture <- Q - 1
-        df_connect <- Q * Q
-        if (self$free_density) df_connect <- df_connect + M - 1
-        pen <- pen + .5 * (df_connect * log(sum(self$nb_inter[self$net_clustering == g])) +
-          sum(df_mixture * log(self$n[self$net_clustering == g])))
-      }
-      self$penalty_clustering <- pen
-      self$ICL_clustering <-
-        sum(vapply(
-          seq_along(self$A),
-          function(m) self$vb_tau_pi(m, MAP = MAP) + self$vb_tau_alpha(m, MAP = MAP),
-          FUN.VALUE = .1
-        )) - pen
-      invisible(self$ICL_clustering)
+    compute_BICL = function(MAP = TRUE) {
+      self$BICL <- self$compute_vbound() - self$compute_penalty() -
+        ifelse(self$free_mixture, sum(log(choose(self$Q, colSums(self$Cpi)))) + self$M * log(self$Q), 0) #-
+      invisible(self$BICL)
     },
     compute_exact_icl = function() {
       ## directed not implemented yet
@@ -800,7 +780,7 @@ fitBipartiteSBMPop <- R6::R6Class(
       self$nmqr[m, , ] <- t(tau_m_1) %*% self$mask[[m]] %*% tau_m_2
     },
     optimize = function(max_step = 100, tol = 1e-3, ...) {
-      if (self$Q == 1) {
+      if (sum(self$Q) == 1) {
         # TODO Two dimensions for tau, Z and pi
         self$tau <- lapply(seq(self$M), function(m) matrix(1, self$n[m], 1))
         self$Z <- lapply(seq(self$M), function(m) rep(1, self$n[m]))
@@ -897,15 +877,15 @@ fitBipartiteSBMPop <- R6::R6Class(
           }
         }
         # TODO disable MAP
-        #self$compute_MAP()
+        # self$compute_MAP()
         lapply(seq(self$M), function(m) self$update_alpham(m))
         # self$compute_parameters()
         self$compute_icl()
-        #self$update_MAP_parameters()
+        # self$update_MAP_parameters()
       }
       self$compute_icl()
-      #self$compute_icl(MAP = TRUE)
-      self$compute_icl_clustering() # TODO change for compute_BICL()
+      # self$compute_icl(MAP = TRUE)
+      self$compute_BICL() # FIXME should work
     }
   ),
   active = list(
