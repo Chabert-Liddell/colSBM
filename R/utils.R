@@ -52,7 +52,7 @@ spectral_clustering <- function(X, K) {
 #'
 #' @return A list of two vectors : The clusters labels
 spectral_biclustering <- function(X, K) {
-  if (K == c(1, 1)) {
+  if (all(K == c(1, 1))) {
     return(list(row_clustering = rep(1, nrow(X)), col_clustering = rep(1, ncol(X))))
   }
 
