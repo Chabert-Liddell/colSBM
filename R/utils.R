@@ -38,7 +38,49 @@ spectral_clustering <- function(X, K) {
 
 
 
-# TODO : implement a spectral bi-clustering
+# FIXME : implement a spectral bi-clustering, check if it works consistently with co-clustering
+#' Perform a spectral bi-clustering, clusters by row
+#' and by columns independently
+#'
+#' Relies on the spectral_clustering function defined above
+#'
+#' @param X an Incidence matrix
+#' @param K the two numbers of clusters
+#'
+#' @noMd
+#' @noRd
+#'
+#' @return A list of two vectors : The clusters labels
+spectral_biclustering <- function(X, K) {
+  # Extracts the number of clusters
+  K1 <- K[1] # Row clusters
+  K2 <- K[2] # Column clusters
+
+  row_adjacency_matrix <- tcrossprod(X)
+  row_clustering <- spectral_clustering(row_adjacency_matrix, K1)
+
+  col_adjacency_matrix <- crossprod(X)
+  col_clustering <- spectral_clustering(col_adjacency_matrix, K2)
+
+  return(list(row_clustering = row_clustering, col_clustering = col_clustering))
+}
+
+# TODO : implement a spectral co-clustering
+#' Perform a spectral co-clustering, clusters by row
+#' and by columns
+#'
+#' @importFrom stats kmeans
+#'
+#' @param X an Incidence matrix
+#' @param K the two numbers of clusters
+#'
+#' @noMd
+#' @noRd
+#'
+#' @return A list of two vectors : The clusters labels
+spectral_coclustering <- function(X, K) {
+  # placeholder
+}
 # TODO : implement CAH bi-clustering (GREMLINS)
 #' Perform a Hierarchical Clustering
 #' @importFrom stats cutree dist hclust
