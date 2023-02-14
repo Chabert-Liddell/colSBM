@@ -38,7 +38,7 @@ spectral_clustering <- function(X, K) {
 
 
 
-# FIXME : implement a spectral bi-clustering, check if it works consistently with co-clustering
+# ? # FIXME : implement a spectral bi-clustering, check if it works consistently with co-clustering
 #' Perform a spectral bi-clustering, clusters by row
 #' and by columns independently
 #'
@@ -73,7 +73,7 @@ spectral_biclustering <- function(X, K) {
   return(list(row_clustering = row_clustering, col_clustering = col_clustering))
 }
 
-# TODO : implement a spectral co-clustering
+# ! # FIXME : The coclustering groups rows and columns !!!
 #' Perform a spectral co-clustering, clusters by row
 #' and by columns
 #' Based on Dhillon, Inderjit S. (2001). doi:10.1145/502512.502550 
@@ -163,7 +163,7 @@ hierarClust <- function(X, K) {
   return(stats::cutree(tree = clust, k = K))
 }
 
-#' Merge a list of clusters
+#' Split a list of clusters
 #'
 #' @param X an adjacency matrix
 #' @param Z a vector of cluster memberships
@@ -220,6 +220,30 @@ split_clust <- function(X, Z, Q) {
   Z_split <- Z_split[which(sapply(X = Z_split, FUN = function(x) !is.null(x)))]
   return(Z_split)
 }
+
+#' Generate a unipartite network
+#'
+#' @param n the number of nodes
+#' @param pi a vector of probability to belong to the clusters
+#' @param alpha the matrix of connectivity between two clusters
+#'
+#' @return An adjacency matrix
+#'
+#' @noMd
+#' @noRd
+generate_unipartite_network <- function(n, pi, alpha) {
+  cluster_memberships <- rmultinom(n, size = 1, prob = pi)
+  node_node_interaction_prob <- t(cluster_memberships) %*% alpha %*% cluster_memberships
+  adjacency_matrix <- matrix(
+    rbinom(length(node_node_interaction_prob),
+      size = 1, prob = node_node_interaction_prob
+    ),
+    nrow = nrow(node_node_interaction_prob)
+  )
+  return(adjacency_matrix)
+}
+
+# TODO : improve the generation by allowing to provide connectivity parameters, memberships parameters etc
 generate_unipartite_collection <- function(nodesPerClass, numberOfClass, numberOfNetworks, directed = F) {
   A <- list()
   for (m in seq(numberOfNetworks)) {
@@ -238,24 +262,79 @@ generate_unipartite_collection <- function(nodesPerClass, numberOfClass, numberO
   A
 }
 
-generate_bipartite_collection <- function(coupleOfNodesPerClass, coupleOfNumberOfClasses, numberOfNetworks) {
-  out <- list()
-  out$n <- list()
-  out$A <- list()
-  out$Z1 <- list()
-  out$Z2 <- list()
-  out$P <- list()
-  for (m in seq(numberOfNetworks)) {
-    n <- coupleOfNodesPerClass * coupleOfNumberOfClasses # nodes
-    Z1 <- diag(coupleOfNumberOfClasses[1]) %x% matrix(1, coupleOfNodesPerClass[1], 1)
-    Z2 <- diag(coupleOfNumberOfClasses[2]) %x% matrix(1, coupleOfNodesPerClass[2], 1)
-    P <- matrix(runif(coupleOfNumberOfClasses[1] * coupleOfNumberOfClasses[2]), coupleOfNumberOfClasses[1], coupleOfNumberOfClasses[2])
-    out$A[[m]] <- 1 * (matrix(runif(n[1] * n[2]), n[1], n[2]) < Z1 %*% P %*% t(Z2)) ## adjacency matrix
+#' Generate a bipartite network
+#'
+#' @param nr the number of row nodes
+#' @param nc the number of col nodes
+#' @param pir a vector of probability to belong to the row clusters
+#' @param pic a vector of probability to belong to the columns clusters
+#' @param alpha the matrix of connectivity between two clusters
+#'
+#' @return An incidence matrix
+#'
+#' @noMd
+#' @noRd
+generate_bipartite_network <- function(nr, nc, pir, pic, alpha) {
+  rowcluster_memberships <- rmultinom(nr, size = 1, prob = pir)
+  colcluster_memberships <- rmultinom(nc, size = 1, prob = pic)
+  node_node_interaction_prob <- t(rowcluster_memberships) %*%
+    alpha %*%
+    colcluster_memberships
 
-    out$n[[m]] <- n
-    out$Z1[[m]] <- Z1
-    out$Z2[[m]] <- Z2
-    out$P[[m]] <- P
+  incidence_matrix <- matrix(
+    rbinom(length(node_node_interaction_prob),
+      size = 1, prob = node_node_interaction_prob
+    ),
+    nrow = nrow(node_node_interaction_prob)
+  )
+  return(incidence_matrix)
+}
+
+#' Generate collection of bipartite
+#'
+#' @param nr the number of row nodes or a vector of the row nodes per network
+#' @param nc the number of col nodes or a vector of the row nodes per network
+#' @param pir a vector of probability to belong to the row clusters
+#' @param pic a vector of probability to belong to the columns clusters
+#' @param alpha the matrix of connectivity between two clusters
+#' @param M the number of networks to generate
+#'
+#' @return A list of M incidence matrices
+#'
+#' @noMd
+#' @noRd
+generate_bipartite_collection <- function(nr, nc, pir, pic, alpha, M) {
+  out <- list()
+
+  # Check if nr and nc are vectors
+  if (length(nr) == 1) {
+    nr <- rep(nr, M)
+  }
+  if (length(nc) == 1) {
+    nc <- rep(nc, M)
+  }
+
+  # Check if nr and nc are the correct length
+  if (length(nr) != M) {
+    stop(
+      "The length of nr is not correct ! It should be : ",
+      M, " values and it is ", length(nr)
+    )
+  }
+  if (length(nc) != M) {
+    stop(
+      "The length of nc is not correct ! It should be : ",
+      M, " values and it is ", length(nc)
+    )
+  }
+  for (m in seq(M)) {
+    out[[m]] <- generate_bipartite_network(
+      nr = nr[[m]],
+      nc = nc[[m]],
+      pir = pir,
+      pic = pic,
+      alpha = alpha
+    )
   }
   out
 }
