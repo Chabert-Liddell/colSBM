@@ -25,6 +25,7 @@ nc <- 240
 firstCol <- generate_bipartite_collection(nr, nc, pir, pic, alpha, M)
 
 test_that("nc and nr are extended to match M", {
+    expect_equal(length(firstCol), M)
     expect_equal(unique(lapply(firstCol, nrow)), list(nr))
     expect_equal(unique(lapply(firstCol, ncol)), list(nc))
 })
@@ -36,6 +37,7 @@ nc <- 2 * nr
 increasingCol <- generate_bipartite_collection(nr, nc, pir, pic, alpha, M)
 
 test_that("Generate bipartite collection with vectors for nc and nr", {
+    expect_equal(length(increasingCol), M)
     expect_equal(lapply(increasingCol, nrow), as.list(nr))
     expect_equal(lapply(increasingCol, ncol), as.list(nc))
 })
