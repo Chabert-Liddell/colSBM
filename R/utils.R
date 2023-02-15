@@ -50,7 +50,7 @@ spectral_clustering <- function(X, K) {
 #' @noMd
 #' @noRd
 #'
-#' @return A list of two vectors : The clusters labels
+#' @return A list of two vectors : The clusters labels. They are accessed using $row_clustering and $col_clustering
 spectral_biclustering <- function(X, K) {
   # Trivial clustering : everyone is part of the cluster
   if (all(K == c(1, 1))) {
@@ -116,8 +116,12 @@ spectral_coclustering <- function(X, K) {
   # D2 : D2_{jj} = \sum_{i} Aij
   D1_minus_one_half <- diag(1 / sqrt(colSums(X, na.rm = TRUE)[seq_len(nrow(X))]))
   D1_minus_one_half[which(is.na(D1_minus_one_half))] <- 0 # Not enough columns replacing NA by 0
+  D1_minus_one_half[which(is.infinite(D1_minus_one_half))] <- 0
+
   D2_minus_one_half <- diag(1 / sqrt(rowSums(X, na.rm = TRUE)[seq_len(ncol(X))]))
   D2_minus_one_half[which(is.na(D2_minus_one_half))] <- 0 # Not enough rows replacing NA by 0
+  D2_minus_one_half[which(is.infinite(D2_minus_one_half))] <- 0
+
   # The normalised matrix
   An <- D1_minus_one_half %*% X %*% D2_minus_one_half
 

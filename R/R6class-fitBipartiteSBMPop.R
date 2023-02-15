@@ -46,7 +46,7 @@ fitBipartiteSBMPop <- R6::R6Class(
     #  verbosity = NULL,
     penalty = NULL, # The penalty computed based on the number of parameters
     # approx_pois = NULL,
-    Z = NULL,
+    Z = NULL, # The clusters memberships, a list of size M of two matrices : 1 for rows clusters memberships and 2 for columns clusters memberships
     MAP = NULL, # Maximum a posteriori
     MAP_parameters = NULL,
     parameters = NULL,
@@ -709,13 +709,31 @@ fitBipartiteSBMPop <- R6::R6Class(
           "spectral" = lapply(
             X = seq_along(self$A),
             FUN = function(m) {
-              tau_tmp <- .one_hot(spectral_clustering(self$A[[m]], self$Q), self$Q)
-              tau_tmp[tau_tmp < 1e-6] <- 1e-6
-              tau_tmp[tau_tmp > 1 - 1e-6] <- 1 - 1e-6
-              tau_tmp <- tau_tmp / .rowSums(tau_tmp, self$n[m], self$Q)
-              self$emqr[m, , ] <- .tquadform(tau_tmp, self$A[[m]] * (self$nonNAs[[m]]))
-              self$nmqr[m, , ] <- .tquadform(tau_tmp, (self$nonNAs[[m]]))
-              a <- self$emqr[m, , ] / self$nmqr[m, , ]
+              # The .one_hot performs a one hot encoding of the spectral clustering performed
+              # TODO : Adapt this step to handle two taus
+              biclustering <- spectral_biclustering(self$A[[m]], self$Q)
+              row_clustering <- biclustering$row_clustering
+              col_clustering <- biclustering$col_clustering
+
+              # Tau for the rows
+              tau_1 <- .one_hot(row_clustering, self$Q[[1]])
+              tau_1[tau_1 < 1e-6] <- 1e-6
+              tau_1[tau_1 > 1 - 1e-6] <- 1 - 1e-6
+              tau_1 <- tau_1 / .rowSums(tau_1, self$n[m], self$Q[[1]])
+
+              # Tau for the columns
+              tau_2 <- .one_hot(col_clustering, self$Q[[2]])
+              tau_2[tau_2 < 1e-6] <- 1e-6
+              tau_2[tau_2 > 1 - 1e-6] <- 1 - 1e-6
+              tau_2 <- tau_2 / .rowSums(tau_2, self$n[m], self$Q[[2]])
+
+              # TODO : ask @Chabert-Liddell can we call update_mqr here ?
+              # update_mqr(m)
+              self$emqr[m, , ] <- t(tau_1) %*% (self$A[[m]] * (self$nonNAs[[m]])) %*% tau_2
+              self$nmqr[m, , ] <- t(tau_1) %*% (self$nonNAs[[m]]) %*% tau_2
+
+              # ? # TODO : ask Pierre and Saint-Clair
+              a <- self$emqr[m, , ] / self$nmqr[m, , ] # ? estimate of the alpha 
               prob <- self$Q * diag(a) # + rowSums(a)
               p <- sample.int(self$Q, prob = prob)
               tau_tmp <- tau_tmp[, p]
@@ -727,7 +745,8 @@ fitBipartiteSBMPop <- R6::R6Class(
           "given" = lapply(
             X = seq_along(self$Z),
             FUN = function(m) {
-              if (is.matrix(self$Z[[m]])) {
+              if (is.matrix(self$Z[[m]][[1]]) && is.matrix(self$Z[[m]][[2]])) {
+                # If Z was already provided as a list of two matrices
                 tau_tmp <- self$Z[[m]]
               } else {
                 tau_tmp <- .one_hot(self$Z[[m]], self$Q)
