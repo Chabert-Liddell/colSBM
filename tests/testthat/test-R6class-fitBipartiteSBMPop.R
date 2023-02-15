@@ -1,5 +1,5 @@
 # Sourcing all necessary files
-require("sbm")
+# require("sbm")
 source("R/utils.R")
 source("R/R6class-fitBipartiteSBMPop.R")
 
@@ -8,7 +8,7 @@ set.seed(1234)
 # Generate a bipartite collection fixed nr and nc
 
 eps <- 0.05
-
+M <- 5
 nr <- 10
 nc <- 25
 

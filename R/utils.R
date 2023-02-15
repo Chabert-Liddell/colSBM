@@ -73,7 +73,7 @@ spectral_biclustering <- function(X, K) {
   return(list(row_clustering = row_clustering, col_clustering = col_clustering))
 }
 
-# ! # FIXME : The coclustering groups rows and columns !!!
+# ! # FIXME : To delete
 #' Perform a spectral co-clustering, clusters by row
 #' and by columns
 #' Based on Dhillon, Inderjit S. (2001). doi:10.1145/502512.502550 

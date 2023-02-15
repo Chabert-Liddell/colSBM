@@ -732,7 +732,10 @@ fitBipartiteSBMPop <- R6::R6Class(
               self$emqr[m, , ] <- t(tau_1) %*% (self$A[[m]] * (self$nonNAs[[m]])) %*% tau_2
               self$nmqr[m, , ] <- t(tau_1) %*% (self$nonNAs[[m]]) %*% tau_2
 
-              # ? # TODO : ask Pierre and Saint-Clair
+              # ? # TODO : ask Pierre and @Chabert-Liddell
+              # Permuter avec un ordre favorisant plus fortement les intraconnexion
+              # mais de manière stochastique
+              # colSums sur les tau1 et tau2 pour obtenir les pir et pic
               a <- self$emqr[m, , ] / self$nmqr[m, , ] # ? estimate of the alpha 
               prob <- self$Q * diag(a) # + rowSums(a)
               p <- sample.int(self$Q, prob = prob)
