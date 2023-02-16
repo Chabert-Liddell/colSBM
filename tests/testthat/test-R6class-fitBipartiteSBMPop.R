@@ -29,7 +29,7 @@ bipartite_collection <- generate_bipartite_collection(nr, nc, pir, pic, alpha, M
 Q <- c(length(pir), length(pic))
 
 # Create the fitBipartite objects
-fitCol <- fitBipartiteSBMPop$new(A = bipartite_collection, Q = Q)
+fitCol <- fitBipartiteSBMPop$new(A = bipartite_collection, Q = Q, free_mixture = FALSE, free_density = FALSE)
 
 
 # Clustering by row and cols separately
@@ -52,6 +52,8 @@ fitCol.spectral_coclustering <- lapply(
 )
 
 fitCol.spectral_coclustering
+
+fitCol$optimize()
 
 
 # # Add NAs to the collections
