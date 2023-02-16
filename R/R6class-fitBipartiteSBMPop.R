@@ -744,6 +744,9 @@ fitBipartiteSBMPop <- R6::R6Class(
               a <- self$emqr[m, , ] / self$nmqr[m, , ] # ? estimate of the alpha 
               pir <- .colSums(tau_1, self$nr[m], self$Q[[1]]) / sum(tau_1)
               pic <- .colSums(tau_2, self$nc[m], self$Q[[2]])/sum(tau_2)
+
+              # Should be : prob1 <- pic %*% t(a)
+              # Should be : prob2 <- pir %*% a
               # p1 and p2 contain the clustering ordered using the highest probabilities first
               # But it is still sampled and random according to the probabilities
               p1 <- sample.int(self$Q[[1]], prob = pir)

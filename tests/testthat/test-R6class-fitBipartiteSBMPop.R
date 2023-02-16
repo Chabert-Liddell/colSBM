@@ -1,19 +1,31 @@
 # Sourcing all necessary files
-# require("sbm")
+require("sbm")
 source("R/utils.R")
 source("R/R6class-fitBipartiteSBMPop.R")
 
 set.seed(1234)
 
+# TODO : essayer de débugger
+# D'abord :
+# Bien marquer les pir et pic pour ne pas compliquer la tâche
+# Tirer au sort les alpha dans une uniforme
+# alpha de dimensions 3x4
+#
+# Vérifier le clustering fournit par spectral_biclustering
+# en utilisant aricode::ARI()
+#
+# Changer les prob utilisées pour permuter les lignes et colonnes
+
+
 # Generate a bipartite collection fixed nr and nc
 
 eps <- 0.05
 M <- 5
-nr <- 10
-nc <- 25
+nr <- 100
+nc <- 250
 
-pir <- c(0.1, 0.2, 0.4, 0.3)
-pic <- c(0.7, 0.1, 0.05, 0.05, 0.1)
+pir <- rep(1/4, 4)
+pic <- rep(1/5, 5)
 
 alpha <- matrix(
     c(
@@ -58,16 +70,18 @@ fitCol.spectral_coclustering <- lapply(
 
 fitCol.spectral_coclustering
 
+sbm1 <- estimateBipartiteSBM(bipartite_collection[[1]])
+
 fitCol$optimize()
 
 
-# # Add NAs to the collections
-# colWithNA <- col
-# colWithNA$A <- lapply(
-#     seq_along(colWithNA$A),
+# Add NAs to the collections
+# bipartite_collection_NA <- bipartite_collection
+# bipartite_collection_NA <- lapply(
+#     seq_along(bipartite_collection_NA),
 #     function(m) {
-#         colWithNA$A[[m]][sample(length(colWithNA$A[[m]]), numberOfNAsPerNetwork)] <- rep(NA, numberOfNAsPerNetwork)
-#         colWithNA$A[[m]]
+#         bipartite_collection_NA[[m]][sample(length(bipartite_collection_NA[[m]]), numberOfNAsPerNetwork)] <- rep(NA, numberOfNAsPerNetwork)
+#         bipartite_collection_NA[[m]]
 #     }
 # )
-# fitColWithNA <- fitBipartiteSBMPop$new(A = colWithNA$A, Q = Q)
+# fitColWithNA <- fitBipartiteSBMPop$new(A = , Q = Q)
