@@ -29,7 +29,12 @@ bipartite_collection <- generate_bipartite_collection(nr, nc, pir, pic, alpha, M
 Q <- c(length(pir), length(pic))
 
 # Create the fitBipartite objects
-fitCol <- fitBipartiteSBMPop$new(A = bipartite_collection, Q = Q, free_mixture = FALSE, free_density = FALSE)
+fitCol <- fitBipartiteSBMPop$new(
+    A = bipartite_collection,
+    Q = Q, free_mixture = FALSE,
+    free_density = FALSE,
+    fit_opts = list(verbosity = 4)
+)
 
 
 # Clustering by row and cols separately

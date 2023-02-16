@@ -51,6 +51,7 @@ fitBipartiteSBMPop <- R6::R6Class(
     MAP_parameters = NULL,
     parameters = NULL,
     ICL = NULL,
+    BICL = NULL,
     penalty_clustering = NULL,
     ICL_clustering = NULL,
     net_clustering = NULL,
@@ -406,9 +407,11 @@ fitBipartiteSBMPop <- R6::R6Class(
     },
     compute_penalty = function() {
       df_connect <- self$df_connect
-      if (self$free_density) df_connect <- self$df_connect + self$df_density
+      if (self$free_density) {
+        df_connect <- self$df_connect + self$df_density
+      }
       self$penalty <- .5 * (df_connect * log(sum(self$nb_inter)) +
-        sum(self$df_mixture * log(self$n)))
+        sum(self$df_mixture * log(c(sum(self$nr), sum(self$nc)))))
       invisible(self$penalty)
     },
     compute_icl = function(MAP = FALSE) {
@@ -429,8 +432,11 @@ fitBipartiteSBMPop <- R6::R6Class(
     ## A modifier
     # TODO change name and copy compute_BICL
     compute_BICL = function(MAP = TRUE) {
-      self$BICL <- self$compute_vbound() - self$compute_penalty() -
-        ifelse(self$free_mixture, sum(log(choose(self$Q, colSums(self$Cpi)))) + self$M * log(self$Q), 0) #-
+      self$BICL <- self$compute_vbound() -
+      self$compute_penalty() -
+      ifelse(self$free_mixture,
+        sum(log(choose(self$Q, colSums(self$Cpi)))) + self$M * log(self$Q), 
+        0) #-
       invisible(self$BICL)
     },
     compute_exact_icl = function() {
