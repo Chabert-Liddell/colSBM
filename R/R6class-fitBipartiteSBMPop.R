@@ -705,12 +705,12 @@ fitBipartiteSBMPop <- R6::R6Class(
             }
           ),
           # TODO : adapt hierarchical clustering
-          # TODO : adapt "spectral" clustering to bipartite with two clustering on the rows and columns
+          # DONE : adapt "spectral" clustering to bipartite with two clustering on the rows and columns
           "spectral" = lapply(
             X = seq_along(self$A),
             FUN = function(m) {
               # The .one_hot performs a one hot encoding of the spectral clustering performed
-              # TODO : Adapt this step to handle two taus
+              # DONE : Adapt this step to handle two taus
               biclustering <- spectral_biclustering(self$A[[m]], self$Q)
               row_clustering <- biclustering$row_clustering
               col_clustering <- biclustering$col_clustering
@@ -719,30 +719,38 @@ fitBipartiteSBMPop <- R6::R6Class(
               tau_1 <- .one_hot(row_clustering, self$Q[[1]])
               tau_1[tau_1 < 1e-6] <- 1e-6
               tau_1[tau_1 > 1 - 1e-6] <- 1 - 1e-6
-              tau_1 <- tau_1 / .rowSums(tau_1, self$n[m], self$Q[[1]])
+              tau_1 <- tau_1 / .rowSums(tau_1, self$nr[m], self$Q[[1]])
 
               # Tau for the columns
               tau_2 <- .one_hot(col_clustering, self$Q[[2]])
               tau_2[tau_2 < 1e-6] <- 1e-6
               tau_2[tau_2 > 1 - 1e-6] <- 1 - 1e-6
-              tau_2 <- tau_2 / .rowSums(tau_2, self$n[m], self$Q[[2]])
+              tau_2 <- tau_2 / .rowSums(tau_2, self$nc[m], self$Q[[2]])
 
               # TODO : ask @Chabert-Liddell can we call update_mqr here ?
               # update_mqr(m)
               self$emqr[m, , ] <- t(tau_1) %*% (self$A[[m]] * (self$nonNAs[[m]])) %*% tau_2
               self$nmqr[m, , ] <- t(tau_1) %*% (self$nonNAs[[m]]) %*% tau_2
 
-              # ? # TODO : ask Pierre and @Chabert-Liddell
-              # Permuter avec un ordre favorisant plus fortement les intraconnexion
-              # mais de manière stochastique
+              # Permuter avec un ordre favorisant plus fortement 
+              # les plus gros clusters mais de manière stochastique
               # colSums sur les tau1 et tau2 pour obtenir les pir et pic
               a <- self$emqr[m, , ] / self$nmqr[m, , ] # ? estimate of the alpha 
-              prob <- self$Q * diag(a) # + rowSums(a)
-              p <- sample.int(self$Q, prob = prob)
-              tau_tmp <- tau_tmp[, p]
-              self$emqr[m, , ] <- self$emqr[m, p, p]
-              self$nmqr[m, , ] <- self$nmqr[m, p, p]
-              tau_tmp
+              pir <- .colSums(tau_1, self$nr[m], self$Q[[1]]) / sum(tau_1)
+              pic <- .colSums(tau_2, self$nc[m], self$Q[[2]])/sum(tau_2)
+              # p1 and p2 contain the clustering ordered using the highest probabilities first
+              # But it is still sampled and random according to the probabilities
+              p1 <- sample.int(self$Q[[1]], prob = pir)
+              p2 <- sample.int(self$Q[[2]], prob = pic)
+
+              # Tau are reordered accordingly
+              tau_1 <- tau_1[, p1]
+              tau_2 <- tau_2[, p2]
+              # The emqr and nmqr are reordered too
+              self$emqr[m, , ] <- self$emqr[m, p1, p2]
+              self$nmqr[m, , ] <- self$nmqr[m, p1, p2]
+              # The output is tau[[m]][[1]] for tau_1 and tau[[m]][[2]] for tau_2
+              list(tau_1, tau_2)
             }
           ),
           "given" = lapply(
