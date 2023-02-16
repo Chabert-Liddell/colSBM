@@ -137,11 +137,19 @@ bmpop <- R6::R6Class(
 
 
     optimize_from_sbm = function(index, Q, nb_clusters) {
-      #browser()
+      # browser()
       # for (q in seq(self$global_opts$Q_min, self$global_opts$Q_max)) {
-      lapply(seq_along(self$A), function(m) self$fit_sbm[[m]]$setModel(index = Q))
-      Z_sbm <- lapply(seq_along(self$fit_sbm[index]),
-                      function(m) self$fit_sbm[index][[m]]$memberships)
+      lapply(seq_along(self$A), function(m) {
+        self$fit_sbm[[m]]$setModel(index = Q)
+      })
+      # The output clustering from SBM is stored
+      # for each of the M models in Z_sbm
+      Z_sbm <- lapply(
+        seq_along(self$fit_sbm[index]),
+        function(m) self$fit_sbm[index][[m]]$memberships
+      )
+      # The below prob is the intra-cluster connection probability of the alpha
+      # ie the diagonal of the alpha matrix
       prob <- lapply(seq_along(self$fit_sbm[index]),
                      function(m) diag(self$fit_sbm[index][[m]]$connectParam$mean))
       nb_init <- ifelse(Q == 1, 1, self$global_opts$nb_init)
@@ -150,6 +158,7 @@ bmpop <- R6::R6Class(
         seq(nb_init),
         function(it) {
           if(it == 1) {
+            # For the first init, we use the Z order given by the SBM
             mypopbm <- fitSimpleSBMPop$new(A = self$A[index],
                                            mask = self$mask[index],
                                            model = self$model,
@@ -167,7 +176,12 @@ bmpop <- R6::R6Class(
               Z_init <- lapply(
                 seq_along(Z_sbm),
                 function(m) {
+                  # ord contains Q probabilities and is
+                  # deterministically ranked from the lowest to the highest
+                  # intra-connection probability
                   ord <- order(prob[[m]])
+                  # This returns the cluster membership (Z) in this order
+                  # and this clustering is put in Z_init
                   ord[match(Z_sbm[[m]], unique(Z_sbm[[m]]))]
                 }
               )
@@ -181,12 +195,16 @@ bmpop <- R6::R6Class(
                                              Q = Q,
                                              Z = Z_init,
                                              logfactA = self$logfactA,
+                                             # Using the previous re-ordering of Z
+                                             # the init_method is "given"
                                              init_method = "given",
                                              fit_opts = self$fit_opts)
             } else {
               Z_init <- lapply(
                 seq_along(Z_sbm),
                 function(m) {
+                  # Here the order is ranked by the highest to the lowest prob
+                  # but using a sampling (introducing randomness)
                   ord <- sample(seq_along(prob[[m]]),
                                 size = length(prob[[m]]), prob = prob[[m]])
                   ord[match(Z_sbm[[m]], unique(Z_sbm[[m]]))]
