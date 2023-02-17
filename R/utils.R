@@ -73,71 +73,6 @@ spectral_biclustering <- function(X, K) {
   return(list(row_clustering = row_clustering, col_clustering = col_clustering))
 }
 
-# ! # FIXME : To delete
-#' Perform a spectral co-clustering, clusters by row
-#' and by columns
-#' Based on Dhillon, Inderjit S. (2001). doi:10.1145/502512.502550 
-#'
-#' @importFrom stats kmeans
-#'
-#' @param X an Incidence matrix
-#' @param K the two numbers of clusters
-#'
-#' @noMd
-#' @noRd
-#'
-#' @return A list of two vectors : The clusters labels
-spectral_coclustering <- function(X, K) {
-  # Trivial clustering : everyone is part of the cluster
-  if (all(K == c(1, 1))) {
-    return(list(
-      row_clustering = rep(1, nrow(X)),
-      col_clustering = rep(1, ncol(X))
-    ))
-  }
-
-  X[X == -1] <- NA # FIXME : replacing NA ask Saint-Clair
-
-  # Select the number of coclusters
-  minK <- min(K)
-
-  # Computes the number of clusters to fill
-  l <- ceiling(log2(minK))
-  if (l + 1 > nrow(X) || l + 1 > ncol(X)) {
-    stop(
-      "The number of clusters is too large ! Should be at max : ",
-      (2^(nrow(X) - 2) - 1)
-    )
-  }
-
-  # Computation of the singular value decomposition
-  # Computing the D1 and D2 matrices
-  # D1 : D1_{ii} = \sum_{j} Aij
-  # D2 : D2_{jj} = \sum_{i} Aij
-  D1_minus_one_half <- diag(1 / sqrt(colSums(X, na.rm = TRUE)[seq_len(nrow(X))]))
-  D1_minus_one_half[which(is.na(D1_minus_one_half))] <- 0 # Not enough columns replacing NA by 0
-  D1_minus_one_half[which(is.infinite(D1_minus_one_half))] <- 0
-
-  D2_minus_one_half <- diag(1 / sqrt(rowSums(X, na.rm = TRUE)[seq_len(ncol(X))]))
-  D2_minus_one_half[which(is.na(D2_minus_one_half))] <- 0 # Not enough rows replacing NA by 0
-  D2_minus_one_half[which(is.infinite(D2_minus_one_half))] <- 0
-
-  # The normalised matrix
-  An <- D1_minus_one_half %*% X %*% D2_minus_one_half
-
-  An.svd <- svd(An)
-
-  U <- cbind(An.svd$u[, seq(from = 2, to = l + 1)])
-  V <- cbind(An.svd$v[, seq(from = 2, to = l + 1)])
-
-  # Computing the Z data matrix on which the k-means will be performed
-  Z <- rbind((D1_minus_one_half %*% U), (D2_minus_one_half %*% V))
-
-  cl <- stats::kmeans(Z, minK, iter.max = 100, nstart = 100)$cluster
-
-  return(cl)
-}
-
 # TODO : implement CAH bi-clustering (GREMLINS)
 #' Perform a Hierarchical Clustering
 #' @importFrom stats cutree dist hclust
@@ -291,7 +226,11 @@ generate_bipartite_network <- function(nr, nc, pir, pic, alpha) {
     ),
     nrow = nrow(node_node_interaction_prob)
   )
-  return(incidence_matrix)
+  return(list(
+    incidence_matrix = incidence_matrix,
+    row_clustering = as.vector(c(seq.int(length(pir))) %*% rowcluster_memberships), # We reverse the one hot encoding
+    col_clustering = as.vector(c(seq.int(length(pic))) %*% colcluster_memberships) # We reverse the one hot encoding
+  ))
 }
 
 #' Generate collection of bipartite
@@ -303,7 +242,7 @@ generate_bipartite_network <- function(nr, nc, pir, pic, alpha) {
 #' @param alpha the matrix of connectivity between two clusters
 #' @param M the number of networks to generate
 #'
-#' @return A list of M incidence matrices
+#' @return A list of M lists, which contains : $incidence_matrix, $row_clustering, $col_clustering
 #'
 #' @noMd
 #' @noRd
@@ -331,6 +270,8 @@ generate_bipartite_collection <- function(nr, nc, pir, pic, alpha, M) {
       M, " values and it is ", length(nc)
     )
   }
+
+# Generate the networks
   for (m in seq(M)) {
     out[[m]] <- generate_bipartite_network(
       nr = nr[[m]],
@@ -340,7 +281,7 @@ generate_bipartite_collection <- function(nr, nc, pir, pic, alpha, M) {
       alpha = alpha
     )
   }
-  out
+  return(out)
 }
 
 #' Merge a list of clusters
