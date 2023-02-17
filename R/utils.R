@@ -74,6 +74,29 @@ spectral_biclustering <- function(X, K) {
 }
 
 # TODO : implement CAH bi-clustering (GREMLINS)
+# TODO : Modify the algorithm to use the rectangular matrix and its transpose
+bipartite_hierarchic_clustering <- function(X, K) {
+  # Trivial clustering : everyone is part of the cluster
+  if (all(K == c(1, 1))) {
+    return(list(
+      row_clustering = rep(1, nrow(X)),
+      col_clustering = rep(1, ncol(X))
+    ))
+  }
+
+  # Extracts the number of clusters
+  K1 <- K[1] # Row clusters
+  K2 <- K[2] # Column clusters
+
+  row_adjacency_matrix <- tcrossprod(X)
+  row_clustering <- hierarClust(row_adjacency_matrix, K1)
+
+  col_adjacency_matrix <- crossprod(X)
+  col_clustering <- hierarClust(col_adjacency_matrix, K2)
+
+  return(list(row_clustering = row_clustering, col_clustering = col_clustering))
+}
+
 #' Perform a Hierarchical Clustering
 #' @importFrom stats cutree dist hclust
 #' @importFrom ape additive

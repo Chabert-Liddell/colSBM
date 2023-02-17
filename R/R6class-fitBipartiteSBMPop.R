@@ -698,7 +698,8 @@ fitBipartiteSBMPop <- R6::R6Class(
           "random" = lapply(
             X = seq_along(self$A),
             FUN = function(m) {
-              tau_tmp <- gtools::rdirichlet(self$n[m], rep(1, self$Q))
+              tau_1 <- gtools::rdirichlet(self$nr[m], rep(1, self$Q[[1]]))
+              tau_2 <- gtools::rdirichlet(self$nc[m], rep(1, self$Q[[2]]))
               self$emqr[m, , ] <- .tquadform(tau_tmp, self$A[[m]] * (self$nonNAs[[m]]))
               self$nmqr[m, , ] <- .tquadform(tau_tmp, (self$nonNAs[[m]]))
               a <- self$emqr[m, , ] / self$nmqr[m, , ]
@@ -710,7 +711,56 @@ fitBipartiteSBMPop <- R6::R6Class(
               tau_tmp
             }
           ),
-          # TODO : adapt hierarchical clustering
+          "hca" = lapply(
+            X = seq_along(self$A),
+            FUN = function(m) {
+              # The .one_hot performs a one hot encoding of the spectral clustering performed
+              # DONE : Adapt this step to handle two taus
+              biclustering <- bipartite_hierarchic_clustering(self$A[[m]], self$Q)
+              row_clustering <- biclustering$row_clustering
+              col_clustering <- biclustering$col_clustering
+
+              # Tau for the rows
+              tau_1 <- .one_hot(row_clustering, self$Q[[1]])
+              tau_1[tau_1 < 1e-6] <- 1e-6
+              tau_1[tau_1 > 1 - 1e-6] <- 1 - 1e-6
+              tau_1 <- tau_1 / .rowSums(tau_1, self$nr[m], self$Q[[1]])
+
+              # Tau for the columns
+              tau_2 <- .one_hot(col_clustering, self$Q[[2]])
+              tau_2[tau_2 < 1e-6] <- 1e-6
+              tau_2[tau_2 > 1 - 1e-6] <- 1 - 1e-6
+              tau_2 <- tau_2 / .rowSums(tau_2, self$nc[m], self$Q[[2]])
+
+              # TODO : ask @Chabert-Liddell can we call update_mqr here ?
+              # update_mqr(m)
+              self$emqr[m, , ] <- t(tau_1) %*% (self$A[[m]] * (self$nonNAs[[m]])) %*% tau_2
+              self$nmqr[m, , ] <- t(tau_1) %*% (self$nonNAs[[m]]) %*% tau_2
+
+              # Permuter avec un ordre favorisant plus fortement 
+              # les plus gros clusters mais de manière stochastique
+              # colSums sur les tau1 et tau2 pour obtenir les pir et pic
+              a <- self$emqr[m, , ] / self$nmqr[m, , ] # ? estimate of the alpha 
+              pir <- .colSums(tau_1, self$nr[m], self$Q[[1]]) / sum(tau_1)
+              pic <- .colSums(tau_2, self$nc[m], self$Q[[2]])/sum(tau_2)
+
+              prob1 <- as.vector(pic %*% t(a))
+              prob2 <- as.vector(pir %*% a)
+              # p1 and p2 contain the clustering ordered using the highest probabilities first
+              # But it is still sampled and random according to the probabilities
+              p1 <- sample.int(self$Q[[1]], prob = pir)
+              p2 <- sample.int(self$Q[[2]], prob = pic)
+
+              # Tau are reordered accordingly
+              tau_1 <- tau_1[, p1]
+              tau_2 <- tau_2[, p2]
+              # The emqr and nmqr are reordered too
+              self$emqr[m, , ] <- self$emqr[m, p1, p2]
+              self$nmqr[m, , ] <- self$nmqr[m, p1, p2]
+              # The output is tau[[m]][[1]] for tau_1 and tau[[m]][[2]] for tau_2
+              list(tau_1, tau_2)
+            }
+          ),
           # DONE : adapt "spectral" clustering to bipartite with two clustering on the rows and columns
           "spectral" = lapply(
             X = seq_along(self$A),
@@ -745,12 +795,12 @@ fitBipartiteSBMPop <- R6::R6Class(
               pir <- .colSums(tau_1, self$nr[m], self$Q[[1]]) / sum(tau_1)
               pic <- .colSums(tau_2, self$nc[m], self$Q[[2]])/sum(tau_2)
 
-              # Should be : prob1 <- pic %*% t(a)
-              # Should be : prob2 <- pir %*% a
+              prob1 <- as.vector(pic %*% t(a))
+              prob2 <- as.vector(pir %*% a)
               # p1 and p2 contain the clustering ordered using the highest probabilities first
               # But it is still sampled and random according to the probabilities
-              p1 <- sample.int(self$Q[[1]], prob = pir)
-              p2 <- sample.int(self$Q[[2]], prob = pic)
+              p1 <- sample.int(self$Q[[1]], prob = prob1)
+              p2 <- sample.int(self$Q[[2]], prob = prob2)
 
               # Tau are reordered accordingly
               tau_1 <- tau_1[, p1]
@@ -762,7 +812,6 @@ fitBipartiteSBMPop <- R6::R6Class(
               list(tau_1, tau_2)
             }
           ),
-          # TODO : adapt to bipartite
           "given" = lapply(
             X = seq_along(self$Z),
             FUN = function(m) {
