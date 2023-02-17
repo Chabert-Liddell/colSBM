@@ -762,28 +762,34 @@ fitBipartiteSBMPop <- R6::R6Class(
               list(tau_1, tau_2)
             }
           ),
+          # TODO : adapt to bipartite
           "given" = lapply(
             X = seq_along(self$Z),
             FUN = function(m) {
               if (is.matrix(self$Z[[m]][[1]]) && is.matrix(self$Z[[m]][[2]])) {
                 # If Z was already provided as a list of two matrices
-                tau_tmp <- self$Z[[m]]
+                tau_1 <- self$Z[[m]][[1]]
+                tau_2 <- self$Z[[m]][[2]]
               } else {
-                tau_tmp <- .one_hot(self$Z[[m]], self$Q)
-                tau_tmp[tau_tmp < 1e-6] <- 1e-6
-                tau_tmp[tau_tmp > 1 - 1e-6] <- 1 - 1e-6
-                tau_tmp <- tau_tmp / .rowSums(tau_tmp, self$n[m], self$Q)
-                self$emqr[m, , ] <- .tquadform(tau_tmp, self$A[[m]] * (self$nonNAs[[m]]))
-                self$nmqr[m, , ] <- .tquadform(tau_tmp, (self$nonNAs[[m]]))
-                # a <- self$emqr[m,,]/self$nmqr[m,,]
-                # prob <- self$Q*diag(a) #+ rowSums(a)
-                # p <- sample(self$Q, prob = prob)
-                # tau_tmp <- tau_tmp[,p]
-                # self$emqr[m,,] <- self$emqr[m,p,p]
-                # self$nmqr[m,,] <- self$nmqr[m,p,p]
-                tau_tmp
+                # Tau for the rows
+                tau_1 <- .one_hot(self$Z[[m]][[1]], self$Q[[1]])
+                tau_1[tau_1 < 1e-6] <- 1e-6
+                tau_1[tau_1 > 1 - 1e-6] <- 1 - 1e-6
+                tau_1 <- tau_1 / .rowSums(tau_1, self$nr[m], self$Q[[1]])
+
+                # Tau for the columns
+                tau_2 <- .one_hot(self$Z[[m]][[2]], self$Q[[2]])
+                tau_2[tau_2 < 1e-6] <- 1e-6
+                tau_2[tau_2 > 1 - 1e-6] <- 1 - 1e-6
+                tau_2 <- tau_2 / .rowSums(tau_2, self$nc[m], self$Q[[2]])
+
+                # TODO : ask @Chabert-Liddell can we call update_mqr here ?
+                # update_mqr(m)
+                self$emqr[m, , ] <- t(tau_1) %*% (self$A[[m]] * (self$nonNAs[[m]])) %*% tau_2
+                self$nmqr[m, , ] <- t(tau_1) %*% (self$nonNAs[[m]]) %*% tau_2
+
               }
-              tau_tmp
+              return(list(tau_1, tau_2))
             }
           )
         )
