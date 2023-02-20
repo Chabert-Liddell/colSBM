@@ -89,10 +89,10 @@ bipartite_hierarchic_clustering <- function(X, K) {
   K2 <- K[2] # Column clusters
 
   row_adjacency_matrix <- tcrossprod(X)
-  row_clustering <- hierarClust(row_adjacency_matrix, K1)
+  row_clustering <- hierarClust(X, K1)
 
   col_adjacency_matrix <- crossprod(X)
-  col_clustering <- hierarClust(col_adjacency_matrix, K2)
+  col_clustering <- hierarClust(t(X), K2)
 
   return(list(row_clustering = row_clustering, col_clustering = col_clustering))
 }
