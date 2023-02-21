@@ -1,16 +1,3 @@
-TODO :
-
-Surcouche :
-- Créer la surcouche et tester plusieurs permutations en given du LBM (nbinit = 3)
-    - Remonter spectral et CAH pour pouvoir faire les permutations (nbinit = 3)
-- Plus tard faire l'exploration.
-
-fitBipartite : 
-- TODO urgent : compléter les cas de base Q = 1, 1
-- Regarder et implémenter le/s minibatch/s.
-    - Lignes et/ou colonnes.
-
-
 Résultats :
 Test de fit
 
