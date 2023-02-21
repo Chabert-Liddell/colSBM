@@ -20,7 +20,7 @@ fitBipartiteSBMPop <- R6::R6Class(
     nb_inter = NULL, # A vector of length M the number of unique non NA entries
     directed = NULL, # Boolean for network direction, Constant
     Q = NULL, # Number of clusters, vectors of size2
-    tau = NULL, # List of size M variational parameters n[m]xQ matrices
+    tau = NULL, # List of size M of list of two variational parameters nr[m]xQ matrices and nc[m]xQ matrices
     alpha = NULL, # Matrix of size QxQ, connection parameters
     delta = NULL, # Vector of M,  density parameters with delta[1] = 1
     pi = NULL, # List of M vectors of size Q, the mixture parameters
@@ -201,6 +201,7 @@ fitBipartiteSBMPop <- R6::R6Class(
       self$nb_inter <- vapply(seq(self$M), function(m) sum(self$nonNAs[[m]]), FUN.VALUE = .1)
       self$vbound <- vector("list", self$M)
     },
+
     compute_MAP = function() {
       self$Z <- lapply(
         self$tau,
@@ -215,9 +216,11 @@ fitBipartiteSBMPop <- R6::R6Class(
       )
       invisible(self$Z)
     },
+
     objective = function() {
       sum(vapply(seq_along(self$A), function(m) vb(m)), FUN.VALUE = .1)
     },
+
     vb_tau_alpha = function(m, MAP = FALSE) {
       # Loading all the quantities useful for the computation
 
@@ -414,6 +417,7 @@ fitBipartiteSBMPop <- R6::R6Class(
         sum(self$df_mixture * log(c(sum(self$nr), sum(self$nc)))))
       invisible(self$penalty)
     },
+
     compute_icl = function(MAP = FALSE) {
       ICL <-
         sum(vapply(
@@ -428,9 +432,8 @@ fitBipartiteSBMPop <- R6::R6Class(
       }
       return(ICL)
     },
-    ################################################################################
-    ## A modifier
-    # TODO change name and copy compute_BICL
+
+    # DONE change name and copy compute_BICL
     compute_BICL = function(MAP = TRUE) {
       self$BICL <- self$compute_vbound() -
       self$compute_penalty() -
@@ -439,7 +442,11 @@ fitBipartiteSBMPop <- R6::R6Class(
         0) #-
       invisible(self$BICL)
     },
+
+################################################################################
+## A modifier
     compute_exact_icl = function() {
+      # TODO : fix the computation
       ## directed not implemented yet
       df_mixture <- ifelse(self$free_mixture, (self$Q - 1), self$Q - 1)
       df_connect <-
@@ -503,7 +510,8 @@ fitBipartiteSBMPop <- R6::R6Class(
         )
       )
     },
-    ################################################################################
+################################################################################
+
     update_MAP_parameters = function() {
       Z <- self$compute_MAP()
       ZR <- lapply(
@@ -997,15 +1005,15 @@ fitBipartiteSBMPop <- R6::R6Class(
             }
           }
         }
-        # DONE disable MAP
-        # self$compute_MAP()
+
+        self$compute_MAP()
         lapply(seq(self$M), function(m) self$update_alpham(m))
         # self$compute_parameters()
         self$compute_icl()
-        # self$update_MAP_parameters()
+        self$update_MAP_parameters()
       }
       self$compute_icl()
-      # self$compute_icl(MAP = TRUE)
+      self$compute_icl(MAP = TRUE)
       self$compute_BICL() # FIXME should work
     }
   ),
