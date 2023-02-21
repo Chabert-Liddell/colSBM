@@ -16,11 +16,11 @@ ARImethod <- function(fit_col) {
     out <- lapply(seq.int(fit_col$M), function(m) {
         list(
             row = aricode::ARI(
-                apply(fit_col$tau[[m]][[1]], 1, which.max),
+                fit_col$MAP$Z[[m]][[1]],
                 Z[[m]][[1]]
             ),
             col = aricode::ARI(
-                apply(fit_col$tau[[m]][[2]], 1, which.max),
+                fit_col$MAP$Z[[m]][[2]],
                 Z[[m]][[2]]
             )
         )
@@ -112,6 +112,7 @@ fitColExactMembership.init_resultARI <- mutate(
 )
 
 fitColExactMembership$optimize()
+fitColExactMembership$MAP
 
 fitColExactMembership.end_resultARI <- mutate(
     as.data.frame(do.call("rbind", lapply(
@@ -131,7 +132,7 @@ fitColExactMembership.end_resultARI <- mutate(
 
 cat("Given exact clusters :\n - Real alpha : ", alpha, "\n - Given alpha : ", fitColExactMembership$alpha, "\n")
 
-iter_max <- 10
+iter_max <- 1
 if (test_alea) {
     for (i in 1:iter_max) {
         if (i %% 5 == 0) {
@@ -366,6 +367,10 @@ if (test_alea) {
         if (verbose) print(table.HCA.init)
 
         fitColHCA$optimize()
+
+        Z
+        fitColHCA$MAP$Z
+
         fitColHCA.end_resultARI <- mutate(
             as.data.frame(do.call("rbind", lapply(
                 invisible(seq.int(M)),
