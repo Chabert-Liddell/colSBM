@@ -879,19 +879,34 @@ fitBipartiteSBMPop <- R6::R6Class(
       tau_m_1 <- self$tau[[m]][[1]]
       tau_m_2 <- self$tau[[m]][[2]]
 
-      self$emqr[m, , ] <- t(tau_m_1) %*% (self$A[[m]] * (self$nonNAs[[m]])) %*% tau_m_2
+      self$emqr[m, , ] <- t(tau_m_1) %*%
+        (self$A[[m]] * (self$nonNAs[[m]])) %*% tau_m_2
       self$nmqr[m, , ] <- t(tau_m_1) %*% (self$nonNAs[[m]]) %*% tau_m_2
     },
     optimize = function(max_step = 100, tol = 1e-3, ...) {
       if (all(self$Q == c(1, 1))) {
-        # TODO Two dimensions for tau, Z and pi
-        self$tau <- lapply(seq(self$M), function(m) matrix(1, self$n[m], 1))
-        self$Z <- lapply(seq(self$M), function(m) rep(1, self$n[m]))
-        self$pi <- lapply(seq(self$M), function(m) 1)
-        lapply(seq(self$M), function(m) self$update_mqr(m))
+        # DONE Two dimensions for tau, Z and pi
+        self$tau <- lapply(
+          seq(self$M),
+          function(m) list(matrix(1, self$nr[m], 1), matrix(1, self$nc[m], 1))
+        )
+        self$Z <- lapply(
+          seq(self$M),
+          function(m) list(rep(1, self$nr[m]), rep(1, self$nc[m]))
+        )
+        self$pi <- lapply(
+          seq(self$M),
+          function(m) list(1, 1)
+        )
+        lapply(
+          seq(self$M),
+          function(m) self$update_mqr(m)
+        )
         if (self$free_density) {
           # TODO later : implement the free density
-          self$alpha <- matrix(sum(self$emqr[1, , ]) / sum(self$nmqr[1, , ]), 1, 1)
+          self$alpha <- matrix(
+            sum(self$emqr[1, , ]) / sum(self$nmqr[1, , ]), 1, 1
+          )
           self$delta <- vapply(
             seq(self$M),
             function(m) {
@@ -905,7 +920,11 @@ fitBipartiteSBMPop <- R6::R6Class(
         }
         self$alpham <- lapply(
           seq(self$M),
-          function(m) matrix(sum(self$emqr[m, , ]) / sum(self$nmqr[m, , ]), 1, 1)
+          function(m) {
+            matrix(
+              sum(self$emqr[m, , ]) / sum(self$nmqr[m, , ]), 1, 1
+            )
+          }
         )
         self$MAP <- list(
           Z = self$tau,
@@ -918,7 +937,6 @@ fitBipartiteSBMPop <- R6::R6Class(
         )
       } else {
         # If there is more than one cluster
-        #  browser()
         self$init_clust()
         # lapply(seq(self$M), function(m) self$update_mqr(m))
         self$m_step(...)
