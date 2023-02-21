@@ -975,9 +975,9 @@ fitBipartiteSBMPop <- R6::R6Class(
           } else {
             # Minibatch
             # TODO sample an order m,d (2m) in which update the fixed point tau (VE), mqr and m_step
-            seq_m <- sample.int(self$M)
+            seq_m_minibatch <- sample.int(self$M)
             lapply(
-              seq(self$M),
+              seq_m_minibatch,
               function(m) {
                 switch(self$fit_opts$algo_ve,
                   "fp" = {
@@ -985,9 +985,9 @@ fitBipartiteSBMPop <- R6::R6Class(
                     self$fixed_point_tau(m, d = 2)
                   },
                   # If we're not using the previous methods default to gradient ascent
-                  self$ve_step(seq_m[m], ...)
+                  self$ve_step(m, ...)
                 )
-                self$update_mqr(seq_m[m])
+                self$update_mqr(m)
                 self$m_step(...)
               }
             )

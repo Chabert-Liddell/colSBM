@@ -45,7 +45,7 @@ alpha <- matrix(
         0.9, eps, eps,
         eps, 0.8, eps
     ), nrow = Q[1], ncol = Q[2], byrow = TRUE
-) 
+)
 
 output_file = file("output.txt", "w+")
 
