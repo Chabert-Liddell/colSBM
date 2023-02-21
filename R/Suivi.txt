@@ -115,6 +115,9 @@ Row :  0
 Col :  0.0005991735
 
 - Dans un cas modulaire : les initialisations sont toutes bonnes et sont améliorées par colSBM. SAUF 4/10 tests pour le HCA, le résultat ci-dessous
+
+Le modèle viendrait en fait vider une classe voir après les résultats
+
 Parameters:
 eps <- 0.05
 M <- 5
@@ -212,3 +215,11 @@ After colSBM
 After colSBM mean error
 Row :  0.6 
 Col :  0.000881459
+
+ Z[[1]][[1]]
+  [1] 2 2 2 2 1 2 2 2 2 2 2 2 2 1 2 1 2 2 2 2 2 2 2 2 2 1 2 1 1 2 2 2 2 2 2 2 2 2 1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
+ [57] 2 2 2 1 1 2 2 2 2 2 2 2 2 2 2 1 2 2 2 2 2 2 2 2 1 2 2 2 2 1 2 2 2 1 2 1 2 2 2 2 2 2 2 2
+
+ itColHCA$MAP$Z[[1]]$row
+  [1] 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
+ [57] 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
