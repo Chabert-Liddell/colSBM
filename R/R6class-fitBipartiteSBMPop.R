@@ -1022,7 +1022,5 @@ fitBipartiteSBMPop <- R6::R6Class(
       self$compute_BICL() # FIXME should work
     }
   ),
-  active = list(
-    dircoef = function() ifelse(self$directed, 1, .5)
-  )
+  active = list()
 )
