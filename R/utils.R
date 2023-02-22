@@ -12,6 +12,7 @@
 spectral_clustering <- function(X, K){
   if (K == 1) return (rep(1L, nrow(X)))
   n <- nrow(X)
+  if (n < 3) return (rep(1L, n))
   X[X == -1] <- NA
   isolated <- which(rowSums(X, na.rm = TRUE) == 0)
   connected <- setdiff(seq(n), isolated)
