@@ -662,7 +662,7 @@ fitBipartiteSBMPop <- R6::R6Class(
       if (!MAP) {
         # The pi are the mean of all the tau for each column, ie the mean tau per block
         pi1 <- .colMeans(self$tau[[m]][[1]], self$nr[m], self$Q[1])
-        pi2 <- .colMeans(self$tau[[m]][[2]], self$nr[m], self$Q[2])
+        pi2 <- .colMeans(self$tau[[m]][[2]], self$nc[m], self$Q[2])
 
         self$pi[[m]] <- list(row = pi1, col = pi2)
         # pi1 is accessed by self$pi[[m]]$row and pi2 by self$pi[[m]]$col
@@ -756,8 +756,8 @@ fitBipartiteSBMPop <- R6::R6Class(
               prob2 <- as.vector(pir %*% a)
               # p1 and p2 contain the clustering ordered using the highest probabilities first
               # But it is still sampled and random according to the probabilities
-              p1 <- sample.int(self$Q[[1]], prob = pir)
-              p2 <- sample.int(self$Q[[2]], prob = pic)
+              p1 <- sample.int(self$Q[[1]], prob = prob1)
+              p2 <- sample.int(self$Q[[2]], prob = prob2)
 
               # Tau are reordered accordingly
               tau_1 <- tau_1[, p1]
@@ -953,6 +953,7 @@ fitBipartiteSBMPop <- R6::R6Class(
         self$vbound <- vb
         step_condition <- TRUE
         while (step_condition) {
+          cat(self$fit_opts$minibatch)
           if (!self$fit_opts$minibatch) {
             lapply(
               seq(self$M),
@@ -982,13 +983,17 @@ fitBipartiteSBMPop <- R6::R6Class(
                 switch(self$fit_opts$algo_ve,
                   "fp" = {
                     self$fixed_point_tau(m, d = 1)
+                    self$update_mqr(m)
+                    self$m_step(...)
+
                     self$fixed_point_tau(m, d = 2)
+                    self$update_mqr(m)
+                    self$m_step(...)
                   },
                   # If we're not using the previous methods default to gradient ascent
                   self$ve_step(m, ...)
                 )
-                self$update_mqr(m)
-                self$m_step(...)
+
               }
             )
           }
