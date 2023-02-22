@@ -1,6 +1,5 @@
 # Sourcing all necessary files
 require("sbm", quietly = T)
-require("ggpubr", quietly = T)
 require("aricode", quietly = T)
 require("dplyr", quietly = T)
 require("tictoc", quietly = T)
@@ -73,6 +72,7 @@ bipartite_collection <- generate_bipartite_collection(nr, nc, pir, pic, alpha, M
 bipartite_collection_incidence <- lapply(seq.int(M), function(m) {
     bipartite_collection[[m]]$incidence_matrix
 })
+
 
 ## Init given with exact membership
 
