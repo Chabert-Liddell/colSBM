@@ -44,34 +44,24 @@ bipartite_collection_incidence <- lapply(seq.int(M), function(m) {
   bipartite_collection[[m]]$incidence_matrix
 })
 
-fitCol <- fitBipartiteSBMPop$new(
-  A = bipartite_collection_incidence,
-  Q = Q,
-  free_mixture = FALSE,
-  free_density = FALSE,
-  init_method = "spectral",
-  fit_opts = list(verbosity = 10, minibatch = FALSE)
-)
 
-
-
-fitColMinibatch <- fitBipartiteSBMPop$new(
-  A = bipartite_collection_incidence,
-  Q = Q,
-  free_mixture = FALSE,
-  free_density = FALSE,
-  init_method = "spectral",
-  fit_opts = list(verbosity = 0, minibatch = TRUE)
-)
-
-iter_max <- 7
+iter_max <- 100
 
 vanilla.ICL <- rep(-Inf, iter_max)
 
 minibatch.ICL <- rep(-Inf, iter_max)
 tic("All loops")
 for (iter in 1:iter_max) {
+  set
   tic("Vanilla")
+  fitCol <- fitBipartiteSBMPop$new(
+    A = bipartite_collection_incidence,
+    Q = Q,
+    free_mixture = FALSE,
+    free_density = FALSE,
+    init_method = "spectral",
+    fit_opts = list(verbosity = 0, minibatch = FALSE)
+  )
   fitCol$optimize()
   toc(log = TRUE, quiet = TRUE)
   vanilla.ICL[iter] <- fitCol$MAP$ICL
@@ -84,6 +74,14 @@ mean(vanilla.timings)
 
 for (iter in 1:iter_max) {
   tic("Minibatch")
+  fitColMinibatch <- fitBipartiteSBMPop$new(
+    A = bipartite_collection_incidence,
+    Q = Q,
+    free_mixture = FALSE,
+    free_density = FALSE,
+    init_method = "spectral",
+    fit_opts = list(verbosity = 0, minibatch = TRUE)
+  )
   fitColMinibatch$optimize()
   toc(log = TRUE, quiet = TRUE)
   minibatch.ICL[iter] <- fitColMinibatch$MAP$ICL
