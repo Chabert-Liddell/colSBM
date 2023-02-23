@@ -24,6 +24,7 @@ fitBipartiteSBMPop <- R6::R6Class(
     alpha = NULL, # Matrix of size QxQ, connection parameters
     delta = NULL, # Vector of M,  density parameters with delta[1] = 1
     pi = NULL, # List of M vectors of size Q, the mixture parameters
+    pim = NULL, # List of M vectors of size Q, the mixture parameters in case of free_mixture   
     e = NULL, # Vector of size M, the sum of unique entries
     emqr = NULL, # List of M QxQ matrix, the sum of edges between q and r in m, ie the edges that are observed
     nmqr = NULL, # list of M QxQ matrix, the number of entries between q and r in m, ie all the possible edges
@@ -166,6 +167,7 @@ fitBipartiteSBMPop <- R6::R6Class(
       # self$weight <- weight
 
       self$pi <- vector("list", self$M)
+      self$pim <- vector("list", self$M)
       self$tau <- vector("list", self$M)
       self$alpham <- vector("list", self$M)
       self$vloss <- vector("list", self$M)
@@ -177,6 +179,7 @@ fitBipartiteSBMPop <- R6::R6Class(
       self$MAP$emqr <- self$emqr
       self$MAP$nmqr <- self$nmqr
       self$MAP$pi <- self$pi
+      self$MAP$pim <- self$pim
 
       # Degrees of freedom
       self$df_mixture <- self$Q - 1
@@ -658,22 +661,82 @@ fitBipartiteSBMPop <- R6::R6Class(
         self$delta <- d
       }
     },
-    update_pi = function(m, MAP = FALSE) {
-      if (!MAP) {
-        # The pi are the mean of all the tau for each column, ie the mean tau per block
-        pi1 <- .colMeans(self$tau[[m]][[1]], self$nr[m], self$Q[1])
-        pi2 <- .colMeans(self$tau[[m]][[2]], self$nc[m], self$Q[2])
 
-        self$pi[[m]] <- list(row = pi1, col = pi2)
+    update_pim = function(m, MAP = FALSE) {
+    # Here we compute the pi for each of the m networks
+    # So those are the "pim"
+      if (!MAP) {
+        # The pim are the mean of all the tau for each column, ie the mean tau per block
+        pim1 <- .colMeans(self$tau[[m]][[1]], self$nr[m], self$Q[1])
+        pim2 <- .colMeans(self$tau[[m]][[2]], self$nc[m], self$Q[2])
+
+        self$pim[[m]] <- list(pim1, pim2)
         # pi1 is accessed by self$pi[[m]]$row and pi2 by self$pi[[m]]$col
       } else {
         # The MAP Pi are obtained by counting the number of nodes in each block and dividing by the total (nr or nc)
-        pi1 <- tabulate(self$Z[[m]][[1]], self$Q[1]) / self$nr[m]
-        pi2 <- tabulate(self$Z[[m]][[2]], self$Q[2]) / self$nc[m]
-        self$MAP$pi[[m]] <- list(row = pi1, col = pi2)
+        pim1 <- tabulate(self$Z[[m]][[1]], self$Q[1]) / self$nr[m]
+        pim2 <- tabulate(self$Z[[m]][[2]], self$Q[2]) / self$nc[m]
+        self$MAP$pim[[m]] <- list(pim1, pim2)
       }
       invisible(pi)
     },
+
+    update_pi = function(m, MAP = FALSE) {
+      self$update_pim(m, MAP)
+      if (! MAP) {
+        if (self$free_mixture) {
+          # If free_mixture the pi are the pim
+          self$pi[[m]] <- self$pim[[m]]
+        } else {
+          # Otherwise we need to ponder based on the size for 
+          # Rows
+          pi1 <- vapply(seq(self$M),
+            function(m) self$nr[m] * self$pim[[m]][[1]],
+            FUN.VALUE = rep(.1, self$Q[1])
+          )
+
+          pi1 <- rowSums(pi1) / sum(pi1)
+
+          # And columns
+          pi2 <- vapply(seq(self$M),
+            function(m) self$nc[m] * self$pim[[m]][[2]],
+            FUN.VALUE = rep(.1, self$Q[2])
+          )
+
+          pi2 <- rowSums(pi2) / sum(pi2)
+
+          self$pi <- list(rep(list(pi1), self$M), rep(list(pi2), self$M))
+        }
+
+      } else {
+        if (self$free_mixture) {
+          # If free_mixture the pi are the pim
+          self$MAP$pi[[m]] <- self$MAP$pim[[m]]
+        } else {
+
+          # Otherwise we need to ponder based on the size for
+          # Rows
+          pi1 <- vapply(seq(self$M),
+            function(m) self$nr[m] * self$MAP$pim[[m]][[1]],
+            FUN.VALUE = rep(.1, self$Q[1])
+          )
+
+          pi1 <- rowSums(pi1) / sum(pi1)
+
+          # And columns
+          pi2 <- vapply(seq(self$M),
+            function(m) self$nc[m] * self$MAP$pim[[m]][[2]],
+            FUN.VALUE = rep(.1, self$Q[2])
+          )
+
+          pi2 <- rowSums(pi2) / sum(pi2)
+
+          self$MAP$pi <- list(rep(list(pi1), self$M), rep(list(pi2), self$M))
+        }
+      }
+      invisible(pi)
+    },
+
     update_alpham = function(m, MAP = FALSE) {
       if (!MAP) {
         alpham <- self$emqr[m, , ] / self$nmqr[m, , ]
