@@ -59,6 +59,7 @@ fitBipartiteSBMPop <- R6::R6Class(
     counter_merge = 0,
     counter_split = 0,
     fit_opts = NULL,
+    step_counter = 0,
     initialize = function(A = NULL,
                           Q = NULL,
                           Z = NULL,
@@ -679,13 +680,15 @@ fitBipartiteSBMPop <- R6::R6Class(
       }
     },
 
-    update_pi = function(m, MAP = FALSE) {
+    update_pi = function(MAP = FALSE) {
       # The function is m subscripted but it might not need it to work
-      self$update_pim(m, MAP)
+      for (m in seq.int(M)) {
+        self$update_pim(m, MAP)
+      }
       if (! MAP) {
         if (self$free_mixture) {
           # If free_mixture the pi are the pim
-          self$pi[[m]] <- self$pim[[m]]
+          self$pi <- self$pim
         } else {
           # Otherwise we need to ponder based on the size for
           # Rows
@@ -696,39 +699,37 @@ fitBipartiteSBMPop <- R6::R6Class(
           pi1 <- rowSums(pi1) / sum(pi1)
 
           # And columns
-          pi2 <- lapply(seq(self$M),
-            function(m) self$nc[m] * self$pim[[m]][[2]]
-          )
+          pi2 <- nc * vapply(seq(self$M), function(m) {
+            self$pim[[m]][[2]]
+          }, FUN.VALUE = rep(.1, self$Q[2]))
 
           pi2 <- rowSums(pi2) / sum(pi2)
 
-          self$pi <- list(rep(list(pi1), self$M), rep(list(pi2), self$M))
+          self$pi <- lapply(seq.int(M), function(m) list(pi1, pi2))
         }
 
       } else {
         if (self$free_mixture) {
           # If free_mixture the pi are the pim
-          self$MAP$pi[[m]] <- self$MAP$pim[[m]]
+          self$MAP$pi <- self$MAP$pim
         } else {
 
           # Otherwise we need to ponder based on the size for
           # Rows
-          pi1 <- vapply(seq(self$M),
-            function(m) self$nr[m] * self$MAP$pim[[m]][[1]],
-            FUN.VALUE = rep(.1, self$Q[1])
-          )
+          pi1 <- nr * vapply(seq(self$M), function(m) {
+            self$MAP$pim[[m]][[1]]
+          }, FUN.VALUE = rep(.1, self$Q[1]))
 
           pi1 <- rowSums(pi1) / sum(pi1)
 
           # And columns
-          pi2 <- vapply(seq(self$M),
-            function(m) self$nc[m] * self$MAP$pim[[m]][[2]],
-            FUN.VALUE = rep(.1, self$Q[2])
-          )
+          pi2 <- nc * vapply(seq(self$M), function(m) {
+            self$MAP$pim[[m]][[2]]
+          }, FUN.VALUE = rep(.1, self$Q[2]))
 
           pi2 <- rowSums(pi2) / sum(pi2)
 
-          self$MAP$pi <- list(rep(list(pi1), self$M), rep(list(pi2), self$M))
+          self$MAP$pi <- lapply(seq.int(M), function(m) list(pi1, pi2))
         }
       }
       invisible(pi)
@@ -921,7 +922,8 @@ fitBipartiteSBMPop <- R6::R6Class(
     },
     m_step = function(MAP = FALSE, max_iter = 100, tol = 1e-3, ...) {
       # browser()
-      lapply(seq_along(self$pi), function(m) self$update_pi(m, MAP = MAP))
+      #lapply(seq_along(self$pi), function(m) self$update_pi(m, MAP = MAP))
+      self$update_pi(MAP = MAP)
       if (self$free_density == FALSE) {
         # deltas are all equals to 1
         self$update_alpha(MAP = MAP)
@@ -1069,6 +1071,9 @@ fitBipartiteSBMPop <- R6::R6Class(
             }
           }
         }
+
+        # Here we stock the number of steps needed to converge
+        self$step_counter <- step
 
         self$compute_MAP()
         lapply(seq(self$M), function(m) self$update_alpham(m))
