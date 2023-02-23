@@ -5,6 +5,20 @@ Surcouche :
     - Remonter spectral et CAH pour pouvoir faire les permutations (nbinit = 3)
 - Plus tard faire l'exploration.
 
+Exploration : 
+    Init de l'exploration
+    - Faire du LBM blockmodels pour tous les réseaux
+    - Boucher les trous avec du spectral
+    - Lancer les colSBM à 1 réseau sur cette grille pour optimiser pour chaque réseau
+
+    - Parcourir la grille de (Q1min, Q2min) à (Q1max, Q2max) 
+    pour chacun de nos réseaux (split & merge) avec colSBM
+
+    - On fait l'appairage pour tous les réseaux et chaque point de la grille et on cacule le colSBM complet
+    Puis on prend le mode (argmax BICL) qui donne les données Q1,Q2 
+
+    - Puis explorer dans la grille mode + 2, mode - 2 en colSBM avec tous les réseaux
+
 fitBipartite : 
 - DONE urgent : compléter les cas de base Q = 1, 1
 - Regarder et implémenter le/s minibatch/s.
