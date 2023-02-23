@@ -671,7 +671,6 @@ fitBipartiteSBMPop <- R6::R6Class(
         pim2 <- .colMeans(self$tau[[m]][[2]], self$nc[m], self$Q[2])
 
         self$pim[[m]] <- list(pim1, pim2)
-        # pi1 is accessed by self$pi[[m]]$row and pi2 by self$pi[[m]]$col
       } else {
         # The MAP Pi are obtained by counting the number of nodes in each block and dividing by the total (nr or nc)
         pim1 <- tabulate(self$Z[[m]][[1]], self$Q[1]) / self$nr[m]
@@ -1016,7 +1015,6 @@ fitBipartiteSBMPop <- R6::R6Class(
         self$vbound <- vb
         step_condition <- TRUE
         while (step_condition) {
-          cat(self$fit_opts$minibatch)
           if (!self$fit_opts$minibatch) {
             lapply(
               seq(self$M),
