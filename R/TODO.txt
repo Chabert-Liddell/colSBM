@@ -3,9 +3,8 @@ TODO :
 Surcouche :
 - Créer la surcouche et tester plusieurs permutations en given du LBM (nbinit = 3)
     - Remonter spectral et CAH pour pouvoir faire les permutations (nbinit = 3)
-- Plus tard faire l'exploration.
 
-Exploration : 
+- Exploration : 
     Init de l'exploration
     - Faire du LBM blockmodels pour tous les réseaux
     - Boucher les trous avec du spectral
@@ -17,7 +16,18 @@ Exploration :
     - On fait l'appairage pour tous les réseaux et chaque point de la grille et on cacule le colSBM complet
     Puis on prend le mode (argmax BICL) qui donne les données Q1,Q2 
 
-    - Puis explorer dans la grille mode + 2, mode - 2 en colSBM avec tous les réseaux
+    - Fenêtre glissante : Puis explorer dans la grille mode + 2, mode - 2 en colSBM avec tous les réseaux
+
+    - Autre idée : 
+        Faire du colSBM unipartite sur les projections (crossprod et tcrossprod)
+
+    - Meilleure idée :
+
+        Faire la fenêtre glissante à partir de 1,1 trouver le mode puis déplacer la fenêtre (split & merge pour compléter)
+        On s'arrête quand la fenêtre ne bouge plus et que le mode reste central
+        On essaie d'améliorer le mode en repassant dessus avec plusieurs split & merge à partir des bords
+
+TODO : Vérifier si sans l'initialisation SBM, colSBM performe mal 
 
 fitBipartite : 
 - DONE urgent : compléter les cas de base Q = 1, 1
