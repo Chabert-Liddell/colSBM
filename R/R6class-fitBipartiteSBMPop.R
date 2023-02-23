@@ -677,29 +677,27 @@ fitBipartiteSBMPop <- R6::R6Class(
         pim2 <- tabulate(self$Z[[m]][[2]], self$Q[2]) / self$nc[m]
         self$MAP$pim[[m]] <- list(pim1, pim2)
       }
-      invisible(pi)
     },
 
     update_pi = function(m, MAP = FALSE) {
+      # The function is m subscripted but it might not need it to work
       self$update_pim(m, MAP)
       if (! MAP) {
         if (self$free_mixture) {
           # If free_mixture the pi are the pim
           self$pi[[m]] <- self$pim[[m]]
         } else {
-          # Otherwise we need to ponder based on the size for 
+          # Otherwise we need to ponder based on the size for
           # Rows
-          pi1 <- vapply(seq(self$M),
-            function(m) self$nr[m] * self$pim[[m]][[1]],
-            FUN.VALUE = rep(.1, self$Q[1])
-          )
+          pi1 <- nr * vapply(seq(self$M), function(m) {
+            self$pim[[m]][[1]]
+          }, FUN.VALUE = rep(.1, self$Q[1]))
 
           pi1 <- rowSums(pi1) / sum(pi1)
 
           # And columns
-          pi2 <- vapply(seq(self$M),
-            function(m) self$nc[m] * self$pim[[m]][[2]],
-            FUN.VALUE = rep(.1, self$Q[2])
+          pi2 <- lapply(seq(self$M),
+            function(m) self$nc[m] * self$pim[[m]][[2]]
           )
 
           pi2 <- rowSums(pi2) / sum(pi2)
