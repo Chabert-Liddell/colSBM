@@ -817,8 +817,11 @@ fitBipartiteSBMPop <- R6::R6Class(
               prob2 <- as.vector(pir %*% a)
               # p1 and p2 contain the clustering ordered using the highest probabilities first
               # But it is still sampled and random according to the probabilities
-              p1 <- sample.int(self$Q[[1]], prob = prob1)
-              p2 <- sample.int(self$Q[[2]], prob = prob2)
+              # p1 <- sample.int(self$Q[[1]], prob = prob1)
+              # p2 <- sample.int(self$Q[[2]], prob = prob2)
+
+              p1 <- order(prob1)
+              p2 <- order(prob2)
 
               # Tau are reordered accordingly
               tau_1 <- tau_1[, p1]
@@ -868,16 +871,23 @@ fitBipartiteSBMPop <- R6::R6Class(
               prob2 <- as.vector(pir %*% a)
               # p1 and p2 contain the clustering ordered using the highest probabilities first
               # But it is still sampled and random according to the probabilities
-              p1 <- sample.int(self$Q[[1]], prob = prob1)
-              p2 <- sample.int(self$Q[[2]], prob = prob2)
+              # p1 <- sample.int(self$Q[[1]], prob = prob1)
+              # p2 <- sample.int(self$Q[[2]], prob = prob2)
+
+              p1 <- order(prob1)
+              p2 <- order(prob2)
 
               # Tau are reordered accordingly
+              # cat(m, "\n")
+              # cat(p1, "\n")
+              # cat(p2, "\n")
               tau_1 <- tau_1[, p1]
               tau_2 <- tau_2[, p2]
               # The emqr and nmqr are reordered too
               self$emqr[m, , ] <- self$emqr[m, p1, p2]
               self$nmqr[m, , ] <- self$nmqr[m, p1, p2]
               # The output is tau[[m]][[1]] for tau_1 and tau[[m]][[2]] for tau_2
+
               list(tau_1, tau_2)
             }
           ),
