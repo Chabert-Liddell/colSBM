@@ -24,7 +24,7 @@ fitBipartiteSBMPop <- R6::R6Class(
     alpha = NULL, # Matrix of size QxQ, connection parameters
     delta = NULL, # Vector of M,  density parameters with delta[1] = 1
     pi = NULL, # List of M vectors of size Q, the mixture parameters
-    pim = NULL, # List of M vectors of size Q, the mixture parameters in case of free_mixture   
+    pim = NULL, # List of M vectors of size Q, the mixture parameters in case of free_mixture
     e = NULL, # Vector of size M, the sum of unique entries
     emqr = NULL, # List of M QxQ matrix, the sum of edges between q and r in m, ie the edges that are observed
     nmqr = NULL, # list of M QxQ matrix, the number of entries between q and r in m, ie all the possible edges
@@ -442,7 +442,7 @@ fitBipartiteSBMPop <- R6::R6Class(
       self$BICL <- self$compute_vbound() -
       self$compute_penalty() -
       ifelse(self$free_mixture,
-        sum(log(choose(self$Q, colSums(self$Cpi)))) + self$M * log(self$Q), 
+        sum(log(choose(self$Q, colSums(self$Cpi)))) + self$M * log(self$Q),
         0) #-
       invisible(self$BICL)
     },
@@ -682,7 +682,7 @@ fitBipartiteSBMPop <- R6::R6Class(
 
     update_pi = function(MAP = FALSE) {
       # The function is m subscripted but it might not need it to work
-      for (m in seq.int(M)) {
+      for (m in seq.int(self$M)) {
         self$update_pim(m, MAP)
       }
       if (! MAP) {
@@ -692,20 +692,20 @@ fitBipartiteSBMPop <- R6::R6Class(
         } else {
           # Otherwise we need to ponder based on the size for
           # Rows
-          pi1 <- nr * vapply(seq(self$M), function(m) {
+          pi1 <- self$nr * vapply(seq(self$M), function(m) {
             self$pim[[m]][[1]]
           }, FUN.VALUE = rep(.1, self$Q[1]))
 
           pi1 <- rowSums(pi1) / sum(pi1)
 
           # And columns
-          pi2 <- nc * vapply(seq(self$M), function(m) {
+          pi2 <- self$nc * vapply(seq(self$M), function(m) {
             self$pim[[m]][[2]]
           }, FUN.VALUE = rep(.1, self$Q[2]))
 
           pi2 <- rowSums(pi2) / sum(pi2)
 
-          self$pi <- lapply(seq.int(M), function(m) list(pi1, pi2))
+          self$pi <- lapply(seq.int(self$M), function(m) list(pi1, pi2))
         }
 
       } else {
@@ -716,20 +716,20 @@ fitBipartiteSBMPop <- R6::R6Class(
 
           # Otherwise we need to ponder based on the size for
           # Rows
-          pi1 <- nr * vapply(seq(self$M), function(m) {
+          pi1 <- self$nr * vapply(seq(self$M), function(m) {
             self$MAP$pim[[m]][[1]]
           }, FUN.VALUE = rep(.1, self$Q[1]))
 
           pi1 <- rowSums(pi1) / sum(pi1)
 
           # And columns
-          pi2 <- nc * vapply(seq(self$M), function(m) {
+          pi2 <- self$nc * vapply(seq(self$M), function(m) {
             self$MAP$pim[[m]][[2]]
           }, FUN.VALUE = rep(.1, self$Q[2]))
 
           pi2 <- rowSums(pi2) / sum(pi2)
 
-          self$MAP$pi <- lapply(seq.int(M), function(m) list(pi1, pi2))
+          self$MAP$pi <- lapply(seq.int(self$M), function(m) list(pi1, pi2))
         }
       }
       invisible(pi)
@@ -806,10 +806,10 @@ fitBipartiteSBMPop <- R6::R6Class(
               self$emqr[m, , ] <- t(tau_1) %*% (self$A[[m]] * (self$nonNAs[[m]])) %*% tau_2
               self$nmqr[m, , ] <- t(tau_1) %*% (self$nonNAs[[m]]) %*% tau_2
 
-              # Permuter avec un ordre favorisant plus fortement 
+              # Permuter avec un ordre favorisant plus fortement
               # les plus gros clusters mais de manière stochastique
               # colSums sur les tau1 et tau2 pour obtenir les pir et pic
-              a <- self$emqr[m, , ] / self$nmqr[m, , ] # ? estimate of the alpha 
+              a <- self$emqr[m, , ] / self$nmqr[m, , ] # ? estimate of the alpha
               pir <- .colSums(tau_1, self$nr[m], self$Q[[1]]) / sum(tau_1)
               pic <- .colSums(tau_2, self$nc[m], self$Q[[2]])/sum(tau_2)
 
@@ -860,10 +860,10 @@ fitBipartiteSBMPop <- R6::R6Class(
               self$emqr[m, , ] <- t(tau_1) %*% (self$A[[m]] * (self$nonNAs[[m]])) %*% tau_2
               self$nmqr[m, , ] <- t(tau_1) %*% (self$nonNAs[[m]]) %*% tau_2
 
-              # Permuter avec un ordre favorisant plus fortement 
+              # Permuter avec un ordre favorisant plus fortement
               # les plus gros clusters mais de manière stochastique
               # colSums sur les tau1 et tau2 pour obtenir les pir et pic
-              a <- self$emqr[m, , ] / self$nmqr[m, , ] # ? estimate of the alpha 
+              a <- self$emqr[m, , ] / self$nmqr[m, , ] # ? estimate of the alpha
               pir <- .colSums(tau_1, self$nr[m], self$Q[[1]]) / sum(tau_1)
               pic <- .colSums(tau_2, self$nc[m], self$Q[[2]])/sum(tau_2)
 
