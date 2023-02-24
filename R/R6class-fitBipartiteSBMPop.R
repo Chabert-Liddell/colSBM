@@ -1053,6 +1053,8 @@ fitBipartiteSBMPop <- R6::R6Class(
               function(m) {
                 switch(self$fit_opts$algo_ve,
                   "fp" = {
+                    # @Chabert-Liddell does this kind of randomness can improve minibatch ?
+                    # if ( runif(1) < 0.5 ){
                     self$fixed_point_tau(m, d = 1)
                     self$update_mqr(m)
                     self$m_step(...)
@@ -1060,6 +1062,15 @@ fitBipartiteSBMPop <- R6::R6Class(
                     self$fixed_point_tau(m, d = 2)
                     self$update_mqr(m)
                     self$m_step(...)
+                    # }else{
+                    # self$fixed_point_tau(m, d = 2)
+                    # self$update_mqr(m)
+                    # self$m_step(...)
+
+                    # self$fixed_point_tau(m, d = 1)
+                    # self$update_mqr(m)
+                    # self$m_step(...)
+                    # }
                   },
                   # If we're not using the previous methods default to gradient ascent
                   self$ve_step(m, ...)
