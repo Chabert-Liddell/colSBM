@@ -27,9 +27,4 @@ Surcouche :
         On s'arrête quand la fenêtre ne bouge plus et que le mode reste central
         On essaie d'améliorer le mode en repassant dessus avec plusieurs split & merge à partir des bords
 
-TODO : Vérifier si sans l'initialisation SBM, colSBM performe mal 
-
-fitBipartite : 
-- DONE urgent : compléter les cas de base Q = 1, 1
-- Regarder et implémenter le/s minibatch/s.
-    - Lignes et/ou colonnes.
+TODO : Vérifier si sans l'initialisation SBM, colSBM performe mal

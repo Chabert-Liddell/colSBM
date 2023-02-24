@@ -289,6 +289,7 @@ bmpop <- R6::R6Class(
 
     burn_in = function() {
       # browser()
+      TRUE
       if (self$global_opts$sbm_init | ! is.null(self$fit_sbm)) {
         if(self$global_opts$verbosity >=2) {
           cat("Starting optimization of ", self$M, "SBMs")}

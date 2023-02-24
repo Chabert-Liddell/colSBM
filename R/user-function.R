@@ -80,7 +80,7 @@ estimate_colSBM <-
       if(is.null(net_id)) {
         net_id <- seq_along(netlist)
       }
-      if(is.null(fit_sbm)) {
+      if(is.null(fit_sbm) && global_opts$sbm_init) {
         fit_sbm <-
           bettermc::mclapply(
             X = seq_along(netlist),
@@ -97,6 +97,8 @@ estimate_colSBM <-
             mc.silent = TRUE
           )
       }
+      # To test without an sbm init I need to have my spectral init here
+      # TODO : ask @Chabert-Liddell about this
       # tmp_fits run nb_run times a full model selection procedure
       # (the one from the research paper)
       tmp_fits <-
