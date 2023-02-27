@@ -53,7 +53,7 @@ bmpop <- R6::R6Class(
           mask
         })
       if (is.null(directed)) {
-        self$directed = isSymmetric.matrix(netlist[[1]])
+        self$directed = ! isSymmetric.matrix(netlist[[1]])
       } else {
         self$directed = directed
       }

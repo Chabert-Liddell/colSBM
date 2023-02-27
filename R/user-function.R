@@ -65,6 +65,19 @@ estimate_colSBM <-
               free_mixture <-  TRUE
             },
             stop("colsbm_model unknown. Must be one of iid, pi, delta or deltapi"))
+    go <- list(Q_min = 1L,
+                             Q_max = floor(log(sum(vapply(netlist, "nrow", .1))))+2,
+                             sbm_init = TRUE,
+                             spectral_init = TRUE,
+                             nb_init = 10L,
+                             nb_models = 5L,
+                             depth = 3L,
+                             plot_details = 1L,
+                             max_pass = 10L,
+                             verbosity = 0L,
+                             nb_cores = 1L)
+    go <- utils::modifyList(go, global_opts)
+    global_opts <- go
     if (is.null(global_opts$nb_cores)) {
       global_opts$nb_cores <- 1L
     }
