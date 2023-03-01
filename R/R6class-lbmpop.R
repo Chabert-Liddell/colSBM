@@ -103,15 +103,12 @@ lbmpop <- R6::R6Class(
     },
 
     # Fit a list of SBM if fit_sbm == TRUE
-    optimize_sbm = function() {
-      ## Need to change ICL computation for Z^map
+    optimize_lbm = function() {
       if (is.null(self$fit_sbm)) {
-      #  p <- progressr::progressor(along = self$A)
         self$fit_sbm <-
           bettermc::mclapply(
             X = seq_along(self$A),
             FUN = function(m) {
-         #     p(sprintf("m=%g", m))
               sbm::estimateSimpleSBM(
                 model = self$model,
                 netMat = as.matrix(self$A[[m]]),
@@ -127,7 +124,7 @@ lbmpop <- R6::R6Class(
       self$ICL_sbm <- rep(-Inf, self$global_opts$Q_max)
       for (q in seq(self$global_opts$Q_min, self$global_opts$Q_max)) {
         lapply(seq_along(self$A), function(m) self$fit_sbm[[m]]$setModel(index = q))
-        self$ICL_sbm[q] <- sum(purrr::map_dbl(self$fit_sbm, ~ .$ICL))
+        self$ICL_sbm[q] <- sum(purrr::MAP_dbl(self$fit_sbm, ~ .$ICL))
       }
       if (self$global_opts$plot_details >= 1) {
         plot(seq(self$global_opts$Q_min, self$global_opts$Q_max),
@@ -232,7 +229,7 @@ lbmpop <- R6::R6Class(
       best_models <- self$choose_models(models = models, Q = Q)
       self$model_list[[1]][[Q]] <- best_models
       self$vbound[Q] <- rev(best_models[[1]]$vbound)[1]
-      self$ICL[Q] <- best_models[[1]]$map$ICL
+      self$ICL[Q] <- best_models[[1]]$MAP$ICL
       self$BICL[Q] <- best_models[[1]]$BICL
       # }
     },
@@ -282,54 +279,34 @@ lbmpop <- R6::R6Class(
       best_models <- self$choose_models(models = models, Q = Q)
       self$model_list[[1]][[Q]] <- best_models
       self$vbound[Q] <- rev(best_models[[1]]$vbound)[1]
-      self$ICL[Q] <- best_models[[1]]$map$ICL
+      self$ICL[Q] <- best_models[[1]]$MAP$ICL
       self$BICL[Q] <- best_models[[1]]$BICL
     },
 
+
+    #' Burn-in method to start exploring the state of space
+    #' 
+    #' The functions takes no parameters but modify the object
+    #' 
+    #' @return nothing; but stores the values
     burn_in = function() {
-      # browser()
-      if (self$global_opts$sbm_init | ! is.null(self$fit_sbm)) {
-        if(self$global_opts$verbosity >=2) {
-          cat("Starting optimization of ", self$M, "SBMs")}
-        self$optimize_sbm()
-      }
-      if(! is.null(self$fit_sbm)) {
-        if(self$global_opts$verbosity >=2) {
-          cat("Starting initialization from SBMs fit. \n")}
-        purrr::map(
-          .x = seq(self$global_opts$Q_min, self$global_opts$Q_max),
-          .f = function(Q) {
-            self$optimize_from_sbm(index = seq(self$M),
-                                   Q = Q, nb_clusters = 1)}
-        )
-      }
-      if (! is.null(self$Z_init)) {
-        if(self$global_opts$verbosity >=2) {
-          cat("Starting initialization from given clustering. \n")}
-        purrr::map(
-          .x = seq(self$global_opts$Q_min, self$global_opts$Q_max),
-          .f = function(Q) {
-            self$optimize_from_zinit(index = seq(self$M),
-                                     Q = Q, nb_clusters = 1)})
-      }
-      if(self$global_opts$spectral_init) {
-        if(self$global_opts$verbosity >=2) {
-          cat("Starting initialization from spectral clustering.\n")}
-        bettermc::mclapply(
-          X = seq(self$global_opts$Q_min, self$global_opts$Q_max),
-          FUN = function(Q) {
-            models <- self$optimize_spectral(index = seq(self$M),
-                                             Q = Q, nb_clusters = 1)
-            best_models <- self$choose_models(models = models, Q = Q)
-            self$model_list[[1]][[Q]] <- best_models
-            self$vbound[Q] <- rev(best_models[[1]]$vbound)[1]
-            self$ICL[Q] <- best_models[[1]]$map$ICL
-            self$BICL[Q] <- best_models[[1]]$BICL
-            rm(models)
-          }, mc.cores = self$global_opts$nb_cores, mc.share.copy = FALSE
-        )
-        # voir pour l'init spectral.
-      }
+
+      # The function fit M fitBipartite from spectral clust for Q = (1,2) and Q = (2,1)
+      # TODO : implement the M fitBipartite from spectral clust
+
+      # TODO : find how to store the models
+
+      # The function fit M LBM for Q = (1,2) and Q = (2,1) from blockmodels
+      # TODO : implement the M LBM from blockmodels
+
+      # Now we select the best points by the BICL criteria
+      # TODO : implement the selection by BICL for multiple points (to reuse it later)
+
+      # Here we match the clusters from the M fit objects
+      # TODO : implement the matching
+
+      # Store the given initialization
+
       if(self$global_opts$verbosity >=3) {
         cat("==== Finish Burn in",
             " for networks ", self$net_id, " ===\n")
@@ -337,8 +314,6 @@ lbmpop <- R6::R6Class(
         cat("ICL    : ", round(self$ICL), "\n")
         cat("BICL   : ", round(self$BICL), "\n")
       }
-      # self$forward_pass()
-      # self$backward_pass()
     },
 
 
@@ -368,7 +343,7 @@ lbmpop <- R6::R6Class(
           best_models <- self$choose_models(models = list_popbm, Q = Q,
                                             index = index, nb_clusters = nb_clusters)
           self$vbound[Q] <- rev(best_models[[1]]$vbound)[1]
-          self$ICL[Q] <- best_models[[1]]$map$ICL
+          self$ICL[Q] <- best_models[[1]]$MAP$ICL
           self$BICL[Q] <- best_models[[1]]$BICL
           max_icl[Q-1] <- best_models[[1]]$BICL
 
@@ -382,7 +357,7 @@ lbmpop <- R6::R6Class(
           {
             if (fit$counter_split < 3) {
               fit$counter_split <- fit$counter_split + 1
-              Z_init <- purrr::map(seq_along(index),
+              Z_init <- purrr::MAP(seq_along(index),
                                    ~ split_clust(as.matrix(fit$A[[.]]), fit$Z[[.]],Q-1))
               Z_init <- purrr::transpose(Z_init)
               return(Z_init)
@@ -399,7 +374,7 @@ lbmpop <- R6::R6Class(
         #   {
         #     if (fit$counter_split < 3) {
         #       fit$counter_split <- fit$counter_split + 1
-        #       Z_init <- purrr::map(seq_along(index),
+        #       Z_init <- purrr::MAP(seq_along(index),
         #                            ~ split_clust(fit$A[[.]], fit$Z[[.]],Q-1))
         #       Z_init <- purrr::transpose(Z_init)
         # k <- min(self$global_opts$nb_cores, ceiling(length(list_Zinit/3)))
@@ -479,7 +454,7 @@ lbmpop <- R6::R6Class(
                                             index = index,
                                             nb_clusters = nb_clusters)
           self$vbound[Q] <- rev(best_models[[1]]$vbound)[1]
-          self$ICL[Q] <- best_models[[1]]$map$ICL
+          self$ICL[Q] <- best_models[[1]]$MAP$ICL
           self$BICL[Q] <- best_models[[1]]$BICL
           self$model_list[[nb_clusters]][[Q]] <- best_models
           # lapply(self$model_list[[nb_clusters]][[Q]],
@@ -530,12 +505,12 @@ lbmpop <- R6::R6Class(
       counter <- 0
       Q <- Q_max - 1
       while(Q >= Q_min & counter < self$global_opts$depth) {
-        list_Zinit<- lapply(#furrr::future_map(
+        list_Zinit<- lapply(#furrr::future_MAP(
           X = self$model_list[[1]][[Q+1]],
           FUN = function(fit) {
-            if (fit$counter_merge < 3 & all(Reduce("+", fit$map$pi) > 0)) {
+            if (fit$counter_merge < 3 & all(Reduce("+", fit$MAP$pi) > 0)) {
               fit$counter_merge <- fit$counter_merge + 1
-              Z_init <- purrr::map(index, ~ merge_clust(fit$Z[[.]], Q+1))
+              Z_init <- purrr::MAP(index, ~ merge_clust(fit$Z[[.]], Q+1))
               Z_init <- purrr::transpose(Z_init)
               return(Z_init)
             } else {
@@ -609,17 +584,17 @@ lbmpop <- R6::R6Class(
             )
           #  browser()
             models <- unlist(models)
-            ord_mod <- order(purrr::map_dbl(models, ~.$BICL),
+            ord_mod <- order(purrr::MAP_dbl(models, ~.$BICL),
                              decreasing = TRUE)
             best_models <- models[ord_mod[1]]
             for(id in ord_mod) {
               if (length(best_models) >= self$global_opts$nb_models) {
                 break
               } else {
-                ari <- purrr::map_dbl(
+                ari <- purrr::MAP_dbl(
                   seq_along(best_models),
                   function(m) {
-                    sum(purrr::map_dbl(seq_along(self$A),
+                    sum(purrr::MAP_dbl(seq_along(self$A),
                                        ~ aricode::ARI(best_models[[m]]$Z[[.]],
                                                       models[[id]]$Z[[.]])))
                   }
@@ -641,7 +616,7 @@ lbmpop <- R6::R6Class(
           best_models <- self$choose_models(models = list_popbm, Q = Q,
                                             index = index, nb_clusters = nb_clusters)
           self$vbound[Q] <- rev(best_models[[1]]$vbound)[1]
-          self$ICL[Q] <- best_models[[1]]$map$ICL
+          self$ICL[Q] <- best_models[[1]]$MAP$ICL
           self$BICL[Q] <- best_models[[1]]$BICL
           self$model_list[[nb_clusters]][[Q]] <- best_models
           # lapply(self$model_list[[nb_clusters]][[Q]],
@@ -682,10 +657,14 @@ lbmpop <- R6::R6Class(
 #      future::plan("future::multisession", workers = self$global_opts$nb_cores)
     #  progressr::handlers(global = TRUE)
      # progressr::handlers("progress")
+
+      # The burn_in step computes models without performing split and merge
       self$burn_in()
       improved <- TRUE
       nb_pass <- 0
       Q <- 1
+
+      # TODO ask @Chabert-Liddell why reduce the number of models ?
       self$global_opts$nb_models <- ceiling(self$global_opts$nb_models/2)
       while (improved & nb_pass < self$global_opts$max_pass) {
         if(self$global_opts$verbosity >=2) {
@@ -725,7 +704,7 @@ lbmpop <- R6::R6Class(
 
           }
           for (fit in self$model_list[[1]][[Q-1]]) {
-            Z_init <- purrr::map(seq_along(A), ~ split_clust(A[[.]], fit$Z[[.]],Q-1))
+            Z_init <- purrr::MAP(seq_along(A), ~ split_clust(A[[.]], fit$Z[[.]],Q-1))
             Z_init <- purrr::transpose(Z_init)
             list_res <- lapply(
               seq_along(Z_init),
@@ -759,27 +738,27 @@ lbmpop <- R6::R6Class(
             }
           )
           list_popbm <- c(list_popbm, list_res, list_spec, best_models[[Q]])
-          ord_mod <- order(purrr::map_dbl(list_popbm, ~max(.$map$ICL, .$BICL)), decreasing = TRUE)
-          if(max_icl[Q] < list_popbm[[ord_mod[1]]]$map$ICL) global_counter <- TRUE
-          max_icl[Q] <- list_popbm[[ord_mod[1]]]$map$ICL
+          ord_mod <- order(purrr::MAP_dbl(list_popbm, ~max(.$MAP$ICL, .$BICL)), decreasing = TRUE)
+          if(max_icl[Q] < list_popbm[[ord_mod[1]]]$MAP$ICL) global_counter <- TRUE
+          max_icl[Q] <- list_popbm[[ord_mod[1]]]$MAP$ICL
           if (max_icl[Q] <= max_icl[Q-1]) counter <- counter + 1
           best_models[[Q]] <- list_popbm[ord_mod[1]]
-          # points(purrr::map_dbl(unlist(best_models), "Q"), purrr::map_dbl(unlist(best_models), ~.$map$ICL))
-          # points(purrr::map_dbl(unlist(best_models), "Q"), purrr::map_dbl(unlist(best_models), "BICL"), col = "red")
+          # points(purrr::MAP_dbl(unlist(best_models), "Q"), purrr::MAP_dbl(unlist(best_models), ~.$MAP$ICL))
+          # points(purrr::MAP_dbl(unlist(best_models), "Q"), purrr::MAP_dbl(unlist(best_models), "BICL"), col = "red")
           for(id in ord_mod) {
             if (length(best_models[[Q]]) < top_models) {
-              ari <- purrr::map_dbl(
+              ari <- purrr::MAP_dbl(
                 seq_along(best_models[[Q]]),
                 function(m) {
-                  sum(purrr::map_dbl(seq_along(A),
+                  sum(purrr::MAP_dbl(seq_along(A),
                                      ~ aricode::ARI(best_models[[Q]][[m]]$Z[[.]],
                                                     list_popbm[[id]]$Z[[.]])))
                 }
               )
               if (all(ari < best_models[[Q]][[1]]$M)) {
                 best_models[[Q]] <- c(best_models[[Q]], list_popbm[[id]])
-                # points(purrr::map_dbl(unlist(best_models), "Q"), purrr::map_dbl(unlist(best_models), ~.$map$ICL))
-                # points(purrr::map_dbl(unlist(best_models), "Q"), purrr::map_dbl(unlist(best_models), "BICL"), col = "red")
+                # points(purrr::MAP_dbl(unlist(best_models), "Q"), purrr::MAP_dbl(unlist(best_models), ~.$MAP$ICL))
+                # points(purrr::MAP_dbl(unlist(best_models), "Q"), purrr::MAP_dbl(unlist(best_models), "BICL"), col = "red")
               }
             }
           }
@@ -793,7 +772,7 @@ lbmpop <- R6::R6Class(
         while (Q >= max(Q_min,2)) {
           list_popbm <- list()
           for (fit in best_models[[Q+1]]) {
-            Z_init <- purrr::map(seq_along(A), ~ merge_clust(fit$Z[[.]],Q+1))
+            Z_init <- purrr::MAP(seq_along(A), ~ merge_clust(fit$Z[[.]],Q+1))
             Z_init <- purrr::transpose(Z_init)
             list_res <- lapply(
               seq_along(Z_init),
@@ -811,34 +790,34 @@ lbmpop <- R6::R6Class(
               }
             )
             list_popbm <- c(list_popbm, list_res)
-            # points(purrr::map_dbl(unlist(list_res), "Q"), purrr::map_dbl(unlist(list_res), ~.$map$ICL))
-            # points(purrr::map_dbl(unlist(list_res), "Q"), purrr::map_dbl(unlist(list_res), "BICL"), col = "red")
+            # points(purrr::MAP_dbl(unlist(list_res), "Q"), purrr::MAP_dbl(unlist(list_res), ~.$MAP$ICL))
+            # points(purrr::MAP_dbl(unlist(list_res), "Q"), purrr::MAP_dbl(unlist(list_res), "BICL"), col = "red")
           }
           list_popbm <- c(list_popbm, best_models[[Q]])
-          ord_mod <- order(purrr::map_dbl(list_popbm, ~max(.$map$ICL, .$BICL)), decreasing = TRUE)
-          if(max_icl[Q] < list_popbm[[ord_mod[1]]]$map$ICL) global_counter <- TRUE
+          ord_mod <- order(purrr::MAP_dbl(list_popbm, ~max(.$MAP$ICL, .$BICL)), decreasing = TRUE)
+          if(max_icl[Q] < list_popbm[[ord_mod[1]]]$MAP$ICL) global_counter <- TRUE
 
           best_models[[Q]] <- list_popbm[ord_mod[1]]
-          max_icl[Q] <- list_popbm[[ord_mod[1]]]$map$ICL
+          max_icl[Q] <- list_popbm[[ord_mod[1]]]$MAP$ICL
           if (max_icl[Q] <= max_icl[Q+1]) counter <- counter + 1
-          # points(purrr::map_dbl(unlist(best_models), "Q"),
-          #        purrr::map_dbl(unlist(best_models), ~.$map$ICL))
-          # points(purrr::map_dbl(unlist(best_models), "Q"),
-          #        purrr::map_dbl(unlist(best_models), "BICL"), col = "red")
+          # points(purrr::MAP_dbl(unlist(best_models), "Q"),
+          #        purrr::MAP_dbl(unlist(best_models), ~.$MAP$ICL))
+          # points(purrr::MAP_dbl(unlist(best_models), "Q"),
+          #        purrr::MAP_dbl(unlist(best_models), "BICL"), col = "red")
           for(id in ord_mod) {
             if (length(best_models[[Q]]) < top_models) {
-              ari <- purrr::map_dbl(
+              ari <- purrr::MAP_dbl(
                 seq_along(best_models[[Q]]),
                 function(m) {
-                  sum(purrr::map_dbl(seq_along(A),
+                  sum(purrr::MAP_dbl(seq_along(A),
                                      ~ aricode::ARI(best_models[[Q]][[m]]$Z[[.]],
                                                     list_popbm[[id]]$Z[[.]])))
                 }
               )
               if (all(ari < best_models[[Q]][[1]]$M)) {
                 best_models[[Q]] <- c(best_models[[Q]], list_popbm[[id]])
-                # points(purrr::map_dbl(unlist(best_models), "Q"), purrr::map_dbl(unlist(best_models), ~.$map$ICL))
-                # points(purrr::map_dbl(unlist(best_models), "Q"), purrr::map_dbl(unlist(best_models), "BICL"), col = "red")
+                # points(purrr::MAP_dbl(unlist(best_models), "Q"), purrr::MAP_dbl(unlist(best_models), ~.$MAP$ICL))
+                # points(purrr::MAP_dbl(unlist(best_models), "Q"), purrr::MAP_dbl(unlist(best_models), "BICL"), col = "red")
               }
             }
           }
@@ -847,43 +826,64 @@ lbmpop <- R6::R6Class(
         }
         Q <- Q+1
       }
-      best_id <- which.max(purrr::map_dbl(unlist(best_models), ~ .$map$ICL))
+      best_id <- which.max(purrr::MAP_dbl(unlist(best_models), ~ .$MAP$ICL))
       unlist(best_models)[[best_id]]
     },
 
     choose_models = function(models, Q, index = seq(self$M), nb_clusters = 1L) {
-      # browser()
-      ord_mod <- order(purrr::map_dbl(models, ~ .$BICL),#~max(.$map$ICL, .$BICL)),
+      # The provided models are ordered by their BICL in a decreasing order
+      ord_mod <- order(purrr::MAP_dbl(models, ~ .$BICL),#~max(.$MAP$ICL, .$BICL)),
                        decreasing = TRUE)
-      #      max_icl <- models[[ord_mod[1]]]$map$ICL
-      #      icl_improved <- max_icl > self$ICL[[Q]]
-      if ( length(self$model_list[[nb_clusters]]) >= Q) {
+
+      # If the model_list of the object contains at list Q entries
+      # it is appended to the models being processed
+      if (length(self$model_list[[nb_clusters]]) >= Q) {
         models <- c(self$model_list[[nb_clusters]][[Q]], models)
       }
-      ord_mod <- order(purrr::map_dbl(models, ~.$BICL),
+      # The models are ordered once again
+      # TODO ask @Chabert-Liddell can't it be reduced to just this one step of reordering?
+      ord_mod <- order(purrr::MAP_dbl(models, ~.$BICL),
                        decreasing = TRUE)
-      # self$BICL[Q] <- models[ord_mod[1]][[1]]$BICL
+
+      # best_models is initialized with the first model of the ord_mod id list
+      # ie the one with max BICL
       best_models <- models[ord_mod[1]]
       for(id in ord_mod) {
+        # We process the models by their id given by the ord_mod
         if (length(best_models) >= self$global_opts$nb_models) {
+          # If we've added the wanted number of models to keep, we exit the loop
           break
         } else {
-          ari <- purrr::map_dbl(
+          # ari is the vector of the model being processed
+          # versus all the previously selected best_models
+          ari <- purrr::MAP_dbl(
+            # This run for each of the best_models
             seq_along(best_models),
             function(m) {
-              sum(purrr::map_dbl(seq_along(self$A),
-                                 ~ aricode::ARI(best_models[[m]]$Z[[.]],
-                                                models[[id]]$Z[[.]])))
+              # Here we sum all the ari for each of the networks clustering
+              sum(purrr::MAP_dbl(
+                seq_along(self$A),
+                ~ aricode::ARI(
+                  best_models[[m]]$Z[[.]],
+                  models[[id]]$Z[[.]]
+                )
+              ))
             }
           )
+          # If the model has all of his ari less than the number of networks
+          # ie the clustering isn't perfect (1 of ARI * M, would be perfect)
+          # then the model is  added to the list of best_models
           if (all(ari < best_models[[1]]$M)) {
             best_models <- c(best_models, models[[id]])
           }
         }
       }
+
+      # After having selected the best_models we plot their points
+      # x being Q the number of clusters and y being their BICL
       if (self$global_opts$plot_details >= 1) {
-        points(purrr::map_dbl(unlist(best_models), "Q"),
-               purrr::map_dbl(unlist(best_models), ~.$BICL))
+        points(purrr::MAP_dbl(unlist(best_models), "Q"),
+               purrr::MAP_dbl(unlist(best_models), ~.$BICL))
       }
       return(best_models)
     },
@@ -899,9 +899,41 @@ lbmpop <- R6::R6Class(
       cat("=====================================================================")
     },
 
-    print = function() self$show()
+    print = function() self$show(),
+
+    #' The moving window application
+    #' 
+    #' @description
+    #' This method is a moving windows 
+    #' over the Q1xQ2 space for the number of clusters
+    #' @noMd
+    #' @noRd
+    #' @param center is a vector of the Q1 and Q2 coordinates 
+    #' in the form c(Q1, Q2)
+    #' @param depth is how far away from the center 
+    #' the function should be applied in a grid style 
+    #' going from center - (depth,depth) to center + (depth, depth)
+    #' @return nothing; but updates the object by adding new models
+    moving_window = function(center, depth = 1) {
+    # Each split & merge can be parallelized from points
+    # But need to be finished when comparing the BICL
+
+    # We loop until there are no missing points in the window
+
+      # Here we compute the missing points
+      # TODO : implement the finding of the missing points
+
+        # FIXME : Kinda forward_pass
+        # Now we compute the possible splits and fit the collection on those points
+        # TODO : implement the computation of the splits
+        # TODO after : implement the fitting of those splits
+        # TODO : select the best one
+
+    # Once all the window is filled 
+    # we go to (centerQ1 + depth, centerQ2 + depth) 
+    # and go down by merging cluster
+    # FIXME : Kinda backward_pass
+
+    }
   )
 )
-
-
-
