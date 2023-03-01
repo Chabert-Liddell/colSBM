@@ -28,3 +28,5 @@ Surcouche :
         On essaie d'améliorer le mode en repassant dessus avec plusieurs split & merge à partir des bords
 
 TODO : Vérifier si sans l'initialisation SBM, colSBM performe mal
+    - DONE : regarder les performances sur plusieurs échantillons
+    - TODO : les comparer
