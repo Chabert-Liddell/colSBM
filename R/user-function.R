@@ -65,6 +65,8 @@ estimate_colSBM <-
               free_mixture <-  TRUE
             },
             stop("colsbm_model unknown. Must be one of iid, pi, delta or deltapi"))
+
+    # go is used to temporarily store the default global_opts
     go <- list(Q_min = 1L,
                              Q_max = floor(log(sum(vapply(netlist, "nrow", .1))))+2,
                              sbm_init = TRUE,
