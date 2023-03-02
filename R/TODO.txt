@@ -1,5 +1,3 @@
-TODO :
-
 Surcouche :
 - Créer la surcouche et tester plusieurs permutations en given du LBM (nbinit = 3)
     - Remonter spectral et CAH pour pouvoir faire les permutations (nbinit = 3)

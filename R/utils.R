@@ -1,188 +1,3 @@
-#' Perform a spectral clustering
-#'
-#' @importFrom stats kmeans
-#'
-#' @param X an Adjacency matrix
-#' @param K the number of clusters
-#'
-#' @noMd
-#' @noRd
-#'
-#' @return A vector : The clusters labels
-spectral_clustering <- function(X, K) {
-  if (K == 1) {
-    return(rep(1L, nrow(X)))
-  }
-  n <- nrow(X)
-  X[X == -1] <- NA # FIXME : replacing NA ask Saint-Clair
-  isolated <- which(rowSums(X, na.rm = TRUE) == 0)
-  connected <- setdiff(seq(n), isolated)
-  X <- X[connected, connected]
-  if (!isSymmetric(X)) {
-    X <- 1 * ((X + t(X)) > 0) # .5 * (X + t(X))
-  }
-  D_moins1_2 <- diag(1 / sqrt(rowSums(X, na.rm = TRUE) + 1))
-  X[is.na(X)] <- mean(X, na.rm = TRUE)
-  Labs <- D_moins1_2 %*% X %*% D_moins1_2
-  specabs <- eigen(Labs, symmetric = TRUE)
-  index <- rev(order(abs(specabs$values)))[1:K]
-  U <- specabs$vectors[, index]
-  U <- U / rowSums(U**2)**(1 / 2)
-  U[is.na(U)] <- 0
-  cl <- stats::kmeans(U, K, iter.max = 100, nstart = 100)$cluster
-  clustering <- rep(1, n)
-  clustering[connected] <- cl
-  clustering[isolated] <- which.min(rowsum(rowSums(X, na.rm = TRUE), cl))
-  return(clustering)
-}
-
-
-
-# ? # FIXME : implement a spectral bi-clustering, check if it works consistently with co-clustering
-#' Perform a spectral bi-clustering, clusters by row
-#' and by columns independently
-#'
-#' Relies on the spectral_clustering function defined above
-#'
-#' @param X an Incidence matrix
-#' @param K the two numbers of clusters
-#'
-#' @noMd
-#' @noRd
-#'
-#' @return A list of two vectors : The clusters labels. They are accessed using $row_clustering and $col_clustering
-spectral_biclustering <- function(X, K) {
-  # Trivial clustering : everyone is part of the cluster
-  if (all(K == c(1, 1))) {
-    return(list(
-      row_clustering = rep(1, nrow(X)),
-      col_clustering = rep(1, ncol(X))
-    ))
-  }
-
-  # Extracts the number of clusters
-  K1 <- K[1] # Row clusters
-  K2 <- K[2] # Column clusters
-
-  row_adjacency_matrix <- tcrossprod(X)
-  row_clustering <- spectral_clustering(row_adjacency_matrix, K1)
-
-  col_adjacency_matrix <- crossprod(X)
-  col_clustering <- spectral_clustering(col_adjacency_matrix, K2)
-
-  return(list(row_clustering = row_clustering, col_clustering = col_clustering))
-}
-
-# TODO : implement CAH bi-clustering (GREMLINS)
-# TODO : Modify the algorithm to use the rectangular matrix and its transpose
-bipartite_hierarchic_clustering <- function(X, K) {
-  # Trivial clustering : everyone is part of the cluster
-  if (all(K == c(1, 1))) {
-    return(list(
-      row_clustering = rep(1, nrow(X)),
-      col_clustering = rep(1, ncol(X))
-    ))
-  }
-
-  # Extracts the number of clusters
-  K1 <- K[1] # Row clusters
-  K2 <- K[2] # Column clusters
-
-  row_adjacency_matrix <- tcrossprod(X)
-  row_clustering <- hierarClust(X, K1)
-
-  col_adjacency_matrix <- crossprod(X)
-  col_clustering <- hierarClust(t(X), K2)
-
-  return(list(row_clustering = row_clustering, col_clustering = col_clustering))
-}
-
-#' Perform a Hierarchical Clustering
-#' @importFrom stats cutree dist hclust
-#' @importFrom ape additive
-#' @param X An Adjacency Matrix
-#' @param K the number of wanted clusters
-#'
-#' @noMd
-#' @noRd
-#'
-#' @return A vector : The clusters labels
-hierarClust <- function(X, K) {
-  if (K == 1) {
-    return(rep(1L, nrow(X)))
-  }
-  # distance <- stats::dist(x = X, method = "manhattan")
-  # X[X == -1] <- NA
-  # distance[which(A == 1)] <- distance[which(A == 1)] - 2
-  # distance <- stats::as.dist(ape::additive(distance))
-  diss <- cluster::daisy(x = X, metric = "manhattan", warnBin = FALSE)
-  if (!any(is.na(diss))) {
-    clust <- cluster::agnes(x = X, metric = "manhattan", method = "ward")
-  } else {
-    return(rep(1L, nrow(X)))
-  }
-  # clust    <- stats::hclust(d = distance , method = "ward.D2")
-  return(stats::cutree(tree = clust, k = K))
-}
-
-#' Split a list of clusters
-#'
-#' @param X an adjacency matrix
-#' @param Z a vector of cluster memberships
-#' @param Q The number of maximal clusters
-#'
-#' @noMd
-#' @noRd
-#'
-#' @return A list of Q clustering of Q+1 clusters
-split_clust <- function(X, Z, Q) {
-  Z_split <- lapply(
-    X = seq(Q),
-    FUN = function(q) {
-      if (sum(Z == q) <= 3) {
-        return(Z)
-      }
-      Z_new <- Z
-      mx <- mean(X[Z == q, Z == q], na.rm = TRUE)
-      X[is.na(X)] <- mx
-      if (isSymmetric.matrix(X)) {
-        Xsub <- X[Z == q, , drop = FALSE]
-      } else {
-        Xsub <- cbind(X[Z == q, , drop = FALSE], t(X[, Z == q, drop = FALSE]))
-      }
-      if (nrow(unique(Xsub, MARGIN = 1)) <= 3) {
-        return(Z)
-      }
-      C <- stats::kmeans(x = Xsub, centers = 2)$cluster
-      # C  <-  hierarClust(Xsub, 2)# + Q#stats::kmeans(x = .5 * (X[Z==q,] + t(X[,Z==q])), centers = 2)$cluster + Q
-      if (length(unique(C)) == 2) {
-        p1 <- c(
-          mean(X[Z == q, , drop = FALSE][C == 1, ]),
-          mean(X[, Z == q, drop = FALSE][, C == 1])
-        )
-        p2 <- c(
-          mean(X[Z == q, , drop = FALSE][C == 2, ]),
-          mean(X[, Z == q, drop = FALSE][, C == 2])
-        )
-        c <- which.max(abs(p1 - p2))
-        md <- sample(
-          x = 2, size = 2, replace = FALSE,
-          prob = c(
-            max(1 / ncol(Xsub), p1[c]),
-            max(1 / ncol(Xsub), p2[c])
-          )
-        )
-        Z_new[Z == q][C == which.min(md)] <- Q + 1
-      }
-      # Z_new[Z==q]  <-  stats::kmeans(x = Xsub, centers = 2)$cluster + Q
-      # Z_new[Z_new == Q + 2]  <-  q
-      return(Z_new)
-    }
-  )
-  Z_split <- Z_split[which(sapply(X = Z_split, FUN = function(x) !is.null(x)))]
-  return(Z_split)
-}
-
 #' Generate a unipartite network
 #'
 #' @param n the number of nodes
@@ -307,6 +122,190 @@ generate_bipartite_collection <- function(nr, nc, pir, pic, alpha, M) {
   return(out)
 }
 
+#' Perform a spectral clustering
+#'
+#' @importFrom stats kmeans
+#'
+#' @param X an Adjacency matrix
+#' @param K the number of clusters
+#'
+#' @noMd
+#' @noRd
+#'
+#' @return A vector : The clusters labels
+spectral_clustering <- function(X, K) {
+  if (K == 1) {
+    return(rep(1L, nrow(X)))
+  }
+  n <- nrow(X)
+  X[X == -1] <- NA # FIXME : replacing NA ask Saint-Clair
+  isolated <- which(rowSums(X, na.rm = TRUE) == 0)
+  connected <- setdiff(seq(n), isolated)
+  X <- X[connected, connected]
+  if (!isSymmetric(X)) {
+    X <- 1 * ((X + t(X)) > 0) # .5 * (X + t(X))
+  }
+  D_moins1_2 <- diag(1 / sqrt(rowSums(X, na.rm = TRUE) + 1))
+  X[is.na(X)] <- mean(X, na.rm = TRUE)
+  Labs <- D_moins1_2 %*% X %*% D_moins1_2
+  specabs <- eigen(Labs, symmetric = TRUE)
+  index <- rev(order(abs(specabs$values)))[1:K]
+  U <- specabs$vectors[, index]
+  U <- U / rowSums(U**2)**(1 / 2)
+  U[is.na(U)] <- 0
+  cl <- stats::kmeans(U, K, iter.max = 100, nstart = 100)$cluster
+  clustering <- rep(1, n)
+  clustering[connected] <- cl
+  clustering[isolated] <- which.min(rowsum(rowSums(X, na.rm = TRUE), cl))
+  return(clustering)
+}
+
+
+
+# ? # FIXME : implement a spectral bi-clustering, check if it works consistently with co-clustering
+#' Perform a spectral bi-clustering, clusters by row
+#' and by columns independently
+#'
+#' Relies on the spectral_clustering function defined above
+#'
+#' @param X an Incidence matrix
+#' @param K the two numbers of clusters
+#'
+#' @noMd
+#' @noRd
+#'
+#' @return A list of two vectors : The clusters labels. They are accessed using $row_clustering and $col_clustering
+spectral_biclustering <- function(X, K) {
+  # Trivial clustering : everyone is part of the cluster
+  if (all(K == c(1, 1))) {
+    return(list(
+      row_clustering = rep(1, nrow(X)),
+      col_clustering = rep(1, ncol(X))
+    ))
+  }
+
+  # Extracts the number of clusters
+  K1 <- K[1] # Row clusters
+  K2 <- K[2] # Column clusters
+
+  row_adjacency_matrix <- tcrossprod(X)
+  row_clustering <- spectral_clustering(row_adjacency_matrix, K1)
+
+  col_adjacency_matrix <- crossprod(X)
+  col_clustering <- spectral_clustering(col_adjacency_matrix, K2)
+
+  return(list(row_clustering = row_clustering, col_clustering = col_clustering))
+}
+
+# TODO : Modify the algorithm to use the rectangular matrix and its transpose
+bipartite_hierarchic_clustering <- function(X, K) {
+  # Trivial clustering : everyone is part of the cluster
+  if (all(K == c(1, 1))) {
+    return(list(
+      row_clustering = rep(1, nrow(X)),
+      col_clustering = rep(1, ncol(X))
+    ))
+  }
+
+  # Extracts the number of clusters
+  K1 <- K[1] # Row clusters
+  K2 <- K[2] # Column clusters
+
+  row_adjacency_matrix <- tcrossprod(X)
+  row_clustering <- hierarClust(X, K1)
+
+  col_adjacency_matrix <- crossprod(X)
+  col_clustering <- hierarClust(t(X), K2)
+
+  return(list(row_clustering = row_clustering, col_clustering = col_clustering))
+}
+
+#' Perform a Hierarchical Clustering
+#' @importFrom stats cutree dist hclust
+#' @importFrom ape additive
+#' @param X An Adjacency Matrix
+#' @param K the number of wanted clusters
+#'
+#' @noMd
+#' @noRd
+#'
+#' @return A vector : The clusters labels
+hierarClust <- function(X, K) {
+  if (K == 1) {
+    return(rep(1L, nrow(X)))
+  }
+  # distance <- stats::dist(x = X, method = "manhattan")
+  # X[X == -1] <- NA
+  # distance[which(A == 1)] <- distance[which(A == 1)] - 2
+  # distance <- stats::as.dist(ape::additive(distance))
+  diss <- cluster::daisy(x = X, metric = "manhattan", warnBin = FALSE)
+  if (!any(is.na(diss))) {
+    clust <- cluster::agnes(x = X, metric = "manhattan", method = "ward")
+  } else {
+    return(rep(1L, nrow(X)))
+  }
+  # clust    <- stats::hclust(d = distance , method = "ward.D2")
+  return(stats::cutree(tree = clust, k = K))
+}
+
+#' Split a list of clusters
+#'
+#' @param X an adjacency matrix
+#' @param Z a vector of cluster memberships
+#' @param Q The number of maximal clusters
+#'
+#' @noMd
+#' @noRd
+#'
+#' @return A list of Q clustering of Q+1 clusters
+split_clust <- function(X, Z, Q) {
+  Z_split <- lapply(
+    X = seq(Q),
+    FUN = function(q) {
+      if (sum(Z == q) <= 3) {
+        return(Z)
+      }
+      Z_new <- Z
+      mx <- mean(X[Z == q, Z == q], na.rm = TRUE)
+      X[is.na(X)] <- mx
+      if (isSymmetric.matrix(X)) {
+        Xsub <- X[Z == q, , drop = FALSE]
+      } else {
+        Xsub <- cbind(X[Z == q, , drop = FALSE], t(X[, Z == q, drop = FALSE]))
+      }
+      if (nrow(unique(Xsub, MARGIN = 1)) <= 3) {
+        return(Z)
+      }
+      C <- stats::kmeans(x = Xsub, centers = 2)$cluster
+      # C  <-  hierarClust(Xsub, 2)# + Q#stats::kmeans(x = .5 * (X[Z==q,] + t(X[,Z==q])), centers = 2)$cluster + Q
+      if (length(unique(C)) == 2) {
+        p1 <- c(
+          mean(X[Z == q, , drop = FALSE][C == 1, ]),
+          mean(X[, Z == q, drop = FALSE][, C == 1])
+        )
+        p2 <- c(
+          mean(X[Z == q, , drop = FALSE][C == 2, ]),
+          mean(X[, Z == q, drop = FALSE][, C == 2])
+        )
+        c <- which.max(abs(p1 - p2))
+        md <- sample(
+          x = 2, size = 2, replace = FALSE,
+          prob = c(
+            max(1 / ncol(Xsub), p1[c]),
+            max(1 / ncol(Xsub), p2[c])
+          )
+        )
+        Z_new[Z == q][C == which.min(md)] <- Q + 1
+      }
+      # Z_new[Z==q]  <-  stats::kmeans(x = Xsub, centers = 2)$cluster + Q
+      # Z_new[Z_new == Q + 2]  <-  q
+      return(Z_new)
+    }
+  )
+  Z_split <- Z_split[which(sapply(X = Z_split, FUN = function(x) !is.null(x)))]
+  return(Z_split)
+}
+
 #' Merge a list of clusters
 #'
 #' @importFrom utils combn
@@ -378,7 +377,7 @@ build_fold_matrix <- function(X, K) {
   ifelse(x < 2 * .Machine$double.eps, 0, x * .log(y, eps = eps))
 }
 .quadform <- function(x, y) tcrossprod(x %*% y, x)
-.tquadform <- function(x, y) crossprod(x, y %*% x) # TODO : check if naming is consistent with R functions
+.tquadform <- function(x, y) crossprod(x, y %*% x)
 logistic <- function(x) 1 / (1 + exp(-x))
 logit <- function(x) log(x / (1 - x))
 .logit <- function(x, eps = NULL) {
