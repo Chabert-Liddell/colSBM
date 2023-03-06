@@ -13,7 +13,7 @@ lbmpop <- R6::R6Class(
     mask = NULL, # 1 for NA and 0 for observed
     model = NULL,
     net_id = NULL,
-    model_list = NULL,
+    model_list = NULL, # A list of size Q1max, of lists of size Q2max containing the models
     global_opts = NULL,
     fit_opts = NULL,
     fit_sbm = NULL,
@@ -901,6 +901,62 @@ lbmpop <- R6::R6Class(
 
     print = function() self$show(),
 
+
+    #' Find the points that need to be initialized
+    #'
+    #' @description
+    #' This method look in our models to see if the points for this model exist
+    #' @noMd
+    #' @noRd
+    #' @param center is a vector of the Q1 and Q2 coordinates
+    #' in the form c(Q1, Q2)
+    #' @param depth is how far away from the center
+    #' the function should be applied in a grid style
+    #' going from center - (depth,depth) to center + (depth, depth)
+    #' @return a list of c(Q1, Q2) for each missing point
+  find_missing_points = function(center, depth){
+    missing_points <- list()
+
+    model_list <- self$model_list[1]
+
+    center_x  <- center[1]
+    center_y <- center[2]
+
+    max_wanted_Q1 <- center_x + depth
+    max_wanted_Q2 <- center_y + depth
+
+
+    # FIXME : take into account that we need the min values
+    min_wanted_Q1 <- center_x - depth
+    min_wanted_Q2 <- center_y - depth
+
+    missing_points <- append(
+      # Here we find the missing points for which at least (Q1,1) is defined
+      lapply(
+        seq.int(length(model_list)),
+        function(q1) {
+          # If there are enough block this would be negative
+          # so set it to 0 instead, meaning we need
+          # 0 more points (Q1,Q2) for this Q1 value
+          ifelse(max_wanted_Q2 - length(model_list[[q1]]) >= 0,
+            max_wanted_Q2 - length(model_list[[q1]]),
+            0
+          )
+        }
+      ),
+      # Here we find the missing points for which no point is defined
+      ifelse(max_wanted_Q1 > length(model_list),
+        # If there we want more Q1 values than there is already
+        # we add the wanted_Q2 for each of the missing Q1 values
+        rep(max_wanted_Q2, max_wanted_Q1 - length(model_list)),
+        # Otherwise we don't need to add anything
+        NULL
+      )
+    )
+
+    return(missing_points)
+    },
+
     #' The moving window application
     #' 
     #' @description
@@ -922,6 +978,7 @@ lbmpop <- R6::R6Class(
 
       # Here we compute the missing points
       # TODO : implement the finding of the missing points
+      missing_points <- find_missing_points(center, depth)
 
         # FIXME : Kinda forward_pass
         # Now we compute the possible splits and fit the collection on those points
