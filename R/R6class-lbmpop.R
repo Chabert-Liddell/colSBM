@@ -17,6 +17,8 @@ lbmpop <- R6::R6Class(
     global_opts = NULL,
     fit_opts = NULL,
     fit_sbm = NULL,
+    separated_inits = NULL, # A nested list : Q1 init containing Q2 init
+                            # with each entry containing list of size M storing the inits for the class
     Z_init = NULL,
     free_density = NULL,
     free_mixture = NULL,
@@ -39,8 +41,10 @@ lbmpop <- R6::R6Class(
                           Z_init = NULL,
                           global_opts = list(),
                           fit_opts = list()) {
-      # Converting the matrices list to sparse matrix to save space
-      self$A <- lapply(netlist, Matrix::Matrix, sparse = TRUE)
+      # FIXME : to re-enable later
+      # # Converting the matrices list to sparse matrix to save space
+      # self$A <- lapply(netlist, Matrix::Matrix, sparse = TRUE)
+      self$A <- netlist
       
       # Computing the number of rows and cols
       self$nr <- vapply(self$A, nrow, FUN.VALUE = .1)
@@ -71,8 +75,10 @@ lbmpop <- R6::R6Class(
       self$fit_sbm <- fit_sbm
       self$free_density <-  free_density
       self$free_mixture <- free_mixture
-      self$global_opts <- list(Q_min = 1L,
-                               Q_max = floor(log(sum(self$n)))+2,
+      self$global_opts <- list(Q1_min = 1L,
+                               Q1_max = floor(log(sum(self$nr)))+2,
+                               Q2_min = 1L,
+                               Q2_max = floor(log(sum(self$nc)))+2,
                                sbm_init = TRUE,
                                spectral_init = TRUE,
                                nb_init = 10L,
@@ -83,9 +89,24 @@ lbmpop <- R6::R6Class(
                                verbosity = 0L,
                                nb_cores = 1L)
       self$global_opts <- utils::modifyList(self$global_opts, global_opts)
-      self$vbound <- rep(-Inf, self$global_opts$Q_max)
-      self$ICL <- rep(-Inf, self$global_opts$Q_max)
-      self$BICL <- rep(-Inf, self$global_opts$Q_max)
+      self$vbound <- matrix(
+        rep(-Inf, self$global_opts$Q1_max * self$global_opts$Q2_max),
+        nrow = self$global_opts$Q1_max,
+        ncol = self$global_opts$Q2_max,
+        byrow = TRUE
+      )
+      self$ICL <- matrix(
+        rep(-Inf, self$global_opts$Q1_max * self$global_opts$Q2_max),
+        nrow = self$global_opts$Q1_max,
+        ncol = self$global_opts$Q2_max,
+        byrow = TRUE
+      )
+      self$BICL <- matrix(
+        rep(-Inf, self$global_opts$Q1_max * self$global_opts$Q2_max),
+        nrow = self$global_opts$Q1_max,
+        ncol = self$global_opts$Q2_max,
+        byrow = TRUE
+      )
       if (self$model == "poisson") {
         self$logfactA <- vapply(
           seq_along(self$A),
@@ -294,16 +315,82 @@ lbmpop <- R6::R6Class(
       # The function fit M fitBipartite from spectral clust for Q = (1,2) and Q = (2,1)
       # TODO : implement the M fitBipartite from spectral clust
 
-      # TODO : find how to store the models
+      self$separated_inits <- list(list(NULL, NULL), list(NULL, NULL)) # The outer list is Q1, the inner is Q2
 
+      if (self$global_opts$verbosity >= 3) {
+        cat("=== Beginning Burn in ===\n")
+      }
+        
+
+      # Init for Q = (1,2)
+      if (self$global_opts$verbosity >= 4) {
+        cat("Fitting ", self$M, " networks for Q = (", toString(c(1, 2)), ")\n")
+      }
+
+      self$separated_inits[[1]][[2]] <- lapply(
+        seq.int(self$M),
+        function(m) {
+          fitBipartiteSBMPop$new(
+            A = list(self$A[[m]]), 
+            Q = c(1, 2),
+            free_mixture = self$free_mixture,
+            free_density = self$free_mixture,
+            init_method = "spectral"
+          )
+        }
+          )
+TRUE
+      # Fitting each model
+      lapply(
+        seq.int(self$M),
+        function(m) {
+          self$separated_inits[[1]][[2]][[m]]$optimize()
+        }
+      )
+
+      if (self$global_opts$verbosity >= 4) {
+        cat("Finished fitting ", self$M, " networks for Q = (", toString(c(1, 2)), ")\n")
+      }
+
+      # Init for Q = (2,1)
+      if (self$global_opts$verbosity >= 4) {
+        cat("Fitting ", self$M, " networks for Q = (", toString(c(2, 1)), ")\n")
+      }
+
+      self$separated_inits[[2]][[1]] <- lapply(
+        seq.int(self$M),
+        function(m) {
+          fitBipartiteSBMPop$new(
+            A = list(self$A[[m]]), Q = c(2, 1),
+            free_mixture = self$free_mixture,
+            free_density = self$free_mixture,
+            init_method = "spectral"
+          )
+          fitBipartiteSBMPop$optimize()
+        }
+      )
+
+      if (self$global_opts$verbosity >= 4) {
+        cat("Finished fitting ", self$M, " networks for Q = (", toString(c(2, 1)), ")")
+      }
+
+
+      # LATER
       # The function fit M LBM for Q = (1,2) and Q = (2,1) from blockmodels
       # TODO : implement the M LBM from blockmodels
+
+      # TODO : find how to store the models
 
       # Now we select the best points by the BICL criteria
       # TODO : implement the selection by BICL for multiple points (to reuse it later)
 
       # Here we match the clusters from the M fit objects
       # TODO : implement the matching
+
+      # We select the best of the two points (1,2) / (2,1)
+      # and we go looking for the mode with a greedy approach
+      # Visiting each of the neighbors
+      # greedy_exploration(start)
 
       # Store the given initialization
 
@@ -889,12 +976,14 @@ lbmpop <- R6::R6Class(
     },
 
 
-    show = function(type = "Fitted Collection of Simple SBM") {
+    show = function(type = "Fitted Collection of Bipartite SBM") {
       cat(type, "--", self$model, "variant for", self$M, "networks \n")
       cat("=====================================================================\n")
       cat("net_id = (", self$net_id, ")\n")
-      cat("Dimension = (", self$n, ") - (",
-          self$best_fit$Q,  ") blocks.\n")
+      cat(
+        "Dimension = (", self$n, ") - (",
+        toString(self$best_fit$Q), ") blocks.\n"
+      )
       cat("BICL = ", self$best_fit$BICL, " -- #Empty blocks : ", sum(!self$best_fit$Cpi), " \n")
       cat("=====================================================================")
     },
