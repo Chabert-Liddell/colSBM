@@ -823,12 +823,19 @@ fitBipartiteSBMPop <- R6::R6Class(
               p1 <- order(prob1)
               p2 <- order(prob2)
 
-              # Tau are reordered accordingly
-              tau_1 <- tau_1[, p1]
-              tau_2 <- tau_2[, p2]
-              # The emqr and nmqr are reordered too
-              self$emqr[m, , ] <- self$emqr[m, p1, p2]
-              self$nmqr[m, , ] <- self$nmqr[m, p1, p2]
+              # Tau, emqr and nmqr are reordered accordingly
+              if (ncol(tau_1) != 1) {
+                tau_1 <- tau_1[, p1]
+                self$emqr[m, , ] <- self$emqr[m, p1, ]
+                self$nmqr[m, , ] <- self$nmqr[m, p1, ]
+
+              }
+              if (ncol(tau_2) != 1) {
+                tau_2 <- tau_2[, p2]
+                self$emqr[m, , ] <- self$emqr[m, , p2]
+                self$nmqr[m, , ] <- self$nmqr[m, , p2]
+              }
+
               # The output is tau[[m]][[1]] for tau_1 and tau[[m]][[2]] for tau_2
               list(tau_1, tau_2)
             }
@@ -838,7 +845,7 @@ fitBipartiteSBMPop <- R6::R6Class(
             X = seq_along(self$A),
             FUN = function(m) {
               # The .one_hot performs a one hot encoding of the spectral clustering performed
-              # DONE : Adapt this step to handle two taus
+
               biclustering <- spectral_biclustering(self$A[[m]], self$Q)
               row_clustering <- biclustering$row_clustering
               col_clustering <- biclustering$col_clustering
@@ -874,19 +881,26 @@ fitBipartiteSBMPop <- R6::R6Class(
               # p1 <- sample.int(self$Q[[1]], prob = prob1)
               # p2 <- sample.int(self$Q[[2]], prob = prob2)
 
-              p1 <- order(prob1)
-              p2 <- order(prob2)
+              if (ncol(tau_1) != 1) {
+                p1 <- order(prob1)
+              }
 
-              # Tau are reordered accordingly
-              # cat(m, "\n")
-              # cat(p1, "\n")
-              # cat(p2, "\n")
-              tau_1 <- tau_1[, p1]
-              tau_2 <- tau_2[, p2]
-              # The emqr and nmqr are reordered too
-              self$emqr[m, , ] <- self$emqr[m, p1, p2]
-              self$nmqr[m, , ] <- self$nmqr[m, p1, p2]
-              # The output is tau[[m]][[1]] for tau_1 and tau[[m]][[2]] for tau_2
+              if (ncol(tau_2)) {
+                p2 <- order(prob2)
+              }
+
+              # Tau, emqr and nmqr are reordered accordingly
+              if (ncol(tau_1) != 1) {
+                tau_1 <- tau_1[, p1]
+                self$emqr[m, , ] <- self$emqr[m, p1, ]
+                self$nmqr[m, , ] <- self$nmqr[m, p1, ]
+
+              }
+              if (ncol(tau_2) != 1) {
+                tau_2 <- tau_2[, p2]
+                self$emqr[m, , ] <- self$emqr[m, , p2]
+                self$nmqr[m, , ] <- self$nmqr[m, , p2]
+              }
 
               list(tau_1, tau_2)
             }
@@ -965,6 +979,7 @@ fitBipartiteSBMPop <- R6::R6Class(
     },
     optimize = function(max_step = 100, tol = 1e-3, ...) {
       if (all(self$Q == c(1, 1))) {
+        # TODO urgently : handle the case where Q1 == 1 && Q2 != 1 || Q1 != 1 && Q2 == 1
         # DONE Two dimensions for tau, Z and pi
         self$tau <- lapply(
           seq(self$M),
