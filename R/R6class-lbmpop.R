@@ -18,7 +18,8 @@ lbmpop <- R6::R6Class(
     fit_opts = NULL,
     fit_sbm = NULL,
     separated_inits = NULL, # A nested list : Q1 init containing Q2 init
-                            # with each entry containing list of size M storing the inits for the class
+                            # with each entry containing list of size M 
+                            # storing the separated inits for the class
     Z_init = NULL,
     free_density = NULL,
     free_mixture = NULL,
@@ -113,6 +114,11 @@ lbmpop <- R6::R6Class(
         ncol = self$global_opts$Q2_max,
         byrow = TRUE
       )
+
+      # Initialising the model_list
+      self$model_list <- vector("list", self$global_opts$Q1_max * self$global_opts$Q2_max)
+      dim(self$model_list) <- c(self$global_opts$Q1_max, self$global_opts$Q2_max)
+
       if (self$model == "poisson") {
         self$logfactA <- vapply(
           seq_along(self$A),
@@ -531,9 +537,23 @@ lbmpop <- R6::R6Class(
 
       if (self$global_opts$verbosity >= 4) {
         cat("\nFinished fitting the colLBM.")
+        cat("\nResults for the the points :")
+        for (index in c(1,2)){
+          cat("\nQ = (", toString(c(index, 3 - index)), ") :")
+          cat(
+            "\n\tvbound:",
+            toString(self$separated_inits[[index]][[3 - index]]$vbound)
+          )
+          cat(
+            "\n\tICL:",
+            toString(self$separated_inits[[index]][[3 - index]]$ICL)
+          )
+          cat(
+            "\n\tBICL:",
+            toString(self$separated_inits[[index]][[3 - index]]$BICL)
+          )
+        }
       }
-
-      # TODO : display the vbound, ICL and BICL
 
       # We parallelize the search from the two points (1,2) / (2,1)
       # and we go looking for the mode with a greedy approach
