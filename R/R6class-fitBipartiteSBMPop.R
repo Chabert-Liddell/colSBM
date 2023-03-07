@@ -692,19 +692,16 @@ fitBipartiteSBMPop <- R6::R6Class(
         } else {
           # Otherwise we need to ponder based on the size for
           # Rows
-          pi1 <- self$nr * vapply(seq(self$M), function(m) {
+          pi1 <- matrix(self$nr * vapply(seq(self$M), function(m) {
             self$pim[[m]][[1]]
-          }, FUN.VALUE = rep(.1, self$Q[1]))
-
+          }, FUN.VALUE = rep(.1, self$Q[1])), ncol = self$M, nrow = self$Q[1])
           pi1 <- rowSums(pi1) / sum(pi1)
 
           # And columns
-          pi2 <- self$nc * vapply(seq(self$M), function(m) {
+          pi2 <- matrix(self$nc * vapply(seq(self$M), function(m) {
             self$pim[[m]][[2]]
-          }, FUN.VALUE = rep(.1, self$Q[2]))
-
+          }, FUN.VALUE = rep(.1, self$Q[2])), ncol = self$M, nrow = self$Q[2])
           pi2 <- rowSums(pi2) / sum(pi2)
-
           self$pi <- lapply(seq.int(self$M), function(m) list(pi1, pi2))
         }
 
@@ -716,16 +713,16 @@ fitBipartiteSBMPop <- R6::R6Class(
 
           # Otherwise we need to ponder based on the size for
           # Rows
-          pi1 <- self$nr * vapply(seq(self$M), function(m) {
+          pi1 <- matrix(self$nr * vapply(seq(self$M), function(m) {
             self$MAP$pim[[m]][[1]]
-          }, FUN.VALUE = rep(.1, self$Q[1]))
+          }, FUN.VALUE = rep(.1, self$Q[1])), ncol = self$M, nrow = self$Q[1])
 
           pi1 <- rowSums(pi1) / sum(pi1)
 
           # And columns
-          pi2 <- self$nc * vapply(seq(self$M), function(m) {
+          pi2 <- matrix(self$nc * vapply(seq(self$M), function(m) {
             self$MAP$pim[[m]][[2]]
-          }, FUN.VALUE = rep(.1, self$Q[2]))
+          }, FUN.VALUE = rep(.1, self$Q[2])), ncol = self$M, nrow=self$Q[2])
 
           pi2 <- rowSums(pi2) / sum(pi2)
 
