@@ -1,4 +1,4 @@
-#' An R6 Class object, a collection of model for population of sbm netowrks
+#' An R6 Class object, a collection of model for population of LBM netowrks
 #'
 #' @export
 
@@ -32,6 +32,12 @@ lbmpop <- R6::R6Class(
                     backward = TRUE),
 
 
+
+    #' @description
+    #' Create a new instance of the lbmpop object
+    #' 
+    #' This class is generally called via the user function # FIXME put the user function name
+    #'
     initialize = function(netlist = NULL,
                           net_id = NULL,
                           model = "bernoulli",
@@ -311,11 +317,14 @@ lbmpop <- R6::R6Class(
     #' 
     #' @return nothing; but stores the values
     burn_in = function() {
-
+      start_time <- Sys.time()
       # The function fit M fitBipartite from spectral clust for Q = (1,2) and Q = (2,1)
       # TODO : implement the M fitBipartite from spectral clust
 
-      self$separated_inits <- list(list(NULL, NULL), list(NULL, NULL)) # The outer list is Q1, the inner is Q2
+      self$separated_inits <- list(
+        list(NULL, NULL),
+        list(NULL, NULL)
+      ) # The outer list is Q1, the inner is Q2
 
       if (self$global_opts$verbosity >= 3) {
         cat("=== Beginning Burn in ===\n")
@@ -335,11 +344,12 @@ lbmpop <- R6::R6Class(
             Q = c(1, 2),
             free_mixture = self$free_mixture,
             free_density = self$free_mixture,
-            init_method = "spectral"
+            init_method = "spectral",
+            fit_opts = self$fit_opts
           )
         }
           )
-TRUE
+
       # Fitting each model
       lapply(
         seq.int(self$M),
@@ -349,12 +359,20 @@ TRUE
       )
 
       if (self$global_opts$verbosity >= 4) {
-        cat("Finished fitting ", self$M, " networks for Q = (", toString(c(1, 2)), ")\n")
+        sep_vbounds <- lapply(seq.int(self$M),
+        function(m){
+          max(self$separated_inits[[1]][[2]][[m]]$vbound)
+        })
+        cat(
+          "Finished fitting ", self$M, " networks for Q = (", toString(c(1, 2)),
+          ")\nSeparated Variational Bounds for the networks", toString(seq.int(self$M)), 
+          ":\n", toString(sep_vbounds), "\n"
+        )
       }
 
       # Init for Q = (2,1)
       if (self$global_opts$verbosity >= 4) {
-        cat("Fitting ", self$M, " networks for Q = (", toString(c(2, 1)), ")\n")
+        cat("\nFitting ", self$M, " networks for Q = (", toString(c(2, 1)), ")\n")
       }
 
       self$separated_inits[[2]][[1]] <- lapply(
@@ -364,30 +382,160 @@ TRUE
             A = list(self$A[[m]]), Q = c(2, 1),
             free_mixture = self$free_mixture,
             free_density = self$free_mixture,
-            init_method = "spectral"
+            init_method = "spectral",
+            fit_opts = self$fit_opts
           )
-          fitBipartiteSBMPop$optimize()
         }
       )
 
-      if (self$global_opts$verbosity >= 4) {
-        cat("Finished fitting ", self$M, " networks for Q = (", toString(c(2, 1)), ")")
-      }
-
+      # Fitting each model
+      lapply(
+        seq.int(self$M),
+        function(m) {
+          self$separated_inits[[2]][[1]][[m]]$optimize()
+        }
+      )
+    if (self$global_opts$verbosity >= 4) {
+      sep_vbounds <- lapply(
+        seq.int(self$M),
+        function(m) {
+          max(self$separated_inits[[2]][[1]][[m]]$vbound)
+        }
+      )
+      cat(
+        "Finished fitting ", self$M, " networks for Q = (", toString(c(2, 1)),
+        ")\nSeparated Variational Bounds for the networks", toString(seq.int(self$M)),
+        ":\n", toString(sep_vbounds), "\n"
+      )
+    }
 
       # LATER
       # The function fit M LBM for Q = (1,2) and Q = (2,1) from blockmodels
       # TODO : implement the M LBM from blockmodels
 
-      # TODO : find how to store the models
-
-      # Now we select the best points by the BICL criteria
-      # TODO : implement the selection by BICL for multiple points (to reuse it later)
-
       # Here we match the clusters from the M fit objects
       # TODO : implement the matching
+      # By using the order of the marginal laws
+      if (self$global_opts$verbosity >= 4) {
+        cat("\nBeginning to match results for the Separated LBMs.")
+      }
 
-      # We select the best of the two points (1,2) / (2,1)
+      for (m in seq.int(M)) {
+        current_m_init <- self$separated_inits[[1]][[2]][[m]]
+
+        # The clustering are one hot encoded because the permutations are 
+        # easier to perform
+
+        # One hot encoded row (1 cluster)
+        row_clustering <- .one_hot(current_m_init$Z[[1]][[1]], 1)
+        # One hot encoded cols (2 clusters)
+        col_clustering <- .one_hot(current_m_init$Z[[1]][[2]], 2)
+
+        # The row clustering are reordered according to their marginal distribution
+        prob1 <- as.vector(
+          current_m_init$pi[[1]][[2]] %*% t(current_m_init$MAP$alpha)
+        )
+
+        p1 <- order(prob1)
+
+        row_clustering <- row_clustering[, p1]
+
+        # The col clustering are reordered according to their marginal distribution
+        prob2 <- as.vector(
+          current_m_init$pi[[1]][[1]] %*% current_m_init$MAP$alpha
+        )
+        p2 <- order(prob2)
+        col_clustering <- col_clustering[, p2]
+
+
+        # The clustering are reverse one hot encoded
+        row_clustering <- .rev_one_hot(row_clustering)
+        col_clustering <- .rev_one_hot(col_clustering)
+
+        self$separated_inits[[1]][[2]][[m]]$Z[[1]][[1]] <- row_clustering
+        self$separated_inits[[1]][[2]][[m]]$Z[[1]][[2]] <- col_clustering
+
+        if (self$global_opts$verbosity >= 4) {
+          cat(
+            "\nNetwork:", m,
+            "\nOrder lines:", toString(p1),
+            "\nOrder columns:", toString(p2),
+            "\n"
+          )
+        }
+      }
+
+      if (self$global_opts$verbosity >= 4) {
+        cat("\nMatching finished.\n")
+        cat("Beginning to combine networks.")
+      }
+
+      # Here we combine the networks to fit a
+      # fitBipartite object on the M networks
+      M_clusterings_1_2 <- lapply(
+        seq.int(M),
+        function(m) {
+          # We add [[1]] after Z because we fitted
+          # only one network with the objects stored
+          # where the class is supposed to store more
+          self$separated_inits[[1]][[2]][[m]]$Z[[1]]
+        }
+      )
+
+      M_clusterings_2_1 <- lapply(
+        seq.int(M),
+        function(m) {
+          # We add [[1]] after Z because we fitted 
+          # only one network with the objects stored
+          # where the class is supposed to store more
+          self$separated_inits[[2]][[1]][[m]]$Z[[1]]
+        }
+      )
+
+      self$separated_inits[[1]][[2]] <- fitBipartiteSBMPop$new(
+        A = self$A, Q = c(1, 2),
+        free_mixture = self$free_mixture,
+        free_density = self$free_mixture,
+        Z = M_clusterings_1_2,
+        init_method = "given",
+        fit_opts = self$fit_opts
+      )
+
+      self$separated_inits[[2]][[1]] <- fitBipartiteSBMPop$new(
+        A = self$A, Q = c(2, 1),
+        free_mixture = self$free_mixture,
+        free_density = self$free_mixture,
+        Z = M_clusterings_2_1,
+        init_method = "given",
+        fit_opts = self$fit_opts
+      )
+
+      if (self$global_opts$verbosity >= 4) {
+        cat("\nFitting the combined colLBMs.")
+      }
+      # Here we fit the models
+      lapply(seq.int(2),
+      function(index){
+        # The index used here are a little trick to allow the use
+        # of bettermc::mclapply()
+        # TODO : parallelize ?
+        if (self$global_opts$verbosity >= 4){
+          cat(
+            "\nFitting the ", self$M, " networks for Q = (",
+            toString(c(index, 3 - index)), ")."
+          )
+        }
+        
+        self$separated_inits[[index]][[3 - index]]$optimize()
+      })
+
+      if (self$global_opts$verbosity >= 4) {
+        cat("\nFinished fitting the colLBM.")
+      }
+
+      # TODO : display the vbound, ICL and BICL
+
+      # We parallelize the search from the two points (1,2) / (2,1)
       # and we go looking for the mode with a greedy approach
       # Visiting each of the neighbors
       # greedy_exploration(start)
@@ -395,11 +543,15 @@ TRUE
       # Store the given initialization
 
       if(self$global_opts$verbosity >=3) {
-        cat("==== Finish Burn in",
-            " for networks ", self$net_id, " ===\n")
-        cat("vbound : ", round(self$vbound), "\n")
-        cat("ICL    : ", round(self$ICL), "\n")
-        cat("BICL   : ", round(self$BICL), "\n")
+        cat(
+          "\n==== Finish Burn in",
+          " for networks ", self$net_id, " in ", 
+          format(Sys.time() - start_time, digits = 3),
+          "s ===\n"
+        )
+        # cat("vbound : ", round(self$vbound), "\n")
+        # cat("ICL    : ", round(self$ICL), "\n")
+        # cat("BICL   : ", round(self$BICL), "\n")
       }
     },
 
