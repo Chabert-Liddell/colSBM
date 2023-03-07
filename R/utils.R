@@ -417,3 +417,7 @@ logit <- function(x) log(x / (1 - x))
   O[cbind(seq.int(length(x)), x)] <- 1
   return(O)
 }
+
+.rev_one_hot <- function(X){
+  return(as.vector(max.col(X)))
+}
