@@ -258,7 +258,7 @@ hierarClust <- function(X, K) {
 #' @noRd
 #'
 #' @return A list of Q clustering of Q+1 clusters
-split_clust <- function(X, Z, Q) {
+split_clust <- function(X, Z, Q, is_bipartite = FALSE) {
   Z_split <- lapply(
     X = seq(Q),
     FUN = function(q) {
@@ -266,9 +266,9 @@ split_clust <- function(X, Z, Q) {
         return(Z)
       }
       Z_new <- Z
-      mx <- mean(X[Z == q, Z == q], na.rm = TRUE)
+      mx <- ifelse(is_bipartite, mean(X[Z == q, ], na.rm = TRUE), mean(X[Z == q, Z == q], na.rm = TRUE))
       X[is.na(X)] <- mx
-      if (isSymmetric.matrix(X)) {
+      if (isSymmetric.matrix(X) || is_bipartite) {
         Xsub <- X[Z == q, , drop = FALSE]
       } else {
         Xsub <- cbind(X[Z == q, , drop = FALSE], t(X[, Z == q, drop = FALSE]))
@@ -279,14 +279,23 @@ split_clust <- function(X, Z, Q) {
       C <- stats::kmeans(x = Xsub, centers = 2)$cluster
       # C  <-  hierarClust(Xsub, 2)# + Q#stats::kmeans(x = .5 * (X[Z==q,] + t(X[,Z==q])), centers = 2)$cluster + Q
       if (length(unique(C)) == 2) {
-        p1 <- c(
-          mean(X[Z == q, , drop = FALSE][C == 1, ]),
-          mean(X[, Z == q, drop = FALSE][, C == 1])
-        )
-        p2 <- c(
-          mean(X[Z == q, , drop = FALSE][C == 2, ]),
-          mean(X[, Z == q, drop = FALSE][, C == 2])
-        )
+        if (!is_bipartite) {
+          p1 <- c(
+            mean(X[Z == q, , drop = FALSE][C == 1, ]),
+            mean(X[, Z == q, drop = FALSE][, C == 1])
+          )
+          p2 <- c(
+            mean(X[Z == q, , drop = FALSE][C == 2, ]),
+            mean(X[, Z == q, drop = FALSE][, C == 2])
+          )
+        }else{
+          p1 <- c(
+            mean(X[Z == q, , drop = FALSE][C == 1, ])
+          )
+          p2 <- c(
+            mean(X[Z == q, , drop = FALSE][C == 2, ])
+          )
+        }
         c <- which.max(abs(p1 - p2))
         md <- sample(
           x = 2, size = 2, replace = FALSE,
