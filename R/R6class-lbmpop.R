@@ -6,6 +6,7 @@ lbmpop <- R6::R6Class(
   "lbmpop",
   #
   public = list(
+    test = NULL, # TODO # FIXME REMOVE this test object
     nr = NULL,
     nc = NULL,
     A = NULL,
@@ -13,7 +14,8 @@ lbmpop <- R6::R6Class(
     mask = NULL, # 1 for NA and 0 for observed
     model = NULL,
     net_id = NULL,
-    model_list = NULL, # A list of size Q1max, of lists of size Q2max containing the models
+    model_list = NULL, # A list of size Q1max * Q2max containing the best models
+    discarded_model_list = NULL, # A list of size Q1max * Q2max * (nb_models - 1) containing the discarded models
     global_opts = NULL,
     fit_opts = NULL,
     fit_sbm = NULL,
@@ -116,8 +118,26 @@ lbmpop <- R6::R6Class(
       )
 
       # Initialising the model_list
-      self$model_list <- vector("list", self$global_opts$Q1_max * self$global_opts$Q2_max)
-      dim(self$model_list) <- c(self$global_opts$Q1_max, self$global_opts$Q2_max)
+      self$model_list <- vector(
+        "list",
+        self$global_opts$Q1_max * self$global_opts$Q2_max
+      )
+      dim(self$model_list) <- c(
+        self$global_opts$Q1_max,
+        self$global_opts$Q2_max
+      )
+
+      # Initialising the discarded model_list
+      # FIXME : for now i will fill each Q1*Q2 slot with an unlimited size list
+      # and cut it when it exceeds nb_models
+      self$discarded_model_list <- vector(
+        "list",
+        self$global_opts$Q1_max * self$global_opts$Q2_max
+      )
+      dim(self$discarded_model_list) <- c(
+        self$global_opts$Q1_max,
+        self$global_opts$Q2_max
+      )
 
       if (self$model == "poisson") {
         self$logfactA <- vapply(
@@ -135,187 +155,200 @@ lbmpop <- R6::R6Class(
       self$fit_opts <- utils::modifyList(self$fit_opts, fit_opts)
     },
 
-    # Fit a list of SBM if fit_sbm == TRUE
-    optimize_lbm = function() {
-      if (is.null(self$fit_sbm)) {
-        self$fit_sbm <-
-          bettermc::mclapply(
-            X = seq_along(self$A),
-            FUN = function(m) {
-              sbm::estimateSimpleSBM(
-                model = self$model,
-                netMat = as.matrix(self$A[[m]]),
-                estimOptions = list(verbosity = 0,
-                                    plot = FALSE, nbCores = 1L,
-                                    exploreMin = self$global_opts$Q_max))
-            },
-         mc.cores = self$global_opts$nb_cores,
-         mc.share.copy = FALSE,
-         mc.silent = TRUE
+    #' Function to greedily explore state of space looking for the mode
+    #' and storing the models discovered along the way
+    #' 
+    #' @param starting_point A vectore of the two coordinates c(Q1,Q2) which are the starting point
+    #' @export
+    #' @return c(Q1_mode, Q2_mode) which indicates the Q1 and Q2 for which the BICL was maximal
+    greedy_exploration = function(starting_point){
+      # Initialize
+      current_Q1 <- starting_point[1]
+      current_Q2 <- starting_point[2]
+
+      max_BICL_value <- -Inf
+      max_BICL_has_improved <- TRUE
+      step <- 0
+
+      while (
+        max_BICL_has_improved && 
+        step < self$global_opts$Q1_max * self$global_opts$Q2_max
+        ) {
+        # The loop explores the space greedily
+        if (self$global_opts$verbosity >= 4) {
+          cat("\n----")
+          cat(
+            "\nExploring around Q = (",
+            toString(c(current_Q1, current_Q2)), ")"
           )
-      }
-      self$ICL_sbm <- rep(-Inf, self$global_opts$Q_max)
-      for (q in seq(self$global_opts$Q_min, self$global_opts$Q_max)) {
-        lapply(seq_along(self$A), function(m) self$fit_sbm[[m]]$setModel(index = q))
-        self$ICL_sbm[q] <- sum(purrr::MAP_dbl(self$fit_sbm, ~ .$ICL))
-      }
-      if (self$global_opts$plot_details >= 1) {
-        plot(seq(self$global_opts$Q_min, self$global_opts$Q_max),
-             self$ICL_sbm[self$global_opts$Q_min : self$global_opts$Q_max],
-             col = "green", pch = 5,
-             xlab = "Q", ylab = "BICL",
-             xlim = c(self$global_opts$Q_min-1, self$global_opts$Q_max+1),
-             ylim = c(1.1*max(self$ICL_sbm), .8*max(self$ICL_sbm)))
-      }
-    },
+        }
 
+        # The current model considered
+        current_model <- self$model_list[[current_Q1, current_Q2]]
 
-    optimize_from_sbm = function(index, Q, nb_clusters) {
-      # browser()
-      # for (q in seq(self$global_opts$Q_min, self$global_opts$Q_max)) {
-      lapply(seq_along(self$A), function(m) {
-        self$fit_sbm[[m]]$setModel(index = Q)
-      })
-      # The output clustering from SBM is stored
-      # for each of the M models in Z_sbm
-      Z_sbm <- lapply(
-        seq_along(self$fit_sbm[index]),
-        function(m) self$fit_sbm[index][[m]]$memberships
-      )
-      # The below prob is the intra-cluster connection probability of the alpha
-      # ie the diagonal of the alpha matrix
-      prob <- lapply(seq_along(self$fit_sbm[index]),
-                     function(m) diag(self$fit_sbm[index][[m]]$connectParam$mean))
-      nb_init <- ifelse(Q == 1, 1, self$global_opts$nb_init)
+        neighbors <- list(c(1, 0), c(0, 1)) # c(-1,0),c(0,-1), are merge, # TODO see if they are needed
+        # We loop through the neighbors of the current point
+        for (neighbor in neighbors) {
+          next_Q1 <- neighbor[[1]] + current_Q1
+          next_Q2 <- neighbor[[2]] + current_Q2
 
-      models <- lapply(
-        seq(nb_init),
-        function(it) {
-          if(it == 1) {
-            # For the first init, we use the Z order given by the SBM
-            mypopbm <- fitSimpleSBMPop$new(A = self$A[index],
-                                           mask = self$mask[index],
-                                           model = self$model,
-                                           net_id = self$net_id[index],
-                                           free_density = self$free_density,
-                                           free_mixture = self$free_mixture,
-                                           Q = Q,
-                                           Z = Z_sbm[index],
-                                           logfactA = self$logfactA[index],
-                                           init_method = "given",
-                                           fit_opts = self$fit_opts)
-          } else {
-            if(it == 2) {
-              Z_init <- lapply(
-                seq_along(Z_sbm),
-                function(m) {
-                  # ord contains Q probabilities and is
-                  # deterministically ranked from the lowest to the highest
-                  # intra-connection probability
-                  ord <- order(prob[[m]])
-                  # This returns the cluster membership (Z) in this order
-                  # and this clustering is put in Z_init
-                  ord[match(Z_sbm[[m]], unique(Z_sbm[[m]]))]
-                }
+          # Initialize
+          next_Z_init <- vector("list", self$M)
+
+          if (next_Q1 < 1 || next_Q1 > self$global_opts$Q1_max || next_Q2 < 1 || next_Q2 > self$global_opts$Q2_max) {
+            # The value is out of the allowed values, we quit this iteration
+            if (self$global_opts$verbosity >= 4) {
+              cat(
+                "\n(", toString(c(next_Q1, next_Q2)), ") is an INVALID neighbor for (",
+                toString(c(current_Q1, current_Q2)), ").\nSkipping to next."
               )
-              mypopbm <- fitSimpleSBMPop$new(A = self$A[index],
-                                             mask = self$mask[index],
-                                             model = self$model,
-                                             net_id = self$net_id,
-                                             free_density = self$free_density,
-                                             free_mixture = self$free_mixture,
-                                             Q = Q,
-                                             Z = Z_init,
-                                             logfactA = self$logfactA,
-                                             # Using the previous re-ordering of Z
-                                             # the init_method is "given"
-                                             init_method = "given",
-                                             fit_opts = self$fit_opts)
-            } else {
-              Z_init <- lapply(
-                seq_along(Z_sbm),
-                function(m) {
-                  # Here the order is ranked by the highest to the lowest prob
-                  # but using a sampling (introducing randomness)
-                  ord <- sample(seq_along(prob[[m]]),
-                                size = length(prob[[m]]), prob = prob[[m]])
-                  ord[match(Z_sbm[[m]], unique(Z_sbm[[m]]))]
-                }
-              )
-              mypopbm <- fitSimpleSBMPop$new(A = self$A[index],
-                                             mask = self$mask[index],
-                                             model = self$model,
-                                             net_id = self$net_id,
-                                             free_density = self$free_density,
-                                             free_mixture = self$free_mixture,
-                                             Q = Q,
-                                             Z = Z_init,
-                                             logfactA = self$logfactA,
-                                             init_method = "given",
-                                             fit_opts = self$fit_opts)
             }
+            next
           }
-          mypopbm$optimize()
-          return(mypopbm)
+
+          # Otherwise the value is in the domain we want to explore
+          if (self$global_opts$verbosity >= 4) {
+            cat(
+              "\n(", toString(c(next_Q1, next_Q2)),
+              ") is a VALID neighbor for (",
+              toString(c(current_Q1, current_Q2)), ")."
+            )
+          }
+
+          # We store the current row clustering
+          row_clustering <- lapply(
+            seq.int(M),
+            function(m) {
+              current_model$Z[[m]][[1]]
+            }
+          )
+
+          # We store the current col clustering
+          col_clustering <- lapply(
+            seq.int(M),
+            function(m) {
+              current_model$Z[[m]][[2]]
+            }
+          )
+
+          # If we are splitting on the rows
+          if (neighbor[[1]] == 1) {
+              row_clustering <- lapply(seq.int(self$M), function(m) {
+              # We retrieve the clustering in line for
+              # the current model for the mth network
+              split_clust(
+                current_model$A[[m]], # Incidence matrix
+                current_model$Z[[m]][[1]], # The row clustering
+                current_Q1, # The number of row clusters
+                is_bipartite = TRUE
+              )[[1]] # FIXME : i'm only using the first output of split_clust !!!
+            })
+          }
+
+          # If we are splitting on the columns
+          if (neighbor[[2]] == 1) {
+            col_clustering <- lapply(seq.int(self$M), function(m) {
+              # We retrieve the clustering in columns for
+              # the current model for the mth network
+              split_clust(
+                t(current_model$A[[m]]), # Incidence matrix
+                current_model$Z[[m]][[2]], # The col clustering
+                current_Q2, # The number of col clusters
+                is_bipartite = TRUE
+              )[[1]]
+            })
+          }
+
+          # Once the row and col clustering are correctly split
+          # they are merged
+          next_Z_init <- lapply(seq.int(M), function(m){
+            list(row_clustering[[m]], col_clustering[[m]])
+          })
+
+          # Now we have the correct clustering and we begin to fit
+          next_model <- fitBipartiteSBMPop$new(
+            A = self$A,
+            Q = c(next_Q1, next_Q2),
+            free_mixture = self$free_mixture,
+            free_density = self$free_mixture,
+            init_method = "given",
+            Z = next_Z_init,
+            fit_opts = self$fit_opts
+          )
+
+          next_model$optimize()
+
+          if (is.null(self$model_list[[next_Q1, next_Q2]])) {
+            # If the point hasn't been seen yet the value is set
+            self$model_list[[next_Q1, next_Q2]] <- next_model
+          } else {
+            # If the point has been seen
+            # TODO : add a discarded_model_list (size Q1_max * Q2_max * (nb_models - 1))
+            # We append the min BICL to the discarded_model_list
+            self$discarded_model_list[[next_Q1, next_Q2]] <- append(
+              self$discarded_model_list[[next_Q1, next_Q2]], c(
+                self$model_list[[next_Q1, next_Q2]],
+                next_model
+              )[[which.min(
+                c(
+                  self$model_list[[next_Q1, next_Q2]]$BICL,
+                  next_model$BICL
+                )
+              )]]
+            )
+
+
+            # Performs the comparison and chooses the model that maximizes BICL
+            self$model_list[[next_Q1, next_Q2]] <- c(
+              self$model_list[[next_Q1, next_Q2]],
+              next_model
+            )[[which.max(
+              c(
+                self$model_list[[next_Q1, next_Q2]]$BICL,
+                next_model$BICL
+              )
+            )]]
+          }
         }
-      )
-      best_models <- self$choose_models(models = models, Q = Q)
-      self$model_list[[1]][[Q]] <- best_models
-      self$vbound[Q] <- rev(best_models[[1]]$vbound)[1]
-      self$ICL[Q] <- best_models[[1]]$MAP$ICL
-      self$BICL[Q] <- best_models[[1]]$BICL
-      # }
-    },
 
+        # Now that all possible neighbors have been visited
+        # we set the next point from which we'll loop again
+        # by finding the neighbor with max BICL
+        best_neighbor <- neighbors[[which.max(c(
+          self$model_list[[current_Q1 + neighbors[[1]][[1]], current_Q2 + neighbors[[1]][[2]]]]$BICL,
+          self$model_list[[current_Q1 + neighbors[[2]][[1]], current_Q2 + neighbors[[2]][[2]]]]$BICL
+        ))]]
+        best_neighbor <- c(current_Q1 + best_neighbor[1], current_Q2 + best_neighbor[2])
 
-    optimize_spectral = function(index, Q, nb_clusters) {
-      lapply(
-        X = seq(self$global_opts$nb_init),
-        FUN = function(it) {
-          mypopbm <- fitSimpleSBMPop$new(A = self$A[index],
-                                         mask = self$mask[index],
-                                         model = self$model,
-                                         net_id = self$net_id[index],
-                                         free_density = self$free_density,
-                                         free_mixture = self$free_mixture,
-                                         Q = Q,
-                                         logfactA = self$logfactA,
-                                         init_method = "spectral",
-                                         fit_opts = utils::modifyList(self$fit_opts, list(max_iter = 10L)))
-          mypopbm$optimize()
-          return(mypopbm)
+        # Now we set the current Q to the best neighbor
+        current_Q1 <- best_neighbor[1]
+        current_Q2 <- best_neighbor[2]
+
+        if (self$model_list[[best_neighbor[1], best_neighbor[2]]]$BICL > max_BICL_value){
+          # If the neighbor we found is best than
+          # the previous mode we update and go for one more iteration
+          max_BICL_value <- self$model_list[[best_neighbor[1], best_neighbor[2]]]$BICL
+          max_BICL_has_improved <- TRUE
+        } else {
+          # Else we've found a local mode
+          max_BICL_has_improved <- FALSE
         }
-      )
-    },
 
-    optimize_init = function(index, Z, Q, nb_clusters, Cpi = NULL, Calpha = NULL) {
-      mypopbm <- fitSimpleSBMPop$new(A = self$A[index],
-                                     mask = self$mask[index],
-                                     Z = Z,
-                                     model = self$model,
-                                     net_id = self$net_id[index],
-                                     free_density = self$free_density,
-                                     free_mixture = self$free_mixture,
-                                     Q = Q,
-                                     logfactA = self$logfactA,
-                                     init_method = "given",
-                                     Cpi = Cpi,
-                                     Calpha = Calpha,
-                                     fit_opts = self$fit_opts)
-      mypopbm$optimize()
-      return(mypopbm)
-    },
+        if (max_BICL_has_improved) {
+          end_of_text <- " and it has improved ! Going for another step."
+        } else {
+          end_of_text <- " and it hasn't improved ! Stopping here."
+        }
 
-    optimize_from_zinit = function(index, Q, nb_clusters) {
-      models <- lapply(self$Z_init[[Q]],
-                       function(Z) self$optimize_init(index, Z, Q, nb_clusters))
-      best_models <- self$choose_models(models = models, Q = Q)
-      self$model_list[[1]][[Q]] <- best_models
-      self$vbound[Q] <- rev(best_models[[1]]$vbound)[1]
-      self$ICL[Q] <- best_models[[1]]$MAP$ICL
-      self$BICL[Q] <- best_models[[1]]$BICL
-    },
+        if (self$global_opts$verbosity >= 4) {
+          cat("\nFor this round the best neighbor is: ", toString(best_neighbor), end_of_text)
+        }
 
+        # We increase the step
+        step <- step + 1
+      }
+      # TODO : plot a surface of the BICL function of the Q1 and Q2
+    },
 
     #' Burn-in method to start exploring the state of space
     #' 
@@ -476,6 +509,8 @@ lbmpop <- R6::R6Class(
 
       # Here we combine the networks to fit a
       # fitBipartite object on the M networks
+
+      # We retrieve the clustering for the M (1,2) separated models
       M_clusterings_1_2 <- lapply(
         seq.int(M),
         function(m) {
@@ -486,6 +521,7 @@ lbmpop <- R6::R6Class(
         }
       )
 
+      # We retrieve the clustering for the M (2,1) separated models 
       M_clusterings_2_1 <- lapply(
         seq.int(M),
         function(m) {
@@ -560,9 +596,12 @@ lbmpop <- R6::R6Class(
       # We parallelize the search from the two points (1,2) / (2,1)
       # and we go looking for the mode with a greedy approach
       # Visiting each of the neighbors
-      # greedy_exploration(start)
 
-      
+      # Greedy exploration from (1,2)
+      mode_1_2 <- self$greedy_exploration(c(1,2))
+
+      # Greedy exploration from (2,1)
+      mode_2_1 <- self$greedy_exploration(c(2, 1))
 
       if(self$global_opts$verbosity >=3) {
         cat(
