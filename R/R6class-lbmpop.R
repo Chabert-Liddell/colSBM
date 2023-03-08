@@ -325,12 +325,10 @@ lbmpop <- R6::R6Class(
     burn_in = function() {
       start_time <- Sys.time()
       # The function fit M fitBipartite from spectral clust for Q = (1,2) and Q = (2,1)
-      # TODO : implement the M fitBipartite from spectral clust
+      # DONE : implement the M fitBipartite from spectral clust
 
-      self$separated_inits <- list(
-        list(NULL, NULL),
-        list(NULL, NULL)
-      ) # The outer list is Q1, the inner is Q2
+      self$separated_inits <- vector("list", 4) # The first coordinate is Q1, the second is Q2
+      dim(self$separated_inits) <- c(2,2)
 
       if (self$global_opts$verbosity >= 3) {
         cat("=== Beginning Burn in ===\n")
@@ -342,7 +340,7 @@ lbmpop <- R6::R6Class(
         cat("Fitting ", self$M, " networks for Q = (", toString(c(1, 2)), ")\n")
       }
 
-      self$separated_inits[[1]][[2]] <- lapply(
+      self$separated_inits[[1,2]] <- lapply(
         seq.int(self$M),
         function(m) {
           fitBipartiteSBMPop$new(
@@ -360,14 +358,14 @@ lbmpop <- R6::R6Class(
       lapply(
         seq.int(self$M),
         function(m) {
-          self$separated_inits[[1]][[2]][[m]]$optimize()
+          self$separated_inits[[1,2]][[m]]$optimize()
         }
       )
 
       if (self$global_opts$verbosity >= 4) {
         sep_vbounds <- lapply(seq.int(self$M),
         function(m){
-          max(self$separated_inits[[1]][[2]][[m]]$vbound)
+          max(self$separated_inits[[1,2]][[m]]$vbound)
         })
         cat(
           "Finished fitting ", self$M, " networks for Q = (", toString(c(1, 2)),
@@ -381,7 +379,7 @@ lbmpop <- R6::R6Class(
         cat("\nFitting ", self$M, " networks for Q = (", toString(c(2, 1)), ")\n")
       }
 
-      self$separated_inits[[2]][[1]] <- lapply(
+      self$separated_inits[[2,1]] <- lapply(
         seq.int(self$M),
         function(m) {
           fitBipartiteSBMPop$new(
@@ -398,14 +396,14 @@ lbmpop <- R6::R6Class(
       lapply(
         seq.int(self$M),
         function(m) {
-          self$separated_inits[[2]][[1]][[m]]$optimize()
+          self$separated_inits[[2,1]][[m]]$optimize()
         }
       )
     if (self$global_opts$verbosity >= 4) {
       sep_vbounds <- lapply(
         seq.int(self$M),
         function(m) {
-          max(self$separated_inits[[2]][[1]][[m]]$vbound)
+          max(self$separated_inits[[2,1]][[m]]$vbound)
         }
       )
       cat(
@@ -420,14 +418,14 @@ lbmpop <- R6::R6Class(
       # TODO : implement the M LBM from blockmodels
 
       # Here we match the clusters from the M fit objects
-      # TODO : implement the matching
+      # DONE : implement the matching
       # By using the order of the marginal laws
       if (self$global_opts$verbosity >= 4) {
         cat("\nBeginning to match results for the Separated LBMs.")
       }
 
       for (m in seq.int(M)) {
-        current_m_init <- self$separated_inits[[1]][[2]][[m]]
+        current_m_init <- self$separated_inits[[1,2]][[m]]
 
         # The clustering are one hot encoded because the permutations are 
         # easier to perform
@@ -458,8 +456,8 @@ lbmpop <- R6::R6Class(
         row_clustering <- .rev_one_hot(row_clustering)
         col_clustering <- .rev_one_hot(col_clustering)
 
-        self$separated_inits[[1]][[2]][[m]]$Z[[1]][[1]] <- row_clustering
-        self$separated_inits[[1]][[2]][[m]]$Z[[1]][[2]] <- col_clustering
+        self$separated_inits[[1,2]][[m]]$Z[[1]][[1]] <- row_clustering
+        self$separated_inits[[1,2]][[m]]$Z[[1]][[2]] <- col_clustering
 
         if (self$global_opts$verbosity >= 4) {
           cat(
@@ -484,7 +482,7 @@ lbmpop <- R6::R6Class(
           # We add [[1]] after Z because we fitted
           # only one network with the objects stored
           # where the class is supposed to store more
-          self$separated_inits[[1]][[2]][[m]]$Z[[1]]
+          self$separated_inits[[1,2]][[m]]$Z[[1]]
         }
       )
 
@@ -494,11 +492,11 @@ lbmpop <- R6::R6Class(
           # We add [[1]] after Z because we fitted 
           # only one network with the objects stored
           # where the class is supposed to store more
-          self$separated_inits[[2]][[1]][[m]]$Z[[1]]
+          self$separated_inits[[2,1]][[m]]$Z[[1]]
         }
       )
 
-      self$separated_inits[[1]][[2]] <- fitBipartiteSBMPop$new(
+      self$separated_inits[[1,2]] <- fitBipartiteSBMPop$new(
         A = self$A, Q = c(1, 2),
         free_mixture = self$free_mixture,
         free_density = self$free_mixture,
@@ -507,7 +505,7 @@ lbmpop <- R6::R6Class(
         fit_opts = self$fit_opts
       )
 
-      self$separated_inits[[2]][[1]] <- fitBipartiteSBMPop$new(
+      self$separated_inits[[2,1]] <- fitBipartiteSBMPop$new(
         A = self$A, Q = c(2, 1),
         free_mixture = self$free_mixture,
         free_density = self$free_mixture,
@@ -532,7 +530,7 @@ lbmpop <- R6::R6Class(
           )
         }
         
-        self$separated_inits[[index]][[3 - index]]$optimize()
+        self$separated_inits[[index,3 - index]]$optimize()
       })
 
       if (self$global_opts$verbosity >= 4) {
@@ -542,29 +540,33 @@ lbmpop <- R6::R6Class(
           cat("\nQ = (", toString(c(index, 3 - index)), ") :")
           cat(
             "\n\tvbound:",
-            toString(self$separated_inits[[index]][[3 - index]]$vbound)
+            toString(self$separated_inits[[index,3 - index]]$vbound)
           )
           cat(
             "\n\tICL:",
-            toString(self$separated_inits[[index]][[3 - index]]$ICL)
+            toString(self$separated_inits[[index,3 - index]]$ICL)
           )
           cat(
             "\n\tBICL:",
-            toString(self$separated_inits[[index]][[3 - index]]$BICL)
+            toString(self$separated_inits[[index,3 - index]]$BICL)
           )
         }
       }
+
+      # Store the given initialization
+      self$model_list[1, 2] <- self$separated_inits[1, 2]
+      self$model_list[2, 1] <- self$separated_inits[2, 1]
 
       # We parallelize the search from the two points (1,2) / (2,1)
       # and we go looking for the mode with a greedy approach
       # Visiting each of the neighbors
       # greedy_exploration(start)
 
-      # Store the given initialization
+      
 
       if(self$global_opts$verbosity >=3) {
         cat(
-          "\n==== Finish Burn in",
+          "\n==== Finished Burn in",
           " for networks ", self$net_id, " in ", 
           format(Sys.time() - start_time, digits = 3),
           "s ===\n"
