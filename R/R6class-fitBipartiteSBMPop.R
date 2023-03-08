@@ -976,7 +976,7 @@ fitBipartiteSBMPop <- R6::R6Class(
     },
     optimize = function(max_step = 100, tol = 1e-3, ...) {
       if (all(self$Q == c(1, 1))) {
-        # TODO urgently : handle the case where Q1 == 1 && Q2 != 1 || Q1 != 1 && Q2 == 1
+        # DONE urgently : handle the case where Q1 == 1 && Q2 != 1 || Q1 != 1 && Q2 == 1
         # DONE Two dimensions for tau, Z and pi
         self$tau <- lapply(
           seq(self$M),
