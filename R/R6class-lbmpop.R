@@ -155,6 +155,36 @@ lbmpop <- R6::R6Class(
       self$fit_opts <- utils::modifyList(self$fit_opts, fit_opts)
     },
 
+    state_space_plot = function(){
+      if (self$global_opts$plot_details >= 1) {
+
+        # Creating an empty dataframe
+        # FIXME : there might be a better way than
+        # this horrible loop
+        data_state_space <- as.data.frame(matrix(ncol=4, nrow=0))
+        names(data_state_space) <- c("Q1", "Q2", "BICL", "isMaxBICL")
+
+        for (i in seq.int(self$global_opts$Q1_max)) {
+          for (j in seq.int(self$global_opts$Q2_max)) {
+            if (!is.null(self$model_list[[i, j]])) {
+              # If the model with Q1 and Q2 was seen
+              # we add a line in the dataframe
+              # data_state_space <- data_state_space %>%
+              #   tidyverse::add_row(Q1 = i, Q2 = j, BICL = self$model_list[[i,j]]$BICL)
+              data_state_space[nrow(data_state_space) + 1, ] <- list(i, j, self$model_list[[i, j]]$BICL, FALSE)
+            }
+          }
+        }
+
+        # Here the max BICL is highlighted
+        data_state_space[which.max(data_state_space$BICL), ]$isMaxBICL <- TRUE
+
+        ggplot(data_state_space)+
+        aes(x=Q1, y=Q2, size = BICL, colour = isMaxBICL) +
+        geom_point(alpha=0.7)
+      }
+    },
+
     #' Function to greedily explore state of space looking for the mode
     #' and storing the models discovered along the way
     #' 
@@ -167,6 +197,7 @@ lbmpop <- R6::R6Class(
       current_Q2 <- starting_point[2]
 
       max_BICL_value <- -Inf
+      step_without_improvement <- 0
       max_BICL_has_improved <- TRUE
       step <- 0
 
@@ -297,7 +328,6 @@ lbmpop <- R6::R6Class(
               )]]
             )
 
-
             # Performs the comparison and chooses the model that maximizes BICL
             self$model_list[[next_Q1, next_Q2]] <- c(
               self$model_list[[next_Q1, next_Q2]],
@@ -328,10 +358,14 @@ lbmpop <- R6::R6Class(
           # If the neighbor we found is best than
           # the previous mode we update and go for one more iteration
           max_BICL_value <- self$model_list[[best_neighbor[1], best_neighbor[2]]]$BICL
+          step_without_improvement <- 0
           max_BICL_has_improved <- TRUE
         } else {
           # Else we've found a local mode
-          max_BICL_has_improved <- FALSE
+          step_without_improvement <- step_without_improvement + 1
+          if (step_without_improvement >= 3) {
+            max_BICL_has_improved <- FALSE
+          }
         }
 
         if (max_BICL_has_improved) {
@@ -346,8 +380,14 @@ lbmpop <- R6::R6Class(
 
         # We increase the step
         step <- step + 1
+        self$state_space_plot()
       }
       # TODO : plot a surface of the BICL function of the Q1 and Q2
+      
+
+
+      # Return the coordinates of the max BICL that has been found
+
     },
 
     #' Burn-in method to start exploring the state of space
