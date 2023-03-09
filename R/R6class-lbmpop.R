@@ -179,9 +179,11 @@ lbmpop <- R6::R6Class(
         # Here the max BICL is highlighted
         data_state_space[which.max(data_state_space$BICL), ]$isMaxBICL <- TRUE
 
-        ggplot(data_state_space)+
-        aes(x=Q1, y=Q2, size = BICL, colour = isMaxBICL) +
-        geom_point(alpha=0.7)
+        ggplot(data_state_space) +
+          aes(x = Q1, y = Q2, size = BICL, colour = isMaxBICL) +
+          geom_point(alpha = 0.7) +
+            scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q1_max)) +
+            scale_x_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q1_max))
       }
     },
 
@@ -197,6 +199,7 @@ lbmpop <- R6::R6Class(
       current_Q2 <- starting_point[2]
 
       max_BICL_value <- -Inf
+      max_BICL_coordinates <- NULL
       step_without_improvement <- 0
       max_BICL_has_improved <- TRUE
       step <- 0
@@ -248,7 +251,7 @@ lbmpop <- R6::R6Class(
 
           # We store the current row clustering
           row_clustering <- lapply(
-            seq.int(M),
+            seq.int(self$M),
             function(m) {
               current_model$Z[[m]][[1]]
             }
@@ -256,7 +259,7 @@ lbmpop <- R6::R6Class(
 
           # We store the current col clustering
           col_clustering <- lapply(
-            seq.int(M),
+            seq.int(self$M),
             function(m) {
               current_model$Z[[m]][[2]]
             }
@@ -292,7 +295,7 @@ lbmpop <- R6::R6Class(
 
           # Once the row and col clustering are correctly split
           # they are merged
-          next_Z_init <- lapply(seq.int(M), function(m){
+          next_Z_init <- lapply(seq.int(self$M), function(m){
             list(row_clustering[[m]], col_clustering[[m]])
           })
 
@@ -307,6 +310,10 @@ lbmpop <- R6::R6Class(
             fit_opts = self$fit_opts
           )
 
+
+          if (self$global_opts$verbosity >= 4){
+            cat("\nFitting Q=(", toString(c(next_Q1, next_Q2)), ").")
+          }
           next_model$optimize()
 
           if (is.null(self$model_list[[next_Q1, next_Q2]])) {
@@ -358,6 +365,7 @@ lbmpop <- R6::R6Class(
           # If the neighbor we found is best than
           # the previous mode we update and go for one more iteration
           max_BICL_value <- self$model_list[[best_neighbor[1], best_neighbor[2]]]$BICL
+          max_BICL_coordinates <- c(best_neighbor[1], best_neighbor[2])
           step_without_improvement <- 0
           max_BICL_has_improved <- TRUE
         } else {
@@ -382,12 +390,11 @@ lbmpop <- R6::R6Class(
         step <- step + 1
         self$state_space_plot()
       }
-      # TODO : plot a surface of the BICL function of the Q1 and Q2
       
 
 
       # Return the coordinates of the max BICL that has been found
-
+      return(max_BICL_coordinates)
     },
 
     #' Burn-in method to start exploring the state of space
@@ -417,7 +424,7 @@ lbmpop <- R6::R6Class(
         seq.int(self$M),
         function(m) {
           fitBipartiteSBMPop$new(
-            A = list(self$A[[m]]), 
+            A = list(self$A[[m]]),
             Q = c(1, 2),
             free_mixture = self$free_mixture,
             free_density = self$free_mixture,
@@ -497,7 +504,7 @@ lbmpop <- R6::R6Class(
         cat("\nBeginning to match results for the Separated LBMs.")
       }
 
-      for (m in seq.int(M)) {
+      for (m in seq.int(self$M)) {
         current_m_init <- self$separated_inits[[1,2]][[m]]
 
         # The clustering are one hot encoded because the permutations are 
@@ -552,7 +559,7 @@ lbmpop <- R6::R6Class(
 
       # We retrieve the clustering for the M (1,2) separated models
       M_clusterings_1_2 <- lapply(
-        seq.int(M),
+        seq.int(self$M),
         function(m) {
           # We add [[1]] after Z because we fitted
           # only one network with the objects stored
@@ -563,7 +570,7 @@ lbmpop <- R6::R6Class(
 
       # We retrieve the clustering for the M (2,1) separated models 
       M_clusterings_2_1 <- lapply(
-        seq.int(M),
+        seq.int(self$M),
         function(m) {
           # We add [[1]] after Z because we fitted 
           # only one network with the objects stored
@@ -638,10 +645,18 @@ lbmpop <- R6::R6Class(
       # Visiting each of the neighbors
 
       # Greedy exploration from (1,2)
-      mode_1_2 <- self$greedy_exploration(c(1,2))
+      mode_1_2 <- self$greedy_exploration(c(1, 2))
+      self$state_space_plot()
+      if (self$global_opts$verbosity >= 4){
+        cat("\nFrom (", toString(c(1,2)),") the mode is at: (", toString(mode_1_2),").")
+      }
 
       # Greedy exploration from (2,1)
       mode_2_1 <- self$greedy_exploration(c(2, 1))
+      self$state_space_plot()
+      if (self$global_opts$verbosity >= 4) {
+        cat("\nFrom (", toString(c(2, 1)), ") the mode is at: (", toString(mode_2_1), ").")
+      }
 
       if(self$global_opts$verbosity >=3) {
         cat(
