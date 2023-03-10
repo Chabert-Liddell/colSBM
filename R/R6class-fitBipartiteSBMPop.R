@@ -60,6 +60,9 @@ fitBipartiteSBMPop <- R6::R6Class(
     counter_split = 0,
     fit_opts = NULL,
     step_counter = 0,
+    greedy_exploration_starting_point = NULL, # Stores the coordinates Q1 & Q2
+                                              # from the greedy exploration to
+                                              # keep track of the starting_point
     initialize = function(A = NULL,
                           Q = NULL,
                           Z = NULL,
@@ -71,6 +74,7 @@ fitBipartiteSBMPop <- R6::R6Class(
                           directed = NULL,
                           init_method = "spectral",
                           weight = NULL, # A vector of size M, the weight of each network
+                          greedy_exploration_starting_point = NULL,
                           fit_opts = list(
                             algo_ve = "fp",
                             approx_pois = TRUE,
@@ -86,6 +90,7 @@ fitBipartiteSBMPop <- R6::R6Class(
       # TODO : implement sanity checks
       # testthat : package to check the output of functions, unitary test
 
+      self$greedy_exploration_starting_point <- greedy_exploration_starting_point
 
       self$A <- A
       self$M <- length(A)

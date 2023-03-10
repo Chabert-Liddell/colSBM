@@ -161,8 +161,10 @@ lbmpop <- R6::R6Class(
         # Creating an empty dataframe
         # FIXME : there might be a better way than
         # this horrible loop
-        data_state_space <- as.data.frame(matrix(ncol=4, nrow=0))
-        names(data_state_space) <- c("Q1", "Q2", "BICL", "isMaxBICL")
+        data_state_space <- as.data.frame(matrix(ncol=5, nrow=0))
+        names(data_state_space) <- c("Q1", "Q2", "BICL", "isMaxBICL", "startingPoint")
+
+        # TODO : replace the double for loop by two nested sapply
 
         for (i in seq.int(self$global_opts$Q1_max)) {
           for (j in seq.int(self$global_opts$Q2_max)) {
@@ -171,19 +173,25 @@ lbmpop <- R6::R6Class(
               # we add a line in the dataframe
               # data_state_space <- data_state_space %>%
               #   tidyverse::add_row(Q1 = i, Q2 = j, BICL = self$model_list[[i,j]]$BICL)
-              data_state_space[nrow(data_state_space) + 1, ] <- list(i, j, self$model_list[[i, j]]$BICL, FALSE)
+              data_state_space[nrow(data_state_space) + 1, ] <- list(
+                i,
+                j,
+                self$model_list[[i, j]]$BICL,
+                FALSE,
+                as.character(toString(c(self$model_list[[i, j]]$greedy_exploration_starting_point[1], self$model_list[[i, j]]$greedy_exploration_starting_point[2])))
+              )
             }
           }
         }
-
         # Here the max BICL is highlighted
         data_state_space[which.max(data_state_space$BICL), ]$isMaxBICL <- TRUE
 
         ggplot(data_state_space) +
-          aes(x = Q1, y = Q2, size = BICL, colour = isMaxBICL) +
-          geom_point(alpha = 0.7) +
-            scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q1_max)) +
-            scale_x_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q1_max))
+          aes(x = Q1, y = Q2, size = BICL, colour = isMaxBICL, alpha = BICL, fill = startingPoint) +
+          geom_point() +
+          scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q1_max)) +
+          scale_x_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q1_max)) +
+          ggtitle("State space for ", toString(self$net_id))
       }
     },
 
@@ -265,9 +273,14 @@ lbmpop <- R6::R6Class(
             }
           )
 
+          row_possible_splits <- NULL
+          col_possible_splits <- NULL
+
+
+
           # If we are splitting on the rows
           if (neighbor[[1]] == 1) {
-              row_clustering <- lapply(seq.int(self$M), function(m) {
+              row_possible_splits <- lapply(seq.int(self$M), function(m) {
               # We retrieve the clustering in line for
               # the current model for the mth network
               split_clust(
@@ -275,13 +288,55 @@ lbmpop <- R6::R6Class(
                 current_model$Z[[m]][[1]], # The row clustering
                 current_Q1, # The number of row clusters
                 is_bipartite = TRUE
-              )[[1]] # FIXME : i'm only using the first output of split_clust !!!
+              )
             })
+
+              # Fitting the Q splits and selecting the next model
+              possible_models <- lapply(seq.int(current_Q1), function(q) {
+                # Once the row and col clustering are correctly split
+                # they are merged
+                q_th_Z_init <- lapply(seq.int(self$M), function(m) {
+                  list(row_possible_splits[[m]][[q]], col_clustering[[m]])
+                })
+                q_th_model <- fitBipartiteSBMPop$new(
+                  A = self$A,
+                  Q = c(next_Q1, next_Q2),
+                  free_mixture = self$free_mixture,
+                  free_density = self$free_mixture,
+                  init_method = "given",
+                  Z = q_th_Z_init,
+                  fit_opts = self$fit_opts,
+                  greedy_exploration_starting_point = starting_point
+                )
+                q_th_model
+              })
+
+            if (self$global_opts$verbosity >= 4) {
+              cat("\nFitting Q = (", toString(c(next_Q1, next_Q2)), ") on row splits.")
+            }
+
+              # Now we fit all the models for the differents splits
+              possible_models_BICLs <- lapply(seq_along(possible_models), function(s) {
+              if (self$global_opts$verbosity >= 4) {
+                cat("\nFitting ", s, "/", length(possible_models), "split for rows.")
+              }
+                possible_models[[s]]$optimize()
+                possible_models[[s]]$BICL
+              })
+
+              # The best in sense of BICL is
+              if (self$global_opts$verbosity >= 4){
+                cat("\nThe best row split is: ", which.max(possible_models_BICLs))
+              }
+              next_model <- possible_models[[which.max(possible_models_BICLs)]]
           }
+
+          # FIXME : to be sure to have the starting point
+          next_model$greedy_exploration_starting_point <- starting_point
 
           # If we are splitting on the columns
           if (neighbor[[2]] == 1) {
-            col_clustering <- lapply(seq.int(self$M), function(m) {
+            col_possible_splits <- lapply(seq.int(self$M), function(m) {
               # We retrieve the clustering in columns for
               # the current model for the mth network
               split_clust(
@@ -289,32 +344,47 @@ lbmpop <- R6::R6Class(
                 current_model$Z[[m]][[2]], # The col clustering
                 current_Q2, # The number of col clusters
                 is_bipartite = TRUE
-              )[[1]]
+              )
             })
+            # Fitting the Q splits and selecting the next model
+            possible_models <- lapply(seq.int(current_Q2), function(q) {
+              # Once the row and col clustering are correctly split
+              # they are merged
+              q_th_Z_init <- lapply(seq.int(self$M), function(m) {
+                list(row_clustering[[m]], col_possible_splits[[m]][[q]])
+              })
+              q_th_model <- fitBipartiteSBMPop$new(
+                A = self$A,
+                Q = c(next_Q1, next_Q2),
+                free_mixture = self$free_mixture,
+                free_density = self$free_mixture,
+                init_method = "given",
+                Z = q_th_Z_init,
+                fit_opts = self$fit_opts,
+                greedy_exploration_starting_point = starting_point
+              )
+              q_th_model
+            })
+
+            if (self$global_opts$verbosity >= 4) {
+              cat("\nFitting Q = (", toString(c(next_Q1, next_Q2)), ") on columns splits.")
+            }
+
+            # Now we fit all the models for the differents splits
+            possible_models_BICLs <- lapply(seq_along(possible_models), function(s) {
+              if (self$global_opts$verbosity >= 4) {
+                cat("\nFitting ", s, "/", length(possible_models), "split for columns.")
+              }
+              possible_models[[s]]$optimize()
+              possible_models[[s]]$BICL
+            })
+
+            # The best in sense of BICL is
+            if (self$global_opts$verbosity >= 4) {
+              cat("\nThe best col split is: ", which.max(possible_models_BICLs))
+            }
+            next_model <- possible_models[[which.max(possible_models_BICLs)]]
           }
-
-          # Once the row and col clustering are correctly split
-          # they are merged
-          next_Z_init <- lapply(seq.int(self$M), function(m){
-            list(row_clustering[[m]], col_clustering[[m]])
-          })
-
-          # Now we have the correct clustering and we begin to fit
-          next_model <- fitBipartiteSBMPop$new(
-            A = self$A,
-            Q = c(next_Q1, next_Q2),
-            free_mixture = self$free_mixture,
-            free_density = self$free_mixture,
-            init_method = "given",
-            Z = next_Z_init,
-            fit_opts = self$fit_opts
-          )
-
-
-          if (self$global_opts$verbosity >= 4){
-            cat("\nFitting Q=(", toString(c(next_Q1, next_Q2)), ").")
-          }
-          next_model$optimize()
 
           if (is.null(self$model_list[[next_Q1, next_Q2]])) {
             # If the point hasn't been seen yet the value is set
@@ -352,8 +422,14 @@ lbmpop <- R6::R6Class(
         # we set the next point from which we'll loop again
         # by finding the neighbor with max BICL
         best_neighbor <- neighbors[[which.max(c(
-          self$model_list[[current_Q1 + neighbors[[1]][[1]], current_Q2 + neighbors[[1]][[2]]]]$BICL,
-          self$model_list[[current_Q1 + neighbors[[2]][[1]], current_Q2 + neighbors[[2]][[2]]]]$BICL
+          ifelse(current_Q1 + neighbors[[1]][[1]] <= self$global_opts$Q1_max && current_Q2 + neighbors[[1]][[2]] <= self$global_opts$Q2_max, 
+          self$model_list[[current_Q1 + neighbors[[1]][[1]],current_Q2 + neighbors[[1]][[2]]]]$BICL, # If the Q1 and Q2 are inbound we test them
+          -Inf), # Else we compare to -Inf
+
+          ifelse(current_Q1 + neighbors[[2]][[1]] <= self$global_opts$Q1_max && current_Q2 + neighbors[[2]][[2]] <= self$global_opts$Q2_max, 
+          self$model_list[[current_Q1 + neighbors[[2]][[1]], current_Q2 + neighbors[[2]][[2]]]]$BICL,
+            -Inf
+          )
         ))]]
         best_neighbor <- c(current_Q1 + best_neighbor[1], current_Q2 + best_neighbor[2])
 
@@ -413,7 +489,6 @@ lbmpop <- R6::R6Class(
       if (self$global_opts$verbosity >= 3) {
         cat("=== Beginning Burn in ===\n")
       }
-        
 
       # Init for Q = (1,2)
       if (self$global_opts$verbosity >= 4) {
@@ -553,6 +628,20 @@ lbmpop <- R6::R6Class(
         cat("\nMatching finished.\n")
         cat("Beginning to combine networks.")
       }
+
+      if (self$global_opts$verbosity >= 4) {
+        cat("\nFitting full model Q=(1,1) for ", self$M)
+      }
+
+      self$model_list[[1, 1]] <- fitBipartiteSBMPop$new(
+        A = self$A, 
+        Q = c(1, 1),
+        free_mixture = self$free_mixture,
+        free_density = self$free_mixture,
+        fit_opts = self$fit_opts
+      )
+
+      self$model_list[[1,1]]$optimize()
 
       # Here we combine the networks to fit a
       # fitBipartite object on the M networks
