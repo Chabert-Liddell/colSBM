@@ -452,10 +452,13 @@ lbmpop <- R6::R6Class(
           }
         }
 
-        if (max_BICL_has_improved) {
-          end_of_text <- " and it has improved ! Going for another step."
+        if (max_BICL_has_improved && step_without_improvement == 0){
+          # If the BICL improved in this round
+          end_of_text <- " and the BICL improved at this step. Going for another step"
+        } else if (max_BICL_has_improved && step_without_improvement <= 3) {
+          end_of_text <- paste0(" and the BICL hasn't improved at this step. ", step_without_improvement, "/3 steps without improvement.")
         } else {
-          end_of_text <- " and it hasn't improved ! Stopping here."
+          end_of_text <- " and the BICL hasn't improved 3 times in a row, stopping search."
         }
 
         if (self$global_opts$verbosity >= 4) {
