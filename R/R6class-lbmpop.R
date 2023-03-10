@@ -155,6 +155,11 @@ lbmpop <- R6::R6Class(
       self$fit_opts <- utils::modifyList(self$fit_opts, fit_opts)
     },
 
+    #' A method to plot the state of space and its current exploration.
+    #' 
+    #' @details the function takes no parameters and print a plot
+    #' of the current state of the model_list.
+    #' @return nothing
     state_space_plot = function(){
       if (self$global_opts$plot_details >= 1) {
 
@@ -186,12 +191,24 @@ lbmpop <- R6::R6Class(
         # Here the max BICL is highlighted
         data_state_space[which.max(data_state_space$BICL), ]$isMaxBICL <- TRUE
 
-        ggplot(data_state_space) +
-          aes(x = Q1, y = Q2, size = BICL, colour = isMaxBICL, alpha = BICL, fill = startingPoint) +
+        state_plot <- ggplot(
+          data_state_space,
+          aes(
+            x = Q1, y = Q2
+          )
+        ) +
           geom_point() +
+          aes(
+            size = BICL,
+            colour = startingPoint,
+            alpha = BICL,
+            fill = isMaxBICL
+          ) +
+          scale_size(range = c(1, 12), name = "BICL") +
           scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q1_max)) +
           scale_x_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q1_max)) +
           ggtitle("State space for ", toString(self$net_id))
+        print(state_plot)
       }
     },
 
@@ -467,10 +484,10 @@ lbmpop <- R6::R6Class(
 
         # We increase the step
         step <- step + 1
-        self$state_space_plot()
       }
       
-
+      # Plot the state of space and it's exploration
+      self$state_space_plot()
 
       # Return the coordinates of the max BICL that has been found
       return(max_BICL_coordinates)
@@ -641,7 +658,8 @@ lbmpop <- R6::R6Class(
         Q = c(1, 1),
         free_mixture = self$free_mixture,
         free_density = self$free_mixture,
-        fit_opts = self$fit_opts
+        fit_opts = self$fit_opts,
+        greedy_exploration_starting_point = c(1,1),
       )
 
       self$model_list[[1,1]]$optimize()
@@ -677,7 +695,8 @@ lbmpop <- R6::R6Class(
         free_density = self$free_mixture,
         Z = M_clusterings_1_2,
         init_method = "given",
-        fit_opts = self$fit_opts
+        fit_opts = self$fit_opts,
+        greedy_exploration_starting_point = c(1,2)
       )
 
       self$separated_inits[[2,1]] <- fitBipartiteSBMPop$new(
@@ -686,7 +705,8 @@ lbmpop <- R6::R6Class(
         free_density = self$free_mixture,
         Z = M_clusterings_2_1,
         init_method = "given",
-        fit_opts = self$fit_opts
+        fit_opts = self$fit_opts,
+        greedy_exploration_starting_point = c(2,1)
       )
 
       if (self$global_opts$verbosity >= 4) {
@@ -748,6 +768,13 @@ lbmpop <- R6::R6Class(
       self$state_space_plot()
       if (self$global_opts$verbosity >= 4) {
         cat("\nFrom (", toString(c(2, 1)), ") the mode is at: (", toString(mode_2_1), ").")
+      }
+
+      # FIXME : just testing if exploring from mode changes
+      super_mode_1_2 <- self$greedy_exploration(mode_1_2)
+
+      if (self$global_opts$verbosity >= 4) {
+        cat("\nFrom (", toString(toString(mode_1_2)), ") the mode is at: (", toString(super_mode_1_2), ").")
       }
 
       if(self$global_opts$verbosity >=3) {
