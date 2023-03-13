@@ -22,6 +22,8 @@ lbmpop <- R6::R6Class(
     separated_inits = NULL, # A nested list : Q1 init containing Q2 init
                             # with each entry containing list of size M 
                             # storing the separated inits for the class
+    exploration_order_list = NULL, # A list used to store the path taken
+                                  # in the state space
     Z_init = NULL,
     free_density = NULL,
     free_mixture = NULL,
@@ -117,7 +119,7 @@ lbmpop <- R6::R6Class(
         byrow = TRUE
       )
 
-      # Initialising the model_list
+      # Initializing the model_list
       self$model_list <- vector(
         "list",
         self$global_opts$Q1_max * self$global_opts$Q2_max
@@ -126,6 +128,9 @@ lbmpop <- R6::R6Class(
         self$global_opts$Q1_max,
         self$global_opts$Q2_max
       )
+
+      # Initializing the exploration list
+      exploration_order_list <- vector("list")
 
       # Initialising the discarded model_list
       # FIXME : for now i will fill each Q1*Q2 slot with an unlimited size list
@@ -200,7 +205,7 @@ lbmpop <- R6::R6Class(
           geom_point() +
           aes(
             size = BICL,
-            colour = startingPoint,
+            colour = isMaxBICL,
             alpha = BICL,
             fill = isMaxBICL
           ) +
@@ -228,6 +233,15 @@ lbmpop <- R6::R6Class(
       current_Q1 <- starting_point[1]
       current_Q2 <- starting_point[2]
 
+      # Setting the starting point in the exploration order list
+      self$exploration_order_list <- append(
+        self$exploration_order_list,
+        list(list(c(current_Q1, current_Q2)))
+      )
+
+      # Retrieve the index in the exploration order list
+      index_in_exploration_order_list <- length(self$exploration_order_list)
+
       max_BICL_value <- -Inf
       max_BICL_coordinates <- NULL
       step_without_improvement <- 0
@@ -246,6 +260,14 @@ lbmpop <- R6::R6Class(
             toString(c(current_Q1, current_Q2)), ")"
           )
         }
+
+        # Appending the current point to the exploration order list
+        # FIXME : this duplicates the first value
+        self$exploration_order_list[[index_in_exploration_order_list]] <- append(
+          self$exploration_order_list[[index_in_exploration_order_list]],
+          list(c(current_Q1, current_Q2))
+        )
+
 
         # The current model considered
         current_model <- self$model_list[[current_Q1, current_Q2]]
@@ -493,7 +515,9 @@ lbmpop <- R6::R6Class(
         # We increase the step
         step <- step + 1
       }
-      
+
+      self$exploration_order_list[[index_in_exploration_order_list]] <- self$exploration_order_list[[index_in_exploration_order_list]][-1]
+
       # Plot the state of space and it's exploration
       self$state_space_plot()
 
