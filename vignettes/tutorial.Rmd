@@ -81,8 +81,8 @@ best_fit$Z
 
 
 * The prediction for each dyads in the networks, here for network number 3. If 
-your goal is dyad prediction, then you should use `model = "delta"`, instead of 
-`model = "iid"`.
+your goal is dyad prediction, then you should use `colsbm_model = "delta"`, instead of 
+`colsbm_model = "iid"`.
 
 ```{r}
 best_fit$pred_dyads[[3]][1:10, 1:5]

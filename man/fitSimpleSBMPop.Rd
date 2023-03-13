@@ -14,7 +14,6 @@ once $optimize() is done
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-fitSimpleSBMPop-plot}{\code{fitSimpleSBMPop$plot()}}
 \item \href{#method-fitSimpleSBMPop-new}{\code{fitSimpleSBMPop$new()}}
 \item \href{#method-fitSimpleSBMPop-compute_map}{\code{fitSimpleSBMPop$compute_map()}}
 \item \href{#method-fitSimpleSBMPop-objective}{\code{fitSimpleSBMPop$objective()}}
@@ -47,23 +46,9 @@ once $optimize() is done
 \item \href{#method-fitSimpleSBMPop-optimize}{\code{fitSimpleSBMPop$optimize()}}
 \item \href{#method-fitSimpleSBMPop-show}{\code{fitSimpleSBMPop$show()}}
 \item \href{#method-fitSimpleSBMPop-print}{\code{fitSimpleSBMPop$print()}}
+\item \href{#method-fitSimpleSBMPop-plot}{\code{fitSimpleSBMPop$plot()}}
 \item \href{#method-fitSimpleSBMPop-clone}{\code{fitSimpleSBMPop$clone()}}
 }
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-fitSimpleSBMPop-plot"></a>}}
-\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-plot}{}}}
-\subsection{Method \code{plot()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$plot(
-  type = "graphon",
-  ord = NULL,
-  mixture = FALSE,
-  net_id = NULL,
-  ...
-)}\if{html}{\out{</div>}}
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-fitSimpleSBMPop-new"></a>}}
@@ -76,7 +61,7 @@ once $optimize() is done
   Z = NULL,
   mask = NULL,
   net_id = NULL,
-  model = "bernoulli",
+  distribution = "bernoulli",
   free_mixture = TRUE,
   free_density = TRUE,
   directed = NULL,
@@ -248,7 +233,7 @@ once $optimize() is done
 \if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-fixed_point_tau}{}}}
 \subsection{Method \code{fixed_point_tau()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$fixed_point_tau(m, max_iter = 10, tol = 0.01)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$fixed_point_tau(m, max_iter = 1, tol = 0.01)}\if{html}{\out{</div>}}
 }
 
 }
@@ -370,6 +355,21 @@ once $optimize() is done
 \subsection{Method \code{print()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$print()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-fitSimpleSBMPop-plot"></a>}}
+\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-plot}{}}}
+\subsection{Method \code{plot()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$plot(
+  type = "graphon",
+  ord = NULL,
+  mixture = FALSE,
+  net_id = NULL,
+  ...
+)}\if{html}{\out{</div>}}
 }
 
 }

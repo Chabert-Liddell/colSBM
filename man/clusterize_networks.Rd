@@ -10,7 +10,7 @@ clusterize_networks(
   colsbm_model,
   net_id = NULL,
   directed = NULL,
-  model = "bernoulli",
+  distribution = "bernoulli",
   fit_sbm = NULL,
   nb_run = 3L,
   global_opts = list(),
@@ -29,11 +29,11 @@ clusterize_networks(
 
 \item{directed}{A boolean, are the networks directed or not.}
 
-\item{model}{A string, the emission distribution, either "bernoulli"
+\item{distribution}{A string, the emission distribution, either "bernoulli"
 (the default) or "poisson"}
 
-\item{fit_sbm}{A list of model using the \code{sbm} package. Use to speed up
-the initialization.}
+\item{fit_sbm}{A list of fitted models using the \code{sbm} package.
+Use to speed up the initialization.}
 
 \item{nb_run}{An integer, the number of run the algorithm do.}
 
@@ -74,7 +74,7 @@ Net <- lapply(list(.7, .7, .2, .2),
 \dontrun{cl <- clusterized_networks(Net,
                            colsbm_model = "iid",
                            directed = FALSE,
-                           model = "bernoulli",
+                           distribution = "bernoulli",
                            nb_run = 1
                            )}
 }

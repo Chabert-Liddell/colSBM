@@ -11,7 +11,7 @@ bmpop <- R6::R6Class(
     M = NULL,
     mask = NULL, # 1 for NA and 0 for observed
     directed = NULL,
-    model = NULL,
+    distribution = NULL,
     net_id = NULL,
     model_list = NULL,
     global_opts = NULL,
@@ -33,7 +33,7 @@ bmpop <- R6::R6Class(
     initialize = function(netlist = NULL,
                           net_id = NULL,
                           directed = NULL,
-                          model = "bernoulli",
+                          distribution = "bernoulli",
                           free_density = FALSE,
                           free_mixture = FALSE,
                           fit_sbm = NULL,
@@ -63,7 +63,7 @@ bmpop <- R6::R6Class(
         self$net_id <- net_id
       }
       self$Z_init <- Z_init
-      self$model <- model
+      self$distribution <- distribution
       self$fit_sbm <- fit_sbm
       self$free_density <-  free_density
       self$free_mixture <- free_mixture
@@ -82,7 +82,7 @@ bmpop <- R6::R6Class(
       self$vbound <- rep(-Inf, self$global_opts$Q_max)
       self$ICL <- rep(-Inf, self$global_opts$Q_max)
       self$BICL <- rep(-Inf, self$global_opts$Q_max)
-      if (self$model == "poisson") {
+      if (self$distribution == "poisson") {
         self$logfactA <- vapply(
           seq_along(self$A),
           function(m) {
@@ -109,7 +109,7 @@ bmpop <- R6::R6Class(
             FUN = function(m) {
          #     p(sprintf("m=%g", m))
               sbm::estimateSimpleSBM(
-                model = self$model,
+                model = self$distribution,
                 netMat = as.matrix(self$A[[m]]),
                 estimOptions = list(verbosity = 0,
                                     plot = FALSE, nbCores = 1L,
@@ -152,7 +152,7 @@ bmpop <- R6::R6Class(
           if(it == 1) {
             mypopbm <- fitSimpleSBMPop$new(A = self$A[index],
                                            mask = self$mask[index],
-                                           model = self$model,
+                                           distribution = self$distribution,
                                            net_id = self$net_id[index],
                                            directed = self$directed,
                                            free_density = self$free_density,
@@ -173,7 +173,7 @@ bmpop <- R6::R6Class(
               )
               mypopbm <- fitSimpleSBMPop$new(A = self$A[index],
                                              mask = self$mask[index],
-                                             model = self$model,
+                                             distribution = self$distribution,
                                              net_id = self$net_id,
                                              directed = self$directed,
                                              free_density = self$free_density,
@@ -194,7 +194,7 @@ bmpop <- R6::R6Class(
               )
               mypopbm <- fitSimpleSBMPop$new(A = self$A[index],
                                              mask = self$mask[index],
-                                             model = self$model,
+                                             distribution = self$distribution,
                                              net_id = self$net_id,
                                              directed = self$directed,
                                              free_density = self$free_density,
@@ -225,7 +225,7 @@ bmpop <- R6::R6Class(
         FUN = function(it) {
           mypopbm <- fitSimpleSBMPop$new(A = self$A[index],
                                          mask = self$mask[index],
-                                         model = self$model,
+                                         distribution = self$distribution,
                                          net_id = self$net_id[index],
                                          directed = self$directed,
                                          free_density = self$free_density,
@@ -244,7 +244,7 @@ bmpop <- R6::R6Class(
       mypopbm <- fitSimpleSBMPop$new(A = self$A[index],
                                      mask = self$mask[index],
                                      Z = Z,
-                                     model = self$model,
+                                     distribution = self$distribution,
                                      net_id = self$net_id[index],
                                      directed = self$directed,
                                      free_density = self$free_density,
@@ -404,7 +404,7 @@ bmpop <- R6::R6Class(
                 res <- fitSimpleSBMPop$new(A = self$A,
                                            mask = self$mask,
                                            Z = list_Zinit[[it]],
-                                           model = self$model,
+                                           distribution = self$distribution,
                                            net_id = self$net_id,
                                            directed = self$directed,
                                            free_density = self$free_density,
@@ -546,7 +546,7 @@ bmpop <- R6::R6Class(
                 res <- fitSimpleSBMPop$new(A = self$A,
                                            mask = self$mask,
                                            Z = list_Zinit[[it]],
-                                           model = self$model,
+                                           distribution = self$distribution,
                                            net_id = self$net_id,
                                            directed = self$directed,
                                            free_density = self$free_density,
@@ -690,152 +690,152 @@ bmpop <- R6::R6Class(
                                      function (Q) self$model_list[[1]][[Q]][1])
     },
 
-    forward_backward = function() {
-      #browser()
-      counter <- 0
-      nb_pass <- 0
-      max_icl <- rep(-Inf, self$global_opts$Q_max)
-      global_counter <- TRUE
-      Q <- self$global_opts$Q_min + 1
-      # Forward step
-      while (global_counter & nb_pass < self$global_opts$max_pass) {
-        global_counter <- FALSE
-        while (Q <= self$global_opts$Q_max) {
-          list_popbm <- list()
-          if (is.null(self$model_list[[1]][[Q-1]])) {
-            list_popbm <- self$optimize_spectral(seq(self$M), Q-1, 1L)
-            if(! is.null(self$fit_sbm[[Q-1]])) {
-              list_popbm <- c(list_popbm, self$optimize_from_sbm(seq(self$M), Q-1, 1L))
-            }
-
-          }
-          for (fit in self$model_list[[1]][[Q-1]]) {
-            Z_init <- purrr::map(seq_along(A), ~ split_clust(A[[.]], fit$Z[[.]],Q-1))
-            Z_init <- purrr::transpose(Z_init)
-            list_res <- lapply(
-              seq_along(Z_init),
-              function(it) {
-                mypopbm <- fitSimpleSBMPop$new(A = A, Q = Q, Z = Z_init[[it]],
-                                               logfactA = self$logfactA,
-                                               free_density = free_density,
-                                               free_mixture = self$free_mixture,
-                                               model = model,
-                                               fit_opts = self$fit_opts,
-                                               init_method = "given")
-                mypopbm$optimize()
-                return(mypopbm)
-              }
-            )
-            list_popbm <- c(list_popbm, list_res)
-          }
-
-          list_spec <-  lapply(
-            seq(5),
-            function(it) {
-              mypopbm <- fitSimpleSBMPop$new(A = A, Q = Q,
-                                             logfactA = self$logfactA,
-                                             free_density = free_density,
-                                             free_mixture = self$free_mixture,
-                                             model = model,
-                                             fit_opts = self$fit_opts,
-                                             init_method = "spectral")
-              mypopbm$optimize()
-              return(mypopbm)
-            }
-          )
-          list_popbm <- c(list_popbm, list_res, list_spec, best_models[[Q]])
-          ord_mod <- order(purrr::map_dbl(list_popbm, ~max(.$map$ICL, .$BICL)), decreasing = TRUE)
-          if(max_icl[Q] < list_popbm[[ord_mod[1]]]$map$ICL) global_counter <- TRUE
-          max_icl[Q] <- list_popbm[[ord_mod[1]]]$map$ICL
-          if (max_icl[Q] <= max_icl[Q-1]) counter <- counter + 1
-          best_models[[Q]] <- list_popbm[ord_mod[1]]
-          # points(purrr::map_dbl(unlist(best_models), "Q"), purrr::map_dbl(unlist(best_models), ~.$map$ICL))
-          # points(purrr::map_dbl(unlist(best_models), "Q"), purrr::map_dbl(unlist(best_models), "BICL"), col = "red")
-          for(id in ord_mod) {
-            if (length(best_models[[Q]]) < top_models) {
-              ari <- purrr::map_dbl(
-                seq_along(best_models[[Q]]),
-                function(m) {
-                  sum(purrr::map_dbl(seq_along(A),
-                                     ~ aricode::ARI(best_models[[Q]][[m]]$Z[[.]],
-                                                    list_popbm[[id]]$Z[[.]])))
-                }
-              )
-              if (all(ari < best_models[[Q]][[1]]$M)) {
-                best_models[[Q]] <- c(best_models[[Q]], list_popbm[[id]])
-                # points(purrr::map_dbl(unlist(best_models), "Q"), purrr::map_dbl(unlist(best_models), ~.$map$ICL))
-                # points(purrr::map_dbl(unlist(best_models), "Q"), purrr::map_dbl(unlist(best_models), "BICL"), col = "red")
-              }
-            }
-          }
-          if (counter >= 2) break
-          Q <- Q+1
-        }
-        counter <- 0
-        Q <- Q-1
-
-        # Backward step
-        while (Q >= max(Q_min,2)) {
-          list_popbm <- list()
-          for (fit in best_models[[Q+1]]) {
-            Z_init <- purrr::map(seq_along(A), ~ merge_clust(fit$Z[[.]],Q+1))
-            Z_init <- purrr::transpose(Z_init)
-            list_res <- lapply(
-              seq_along(Z_init),
-              function(it) {
-                mypopbm <- fitSimpleSBMPop$new(A = A, Q = Q, Z = Z_init[[it]],
-                                               logfactA = self$logfactA,
-                                               free_density = free_density,
-                                               free_mixture = self$free_mixture,
-                                               model = model,
-                                               fit_opts = self$fit_opts,
-                                               init_method = "given",
-                                               approx_pois = approx_pois)
-                mypopbm$optimize()
-                return(mypopbm)
-              }
-            )
-            list_popbm <- c(list_popbm, list_res)
-            # points(purrr::map_dbl(unlist(list_res), "Q"), purrr::map_dbl(unlist(list_res), ~.$map$ICL))
-            # points(purrr::map_dbl(unlist(list_res), "Q"), purrr::map_dbl(unlist(list_res), "BICL"), col = "red")
-          }
-          list_popbm <- c(list_popbm, best_models[[Q]])
-          ord_mod <- order(purrr::map_dbl(list_popbm, ~max(.$map$ICL, .$BICL)), decreasing = TRUE)
-          if(max_icl[Q] < list_popbm[[ord_mod[1]]]$map$ICL) global_counter <- TRUE
-
-          best_models[[Q]] <- list_popbm[ord_mod[1]]
-          max_icl[Q] <- list_popbm[[ord_mod[1]]]$map$ICL
-          if (max_icl[Q] <= max_icl[Q+1]) counter <- counter + 1
-          # points(purrr::map_dbl(unlist(best_models), "Q"),
-          #        purrr::map_dbl(unlist(best_models), ~.$map$ICL))
-          # points(purrr::map_dbl(unlist(best_models), "Q"),
-          #        purrr::map_dbl(unlist(best_models), "BICL"), col = "red")
-          for(id in ord_mod) {
-            if (length(best_models[[Q]]) < top_models) {
-              ari <- purrr::map_dbl(
-                seq_along(best_models[[Q]]),
-                function(m) {
-                  sum(purrr::map_dbl(seq_along(A),
-                                     ~ aricode::ARI(best_models[[Q]][[m]]$Z[[.]],
-                                                    list_popbm[[id]]$Z[[.]])))
-                }
-              )
-              if (all(ari < best_models[[Q]][[1]]$M)) {
-                best_models[[Q]] <- c(best_models[[Q]], list_popbm[[id]])
-                # points(purrr::map_dbl(unlist(best_models), "Q"), purrr::map_dbl(unlist(best_models), ~.$map$ICL))
-                # points(purrr::map_dbl(unlist(best_models), "Q"), purrr::map_dbl(unlist(best_models), "BICL"), col = "red")
-              }
-            }
-          }
-          if (counter >= 2) break
-          Q <- Q-1
-        }
-        Q <- Q+1
-      }
-      best_id <- which.max(purrr::map_dbl(unlist(best_models), ~ .$map$ICL))
-      unlist(best_models)[[best_id]]
-    },
-
+    # forward_backward = function() {
+    #   #browser()
+    #   counter <- 0
+    #   nb_pass <- 0
+    #   max_icl <- rep(-Inf, self$global_opts$Q_max)
+    #   global_counter <- TRUE
+    #   Q <- self$global_opts$Q_min + 1
+    #   # Forward step
+    #   while (global_counter & nb_pass < self$global_opts$max_pass) {
+    #     global_counter <- FALSE
+    #     while (Q <= self$global_opts$Q_max) {
+    #       list_popbm <- list()
+    #       if (is.null(self$model_list[[1]][[Q-1]])) {
+    #         list_popbm <- self$optimize_spectral(seq(self$M), Q-1, 1L)
+    #         if(! is.null(self$fit_sbm[[Q-1]])) {
+    #           list_popbm <- c(list_popbm, self$optimize_from_sbm(seq(self$M), Q-1, 1L))
+    #         }
+    #
+    #       }
+    #       for (fit in self$model_list[[1]][[Q-1]]) {
+    #         Z_init <- purrr::map(seq_along(A), ~ split_clust(A[[.]], fit$Z[[.]],Q-1))
+    #         Z_init <- purrr::transpose(Z_init)
+    #         list_res <- lapply(
+    #           seq_along(Z_init),
+    #           function(it) {
+    #             mypopbm <- fitSimpleSBMPop$new(A = A, Q = Q, Z = Z_init[[it]],
+    #                                            logfactA = self$logfactA,
+    #                                            free_density = free_density,
+    #                                            free_mixture = self$free_mixture,
+    #                                            distribution = self$distribution,
+    #                                            fit_opts = self$fit_opts,
+    #                                            init_method = "given")
+    #             mypopbm$optimize()
+    #             return(mypopbm)
+    #           }
+    #         )
+    #         list_popbm <- c(list_popbm, list_res)
+    #       }
+    #
+    #       list_spec <-  lapply(
+    #         seq(5),
+    #         function(it) {
+    #           mypopbm <- fitSimpleSBMPop$new(A = A, Q = Q,
+    #                                          logfactA = self$logfactA,
+    #                                          free_density = free_density,
+    #                                          free_mixture = self$free_mixture,
+    #                                          model = model,
+    #                                          fit_opts = self$fit_opts,
+    #                                          init_method = "spectral")
+    #           mypopbm$optimize()
+    #           return(mypopbm)
+    #         }
+    #       )
+    #       list_popbm <- c(list_popbm, list_res, list_spec, best_models[[Q]])
+    #       ord_mod <- order(purrr::map_dbl(list_popbm, ~max(.$map$ICL, .$BICL)), decreasing = TRUE)
+    #       if(max_icl[Q] < list_popbm[[ord_mod[1]]]$map$ICL) global_counter <- TRUE
+    #       max_icl[Q] <- list_popbm[[ord_mod[1]]]$map$ICL
+    #       if (max_icl[Q] <= max_icl[Q-1]) counter <- counter + 1
+    #       best_models[[Q]] <- list_popbm[ord_mod[1]]
+    #       # points(purrr::map_dbl(unlist(best_models), "Q"), purrr::map_dbl(unlist(best_models), ~.$map$ICL))
+    #       # points(purrr::map_dbl(unlist(best_models), "Q"), purrr::map_dbl(unlist(best_models), "BICL"), col = "red")
+    #       for(id in ord_mod) {
+    #         if (length(best_models[[Q]]) < top_models) {
+    #           ari <- purrr::map_dbl(
+    #             seq_along(best_models[[Q]]),
+    #             function(m) {
+    #               sum(purrr::map_dbl(seq_along(A),
+    #                                  ~ aricode::ARI(best_models[[Q]][[m]]$Z[[.]],
+    #                                                 list_popbm[[id]]$Z[[.]])))
+    #             }
+    #           )
+    #           if (all(ari < best_models[[Q]][[1]]$M)) {
+    #             best_models[[Q]] <- c(best_models[[Q]], list_popbm[[id]])
+    #             # points(purrr::map_dbl(unlist(best_models), "Q"), purrr::map_dbl(unlist(best_models), ~.$map$ICL))
+    #             # points(purrr::map_dbl(unlist(best_models), "Q"), purrr::map_dbl(unlist(best_models), "BICL"), col = "red")
+    #           }
+    #         }
+    #       }
+    #       if (counter >= 2) break
+    #       Q <- Q+1
+    #     }
+    #     counter <- 0
+    #     Q <- Q-1
+    #
+    #     # Backward step
+    #     while (Q >= max(Q_min,2)) {
+    #       list_popbm <- list()
+    #       for (fit in best_models[[Q+1]]) {
+    #         Z_init <- purrr::map(seq_along(A), ~ merge_clust(fit$Z[[.]],Q+1))
+    #         Z_init <- purrr::transpose(Z_init)
+    #         list_res <- lapply(
+    #           seq_along(Z_init),
+    #           function(it) {
+    #             mypopbm <- fitSimpleSBMPop$new(A = A, Q = Q, Z = Z_init[[it]],
+    #                                            logfactA = self$logfactA,
+    #                                            free_density = free_density,
+    #                                            free_mixture = self$free_mixture,
+    #                                            model = model,
+    #                                            fit_opts = self$fit_opts,
+    #                                            init_method = "given",
+    #                                            approx_pois = approx_pois)
+    #             mypopbm$optimize()
+    #             return(mypopbm)
+    #           }
+    #         )
+    #         list_popbm <- c(list_popbm, list_res)
+    #         # points(purrr::map_dbl(unlist(list_res), "Q"), purrr::map_dbl(unlist(list_res), ~.$map$ICL))
+    #         # points(purrr::map_dbl(unlist(list_res), "Q"), purrr::map_dbl(unlist(list_res), "BICL"), col = "red")
+    #       }
+    #       list_popbm <- c(list_popbm, best_models[[Q]])
+    #       ord_mod <- order(purrr::map_dbl(list_popbm, ~max(.$map$ICL, .$BICL)), decreasing = TRUE)
+    #       if(max_icl[Q] < list_popbm[[ord_mod[1]]]$map$ICL) global_counter <- TRUE
+    #
+    #       best_models[[Q]] <- list_popbm[ord_mod[1]]
+    #       max_icl[Q] <- list_popbm[[ord_mod[1]]]$map$ICL
+    #       if (max_icl[Q] <= max_icl[Q+1]) counter <- counter + 1
+    #       # points(purrr::map_dbl(unlist(best_models), "Q"),
+    #       #        purrr::map_dbl(unlist(best_models), ~.$map$ICL))
+    #       # points(purrr::map_dbl(unlist(best_models), "Q"),
+    #       #        purrr::map_dbl(unlist(best_models), "BICL"), col = "red")
+    #       for(id in ord_mod) {
+    #         if (length(best_models[[Q]]) < top_models) {
+    #           ari <- purrr::map_dbl(
+    #             seq_along(best_models[[Q]]),
+    #             function(m) {
+    #               sum(purrr::map_dbl(seq_along(A),
+    #                                  ~ aricode::ARI(best_models[[Q]][[m]]$Z[[.]],
+    #                                                 list_popbm[[id]]$Z[[.]])))
+    #             }
+    #           )
+    #           if (all(ari < best_models[[Q]][[1]]$M)) {
+    #             best_models[[Q]] <- c(best_models[[Q]], list_popbm[[id]])
+    #             # points(purrr::map_dbl(unlist(best_models), "Q"), purrr::map_dbl(unlist(best_models), ~.$map$ICL))
+    #             # points(purrr::map_dbl(unlist(best_models), "Q"), purrr::map_dbl(unlist(best_models), "BICL"), col = "red")
+    #           }
+    #         }
+    #       }
+    #       if (counter >= 2) break
+    #       Q <- Q-1
+    #     }
+    #     Q <- Q+1
+    #   }
+    #   best_id <- which.max(purrr::map_dbl(unlist(best_models), ~ .$map$ICL))
+    #   unlist(best_models)[[best_id]]
+    # },
+    #
     choose_models = function(models, Q, index = seq(self$M), nb_clusters = 1L) {
       # browser()
       ord_mod <- order(purrr::map_dbl(models, ~ .$BICL),#~max(.$map$ICL, .$BICL)),
@@ -875,7 +875,7 @@ bmpop <- R6::R6Class(
 
 
     show = function(type = "Fitted Collection of Simple SBM") {
-      cat(type, "--", self$model, "variant for", self$M, "networks \n")
+      cat(type, "--", self$distribution, "variant for", self$M, "networks \n")
       cat("=====================================================================\n")
       cat("net_id = (", self$net_id, ")\n")
       cat("Dimension = (", self$n, ") - (",

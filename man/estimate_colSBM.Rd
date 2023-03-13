@@ -9,7 +9,7 @@ estimate_colSBM(
   colsbm_model,
   net_id = NULL,
   directed = NULL,
-  model = "bernoulli",
+  distribution = "bernoulli",
   fit_sbm = NULL,
   nb_run = 3L,
   global_opts = list(),
@@ -27,11 +27,11 @@ estimate_colSBM(
 
 \item{directed}{A boolean, are the networks directed or not.}
 
-\item{model}{A string, the emission distribution, either "bernoulli"
+\item{distribution}{A string, the emission distribution, either "bernoulli"
 (the default) or "poisson"}
 
-\item{fit_sbm}{A list of model using the \code{sbm} package. Use to speed up
-the initialization.}
+\item{fit_sbm}{A list of fitted model using the \code{sbm} package.
+Use to speed up the initialization.}
 
 \item{nb_run}{An integer, the number of run the algorithm do.}
 
@@ -43,8 +43,8 @@ the initialization.}
 Optional fit init from where initializing the algorithm.}
 }
 \value{
-A bmpop object listing a collection of models for the collection.
-of networks
+A bmpop object listing a collection of fitted models for the
+collection of networks
 }
 \description{
 Estimate a colSBM on a collection of networks
@@ -60,7 +60,7 @@ Net <- lapply(list(.7, .7, .2, .2),
 \dontrun{cl <- estimate_colSBM(Net,
                      colsbm_model = "delta",
                      directed = FALSE,
-                     model = "bernoulli",
+                     distribution = "bernoulli",
                      nb_run = 1
                      )}
 }

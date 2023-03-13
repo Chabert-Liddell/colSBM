@@ -1,3 +1,8 @@
+# colSBM 0.2.1
+* BREAKING CHANGE: emission distribution argument are now named "distribution" 
+instead of "model".
+* Fixed an error in `extract_best_partition()`
+
 # colSBM 0.2.0
 
 * Added sparse matrix with the `Matrix` package leading to less intensive 

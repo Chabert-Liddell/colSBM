@@ -5,18 +5,18 @@
 #' "deltapi".
 #' @param net_id A vector of string, the name of the networks.
 #' @param directed A boolean, are the networks directed or not.
-#' @param model A string, the emission distribution, either "bernoulli"
+#' @param distribution A string, the emission distribution, either "bernoulli"
 #' (the default) or "poisson"
-#' @param fit_sbm A list of model using the \code{sbm} package. Use to speed up
-#' the initialization.
+#' @param fit_sbm A list of fitted model using the \code{sbm} package.
+#' Use to speed up the initialization.
 #' @param nb_run An integer, the number of run the algorithm do.
 #' @param global_opts Global options for the outer algorithm and the output
 #' @param fit_opts Fit options for the VEM algorithm
 #' @param fit_init Do not use!
 #' Optional fit init from where initializing the algorithm.
 #'
-#' @return A bmpop object listing a collection of models for the collection.
-#' of networks
+#' @return A bmpop object listing a collection of fitted models for the
+#' collection of networks
 #' @export
 #'
 #' @seealso [colSBM::clusterize_networks()], \code{\link[colSBM]{bmpop}},
@@ -33,7 +33,7 @@
 #' \dontrun{cl <- estimate_colSBM(Net,
 #'                      colsbm_model = "delta",
 #'                      directed = FALSE,
-#'                      model = "bernoulli",
+#'                      distribution = "bernoulli",
 #'                      nb_run = 1
 #'                      )}
 estimate_colSBM <-
@@ -41,7 +41,7 @@ estimate_colSBM <-
                colsbm_model,
                net_id = NULL,
                directed = NULL,
-               model = "bernoulli",
+               distribution = "bernoulli",
                fit_sbm = NULL,
                nb_run = 3L,
                global_opts = list(),
@@ -87,7 +87,7 @@ estimate_colSBM <-
             FUN = function(m) {
               #     p(sprintf("m=%g", m))
               sbm::estimateSimpleSBM(
-                model = model,
+                model = distribution,
                 netMat = netlist[[m]],
                 estimOptions = list(verbosity = 0,
                                     plot = FALSE, nbCores = 1L,
@@ -107,7 +107,7 @@ estimate_colSBM <-
             tmp_fit <- bmpop$new(netlist = netlist,
                                  net_id = net_id,
                                  directed = directed,
-                                 model = model,
+                                 distribution = distribution,
                                  free_density = free_density,
                                  free_mixture = free_mixture,
                                  fit_sbm = fit_sbm,
@@ -137,6 +137,7 @@ estimate_colSBM <-
       my_bmpop$BICL <- vapply(my_bmpop$model_list[[1]],
                                         function (fit) fit[[1]]$BICL, FUN.VALUE = .1)
       if(my_bmpop$global_opts$verbosity >=1) {
+        cat("==== ", colsbm_model, "-colSBM with ", my_bmpop$distribution, " distribution ====\n")
         cat("==== Optimization finished for networks ", my_bmpop$net_id, " ====\n")
         cat("vbound : ", round(my_bmpop$vbound), "\n")
         cat("ICL    : ", round(my_bmpop$ICL), "\n")

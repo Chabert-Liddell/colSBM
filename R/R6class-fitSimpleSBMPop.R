@@ -27,7 +27,7 @@ fitSimpleSBMPop <- R6::R6Class(
     free_mixture = NULL, # A boolean
     free_density = NULL, # A boolean
     weight = NULL, # A vector of size M for weighted likelihood
-    model = NULL, # "poisson", "bernoulli"
+    distribution = NULL, # "poisson", "bernoulli"
     Cpi = NULL,
     Calpha = NULL,
     mloss = Inf,
@@ -59,7 +59,7 @@ fitSimpleSBMPop <- R6::R6Class(
                           Z = NULL,
                           mask = NULL,
                           net_id = NULL,
-                          model = "bernoulli",
+                          distribution = "bernoulli",
                           free_mixture = TRUE,
                           free_density = TRUE,
                           directed = NULL,
@@ -110,8 +110,8 @@ fitSimpleSBMPop <- R6::R6Class(
         self$Cpi <- Cpi
         self$Calpha <- Calpha
       }
-      self$model <- model
-      if (self$model == "poisson") {
+      self$distribution <- distribution
+      if (self$distribution == "poisson") {
         if (is.null(logfactA)) {
           self$logfactA <- vapply(
             seq_along(self$A),
@@ -194,7 +194,7 @@ fitSimpleSBMPop <- R6::R6Class(
         delta <- self$delta[m]
       }
       switch(
-        self$model,
+        self$distribution,
         "bernoulli" = {
           self$dircoef*sum(
             self$Calpha * .xlogy(emqr, alpha*delta, eps = 1e-12) +
@@ -561,7 +561,7 @@ fitSimpleSBMPop <- R6::R6Class(
       Am <- Um * as.matrix(self$A[[m]])
       while(condition) {
         tau_new <- switch (
-          self$model,
+          self$distribution,
           "bernoulli" = {
             tau_new <-
               t(matrix(.xlogy(self$Cpi[,m],self$pi[[m]]), self$Q, self$n[m]))+
@@ -621,7 +621,7 @@ fitSimpleSBMPop <- R6::R6Class(
         emqr[is.nan(emqr)] <- 0
         nmqr[is.nan(nmqr)] <- 0
         if (it >= 1) {
-          if (self$model == "bernoulli") {
+          if (self$distribution == "bernoulli") {
             vl <- self$dircoef*sum(
               outer(self$Cpi[,m], self$Cpi[,m]) * (
                 .xlogy(emqr, self$alpha*self$delta[m], eps = 1e-12) +
@@ -631,7 +631,7 @@ fitSimpleSBMPop <- R6::R6Class(
               sum(.xlogx(tau_new[which(self$Cpi[,m])]))
 
           }
-          if (self$model == "poisson") {
+          if (self$distribution == "poisson") {
             vl <- self$dircoef*sum(
               outer(self$Cpi[,m], self$Cpi[,m]) * (
                 emqr * log(pmax(self$alpha*self$delta[m], 1e-12)) -
@@ -666,7 +666,7 @@ fitSimpleSBMPop <- R6::R6Class(
 
     fixed_point_alpha_delta = function(map = FALSE, max_iter = 50, tol = 1e-6) {
       # switch(
-      #   self$model,
+      #   self$distribution,
       #   "poisson" = {
       condition <- TRUE
       d <- self$delta
@@ -872,7 +872,7 @@ fitSimpleSBMPop <- R6::R6Class(
         )
       lapply(seq(self$M), function(m) self$update_alpham(m))
       # To have a good initialization point for gradient descent
-      if(self$model == "bernoulli" & self$free_density &
+      if(self$distribution == "bernoulli" & self$free_density &
          ! self$fit_opts$approx_pois)
         self$fixed_point_alpha_delta()
     },
@@ -892,7 +892,7 @@ fitSimpleSBMPop <- R6::R6Class(
         self$update_alpha(map = map)
       } else {
         switch(
-          self$model,
+          self$distribution,
           "poisson" = self$fixed_point_alpha_delta(map = map),
           "bernoulli" =
             ifelse(self$fit_opts$approx_pois,
@@ -1009,7 +1009,7 @@ fitSimpleSBMPop <- R6::R6Class(
     #    self$compute_icl()
 
       }
-      # if (self$fit_opts$approx_pois & self$model == "bernoulli" & self$free_density) {
+      # if (self$fit_opts$approx_pois & self$distribution == "bernoulli" & self$free_density) {
       #   fit$delta[d] <- fit$delta[d] / max(fit$delta[d]*fit$alpha[tcrossprod(Cpi[d])])
       #   vb <- self$compute_vbound()
       #   self$vbound <- c(self$vbound, vb)
@@ -1021,13 +1021,13 @@ fitSimpleSBMPop <- R6::R6Class(
     },
 
     show = function(type = "Fitted Collection of Simple SBM") {
-      cat(type, "--", self$model, "variant for", self$M, "networks \n")
+      cat(type, "--", self$distribution, "variant for", self$M, "networks \n")
       cat("=====================================================================\n")
       cat("Dimension = (", self$n, ") - (", self$Q,  ") blocks.\n")
       cat("BICL = ", self$BICL, " -- #Empty blocks : ", sum(!self$Cpi), " \n")
       cat("=====================================================================\n")
       cat("* Useful fields \n")
-      cat("  $model, $nb_nodes, $nb_clusters, $support, $Z \n")
+      cat("  $distribution, $nb_nodes, $nb_clusters, $support, $Z \n")
       cat("  $memberships, $parameters, $BICL, $vbound, $pred_dyads \n")
     },
 

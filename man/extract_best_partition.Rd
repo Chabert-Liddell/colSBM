@@ -8,10 +8,10 @@
 extract_best_partition(l)
 }
 \arguments{
-\item{l}{A list of model obtained from the function  \code{clusterize_networks()}}
+\item{l}{A list of models obtained from the function  \code{clusterize_networks()}}
 }
 \value{
-A list of model giving the best partition.
+A list of models giving the best partition.
 }
 \description{
 Extract the best partition from the list of model given by the function

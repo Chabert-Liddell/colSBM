@@ -8,10 +8,10 @@
 #' "deltapi".
 #' @param net_id A vector of string, the name of the networks.
 #' @param directed A boolean, are the networks directed or not.
-#' @param model A string, the emission distribution, either "bernoulli"
+#' @param distribution A string, the emission distribution, either "bernoulli"
 #' (the default) or "poisson"
-#' @param fit_sbm A list of model using the \code{sbm} package. Use to speed up
-#' the initialization.
+#' @param fit_sbm A list of fitted models using the \code{sbm} package.
+#' Use to speed up the initialization.
 #' @param nb_run An integer, the number of run the algorithm do.
 #' @param global_opts Global options for the outer algorithm and the output
 #' @param fit_opts Fit options for the VEM algorithm
@@ -45,14 +45,14 @@
 #' \dontrun{cl <- clusterized_networks(Net,
 #'                            colsbm_model = "iid",
 #'                            directed = FALSE,
-#'                            model = "bernoulli",
+#'                            distribution = "bernoulli",
 #'                            nb_run = 1
 #'                            )}
 clusterize_networks <- function(netlist,
                           colsbm_model,
                           net_id = NULL,
                           directed = NULL,
-                          model = "bernoulli",
+                          distribution = "bernoulli",
                           fit_sbm = NULL,
                           nb_run = 3L,
                           global_opts = list(),
@@ -107,7 +107,7 @@ clusterize_networks <- function(netlist,
             FUN = function(m) {
               #     p(sprintf("m=%g", m))
               sbm::estimateSimpleSBM(
-                model = model,
+                model = distribution,
                 netMat = netlist[[m]],
                 estimOptions = list(verbosity = 0,
                                     plot = FALSE, nbCores = 1L,
@@ -125,7 +125,7 @@ clusterize_networks <- function(netlist,
             tmp_fit <- bmpop$new(netlist = netlist,
                                  net_id = net_id,
                                  directed = directed,
-                                 model = model,
+                                 distribution = distribution,
                                  free_density = free_density,
                                  free_mixture = free_mixture,
                                  fit_sbm = fit_sbm,
@@ -202,7 +202,7 @@ clusterize_networks <- function(netlist,
                      global_opts$nb_cores <- max(1L, floor(global_opts$nb_cores/nb_run))
                      tmp_fit <- bmpop$new(fit$A[cl == k], fit$net_id[cl == k],
                                       directed = directed,
-                                      model = model,
+                                      distribution = distribution,
                                       free_density = free_density,
                                       free_mixture = free_mixture,
                                       fit_sbm = fit$fit_sbm[cl==k],
@@ -249,9 +249,6 @@ clusterize_networks <- function(netlist,
         return(fit$best_fit)
       }
     }
-    #   return (list(list(model = model, id = model$net_id, ICL = model$best_fit$ICL, Q = model$best_fit$Q),
-    #                list(list(model = models[[1]], id = models[[1]]$net_id, ICL = models[[1]]$best_fit$ICL, Q = models[[1]]$best_fit$Q),
-    #                     list(model = models[[2]], id = models[[2]]$net_id, ICL = models[[2]]$best_fit$ICL, Q = models[[2]]$best_fit$Q))))
   }
 
   list_model_binary <- recursive_clustering(my_bmpop)
@@ -358,16 +355,17 @@ clusterize_networks <- function(netlist,
 #' Extract the best partition from the list of model given by the function
 #' `clusterize_networks()`.
 #'
-#' @param l A list of model obtained from the function  `clusterize_networks()`
+#' @param l A list of models obtained from the function  `clusterize_networks()`
 #'
-#' @return A list of model giving the best partition.
+#' @return A list of models giving the best partition.
 #' @export
 #'
 #' @examples
 extract_best_partition <- function(l) {
+  if (inherits(l, "fitSimpleSBMPop")) return(l)
   stopifnot(inherits(l[[1]], "fitSimpleSBMPop"))
   if(length(l) == 1)  return(l[[1]])
   if(length(l) == 2) return(l[[2]])
-  return(list(extract_best_partition(l[2]),
-              extract_best_partition(l[3])))
+  return(list(extract_best_partition(l[[2]]),
+              extract_best_partition(l[[3]])))
 }
