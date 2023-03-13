@@ -6,7 +6,6 @@ lbmpop <- R6::R6Class(
   "lbmpop",
   #
   public = list(
-    test = NULL, # TODO # FIXME REMOVE this test object
     nr = NULL,
     nc = NULL,
     A = NULL,
@@ -181,8 +180,6 @@ lbmpop <- R6::R6Class(
             if (!is.null(self$model_list[[i, j]])) {
               # If the model with Q1 and Q2 was seen
               # we add a line in the dataframe
-              # data_state_space <- data_state_space %>%
-              #   tidyverse::add_row(Q1 = i, Q2 = j, BICL = self$model_list[[i,j]]$BICL)
               data_state_space[nrow(data_state_space) + 1, ] <- list(
                 i,
                 j,
@@ -193,27 +190,53 @@ lbmpop <- R6::R6Class(
             }
           }
         }
+
         # Here the max BICL is highlighted
         data_state_space[which.max(data_state_space$BICL), ]$isMaxBICL <- TRUE
 
-        state_plot <- ggplot(
-          data_state_space,
-          aes(
-            x = Q1, y = Q2
-          )
-        ) +
-          geom_point() +
-          aes(
+        # FIXME only working on the first path
+        exploration_path <- as.data.frame(matrix(nrow = 0, ncol = 3))
+        names(exploration_path) <- c("Q1", "Q2", "startingPoint")
+
+        for (path in seq_along(self$exploration_order_list)) {
+          for (idx in seq_along(self$exploration_order_list[[path]])) {
+            exploration_path[nrow(exploration_path) + 1, ] <- list(
+              self$exploration_order_list[[path]][[idx]][1], # Q1
+              self$exploration_order_list[[path]][[idx]][2], # Q2
+              as.character(toString(c( # startingPoint
+                self$exploration_order_list[[path]][[1]][1],
+                self$exploration_order_list[[path]][[1]][2]
+              )))
+            )
+          }
+        }
+
+        # Plotting
+        state_plot <- ggplot(data_state_space) +
+          geom_point(aes(
+            x = Q1,
+            y = Q2,
             size = BICL,
             colour = isMaxBICL,
             alpha = BICL,
             fill = isMaxBICL
-          ) +
-          scale_size(range = c(1, 12), name = "BICL") +
-          scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q1_max)) +
+          )) +
+          scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q2_max)) +
           scale_x_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q1_max)) +
-          ggtitle("State space for ", toString(self$net_id))
-        print(state_plot)
+          ggnewscale::new_scale_color() +
+          ggtitle("State space for ", toString(self$net_id)) +
+          geom_path(
+            data = exploration_path,
+            position = position_dodge2(width = 0.2),
+            aes(
+              x = Q1,
+              y = Q2,
+              colour = startingPoint
+            ),
+            size = 2,
+            arrow = arrow()
+          )
+      print(state_plot)
       }
     },
 
@@ -262,7 +285,6 @@ lbmpop <- R6::R6Class(
         }
 
         # Appending the current point to the exploration order list
-        # FIXME : this duplicates the first value
         self$exploration_order_list[[index_in_exploration_order_list]] <- append(
           self$exploration_order_list[[index_in_exploration_order_list]],
           list(c(current_Q1, current_Q2))
@@ -375,7 +397,6 @@ lbmpop <- R6::R6Class(
               next_model <- possible_models[[which.max(possible_models_BICLs)]]
           }
 
-          # FIXME : to be sure to have the starting point
           next_model$greedy_exploration_starting_point <- starting_point
 
           # If we are splitting on the columns
@@ -435,7 +456,6 @@ lbmpop <- R6::R6Class(
             self$model_list[[next_Q1, next_Q2]] <- next_model
           } else {
             # If the point has been seen
-            # TODO : add a discarded_model_list (size Q1_max * Q2_max * (nb_models - 1))
             # We append the min BICL to the discarded_model_list
             self$discarded_model_list[[next_Q1, next_Q2]] <- append(
               self$discarded_model_list[[next_Q1, next_Q2]], c(
@@ -517,9 +537,6 @@ lbmpop <- R6::R6Class(
       }
 
       self$exploration_order_list[[index_in_exploration_order_list]] <- self$exploration_order_list[[index_in_exploration_order_list]][-1]
-
-      # Plot the state of space and it's exploration
-      self$state_space_plot()
 
       # Return the coordinates of the max BICL that has been found
       return(max_BICL_coordinates)
@@ -790,23 +807,16 @@ lbmpop <- R6::R6Class(
 
       # Greedy exploration from (1,2)
       mode_1_2 <- self$greedy_exploration(c(1, 2))
-      self$state_space_plot()
       if (self$global_opts$verbosity >= 4){
         cat("\nFrom (", toString(c(1,2)),") the mode is at: (", toString(mode_1_2),").")
       }
 
       # Greedy exploration from (2,1)
       mode_2_1 <- self$greedy_exploration(c(2, 1))
-      self$state_space_plot()
       if (self$global_opts$verbosity >= 4) {
         cat("\nFrom (", toString(c(2, 1)), ") the mode is at: (", toString(mode_2_1), ").")
-      }
-
-      # FIXME : just testing if exploring from mode changes
-      super_mode_1_2 <- self$greedy_exploration(mode_1_2)
-
-      if (self$global_opts$verbosity >= 4) {
-        cat("\nFrom (", toString(toString(mode_1_2)), ") the mode is at: (", toString(super_mode_1_2), ").")
+        # Plot the state of space and it's exploration
+        self$state_space_plot()
       }
 
       if(self$global_opts$verbosity >=3) {
