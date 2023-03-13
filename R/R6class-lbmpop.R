@@ -215,10 +215,15 @@ lbmpop <- R6::R6Class(
     #' Function to greedily explore state of space looking for the mode
     #' and storing the models discovered along the way
     #' 
-    #' @param starting_point A vectore of the two coordinates c(Q1,Q2) which are the starting point
+    #' @param starting_point A vector of the two coordinates
+    #' c(Q1,Q2) which are the starting point
+    #' @param max_step_without_improvement defaults to 3, the
+    #' number of steps to try improving before stopping the search
     #' @export
-    #' @return c(Q1_mode, Q2_mode) which indicates the Q1 and Q2 for which the BICL was maximal
-    greedy_exploration = function(starting_point){
+    #' @return c(Q1_mode, Q2_mode) which indicates the Q1 and Q2 
+    #' for which the BICL was maximal
+    greedy_exploration = function(starting_point, 
+    max_step_without_improvement = 3){
       # Initialize
       current_Q1 <- starting_point[1]
       current_Q2 <- starting_point[2]
@@ -458,24 +463,27 @@ lbmpop <- R6::R6Class(
           # If the neighbor we found is best than
           # the previous mode we update and go for one more iteration
           max_BICL_value <- self$model_list[[best_neighbor[1], best_neighbor[2]]]$BICL
-          max_BICL_coordinates <- c(best_neighbor[1], best_neighbor[2])
+          max_BICL_coordinates <- c(
+            best_neighbor[1],
+            best_neighbor[2]
+          )
           step_without_improvement <- 0
           max_BICL_has_improved <- TRUE
         } else {
           # Else we've found a local mode
           step_without_improvement <- step_without_improvement + 1
-          if (step_without_improvement >= 3) {
+          if (step_without_improvement >= max_step_without_improvement) {
             max_BICL_has_improved <- FALSE
           }
         }
 
-        if (max_BICL_has_improved && step_without_improvement == 0){
+        if (max_BICL_has_improved && step_without_improvement == 0) {
           # If the BICL improved in this round
           end_of_text <- " and the BICL improved at this step. Going for another step"
-        } else if (max_BICL_has_improved && step_without_improvement <= 3) {
-          end_of_text <- paste0(" and the BICL hasn't improved at this step. ", step_without_improvement, "/3 steps without improvement.")
+        } else if (max_BICL_has_improved && step_without_improvement <= max_step_without_improvement) {
+          end_of_text <- paste0(" and the BICL hasn't improved at this step. ", step_without_improvement, "/", max_step_without_improvement, " steps without improvement.")
         } else {
-          end_of_text <- " and the BICL hasn't improved 3 times in a row, stopping search."
+          end_of_text <- paste0(" and the BICL hasn't improved ", max_step_without_improvement, " times in a row, stopping search.")
         }
 
         if (self$global_opts$verbosity >= 4) {
