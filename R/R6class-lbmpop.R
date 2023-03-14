@@ -213,29 +213,32 @@ lbmpop <- R6::R6Class(
 
         # Plotting
         state_plot <- ggplot(data_state_space) +
-          geom_point(aes(
-            x = Q1,
-            y = Q2,
-            size = BICL,
-            colour = isMaxBICL,
-            alpha = BICL,
-            fill = isMaxBICL
-          )) +
-          scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q2_max)) +
-          scale_x_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q1_max)) +
-          ggnewscale::new_scale_color() +
-          ggtitle("State space for ", toString(self$net_id)) +
           geom_path(
             data = exploration_path,
             position = position_dodge2(width = 0.2),
             aes(
               x = Q1,
               y = Q2,
-              colour = startingPoint
+              color = startingPoint
             ),
             size = 2,
             arrow = arrow()
-          )
+          ) +
+          guides(color = guide_legend(title = "Path taken")) +
+          scale_color_discrete() +
+          scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q2_max)) +
+          scale_x_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q1_max)) +
+          ggnewscale::new_scale_color() +
+          geom_point(aes(
+            x = Q1,
+            y = Q2,
+            size = BICL,
+            color = isMaxBICL,
+            alpha = BICL,
+          )) +
+          guides(color = guide_legend(title = "Is max value\nof BICL ?")) +
+          ggtitle("State space for ", toString(self$net_id))
+
       print(state_plot)
       }
     },
