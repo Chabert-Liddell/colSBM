@@ -818,9 +818,6 @@ fitBipartiteSBMPop <- R6::R6Class(
               prob1 <- as.vector(pic %*% t(a))
               prob2 <- as.vector(pir %*% a)
               # p1 and p2 contain the clustering ordered using the highest probabilities first
-              # But it is still sampled and random according to the probabilities
-              # p1 <- sample.int(self$Q[[1]], prob = prob1)
-              # p2 <- sample.int(self$Q[[2]], prob = prob2)
 
               p1 <- order(prob1)
               p2 <- order(prob2)
@@ -943,9 +940,7 @@ fitBipartiteSBMPop <- R6::R6Class(
         self$fixed_point_alpha_delta()
       }
     },
-    make_permutation = function() {
 
-    },
     m_step = function(MAP = FALSE, max_iter = 100, tol = 1e-3, ...) {
       # browser()
       #lapply(seq_along(self$pi), function(m) self$update_pi(m, MAP = MAP))
@@ -979,6 +974,46 @@ fitBipartiteSBMPop <- R6::R6Class(
         (self$A[[m]] * (self$nonNAs[[m]])) %*% tau_m_2
       self$nmqr[m, , ] <- t(tau_m_1) %*% (self$nonNAs[[m]]) %*% tau_m_2
     },
+
+    make_permutation = function() {
+      # TODO : ask @Chabert-Liddell or @demiperimetre to see if such permutation are useful at the end
+      if (self$free_mixture) {
+        # Use pim
+        pir <- lapply(seq.int(self$M), function(m) {
+          self$pim[[m]][[1]]
+        })
+        pic <- lapply(seq.int(self$M), function(m) {
+          self$pim[[m]][[2]]
+        })
+      } else {
+        # Use pi
+        pir <- lapply(seq.int(self$M), function(m) {
+          self$pi[[m]][[1]]
+        })
+        pic <- lapply(seq.int(self$M), function(m) {
+          self$pi[[m]][[2]]
+        })
+      }
+
+      # Compute the marginal laws
+      prob_row <- pic %*% t(self$alpha)
+      prob_col <- pir %*% self$alpha
+
+      # Find the order
+      row_order <- order(prob_row)
+      col_order <- order(col_row)
+
+      # Tau, emqr and nmqr, alpha & pi are reordered accordingly
+      if (ncol(tau_1) != 1) {
+        next
+      }
+      if (ncol(tau_2) != 1) {
+        next
+      }
+
+
+    },
+
     optimize = function(max_step = 100, tol = 1e-3, ...) {
       if (all(self$Q == c(1, 1))) {
         # DONE urgently : handle the case where Q1 == 1 && Q2 != 1 || Q1 != 1 && Q2 == 1
