@@ -32,8 +32,7 @@ lbmpop <- R6::R6Class(
     vbound = NULL,
     best_fit = NULL,
     logfactA = NULL,
-    improved = list(forward = TRUE,
-                    backward = TRUE),
+    improved = NULL,
 
 
 
@@ -804,8 +803,7 @@ lbmpop <- R6::R6Class(
       self$model_list[1, 2] <- self$separated_inits[1, 2]
       self$model_list[2, 1] <- self$separated_inits[2, 1]
 
-      # We parallelize the search from the two points (1,2) / (2,1)
-      # and we go looking for the mode with a greedy approach
+      # We go looking for the mode with a greedy approach
       # Visiting each of the neighbors
 
       # Greedy exploration from (1,2)
@@ -874,6 +872,7 @@ lbmpop <- R6::R6Class(
         cat("vbound : \n", vbound_print, "\n\n")
         cat("ICL    : \n", ICL_print, "\n\n")
         cat("BICL   : \n", BICL_print, "\n\n")
+        cat("Best fit at Q=(", toString(best_mode),")\n")
       }
     },
 
@@ -1214,181 +1213,33 @@ lbmpop <- R6::R6Class(
 
 
     optimize = function() {
-      #browser()
-#      future::plan("future::multisession", workers = self$global_opts$nb_cores)
-    #  progressr::handlers(global = TRUE)
-     # progressr::handlers("progress")
 
-      # The burn_in step computes models without performing split and merge
+      # The burn_in step computes models with a greedy approach
       self$burn_in()
       improved <- TRUE
       nb_pass <- 0
-      Q <- 1
+      Q <- which(self$BICL == max(self$BICL), arr.ind = TRUE)
 
-      # TODO ask @Chabert-Liddell why reduce the number of models ?
       self$global_opts$nb_models <- ceiling(self$global_opts$nb_models/2)
       while (improved & nb_pass < self$global_opts$max_pass) {
-        if(self$global_opts$verbosity >=2) {
-          cat("==== Starting pass number ", nb_pass + 1,
-              " for networks ", self$net_id, " ===\n")
+        if (self$global_opts$verbosity >= 2) {
+          cat(
+            "==== Starting pass number ", nb_pass + 1,
+            " for networks ", self$net_id, " ===\n"
+          )
           cat("vbound : ", round(self$vbound), "\n")
           cat("ICL    : ", round(self$ICL), "\n")
           cat("BICL   : ", round(self$BICL), "\n")
         }
-        Q <- self$forward_pass(Q_min = max(Q, self$global_opts$Q_min))
-        Q <- self$backward_pass(Q_max = min(Q, self$global_opts$Q_max))
-        improved <- self$improved$backward | self$improved$forward
+
+        # Perform another iteration of the moving window
+        self$moving_window(Q)
+
+        # We now set the new Q and check if the fit is better
+        Q <- which(self$BICL == max(self$BICL), arr.ind = TRUE)
+        improved <- self$improved
         nb_pass <- nb_pass + 1
       }
-      self$best_fit <- self$model_list[[1]][[which.max(self$BICL)]][[1]]
-      self$model_list[[1]] <- lapply(seq_along(self$model_list[[1]]),
-                                     function (Q) self$model_list[[1]][[Q]][1])
-    },
-
-    forward_backward = function() {
-      #browser()
-      counter <- 0
-      nb_pass <- 0
-      max_icl <- rep(-Inf, self$global_opts$Q_max)
-      global_counter <- TRUE
-      Q <- self$global_opts$Q_min + 1
-      # Forward step
-      while (global_counter & nb_pass < self$global_opts$max_pass) {
-        global_counter <- FALSE
-        while (Q <= self$global_opts$Q_max) {
-          list_popbm <- list()
-          if (is.null(self$model_list[[1]][[Q-1]])) {
-            list_popbm <- self$optimize_spectral(seq(self$M), Q-1, 1L)
-            if(! is.null(self$fit_sbm[[Q-1]])) {
-              list_popbm <- c(list_popbm, self$optimize_from_sbm(seq(self$M), Q-1, 1L))
-            }
-
-          }
-          for (fit in self$model_list[[1]][[Q-1]]) {
-            Z_init <- purrr::MAP(seq_along(A), ~ split_clust(A[[.]], fit$Z[[.]],Q-1))
-            Z_init <- purrr::transpose(Z_init)
-            list_res <- lapply(
-              seq_along(Z_init),
-              function(it) {
-                mypopbm <- fitSimpleSBMPop$new(A = A, Q = Q, Z = Z_init[[it]],
-                                               logfactA = self$logfactA,
-                                               free_density = free_density,
-                                               free_mixture = self$free_mixture,
-                                               model = model,
-                                               fit_opts = self$fit_opts,
-                                               init_method = "given")
-                mypopbm$optimize()
-                return(mypopbm)
-              }
-            )
-            list_popbm <- c(list_popbm, list_res)
-          }
-
-          list_spec <-  lapply(
-            seq(5),
-            function(it) {
-              mypopbm <- fitSimpleSBMPop$new(A = A, Q = Q,
-                                             logfactA = self$logfactA,
-                                             free_density = free_density,
-                                             free_mixture = self$free_mixture,
-                                             model = model,
-                                             fit_opts = self$fit_opts,
-                                             init_method = "spectral")
-              mypopbm$optimize()
-              return(mypopbm)
-            }
-          )
-          list_popbm <- c(list_popbm, list_res, list_spec, best_models[[Q]])
-          ord_mod <- order(purrr::MAP_dbl(list_popbm, ~max(.$MAP$ICL, .$BICL)), decreasing = TRUE)
-          if(max_icl[Q] < list_popbm[[ord_mod[1]]]$MAP$ICL) global_counter <- TRUE
-          max_icl[Q] <- list_popbm[[ord_mod[1]]]$MAP$ICL
-          if (max_icl[Q] <= max_icl[Q-1]) counter <- counter + 1
-          best_models[[Q]] <- list_popbm[ord_mod[1]]
-          # points(purrr::MAP_dbl(unlist(best_models), "Q"), purrr::MAP_dbl(unlist(best_models), ~.$MAP$ICL))
-          # points(purrr::MAP_dbl(unlist(best_models), "Q"), purrr::MAP_dbl(unlist(best_models), "BICL"), col = "red")
-          for(id in ord_mod) {
-            if (length(best_models[[Q]]) < top_models) {
-              ari <- purrr::MAP_dbl(
-                seq_along(best_models[[Q]]),
-                function(m) {
-                  sum(purrr::MAP_dbl(seq_along(A),
-                                     ~ aricode::ARI(best_models[[Q]][[m]]$Z[[.]],
-                                                    list_popbm[[id]]$Z[[.]])))
-                }
-              )
-              if (all(ari < best_models[[Q]][[1]]$M)) {
-                best_models[[Q]] <- c(best_models[[Q]], list_popbm[[id]])
-                # points(purrr::MAP_dbl(unlist(best_models), "Q"), purrr::MAP_dbl(unlist(best_models), ~.$MAP$ICL))
-                # points(purrr::MAP_dbl(unlist(best_models), "Q"), purrr::MAP_dbl(unlist(best_models), "BICL"), col = "red")
-              }
-            }
-          }
-          if (counter >= 2) break
-          Q <- Q+1
-        }
-        counter <- 0
-        Q <- Q-1
-
-        # Backward step
-        while (Q >= max(Q_min,2)) {
-          list_popbm <- list()
-          for (fit in best_models[[Q+1]]) {
-            Z_init <- purrr::MAP(seq_along(A), ~ merge_clust(fit$Z[[.]],Q+1))
-            Z_init <- purrr::transpose(Z_init)
-            list_res <- lapply(
-              seq_along(Z_init),
-              function(it) {
-                mypopbm <- fitSimpleSBMPop$new(A = A, Q = Q, Z = Z_init[[it]],
-                                               logfactA = self$logfactA,
-                                               free_density = free_density,
-                                               free_mixture = self$free_mixture,
-                                               model = model,
-                                               fit_opts = self$fit_opts,
-                                               init_method = "given",
-                                               approx_pois = approx_pois)
-                mypopbm$optimize()
-                return(mypopbm)
-              }
-            )
-            list_popbm <- c(list_popbm, list_res)
-            # points(purrr::MAP_dbl(unlist(list_res), "Q"), purrr::MAP_dbl(unlist(list_res), ~.$MAP$ICL))
-            # points(purrr::MAP_dbl(unlist(list_res), "Q"), purrr::MAP_dbl(unlist(list_res), "BICL"), col = "red")
-          }
-          list_popbm <- c(list_popbm, best_models[[Q]])
-          ord_mod <- order(purrr::MAP_dbl(list_popbm, ~max(.$MAP$ICL, .$BICL)), decreasing = TRUE)
-          if(max_icl[Q] < list_popbm[[ord_mod[1]]]$MAP$ICL) global_counter <- TRUE
-
-          best_models[[Q]] <- list_popbm[ord_mod[1]]
-          max_icl[Q] <- list_popbm[[ord_mod[1]]]$MAP$ICL
-          if (max_icl[Q] <= max_icl[Q+1]) counter <- counter + 1
-          # points(purrr::MAP_dbl(unlist(best_models), "Q"),
-          #        purrr::MAP_dbl(unlist(best_models), ~.$MAP$ICL))
-          # points(purrr::MAP_dbl(unlist(best_models), "Q"),
-          #        purrr::MAP_dbl(unlist(best_models), "BICL"), col = "red")
-          for(id in ord_mod) {
-            if (length(best_models[[Q]]) < top_models) {
-              ari <- purrr::MAP_dbl(
-                seq_along(best_models[[Q]]),
-                function(m) {
-                  sum(purrr::MAP_dbl(seq_along(A),
-                                     ~ aricode::ARI(best_models[[Q]][[m]]$Z[[.]],
-                                                    list_popbm[[id]]$Z[[.]])))
-                }
-              )
-              if (all(ari < best_models[[Q]][[1]]$M)) {
-                best_models[[Q]] <- c(best_models[[Q]], list_popbm[[id]])
-                # points(purrr::MAP_dbl(unlist(best_models), "Q"), purrr::MAP_dbl(unlist(best_models), ~.$MAP$ICL))
-                # points(purrr::MAP_dbl(unlist(best_models), "Q"), purrr::MAP_dbl(unlist(best_models), "BICL"), col = "red")
-              }
-            }
-          }
-          if (counter >= 2) break
-          Q <- Q-1
-        }
-        Q <- Q+1
-      }
-      best_id <- which.max(purrr::MAP_dbl(unlist(best_models), ~ .$MAP$ICL))
-      unlist(best_models)[[best_id]]
     },
 
     choose_models = function(models, Q, index = seq(self$M), nb_clusters = 1L) {
@@ -1465,95 +1316,100 @@ lbmpop <- R6::R6Class(
     print = function() self$show(),
 
 
-    #' Find the points that need to be initialized
+    #' The moving window application
     #'
     #' @description
-    #' This method look in our models to see if the points for this model exist
-    #' @noMd
-    #' @noRd
-    #' @param center is a vector of the Q1 and Q2 coordinates
-    #' in the form c(Q1, Q2)
-    #' @param depth is how far away from the center
-    #' the function should be applied in a grid style
-    #' going from center - (depth,depth) to center + (depth, depth)
-    #' @return a list of c(Q1, Q2) for each missing point
-  find_missing_points = function(center, depth){
-    missing_points <- list()
-
-    model_list <- self$model_list[1]
-
-    center_x  <- center[1]
-    center_y <- center[2]
-
-    max_wanted_Q1 <- center_x + depth
-    max_wanted_Q2 <- center_y + depth
-
-
-    # FIXME : take into account that we need the min values
-    min_wanted_Q1 <- center_x - depth
-    min_wanted_Q2 <- center_y - depth
-
-    missing_points <- append(
-      # Here we find the missing points for which at least (Q1,1) is defined
-      lapply(
-        seq.int(length(model_list)),
-        function(q1) {
-          # If there are enough block this would be negative
-          # so set it to 0 instead, meaning we need
-          # 0 more points (Q1,Q2) for this Q1 value
-          ifelse(max_wanted_Q2 - length(model_list[[q1]]) >= 0,
-            max_wanted_Q2 - length(model_list[[q1]]),
-            0
-          )
-        }
-      ),
-      # Here we find the missing points for which no point is defined
-      ifelse(max_wanted_Q1 > length(model_list),
-        # If there we want more Q1 values than there is already
-        # we add the wanted_Q2 for each of the missing Q1 values
-        rep(max_wanted_Q2, max_wanted_Q1 - length(model_list)),
-        # Otherwise we don't need to add anything
-        NULL
-      )
-    )
-
-    return(missing_points)
-    },
-
-    #' The moving window application
-    #' 
-    #' @description
-    #' This method is a moving windows 
+    #' This method is a moving windows
     #' over the Q1xQ2 space for the number of clusters
     #' @noMd
     #' @noRd
-    #' @param center is a vector of the Q1 and Q2 coordinates 
-    #' in the form c(Q1, Q2)
-    #' @param depth is how far away from the center 
-    #' the function should be applied in a grid style 
+    #' @param center is the coordinates (Q1, Q2) in the model list of the mode
+    #' @param depth is how far away from the center
+    #' the function should be applied in a grid style
     #' going from center - (depth,depth) to center + (depth, depth)
     #' @return nothing; but updates the object by adding new models
     moving_window = function(center, depth = 1) {
-    # Each split & merge can be parallelized from points
-    # But need to be finished when comparing the BICL
+      # Each split & merge can be parallelized from points
+      # But need to be finished when comparing the BICL
 
-    # We loop until there are no missing points in the window
+      Q1_mode <- center[[1]]
+      Q2_mode <- center[[2]]
 
-      # Here we compute the missing points
-      # TODO : implement the finding of the missing points
-      missing_points <- find_missing_points(center, depth)
+      # Forward pass, where we split
+      for (diag_index in seq.int(from = -depth, to = depth)) {
+        current_Q1 <- Q1_mode + diag_index
+        current_Q2 <- Q2_mode + diag_index
 
-        # FIXME : Kinda forward_pass
-        # Now we compute the possible splits and fit the collection on those points
-        # TODO : implement the computation of the splits
-        # TODO after : implement the fitting of those splits
-        # TODO : select the best one
+        # Splitting columns
+        for (column_index in seq.int(from = diag_index+1, to = depth)) {
+          # We go splitting from the current point the depth top
+          #   depth = 2
+          #   ---------                       ---------
+          #   x       d                       f x     d
+          #   x     d                         f x   d
+          #   x   M       at next iteration   f x M
+          #   x d                             f d
+          #   d                               d
+          #   ---------                       ---------
+          # Where M is the mode, d the diag_index, x the values to fill
+          # and f the already filled values
+          self$model_list[[Q1_mode + diag_index, Q2_mode + column_index]]
 
-    # Once all the window is filled 
-    # we go to (centerQ1 + depth, centerQ2 + depth) 
-    # and go down by merging cluster
-    # FIXME : Kinda backward_pass
+          col_possible_splits <- lapply(seq.int(self$M), function(m) {
+            # We retrieve the clustering in columns for
+            # the current model for the mth network
+            split_clust(
+              t(current_model$A[[m]]), # Incidence matrix
+              current_model$Z[[m]][[2]], # The col clustering
+              current_Q2, # The number of col clusters
+              is_bipartite = TRUE
+            )
+          })
+          # Fitting the Q splits and selecting the next model
+          possible_models <- lapply(seq.int(current_Q2), function(q) {
+            # Once the row and col clustering are correctly split
+            # they are merged
+            q_th_Z_init <- lapply(seq.int(self$M), function(m) {
+              list(row_clustering[[m]], col_possible_splits[[m]][[q]])
+            })
+            q_th_model <- fitBipartiteSBMPop$new(
+              A = self$A,
+              Q = c(next_Q1, next_Q2),
+              free_mixture = self$free_mixture,
+              free_density = self$free_mixture,
+              init_method = "given",
+              Z = q_th_Z_init,
+              fit_opts = self$fit_opts,
+              greedy_exploration_starting_point = starting_point
+            )
+            q_th_model
+          })
 
+          if (self$global_opts$verbosity >= 4) {
+            cat("\nFitting Q = (", toString(c(next_Q1, next_Q2)), ") on columns splits.")
+          }
+
+          # Now we fit all the models for the differents splits
+          possible_models_BICLs <- lapply(seq_along(possible_models), function(s) {
+            if (self$global_opts$verbosity >= 4) {
+              cat("\nFitting ", s, "/", length(possible_models), "split for columns.")
+            }
+            possible_models[[s]]$optimize()
+            possible_models[[s]]$BICL
+          })
+
+          # The best in sense of BICL is
+          if (self$global_opts$verbosity >= 4) {
+            cat("\nThe best col split is: ", which.max(possible_models_BICLs))
+          }
+          next_model <- possible_models[[which.max(possible_models_BICLs)]]
+        }
+
+        }
+        # Splitting rows
+        for (row_index in seq.int(from = diag_index, to = depth)) {
+          # We go splitting from the current point the depth top
+        }
     }
   )
 )
