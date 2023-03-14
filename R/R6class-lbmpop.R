@@ -822,16 +822,58 @@ lbmpop <- R6::R6Class(
         self$state_space_plot()
       }
 
+      # Finding the best of the two modes
+      best_mode <- list(mode_1_2, mode_2_1)[[which.max(c(
+        self$model_list[[mode_1_2[1], mode_1_2[2]]]$BICL,
+        self$model_list[[mode_2_1[1], mode_2_1[2]]]$BICL
+      ))]]
+
+      # Store the vbound, ICL and BICL into the appropriate lists
+
+      lapply(seq.int(self$global_opts$Q1_max), function(q1) {
+        lapply(seq.int(self$global_opts$Q2_max), function(q2) {
+          current_model <- self$model_list[[q1, q2]]
+          if (is.null(current_model)){
+            # The model hasn't been seen by the exploration
+            return()
+          }
+          # The below expression handles the case where vbound is a null list
+          self$vbound[q1, q2] <- ifelse(is.null(unlist(tail(self$model_list[[q1, q2]]$vbound, n = 1))),
+            -Inf, 
+            unlist(tail(self$model_list[[q1, q2]]$vbound, n = 1))
+          )
+          self$ICL[q1, q2] <- current_model$ICL
+          self$BICL[q1, q2] <- current_model$BICL
+        })
+      })
+
+      # Assign the best_fit
+      self$best_fit <- self$model_list[[which.max(self$BICL)]]
+
       if(self$global_opts$verbosity >=3) {
         cat(
           "\n==== Finished Burn in",
           " for networks ", self$net_id, " in ", 
           format(Sys.time() - start_time, digits = 3),
-          "s ===\n"
+          " ====\n"
         )
-        # cat("vbound : ", round(self$vbound), "\n")
-        # cat("ICL    : ", round(self$ICL), "\n")
-        # cat("BICL   : ", round(self$BICL), "\n")
+
+        # Capturing the pretty print of matrices
+        vbound_print <- paste0(capture.output(
+          print(round(self$vbound))
+        ), collapse = "\n")
+
+        ICL_print <- paste0(capture.output(
+          print(round(self$ICL))
+        ), collapse = "\n")
+
+        BICL_print <- paste0(capture.output(
+          print(round(self$BICL))
+        ), collapse = "\n")
+
+        cat("vbound : \n", vbound_print, "\n\n")
+        cat("ICL    : \n", ICL_print, "\n\n")
+        cat("BICL   : \n", BICL_print, "\n\n")
       }
     },
 
