@@ -220,7 +220,7 @@ lbmpop <- R6::R6Class(
               y = Q2,
               color = startingPoint
             ),
-            size = 2,
+            linewidth = 2,
             arrow = arrow()
           ) +
           guides(color = guide_legend(title = "Path taken")) +
