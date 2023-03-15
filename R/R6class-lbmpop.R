@@ -1213,7 +1213,7 @@ lbmpop <- R6::R6Class(
 
 
     optimize = function() {
-
+      # TODO : add a stop condition if (diffBICL < tolerance || mode_coords == mode coords for two passes of window)
       # The burn_in step computes models with a greedy approach
       self$burn_in()
       improved <- TRUE
@@ -1335,64 +1335,451 @@ lbmpop <- R6::R6Class(
       Q1_mode <- center[[1]]
       Q2_mode <- center[[2]]
 
+      # Checking if the window's bound is in domain
+      if (!self$is_in_limits(Q1_mode - depth, Q2_mode - depth) ||
+      !self$is_in_limits(Q1_mode + depth, Q2_mode + depth)) {
+        stop(paste0(
+          "\nThe windows is out of domain ! Depth should be reduced.",
+          "\nTrying to go from (",toString(c(Q1_mode - depth, Q2_mode - depth)),
+          ") to (", toString(c(Q1_mode + depth, Q2_mode + depth)), ").",
+          "\nMax windows should be :",
+          "\n(", toString(c(1,self$global_opts$Q2_max)),
+          ")---(", toString(c(self$global_opts$Q1_max,self$global_opts$Q2_max)),
+          ")",
+          "\n  ||       || ",
+          "\n(",toString(c(1,1)),
+          ")---(",
+          toString(c(self$global_opts$Q1_max,1)),
+          ")"
+        ))
+      }
+
+      # TODO : check if the point I want to use is in limits
+      # TODO : add a lbmpop$current_window with the coordinates of the current
+      # TODO : add a lmbpop$old_window list to track the previous windows
+      # Before performing the passes, we need to have the bottom left
+      # point
+      if (is.null(self$model_list[[Q1_mode -depth, Q2_mode -depth]])){
+        # If there is no bottom left point we need to initialize it
+        # So we perform a spectral init
+        if (self$global_opts$verbosity >= 4) {
+          cat(
+            "\nThere is currently no model at the",
+            "bottom left point of the moving window."
+          )
+          cat(
+            "\nInitializing one with a spectral init for Q = (",
+            toString(c(Q1_mode - depth, Q2_mode - depth)),
+            ")."
+          )
+        }
+
+        self$model_list[[Q1_mode - depth, Q2_mode - depth]] <- # Spectral init
+          fitBipartiteSBMPop$new(
+            A = self$A,
+            Q = c(Q1_mode - depth, Q2_mode - depth),
+            free_mixture = self$free_mixture,
+            free_density = self$free_mixture,
+            init_method = "spectral",
+            fit_opts = self$fit_opts
+          )
+
+        # Fitting the model
+        self$model_list[[Q1_mode - depth, Q2_mode - depth]]$optimize()
+      }
+
+      # Once we are sure to have a starting point,
+      # we can perform the Forward Pass
+
       # Forward pass, where we split
       for (diag_index in seq.int(from = -depth, to = depth)) {
-        current_Q1 <- Q1_mode + diag_index
-        current_Q2 <- Q2_mode + diag_index
+        diag_Q1 <- Q1_mode + diag_index
+        diag_Q2 <- Q2_mode + diag_index
 
         # Splitting columns
-        for (column_index in seq.int(from = diag_index+1, to = depth)) {
+        for (column_index in seq.int(from = diag_index + 1, to = depth)) {
           # We go splitting from the current point the depth top
           #   depth = 2
           #   ---------                       ---------
-          #   x       d                       f x     d
-          #   x     d                         f x   d
-          #   x   M       at next iteration   f x M
-          #   x d                             f d
+          # ?>x       d                       f>x     d
+          #   ^                                 ^
+          # ?>x     d                         f>x   d
+          #   ^                                 ^
+          # ?>x   M       at next iteration   f>x M
+          #   ^                                 ^
+          # ?>x d                             f d
+          #   ^
           #   d                               d
           #   ---------                       ---------
           # Where M is the mode, d the diag_index, x the values to fill
-          # and f the already filled values
-          self$model_list[[Q1_mode + diag_index, Q2_mode + column_index]]
+          # and f the already filled values.
+          # >,^ represent splits, ? are hypothetical models on the edge of the
+          # window
 
-          col_possible_splits <- lapply(seq.int(self$M), function(m) {
-            # We retrieve the clustering in columns for
-            # the current model for the mth network
+          # This is the x in the picture :
+          # self$model_list[[Q1_mode + diag_index, Q2_mode + column_index]]
+
+          # We list the split origins for the model and we'll keep the best
+          # BICL and store the other one in the discarded model list
+          wanted_model_different_splits_origin <- list()
+
+          # If the wanted model already exists in the model_list we store it as a possible model
+          if (!is.null(Q1_mode + diag_index, Q2_mode + column_index)) {
+            wanted_model_different_splits_origin <-
+              append(
+                wanted_model_different_splits_origin,
+                self$model_list[[Q1_mode + diag_index, Q2_mode + column_index]]
+              )
+          }
+
+          # Checking if the left neighbor exists
+          if (self$is_in_limits(c(Q1_mode + diag_index - 1, Q2_mode + column_index)) &&
+            !is.null(self$model_list[[Q1_mode + diag_index - 1, Q2_mode + column_index]])) {
+            # If the left neighbor exist then we can split from it
+            if (self$global_opts$verbosity >= 4) {
+              cat(
+                "\n The left neighbor of (",
+                toString(c(Q1_mode + diag_index, Q2_mode + column_index)),
+                ") exists. It is (",
+                toString(c(Q1_mode + diag_index - 1, Q2_mode + column_index)),
+                ").\nFitting the possible splits from it."
+              )
+            }
+
+            left_model <- self$model_list[[Q1_mode + diag_index - 1, Q2_mode + column_index]]
+
+            # We store the left_model col clustering
+            col_clustering <- lapply(
+              seq.int(self$M),
+              function(m) {
+                left_model$Z[[m]][[2]]
+              }
+            )
+
+            # This will be a row split
+            row_possible_splits <- lapply(seq.int(self$M), function(m) {
+              # We retrieve the clustering in line for
+              # the left_model model for the mth network
+              split_clust(
+                left_model$A[[m]], # Incidence matrix
+                left_model$Z[[m]][[1]], # The row clustering
+                Q1_mode + diag_index - 1, # The number of row clusters
+                is_bipartite = TRUE
+              )
+            })
+
+            # Fitting the Q splits and selecting the next model
+            possible_models <- lapply(seq.int(Q1_mode + diag_index - 1), function(q) {
+              # Once the row and col clustering are correctly split
+              # they are merged
+              q_th_Z_init <- lapply(seq.int(self$M), function(m) {
+                list(row_possible_splits[[m]][[q]], col_clustering[[m]])
+              })
+              q_th_model <- fitBipartiteSBMPop$new(
+                A = self$A,
+                Q = c(Q1_mode + diag_index, Q2_mode + column_index),
+                free_mixture = self$free_mixture,
+                free_density = self$free_mixture,
+                init_method = "given",
+                Z = q_th_Z_init,
+                fit_opts = self$fit_opts,
+              )
+              q_th_model
+            })
+
+            # Now we fit all the models for the differents splits
+            possible_models_BICLs <- lapply(seq_along(possible_models), function(s) {
+              if (self$global_opts$verbosity >= 4) {
+                cat("\nFitting ", s, "/", length(possible_models), "split for rows.")
+              }
+              possible_models[[s]]$optimize()
+              possible_models[[s]]$BICL
+            })
+
+            # The best in sense of BICL is
+            if (self$global_opts$verbosity >= 4) {
+              cat("\nThe best row split is: ", which.max(possible_models_BICLs))
+            }
+            wanted_model_different_splits_origin <- append(
+              wanted_model_different_splits_origin,
+              possible_models[[which.max(possible_models_BICLs)]]
+            )
+          }
+
+          # Checking if the bottom neighbor exists
+          if (!is.null(self$model_list[[Q1_mode + diag_index, Q2_mode + column_index - 1]])) {
+            # If the bottom neighbor exist then we can split from it
+            if (self$global_opts$verbosity >= 4) {
+              cat(
+                "\n The bottom neighbor of (",
+                toString(c(Q1_mode + diag_index, Q2_mode + column_index)),
+                ") exists. It is (",
+                toString(
+                  c(Q1_mode + diag_index, Q2_mode + column_index - 1),
+                  ").\nFitting the possible column splits from it."
+                )
+              )
+            }
+
+            bottom_model <- self$model_list[[Q1_mode + diag_index, Q2_mode + column_index - 1]]
+
+            # We store the bottom_model row clustering
+            row_clustering <- lapply(
+              seq.int(self$M),
+              function(m) {
+                bottom_model$Z[[m]][[1]]
+              }
+            )
+
+            # This will be a col split
+            col_possible_splits <- lapply(seq.int(self$M), function(m) {
+              # We retrieve the clustering in line for
+              # the bottom_model model for the mth network
+              split_clust(
+                bottom_model$A[[m]], # Incidence matrix
+                bottom_model$Z[[m]][[2]], # The row clustering
+                Q2_mode + column_index - 1, # The number of row clusters
+                is_bipartite = TRUE
+              )
+            })
+
+            # Fitting the Q splits and selecting the next model
+            possible_models <- lapply(seq.int(Q2_mode + column_index - 1), function(q) {
+              # Once the row and col clustering are correctly split
+              # they are merged
+              q_th_Z_init <- lapply(seq.int(self$M), function(m) {
+                list(row_clustering[[m]][[q]], col_possible_splits[[m]])
+              })
+              q_th_model <- fitBipartiteSBMPop$new(
+                A = self$A,
+                Q = c(Q1_mode + diag_index, Q2_mode + column_index), # the current model
+                free_mixture = self$free_mixture,
+                free_density = self$free_mixture,
+                init_method = "given",
+                Z = q_th_Z_init,
+                fit_opts = self$fit_opts,
+              )
+              q_th_model
+            })
+
+            # Now we fit all the models for the differents splits
+            possible_models_BICLs <- lapply(seq_along(possible_models), function(s) {
+              if (self$global_opts$verbosity >= 4) {
+                cat("\nFitting ", s, "/", length(possible_models), "split for cols.")
+              }
+              possible_models[[s]]$optimize()
+              possible_models[[s]]$BICL
+            })
+
+            # The best in sense of BICL is
+            if (self$global_opts$verbosity >= 4) {
+              cat("\nThe best col split is: ", which.max(possible_models_BICLs))
+            }
+            wanted_model_different_splits_origin <- append(
+              wanted_model_different_splits_origin,
+              possible_models[[which.max(possible_models_BICLs)]]
+            )
+          }
+
+          # Now we have the different models from different origins
+          # and we can select the one that maximizes the BICL
+
+          # We compute an intermediate list of the BICLs
+          # FIXME is there a better way to extract this info ?
+          wanted_model_different_splits_origin_BICL <- lapply(
+            seq_along(wanted_model_different_splits_origin),
+            function(origin) {
+              wanted_model_different_splits_origin[[origin]]
+            }
+          )
+          # Adding the best of the possible models to the model_list
+          self$model_list[[Q1_mode + diag_index, Q2_mode + column_index]] <-
+            wanted_model_different_splits_origin[[which.max(wanted_model_different_splits_origin_BICL)]]
+
+          if (self$global_opts$verbosity >= 4) {
+            cat(
+              "\nThe preferred origin for (",
+              toString(c(Q1_mode + diag_index, Q2_mode + column_index)),
+              ") is the Q = (",
+              toString(wanted_model_different_splits_origin[[which.max(wanted_model_different_splits_origin_BICL)]]$Q),
+              ") model."
+            )
+          }
+
+          # Adding the other possible models to the discarded_model_list
+          self$discarded_model_list[[Q1_mode + diag_index, Q2_mode + column_index]] <- append(
+            self$discarded_model_list[[Q1_mode + diag_index, Q2_mode + column_index]],
+            wanted_model_different_splits_origin[-which.max(wanted_model_different_splits_origin_BICL)]
+          )
+        }
+      }
+
+      # Splitting rows
+      for (row_index in seq.int(from = diag_index, to = depth)) {
+        # We go splitting from the current point the depth right
+        #   depth = 2
+        #   ---------                       ---------
+        #           d                               d
+        #
+        #         d                               d
+        #
+        #       M       at next iteration       M
+        #
+        #     d                               d>x>x>x
+        #                                       ^ ^ ^
+        #   d>x>x>x>x                       d f f f f
+        #     ^ ^ ^ ^                       
+        #     ? ? ? ?
+        #   ---------                       ---------
+        # Where M is the mode, d the diag_index, x the values to fill
+        # and f the already filled values.
+        # >,^ represent splits, ? are hypothetical splits if the values
+        # are defined
+
+        # This is the x in the picture : self$model_list[[Q1_mode + diag_index, Q2_mode + column_index]]
+
+        # We list the split origins for the model and we'll keep the best
+        # BICL and store the other one in the discarded model list
+        wanted_model_different_splits_origin <- list()
+
+        # If the wanted model already exists in the model_list we store it as a possible model
+        if (!is.null(Q1_mode + diag_index, Q2_mode + column_index)) {
+          wanted_model_different_splits_origin <- append(wanted_model_different_splits_origin, self$model_list[[Q1_mode + diag_index, Q2_mode + column_index]])
+        }
+
+        # Checking if the left neighbor exists
+        if (!is.null(self$model_list[[Q1_mode + diag_index - 1, Q2_mode + column_index]])) {
+          # If the left neighbor exist then we can split from it
+          if (self$global_opts$verbosity >= 4) {
+            cat(
+              "\n The left neighbor of (",
+              toString(c(Q1_mode + diag_index, Q2_mode + column_index)),
+              ") exists. It is (",
+              toString(c(Q1_mode + diag_index - 1, Q2_mode + column_index)),
+              ").\nFitting the possible splits from it."
+            )
+          }
+
+          left_model <- self$model_list[[Q1_mode + diag_index - 1, Q2_mode + column_index]]
+
+          # We store the left_model col clustering
+          col_clustering <- lapply(
+            seq.int(self$M),
+            function(m) {
+              left_model$Z[[m]][[2]]
+            }
+          )
+
+          # This will be a row split
+          row_possible_splits <- lapply(seq.int(self$M), function(m) {
+            # We retrieve the clustering in line for
+            # the left_model model for the mth network
             split_clust(
-              t(current_model$A[[m]]), # Incidence matrix
-              current_model$Z[[m]][[2]], # The col clustering
-              current_Q2, # The number of col clusters
+              left_model$A[[m]], # Incidence matrix
+              left_model$Z[[m]][[1]], # The row clustering
+              Q1_mode + diag_index - 1, # The number of row clusters
               is_bipartite = TRUE
             )
           })
+
           # Fitting the Q splits and selecting the next model
-          possible_models <- lapply(seq.int(current_Q2), function(q) {
+          possible_models <- lapply(seq.int(Q1_mode + diag_index - 1), function(q) {
             # Once the row and col clustering are correctly split
             # they are merged
             q_th_Z_init <- lapply(seq.int(self$M), function(m) {
-              list(row_clustering[[m]], col_possible_splits[[m]][[q]])
+              list(row_possible_splits[[m]][[q]], col_clustering[[m]])
             })
             q_th_model <- fitBipartiteSBMPop$new(
               A = self$A,
-              Q = c(next_Q1, next_Q2),
+              Q = c(Q1_mode + diag_index, Q2_mode + column_index),
               free_mixture = self$free_mixture,
               free_density = self$free_mixture,
               init_method = "given",
               Z = q_th_Z_init,
               fit_opts = self$fit_opts,
-              greedy_exploration_starting_point = starting_point
             )
             q_th_model
           })
 
+          # Now we fit all the models for the differents splits
+          possible_models_BICLs <- lapply(seq_along(possible_models), function(s) {
+            if (self$global_opts$verbosity >= 4) {
+              cat("\nFitting ", s, "/", length(possible_models), "split for rows.")
+            }
+            possible_models[[s]]$optimize()
+            possible_models[[s]]$BICL
+          })
+
+          # The best in sense of BICL is
           if (self$global_opts$verbosity >= 4) {
-            cat("\nFitting Q = (", toString(c(next_Q1, next_Q2)), ") on columns splits.")
+            cat("\nThe best row split is: ", which.max(possible_models_BICLs))
           }
+          wanted_model_different_splits_origin <- append(
+            wanted_model_different_splits_origin,
+            possible_models[[which.max(possible_models_BICLs)]]
+          )
+        }
+
+        # Checking if the bottom neighbor exists
+        if (!is.null(self$model_list[[Q1_mode + diag_index, Q2_mode + column_index - 1]])) {
+          # If the bottom neighbor exist then we can split from it
+          if (self$global_opts$verbosity >= 4) {
+            cat(
+              "\n The bottom neighbor of (",
+              toString(c(Q1_mode + diag_index, Q2_mode + column_index)),
+              ") exists. It is (",
+              toString(
+                c(Q1_mode + diag_index, Q2_mode + column_index - 1),
+                ").\nFitting the possible column splits from it."
+              )
+            )
+          }
+
+          bottom_model <- self$model_list[[Q1_mode + diag_index, Q2_mode + column_index - 1]]
+
+          # We store the bottom_model row clustering
+          row_clustering <- lapply(
+            seq.int(self$M),
+            function(m) {
+              bottom_model$Z[[m]][[1]]
+            }
+          )
+
+          # This will be a col split
+          col_possible_splits <- lapply(seq.int(self$M), function(m) {
+            # We retrieve the clustering in line for
+            # the bottom_model model for the mth network
+            split_clust(
+              bottom_model$A[[m]], # Incidence matrix
+              bottom_model$Z[[m]][[2]], # The row clustering
+              Q2_mode + column_index - 1, # The number of row clusters
+              is_bipartite = TRUE
+            )
+          })
+
+          # Fitting the Q splits and selecting the next model
+          possible_models <- lapply(seq.int(Q2_mode + column_index - 1), function(q) {
+            # Once the row and col clustering are correctly split
+            # they are merged
+            q_th_Z_init <- lapply(seq.int(self$M), function(m) {
+              list(row_clustering[[m]][[q]], col_possible_splits[[m]])
+            })
+            q_th_model <- fitBipartiteSBMPop$new(
+              A = self$A,
+              Q = c(Q1_mode + diag_index, Q2_mode + column_index), # the current model
+              free_mixture = self$free_mixture,
+              free_density = self$free_mixture,
+              init_method = "given",
+              Z = q_th_Z_init,
+              fit_opts = self$fit_opts,
+            )
+            q_th_model
+          })
 
           # Now we fit all the models for the differents splits
           possible_models_BICLs <- lapply(seq_along(possible_models), function(s) {
             if (self$global_opts$verbosity >= 4) {
-              cat("\nFitting ", s, "/", length(possible_models), "split for columns.")
+              cat("\nFitting ", s, "/", length(possible_models), "split for cols.")
             }
             possible_models[[s]]$optimize()
             possible_models[[s]]$BICL
@@ -1402,14 +1789,59 @@ lbmpop <- R6::R6Class(
           if (self$global_opts$verbosity >= 4) {
             cat("\nThe best col split is: ", which.max(possible_models_BICLs))
           }
-          next_model <- possible_models[[which.max(possible_models_BICLs)]]
+          wanted_model_different_splits_origin <- append(
+            wanted_model_different_splits_origin,
+            possible_models[[which.max(possible_models_BICLs)]]
+          )
         }
 
+        # Now we have the different models from different origins
+        # and we can select the one that maximizes the BICL
+
+        # We compute an intermediate list of the BICLs
+        # FIXME is there a better way to extract this info ?
+        wanted_model_different_splits_origin_BICL <- lapply(
+          seq_along(wanted_model_different_splits_origin),
+          function(origin) {
+            wanted_model_different_splits_origin[[origin]]
+          }
+        )
+        # Adding the best of the possible models to the model_list
+        self$model_list[[Q1_mode + diag_index, Q2_mode + column_index]] <-
+          wanted_model_different_splits_origin[[which.max(wanted_model_different_splits_origin_BICL)]]
+
+        if (self$global_opts$verbosity >= 4) {
+          cat(
+            "\nThe preferred origin for (",
+            toString(c(Q1_mode + diag_index, Q2_mode + column_index)),
+            ") is the Q = (",
+            toString(wanted_model_different_splits_origin[[which.max(wanted_model_different_splits_origin_BICL)]]$Q),
+            ") model."
+          )
         }
-        # Splitting rows
-        for (row_index in seq.int(from = diag_index, to = depth)) {
-          # We go splitting from the current point the depth top
-        }
+
+        # Adding the other possible models to the discarded_model_list
+        self$discarded_model_list[[Q1_mode + diag_index, Q2_mode + column_index]] <- append(
+          self$discarded_model_list[[Q1_mode + diag_index, Q2_mode + column_index]],
+          wanted_model_different_splits_origin[-which.max(wanted_model_different_splits_origin_BICL)]
+        )
+      }
+
+      # Generate the next diag point
+    },
+
+    truncate_discarded_model_list = function() {
+      # TODO code the function
+      next
+    },
+
+    point_is_in_limits <- function(point) {
+      Q1 <- point[[1]]
+      Q2 <- point[[2]]
+
+      return(Q1 > 0 && Q2 > 0 &&
+        Q1 <= self$global_opts$Q1_max &&
+        Q2 <= self$global_opts$Q2_max)
     }
   )
 )
