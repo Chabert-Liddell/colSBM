@@ -826,27 +826,7 @@ lbmpop <- R6::R6Class(
         self$model_list[[mode_2_1[1], mode_2_1[2]]]$BICL
       ))]]
 
-      # Store the vbound, ICL and BICL into the appropriate lists
-
-      lapply(seq.int(self$global_opts$Q1_max), function(q1) {
-        lapply(seq.int(self$global_opts$Q2_max), function(q2) {
-          current_model <- self$model_list[[q1, q2]]
-          if (is.null(current_model)){
-            # The model hasn't been seen by the exploration
-            return()
-          }
-          # The below expression handles the case where vbound is a null list
-          self$vbound[q1, q2] <- ifelse(is.null(unlist(tail(self$model_list[[q1, q2]]$vbound, n = 1))),
-            -Inf, 
-            unlist(tail(self$model_list[[q1, q2]]$vbound, n = 1))
-          )
-          self$ICL[q1, q2] <- current_model$ICL
-          self$BICL[q1, q2] <- current_model$BICL
-        })
-      })
-
-      # Assign the best_fit
-      self$best_fit <- self$model_list[[which.max(self$BICL)]]
+      self$store_criteria_and_best_fit()
 
       if(self$global_opts$verbosity >=3) {
         cat(
@@ -1842,6 +1822,29 @@ lbmpop <- R6::R6Class(
       return(Q1 > 0 && Q2 > 0 &&
         Q1 <= self$global_opts$Q1_max &&
         Q2 <= self$global_opts$Q2_max)
+    },
+    store_criteria_and_best_fit = function() {
+      # Store the vbound, ICL and BICL into the appropriate lists
+
+      lapply(seq.int(self$global_opts$Q1_max), function(q1) {
+        lapply(seq.int(self$global_opts$Q2_max), function(q2) {
+          current_model <- self$model_list[[q1, q2]]
+          if (is.null(current_model)) {
+            # The model hasn't been seen by the exploration
+            return()
+          }
+          # The below expression handles the case where vbound is a null list
+          self$vbound[q1, q2] <- ifelse(is.null(unlist(tail(self$model_list[[q1, q2]]$vbound, n = 1))),
+            -Inf,
+            unlist(tail(self$model_list[[q1, q2]]$vbound, n = 1))
+          )
+          self$ICL[q1, q2] <- current_model$ICL
+          self$BICL[q1, q2] <- current_model$BICL
+        })
+      })
+
+      # Assign the best_fit
+      self$best_fit <- self$model_list[[which.max(self$BICL)]]
     }
   )
 )
