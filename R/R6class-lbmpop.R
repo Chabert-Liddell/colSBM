@@ -33,6 +33,9 @@ lbmpop <- R6::R6Class(
     best_fit = NULL,
     logfactA = NULL,
     improved = NULL,
+    moving_window_coordinates = NULL, # A vector containing the coordinates of 
+                                      # the bottom left and top right points of 
+                                      # the square
 
 
 
@@ -226,7 +229,25 @@ lbmpop <- R6::R6Class(
           guides(color = guide_legend(title = "Path taken")) +
           scale_color_discrete() +
           scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q2_max)) +
-          scale_x_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q1_max)) +
+          scale_x_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q1_max)) 
+
+          if (!is.null(self$moving_window_coordinates)) {
+            # We add the moving window on top of the plot
+            coords <- self$moving_window_coordinates
+            # coords[[1]] <- coords[[1]] - 0.25
+            # coords[[2]] <- coords[[2]] + 0.25
+            state_plot <- state_plot +
+              annotate("rect",
+                xmin = coords[[1]][1],
+                xmax = coords[[2]][1],
+                ymin = coords[[1]][2],
+                ymax = coords[[2]][2],
+                color = "red",
+                alpha = .2
+              )
+            }
+
+          state_plot <- state_plot +
           ggnewscale::new_scale_color() +
           geom_point(aes(
             x = Q1,
@@ -237,6 +258,7 @@ lbmpop <- R6::R6Class(
           )) +
           guides(color = guide_legend(title = "Is max value\nof BICL ?")) +
           ggtitle("State space for ", toString(self$net_id))
+
 
       print(state_plot)
       }
