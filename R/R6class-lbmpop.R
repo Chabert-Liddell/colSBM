@@ -1338,6 +1338,7 @@ lbmpop <- R6::R6Class(
       Q2_mode <- center[[2]]
 
       # Checking if the window's bound is in domain
+      # TODO ask the user if they want to extend the domain
       if (!self$point_is_in_limits(c(Q1_mode - depth, Q2_mode - depth)) ||
       !self$point_is_in_limits(c(Q1_mode + depth, Q2_mode + depth))) {
         stop(paste0(
