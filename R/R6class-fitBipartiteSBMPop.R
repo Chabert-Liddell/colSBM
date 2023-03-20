@@ -936,6 +936,7 @@ fitBipartiteSBMPop <- R6::R6Class(
               return(list(tau_1, tau_2))
             }
           )
+          #TODO add a "given_tau" init method
         )
       lapply(seq(self$M), function(m) self$update_alpham(m))
       if (self$probabilityDistribution == "bernoulli" & self$free_density &
