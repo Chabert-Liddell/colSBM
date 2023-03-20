@@ -260,9 +260,10 @@ hierarClust <- function(X, K) {
 #' @return A list of Q clustering of Q+1 clusters
 split_clust <- function(X, Z, Q, is_bipartite = FALSE) {
   Z_split <- lapply(
-    X = seq(Q),
+    seq(Q),
     FUN = function(q) {
       if (sum(Z == q) <= 3) {
+        cat("Group ", q, " is smaller than 3")
         return(Z)
       }
       Z_new <- Z
@@ -274,6 +275,7 @@ split_clust <- function(X, Z, Q, is_bipartite = FALSE) {
         Xsub <- cbind(X[Z == q, , drop = FALSE], t(X[, Z == q, drop = FALSE]))
       }
       if (nrow(unique(Xsub, MARGIN = 1)) <= 3) {
+        cat("Group ", q, " is smaller than 3")
         return(Z)
       }
       C <- stats::kmeans(x = Xsub, centers = 2)$cluster
@@ -305,6 +307,11 @@ split_clust <- function(X, Z, Q, is_bipartite = FALSE) {
           )
         )
         Z_new[Z == q][C == which.min(md)] <- Q + 1
+      } else {
+        cat(
+          "K-Means to split has returned ", length(unique(C)),
+          " clusters, instead of 2."
+        )
       }
       # Z_new[Z==q]  <-  stats::kmeans(x = Xsub, centers = 2)$cluster + Q
       # Z_new[Z_new == Q + 2]  <-  q
