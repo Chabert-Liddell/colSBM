@@ -189,7 +189,7 @@ lbmpop <- R6::R6Class(
           split_clust(
             origin_model$A[[m]], # Incidence matrix
             origin_model$Z[[m]][[1]], # The row clustering
-            self$Q[1], # The number of current row clusters
+            origin_model$Q[1], # The number of current row clusters
             is_bipartite = TRUE
           )
         })
@@ -208,7 +208,7 @@ lbmpop <- R6::R6Class(
           # We retrieve the clustering in column for
           # the origin model for the mth network
           split_clust(
-            origin_model$A[[m]], # Incidence matrix
+            t(origin_model$A[[m]]), # Incidence matrix
             origin_model$Z[[m]][[2]], # The col clustering
             origin_model$Q[2], # The number of current col clusters
             is_bipartite = TRUE
@@ -234,11 +234,17 @@ lbmpop <- R6::R6Class(
       function(q) {
         # Once the row and col clustering are correctly split
         # they are merged
-        q_th_Z_init <- lapply(seq.int(self$M), function(m) {
-          ifelse(!is_col_split, # Indicates how to retrieve the possible splits
-            list(row_clustering[[m]][[q]], col_clustering[[m]]),
-            list(row_clustering[[m]], col_clustering[[m]][[q]]))
-        })
+        if (!is_col_split) {
+          # If it's a row split
+          q_th_Z_init <- lapply(seq.int(self$M), function(m) {
+            list(row_clustering[[m]][[q]], col_clustering[[m]])
+          })
+        } else {
+          # If it's a col split
+          q_th_Z_init <- lapply(seq.int(self$M), function(m) {
+            list(row_clustering[[m]], col_clustering[[m]][[q]])
+          })
+        }
         q_th_model <- fitBipartiteSBMPop$new(
           A = self$A,
           Q = split_Q,
@@ -246,6 +252,7 @@ lbmpop <- R6::R6Class(
           free_density = self$free_mixture,
           init_method = "given",
           Z = q_th_Z_init,
+          net_id = self$net_id,
           fit_opts = self$fit_opts,
         )
         q_th_model
@@ -254,7 +261,7 @@ lbmpop <- R6::R6Class(
       # Now we fit all the models for the differents splits
       possible_models_BICLs <- lapply(seq_along(possible_models), function(s) {
         if (self$global_opts$verbosity >= 4) {
-          cat("\n\tFitting ", s, "/", length(possible_models), "split for ", typeOfSplit,".")
+          cat("\n\tFitting ", s, "/", length(possible_models), "split for ", typeOfSplit, ".")
         }
         possible_models[[s]]$optimize()
         possible_models[[s]]$BICL
