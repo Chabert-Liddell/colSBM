@@ -164,6 +164,110 @@ lbmpop <- R6::R6Class(
       self$fit_opts <- utils::modifyList(self$fit_opts, fit_opts)
     },
 
+    #' A method to perform the splitting of the clusters
+    #' 
+    #' @param origin_model a model (fitBipartite object) to split from.
+    #' @param is_col_split a boolean to indicate if this is a
+    #'                      column split or a row split.
+    #' @return best of the possible models tested
+    split_clustering = function(origin_model, is_col_split = FALSE) {
+      # TODO adapt this function to allow splitting from both sides
+
+      # Initialize to prevent variable leaking
+      # FIXME : this shouldn't be necessary but I'm not sure
+      row_clustering <- NULL
+      col_clustering <- NULL
+      split_Q <- origin_model$Q
+      typeOfSplit <- ifelse(!is_col_split, "row", "col")
+
+      # Store the clustering to keep
+      if (!is_col_split) {
+        # If we are splitting on the rows
+        row_clustering <- lapply(seq.int(self$M), function(m) {
+          # We retrieve the clustering in line for
+          # the origin model for the mth network
+          split_clust(
+            origin_model$A[[m]], # Incidence matrix
+            origin_model$Z[[m]][[1]], # The row clustering
+            self$Q[1], # The number of current row clusters
+            is_bipartite = TRUE
+          )
+        })
+
+        split_Q[1] <- split_Q[1] + 1
+
+        col_clustering <- lapply(
+          seq.int(self$M),
+          function(m) {
+            origin_model$Z[[m]][[2]]
+          }
+        )
+      } else {
+        # If we are splitting on the columns
+        col_clustering <- lapply(seq.int(self$M), function(m) {
+          # We retrieve the clustering in column for
+          # the origin model for the mth network
+          split_clust(
+            origin_model$A[[m]], # Incidence matrix
+            origin_model$Z[[m]][[2]], # The col clustering
+            origin_model$Q[2], # The number of current col clusters
+            is_bipartite = TRUE
+          )
+        })
+
+        split_Q[2] <- split_Q[2] + 1
+
+        row_clustering <- lapply(
+          seq.int(self$M),
+          function(m) {
+            origin_model$Z[[m]][[1]]
+          }
+        )
+      }
+
+
+      # Fitting the Q splits and selecting the next model
+      possible_models <- lapply(seq.int(
+        ifelse(!is_col_split,
+                origin_model$Q[1], # If splitting on the rows
+                origin_model$Q[2])), # If splitting on the columns
+      function(q) {
+        # Once the row and col clustering are correctly split
+        # they are merged
+        q_th_Z_init <- lapply(seq.int(self$M), function(m) {
+          ifelse(!is_col_split, # Indicates how to retrieve the possible splits
+            list(row_clustering[[m]][[q]], col_clustering[[m]]),
+            list(row_clustering[[m]], col_clustering[[m]][[q]]))
+        })
+        q_th_model <- fitBipartiteSBMPop$new(
+          A = self$A,
+          Q = split_Q,
+          free_mixture = self$free_mixture,
+          free_density = self$free_mixture,
+          init_method = "given",
+          Z = q_th_Z_init,
+          fit_opts = self$fit_opts,
+        )
+        q_th_model
+      })
+
+      # Now we fit all the models for the differents splits
+      possible_models_BICLs <- lapply(seq_along(possible_models), function(s) {
+        if (self$global_opts$verbosity >= 4) {
+          cat("\n\tFitting ", s, "/", length(possible_models), "split for ", typeOfSplit,".")
+        }
+        possible_models[[s]]$optimize()
+        possible_models[[s]]$BICL
+      })
+
+      # The best in sense of BICL is
+      if (self$global_opts$verbosity >= 4) {
+        cat("\nThe best ", typeOfSplit, " split is: ", which.max(possible_models_BICLs))
+      }
+      
+      return(possible_models[[which.max(possible_models_BICLs)]])
+    },
+
     #' A method to plot the state of space and its current exploration.
     #' 
     #' @details the function takes no parameters and print a plot
@@ -2030,7 +2134,7 @@ lbmpop <- R6::R6Class(
           }
         )
 
-        # This will be a col split
+        # This will be a row split
         row_possible_splits <- lapply(seq.int(self$M), function(m) {
           # We retrieve the clustering in line for
           # the left_model model for the mth network
