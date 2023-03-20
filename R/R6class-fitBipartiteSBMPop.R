@@ -63,6 +63,9 @@ fitBipartiteSBMPop <- R6::R6Class(
     greedy_exploration_starting_point = NULL, # Stores the coordinates Q1 & Q2
                                               # from the greedy exploration to
                                               # keep track of the starting_point
+    effective_clustering_list = NULL, # A list of size M storing the number of
+                                      # the clusters that contains at least one
+                                      # point
     initialize = function(A = NULL,
                           Q = NULL,
                           Z = NULL,
@@ -1014,6 +1017,15 @@ fitBipartiteSBMPop <- R6::R6Class(
 
     },
 
+    compute_effective_clustering = function() { 
+      self$effective_clustering_list <- lapply(seq.int(self$M), function(m) {
+        list(
+          length(unique(self$MAP$Z[[m]][[1]])),
+          length(unique(self$MAP$Z[[m]][[2]]))
+        )
+      })
+    },
+
     optimize = function(max_step = 100, tol = 1e-3, ...) {
       if (all(self$Q == c(1, 1))) {
         # DONE urgently : handle the case where Q1 == 1 && Q2 != 1 || Q1 != 1 && Q2 == 1
@@ -1156,6 +1168,34 @@ fitBipartiteSBMPop <- R6::R6Class(
       }
       self$compute_icl()
       self$compute_icl(MAP = TRUE)
+
+      # After all the effective clustering is computed
+      self$compute_effective_clustering()
+
+      # Here the matching of the effective clustering is checked
+      if (!self$free_mixture) {
+        non_correct_clusterings <- sapply(seq.int(self$M), function(m) {
+          self$effective_clustering_list[[m]][[1]] != self$Q[1] &&
+            self$effective_clustering_list[[m]][[2]] != self$Q[2]
+        })
+        if (any(non_correct_clusterings)) {
+          warningString <- paste0(
+            "\n\nSome clusters were emptied by the VEM !",
+            "\nWanted clustering was: ", toString(self$Q),
+            "\nBut got:"
+          )
+          for (network_id in which(non_correct_clusterings)) {
+            warningString <- paste0(
+            warningString,
+            "\n\tNetwork ", network_id, " clustering: ",
+            toString(self$effective_clustering_list[[network_id]])
+            )
+          }
+          cat(warningString)
+          warning(warningString)
+        }
+      }
+
       self$compute_BICL() # FIXME should work
     }
   ),
