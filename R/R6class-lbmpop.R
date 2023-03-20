@@ -357,7 +357,13 @@ lbmpop <- R6::R6Class(
 
           if (!is.null(self$old_moving_window_coordinates)) {
             # If there are previous moving windows coordinates
-            for (index in seq_along(self$old_moving_window_coordinates)) {
+            
+            for (index in seq.int(
+              from = ifelse(length(self$old_moving_window_coordinates) >= 3,
+                length(self$old_moving_window_coordinates) - 2,
+                1
+              ),
+              to = length(self$old_moving_window_coordinates))) {
               coords <- self$old_moving_window_coordinates[[index]]
               state_plot <- state_plot +
                 annotate("rect",
