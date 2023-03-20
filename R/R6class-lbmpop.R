@@ -33,9 +33,12 @@ lbmpop <- R6::R6Class(
     best_fit = NULL,
     logfactA = NULL,
     improved = NULL,
-    moving_window_coordinates = NULL, # A vector containing the coordinates of 
-                                      # the bottom left and top right points of 
-                                      # the square
+    moving_window_coordinates = NULL, # A list of size two containing the
+                                      # coordinates of the bottom left and top 
+                                      # right points of the square
+    old_moving_window_coordinates = NULL, # A list containing the previous
+                                          # coordinates of the moving window
+
 
 
 
@@ -231,6 +234,27 @@ lbmpop <- R6::R6Class(
           scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q2_max)) +
           scale_x_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q1_max)) 
 
+          if (!is.null(self$old_moving_window_coordinates)) {
+            # If there are previous moving windows coordinates
+            for (index in seq_along(self$old_moving_window_coordinates)) {
+              coords <- self$old_moving_window_coordinates[[index]]
+              state_plot <- state_plot +
+                annotate("rect",
+                  xmin = coords[[1]][1],
+                  xmax = coords[[2]][1],
+                  ymin = coords[[1]][2],
+                  ymax = coords[[2]][2],
+                  color = "black",
+                  alpha = .2
+                )+
+                annotate("label",
+                  x = coords[[1]][1] + 0.25,
+                  y = coords[[1]][2] + 0.25,
+                  label = paste0(index)
+                )
+            }
+          }
+
           if (!is.null(self$moving_window_coordinates)) {
             # We add the moving window on top of the plot
             coords <- self$moving_window_coordinates
@@ -245,7 +269,8 @@ lbmpop <- R6::R6Class(
                 color = "red",
                 alpha = .2
               )
-            }
+          }
+
 
           state_plot <- state_plot +
           ggnewscale::new_scale_color() +
@@ -321,12 +346,13 @@ lbmpop <- R6::R6Class(
         neighbors <- list(c(1, 0), c(0, 1)) # c(-1,0),c(0,-1), are merge, # TODO see if they are needed
         # We loop through the neighbors of the current point
         for (neighbor in neighbors) {
-          next_Q1 <- neighbor[[1]] + current_Q1
-          next_Q2 <- neighbor[[2]] + current_Q2
+          next_Q1 <- neighbor[1] + current_Q1
+          next_Q2 <- neighbor[2] + current_Q2
 
           # Initialize
           next_Z_init <- vector("list", self$M)
 
+          # TODO : replace by point_is_in_limits
           if (next_Q1 < 1 || next_Q1 > self$global_opts$Q1_max || next_Q2 < 1 || next_Q2 > self$global_opts$Q2_max) {
             # The value is out of the allowed values, we quit this iteration
             if (self$global_opts$verbosity >= 4) {
@@ -366,8 +392,6 @@ lbmpop <- R6::R6Class(
           row_possible_splits <- NULL
           col_possible_splits <- NULL
 
-
-
           # If we are splitting on the rows
           if (neighbor[[1]] == 1) {
               row_possible_splits <- lapply(seq.int(self$M), function(m) {
@@ -392,7 +416,7 @@ lbmpop <- R6::R6Class(
                   A = self$A,
                   Q = c(next_Q1, next_Q2),
                   free_mixture = self$free_mixture,
-                  free_density = self$free_mixture,
+                  free_density = self$free_density,
                   init_method = "given",
                   Z = q_th_Z_init,
                   fit_opts = self$fit_opts,
@@ -416,12 +440,13 @@ lbmpop <- R6::R6Class(
 
               # The best in sense of BICL is
               if (self$global_opts$verbosity >= 4){
-                cat("\nThe best row split is: ", which.max(possible_models_BICLs))
+                cat(
+                  "\nThe best row split is: ", which.max(possible_models_BICLs),
+                  "\n"
+                )
               }
               next_model <- possible_models[[which.max(possible_models_BICLs)]]
           }
-
-          next_model$greedy_exploration_starting_point <- starting_point
 
           # If we are splitting on the columns
           if (neighbor[[2]] == 1) {
@@ -1364,12 +1389,28 @@ lbmpop <- R6::R6Class(
         )
       }
 
+      if (!is.null(self$moving_window_coordinates)) {
+        # If there was already a previous iteration of the moving window
+        if (any(
+          self$moving_window_coordinates[[1]] != c(Q1_mode - depth, Q2_mode - depth)
+        ) &&
+          any(
+            self$moving_window_coordinates[[2]] != c(Q1_mode + depth, Q2_mode + depth)
+          )) {
+          # If the moving window is not on the same point
+          # its coords are appended as old coords
+          self$old_moving_window_coordinates <- append(
+            self$old_moving_window_coordinates,
+            list(self$moving_window_coordinates)
+          )
+        }
+      }
+
       self$moving_window_coordinates <- list(
         c(Q1_mode - depth, Q2_mode - depth),
         c(Q1_mode + depth, Q2_mode + depth)
       )
 
-      # TODO : add a lmbpop$old_window list to track the previous windows
       # Before performing the passes, we need to have the bottom left
       # point
       if (self$point_is_in_limits(c(Q1_mode -depth, Q2_mode -depth)) && is.null(self$model_list[[Q1_mode -depth, Q2_mode -depth]])){
@@ -1451,6 +1492,8 @@ lbmpop <- R6::R6Class(
           # We list the split origins for the model and we'll keep the best
           # BICL and store the other one in the discarded model list
           wanted_model_different_splits_origin <- list()
+          left_model <- NULL
+          bottom_model <- NULL
 
           # If the wanted model already exists in the model_list we store it as a possible model
           if (self$point_is_in_limits(c(Q1_mode + diag_index, Q2_mode + column_index)) &&
@@ -1700,6 +1743,8 @@ lbmpop <- R6::R6Class(
           # We list the split origins for the model and we'll keep the best
           # BICL and store the other one in the discarded model list
           wanted_model_different_splits_origin <- list()
+          left_model <- NULL
+          bottom_model <- NULL
 
           # If the wanted model already exists in the model_list we store it as a possible model
           if (self$point_is_in_limits(c(Q1_mode + row_index, Q2_mode + diag_index)) && 
