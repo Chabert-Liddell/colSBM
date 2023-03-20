@@ -66,6 +66,7 @@ fitBipartiteSBMPop <- R6::R6Class(
     effective_clustering_list = NULL, # A list of size M storing the number of
                                       # the clusters that contains at least one
                                       # point
+    clustering_is_complete = TRUE,
     initialize = function(A = NULL,
                           Q = NULL,
                           Z = NULL,
@@ -1185,15 +1186,15 @@ fitBipartiteSBMPop <- R6::R6Class(
             "\nWanted clustering was: ", toString(self$Q),
             "\nBut got:"
           )
-          for (network_id in which(non_correct_clusterings)) {
+          for (id in which(non_correct_clusterings)) {
             warningString <- paste0(
             warningString,
-            "\n\tNetwork ", network_id, " clustering: ",
-            toString(self$effective_clustering_list[[network_id]])
+            "\n\tNetwork ", self$net_id[[id]], " clustering: ",
+            toString(self$effective_clustering_list[[id]])
             )
           }
-          cat(warningString)
           warning(warningString)
+          self$clustering_is_complete = FALSE
         }
       }
 

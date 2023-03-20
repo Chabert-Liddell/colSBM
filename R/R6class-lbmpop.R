@@ -279,8 +279,8 @@ lbmpop <- R6::R6Class(
         # Creating an empty dataframe
         # FIXME : there might be a better way than
         # this horrible loop
-        data_state_space <- as.data.frame(matrix(ncol=5, nrow=0))
-        names(data_state_space) <- c("Q1", "Q2", "BICL", "isMaxBICL", "startingPoint")
+        data_state_space <- as.data.frame(matrix(ncol=6, nrow=0))
+        names(data_state_space) <- c("Q1", "Q2", "BICL", "isMaxBICL", "startingPoint", "clusteringComplete")
 
         # TODO : replace the double for loop by two nested sapply
 
@@ -294,11 +294,21 @@ lbmpop <- R6::R6Class(
                 j,
                 self$model_list[[i, j]]$BICL,
                 FALSE,
-                as.character(toString(c(self$model_list[[i, j]]$greedy_exploration_starting_point[1], self$model_list[[i, j]]$greedy_exploration_starting_point[2])))
+                as.character(toString(c(self$model_list[[i, j]]$greedy_exploration_starting_point[1], self$model_list[[i, j]]$greedy_exploration_starting_point[2]))),
+                self$model_list[[i,j]]$clustering_is_complete
               )
             }
           }
         }
+
+        data_state_space[nrow(data_state_space) + 1,] <- list(
+          0,
+          0,
+          -Inf,
+          FALSE,
+          "",
+          FALSE
+        )
 
         # Here the max BICL is highlighted
         data_state_space[which.max(data_state_space$BICL), ]$isMaxBICL <- TRUE
@@ -386,6 +396,14 @@ lbmpop <- R6::R6Class(
             alpha = BICL,
           )) +
           guides(color = guide_legend(title = "Is max value\nof BICL ?")) +
+            ggnewscale::new_scale_color() +
+            scale_colour_hue(l = 45, drop = FALSE) +
+            geom_point(aes(
+              x = Q1,
+              y = Q2,
+              color = clusteringComplete
+            )) +
+            guides(color = guide_legend(title = "Is the clustering complete ?"))
           ggtitle("State space for ", toString(self$net_id))
 
 
