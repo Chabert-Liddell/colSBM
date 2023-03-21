@@ -275,6 +275,117 @@ lbmpop <- R6::R6Class(
       return(possible_models[[which.max(possible_models_BICLs)]])
     },
 
+    #' A method to perform the merging of the clusters
+    #' 
+    #' @param origin_model a model (fitBipartite object) to merge from.
+    #' @param axis a string to indicate if this is a "row", "col" 
+    #' or "both" merge
+    #' @return best of the possible models tested
+    merge_clustering = function(origin_model, axis = "row") {
+
+      # Initialize to prevent variable leaking
+      # FIXME : this shouldn't be necessary but I'm not sure
+      row_clustering <- NULL
+      col_clustering <- NULL
+      merge_Q <- origin_model$Q
+      possible_models_size <- 0
+
+      # Store the clustering to keep
+      switch(axis,
+        row = {
+          # If we are merging on the rows
+          row_clustering <- lapply(
+            seq.int(self$M),
+            function(m) {
+              merge_clust(origin_model$MAP$Z[[m]][[1]], merge_Q[1])
+            }
+          )
+
+          merge_Q[1] <- merge_Q[1] - 1
+
+          col_clustering <- lapply(
+            seq.int(self$M),
+            function(m) {
+              origin_model$Z[[m]][[2]]
+            }
+          )
+
+          possible_models_size <- merge_Q[1]
+        },
+        col = {
+          # If we are splitting on the columns
+          col_clustering <- lapply(
+            seq.int(self$M),
+            function(m) {
+              merge_clust(origin_model$MAP$Z[[m]][[2]], merge_Q[2])
+            }
+          )
+
+          merge_Q[2] <- merge_Q[2] - 1
+
+          row_clustering <- lapply(
+            seq.int(self$M),
+            function(m) {
+              origin_model$Z[[m]][[1]]
+            }
+          )
+
+          possible_models_size <- merge_Q[2]
+        },
+      both = {
+        # To perform both row and col merge
+      })
+
+
+      # Fitting the Q splits and selecting the next model
+      possible_models <- lapply(seq.int(possible_models_size),
+      function(q) {
+        # Once the row and col clustering are correctly split
+        # they are merged
+        switch(axis,
+          row = {
+            # If it's a row split
+            q_th_Z_init <- lapply(seq.int(self$M), function(m) {
+              list(row_clustering[[m]][[q]], col_clustering[[m]])
+            })
+          },
+          col = {
+            # If it's a col split
+            q_th_Z_init <- lapply(seq.int(self$M), function(m) {
+              list(row_clustering[[m]], col_clustering[[m]][[q]])
+            })
+          }
+        )
+        q_th_model <- fitBipartiteSBMPop$new(
+          A = self$A,
+          Q = merge_Q,
+          free_mixture = self$free_mixture,
+          free_density = self$free_mixture,
+          init_method = "given",
+          Z = q_th_Z_init,
+          net_id = self$net_id,
+          fit_opts = self$fit_opts,
+        )
+        q_th_model
+      })
+
+      # Now we fit all the models for the differents splits
+      possible_models_BICLs <- lapply(seq_along(possible_models), function(s) {
+        if (self$global_opts$verbosity >= 4) {
+          cat("\n\tFitting ", s, "/", length(possible_models), "merge for ", axis)
+        }
+        possible_models[[s]]$optimize()
+        possible_models[[s]]$BICL
+      })
+
+      # The best in sense of BICL is
+      if (self$global_opts$verbosity >= 4) {
+        cat("\nThe best ", axis, "merge is: ", which.max(possible_models_BICLs))
+      }
+      
+      return(possible_models[[which.max(possible_models_BICLs)]])
+    },
+
     #' A method to plot the state of space and its current exploration.
     #' 
     #' @details the function takes no parameters and print a plot
