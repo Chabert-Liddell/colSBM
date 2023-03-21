@@ -1876,7 +1876,7 @@ lbmpop <- R6::R6Class(
         if (self$global_opts$verbosity >= 4) {
           cat(
             "\n\nFitting the next diagonal point: (",
-            toString(c(Q1_mode + diag_index + 1, Q2_mode + diag_index + 1))
+            toString(c(Q1_mode + diag_index + 1, Q2_mode + diag_index + 1)), ")"
           )
         }
 
@@ -1962,7 +1962,7 @@ lbmpop <- R6::R6Class(
       # Backward pass, where we merge
       for (diag_index in seq.int(from = depth, to = - depth + 1)) {
         if (self$global_opts$verbosity >= 4) {
-          cat("\n----Step ", depth + 1 + diag_index, "/", 2 * depth + 1, "----")7
+          cat("\n----Step ", depth + 1 + diag_index, "/", 2 * depth + 1, "----")
         }
 
         # Merging columns
@@ -2156,72 +2156,76 @@ lbmpop <- R6::R6Class(
 
           # This is the x in the picture : self$model_list[[Q1_mode + diag_index, Q2_mode + column_index]]
 
-          current_model_Q <- c()
+          current_model_Q <- c(Q1_mode + row_index, Q2_mode + diag_index)
 
           if (self$global_opts$verbosity >= 4) {
             cat(
               "\nFitting model for (",
               toString(c(Q1_mode + row_index, Q2_mode + diag_index)),
-              ") in the row after the diagonal point (",
+              ") in the row before the diagonal point (",
               toString(c(Q1_mode + diag_index, Q2_mode + diag_index)), ")."
             )
           }
           # We list the split origins for the model and we'll keep the best
           # BICL and store the other one in the discarded model list
           wanted_model_different_splits_origin <- list()
-          left_model <- NULL
-          bottom_model <- NULL
+          right_model <- NULL
+          top_model <- NULL
 
           # If the wanted model already exists in the model_list we store it as a possible model
-          if (self$point_is_in_limits(c(Q1_mode + row_index, Q2_mode + diag_index)) &&
-            !is.null(self$model_list[[Q1_mode + row_index, Q2_mode + diag_index]])) {
-            wanted_model_different_splits_origin <- append(wanted_model_different_splits_origin, self$model_list[[Q1_mode + diag_index, Q2_mode + column_index]])
-          }
-
-          # Checking if the left neighbor exists
-          if (self$point_is_in_limits(c(Q1_mode + row_index - 1, Q2_mode + diag_index)) &&
-            !is.null(self$model_list[[Q1_mode + row_index - 1, Q2_mode + diag_index]])) {
-            # If the left neighbor exist then we can split from it
-            if (self$global_opts$verbosity >= 4) {
-              cat(
-                "\nThe left neighbor of (",
-                toString(c(Q1_mode + row_index, Q2_mode + diag_index)),
-                ") exists. It is (",
-                toString(c(Q1_mode + row_index - 1, Q2_mode + diag_index)),
-                ").\nFitting the possible splits from it."
-              )
-            }
-
-            left_model <- self$model_list[[Q1_mode + row_index - 1, Q2_mode + diag_index]]
-
-            # }
+          if (self$point_is_in_limits(current_model_Q) &&
+          !is.null(self$model_list[[current_model_Q[1], current_model_Q[2]]])) {
             wanted_model_different_splits_origin <- append(
-              wanted_model_different_splits_origin,
-              self$split_clustering(left_model)
+              wanted_model_different_splits_origin, 
+              self$model_list[[current_model_Q[1], current_model_Q[2]]]
             )
           }
 
-          # Checking if the bottom neighbor exists
-          if (self$point_is_in_limits(c(Q1_mode + row_index, Q2_mode + diag_index - 1)) &&
-            !is.null(self$model_list[[Q1_mode + row_index, Q2_mode + diag_index - 1]])) {
-            # If the bottom neighbor exist then we can split from it
+          # Checking if the right neighbor exists
+          right_model_Q <- current_model_Q + c(1,0)
+          if (self$point_is_in_limits(right_model_Q) &&
+            !is.null(self$model_list[[right_model_Q[1], right_model_Q[2]]])) {
+            # If the right neighbor exist then we can split from it
             if (self$global_opts$verbosity >= 4) {
               cat(
-                "\nThe bottom neighbor of (",
-                toString(c(Q1_mode + row_index, Q2_mode + diag_index)),
+                "\nThe right neighbor of (",
+                toString(current_model_Q),
+                ") exists. It is (",
+                toString(right_model_Q),
+                ").\nFitting the possible merges from it."
+              )
+            }
+
+            right_model <- self$model_list[[right_model_Q[1], right_model_Q[2]]]
+
+            wanted_model_different_splits_origin <- append(
+              wanted_model_different_splits_origin,
+              self$merge_clustering(right_model)
+            )
+          }
+
+          # Checking if the top neighbor exists
+          top_model_Q <- current_model_Q + c(0,1)
+          if (self$point_is_in_limits(top_model_Q) &&
+            !is.null(self$model_list[[top_model_Q[1], top_model_Q[2]]])) {
+            # If the top neighbor exist then we can split from it
+            if (self$global_opts$verbosity >= 4) {
+              cat(
+                "\nThe top neighbor of (",
+                toString(current_model_Q),
                 ") exists. It is (",
                 toString(
-                  c(Q1_mode + row_index, Q2_mode + diag_index - 1)
+                  top_model_Q
                 ),
                 ").\nFitting the possible column splits from it."
               )
             }
 
-            bottom_model <- self$model_list[[Q1_mode + row_index, Q2_mode + diag_index - 1]]
+            top_model <- self$model_list[[top_model_Q[1], top_model_Q[2]]]
 
             wanted_model_different_splits_origin <- append(
               wanted_model_different_splits_origin,
-              self$split_clustering(bottom_model, is_col_split = TRUE)
+              self$merge_clustering(top_model, axis = "col")
             )
           }
 
@@ -2237,13 +2241,13 @@ lbmpop <- R6::R6Class(
             }
           )
           # Adding the best of the possible models to the model_list
-          self$model_list[[Q1_mode + row_index, Q2_mode + diag_index]] <-
+          self$model_list[[current_model_Q[1], current_model_Q[2]]] <-
             wanted_model_different_splits_origin[[which.max(wanted_model_different_splits_origin_BICL)]]
 
           if (self$global_opts$verbosity >= 4) {
             cat(
               "\nThe preferred origin for (",
-              toString(c(Q1_mode + row_index, Q2_mode + diag_index)),
+              toString(current_model_Q),
               ") is the Q = (",
               toString(wanted_model_different_splits_origin[[which.max(wanted_model_different_splits_origin_BICL)]]$Q),
               ") model."
@@ -2251,8 +2255,8 @@ lbmpop <- R6::R6Class(
           }
 
           # Adding the other possible models to the discarded_model_list
-          self$discarded_model_list[[Q1_mode + row_index, Q2_mode + diag_index]] <- append(
-            self$discarded_model_list[[Q1_mode + row_index, Q2_mode + diag_index]],
+          self$discarded_model_list[[current_model_Q[1], current_model_Q[2]]] <- append(
+            self$discarded_model_list[[current_model_Q[1], current_model_Q[2]]],
             wanted_model_different_splits_origin[-which.max(wanted_model_different_splits_origin_BICL)]
           )
         }
@@ -2260,43 +2264,55 @@ lbmpop <- R6::R6Class(
         # Generate the next diag point
         #
         #
-        # f>d
-        #   ^
-        # d f
-
-        # TODO add a condition to not generate this point if diag = depth,depth
+        # f d
+        # v
+        # d<f
 
         possible_next_diag_models <- list()
+
+        next_diag_Q <- c(Q1_mode + diag_index - 1, Q2_mode + diag_index - 1)
 
         if (self$global_opts$verbosity >= 4) {
           cat(
             "\n\nFitting the next diagonal point: (",
-            toString(c(Q1_mode + diag_index + 1, Q2_mode + diag_index + 1))
+            toString(next_diag_Q), ")"
           )
         }
 
-        # From the column splits, ie from a bottom model  d
-        #                                                 ^
-        #                                                 f
-        if (self$global_opts$verbosity >= 4) {
-          cat("\nFitting the bottom possible splits for the next diag.")
+        # If the wanted model already exists in the model_list we store it as a
+        # possible next diagonal model
+        if (self$point_is_in_limits(next_diag_Q) &&
+          !is.null(self$model_list[[next_diag_Q[1], next_diag_Q[2]]])) {
+          possible_next_diag_models <- append(
+            possible_next_diag_models,
+            self$model_list[[next_diag_Q[1], next_diag_Q[2]]]
+          )
         }
-        bottom_model <- self$model_list[[Q1_mode + diag_index + 1, Q2_mode + diag_index]]
+
+        # From the column splits, ie from a top model  f
+        #                                              v
+        #                                              d
+        if (self$global_opts$verbosity >= 4) {
+          cat("\nFitting the top possible merges for the next diag.")
+        }
+        top_model_Q <- next_diag_Q + c(0,1)
+        top_model <- self$model_list[[top_model_Q[1], top_model_Q[2]]]
 
         possible_next_diag_models <- append(
           possible_next_diag_models,
-          self$split_clustering(bottom_model, is_col_split = TRUE)
+          self$merge_clustering(top_model, axis = "col")
         )
 
-        # From the row splits, ie left model f>d
+        # From the row splits, ie left model d<f
+        right_model_Q <- next_diag_Q + c(1,0)
         if (self$global_opts$verbosity >= 4) {
-          cat("\nFitting the left possible splits for the next diag.")
+          cat("\nFitting the left possible merges for the next diag.")
         }
-        left_model <- self$model_list[[Q1_mode + diag_index, Q2_mode + diag_index + 1]]
+        right_model <- self$model_list[[right_model_Q[1], right_model_Q[2]]]
 
         possible_next_diag_models <- append(
           possible_next_diag_models,
-          self$split_clustering(left_model)
+          self$merge_clustering(right_model)
         )
 
         # Select the max in the BICL sense
@@ -2310,13 +2326,13 @@ lbmpop <- R6::R6Class(
         )
 
         # Adding the best of the possible models to the model_list
-        self$model_list[[Q1_mode + diag_index + 1, Q2_mode + diag_index + 1]] <-
+        self$model_list[[next_diag_Q[1], next_diag_Q[2]]] <-
           possible_next_diag_models[[which.max(possible_next_diag_models_BICL)]]
 
         if (self$global_opts$verbosity >= 4) {
           cat(
             "\nThe preferred origin for the next diag : (",
-            toString(c(Q1_mode + diag_index + 1, Q2_mode + diag_index + 1)),
+            toString(next_diag_Q),
             ") is the Q = (",
             toString(
               possible_next_diag_models[[which.max(possible_next_diag_models_BICL)]]$Q
@@ -2326,13 +2342,14 @@ lbmpop <- R6::R6Class(
         }
 
         # Adding the other possible models to the discarded_model_list
-        self$discarded_model_list[[Q1_mode + diag_index + 1, Q2_mode + diag_index + 1]] <-
+        self$discarded_model_list[[next_diag_Q[1], next_diag_Q[2]]] <-
           append(
-            self$discarded_model_list[[Q1_mode + diag_index + 1, Q2_mode + diag_index + 1]],
+            self$discarded_model_list[[next_diag_Q[1], next_diag_Q[2]]],
             possible_next_diag_models[-which.max(possible_next_diag_models_BICL)]
           )
         self$state_space_plot()
       }
+
       if (self$global_opts$verbosity >= 4) {
         cat("\nEnd of the Backward pass.")
       }
