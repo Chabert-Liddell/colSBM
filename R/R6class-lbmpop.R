@@ -188,7 +188,7 @@ lbmpop <- R6::R6Class(
           # the origin model for the mth network
           split_clust(
             origin_model$A[[m]], # Incidence matrix
-            origin_model$Z[[m]][[1]], # The row clustering
+            origin_model$MAP$Z[[m]][[1]], # The row clustering
             origin_model$Q[1], # The number of current row clusters
             is_bipartite = TRUE
           )
@@ -199,7 +199,7 @@ lbmpop <- R6::R6Class(
         col_clustering <- lapply(
           seq.int(self$M),
           function(m) {
-            origin_model$Z[[m]][[2]]
+            origin_model$MAP$Z[[m]][[2]]
           }
         )
       } else {
@@ -209,7 +209,7 @@ lbmpop <- R6::R6Class(
           # the origin model for the mth network
           split_clust(
             t(origin_model$A[[m]]), # Incidence matrix
-            origin_model$Z[[m]][[2]], # The col clustering
+            origin_model$MAP$Z[[m]][[2]], # The col clustering
             origin_model$Q[2], # The number of current col clusters
             is_bipartite = TRUE
           )
@@ -220,7 +220,7 @@ lbmpop <- R6::R6Class(
         row_clustering <- lapply(
           seq.int(self$M),
           function(m) {
-            origin_model$Z[[m]][[1]]
+            origin_model$MAP$Z[[m]][[1]]
           }
         )
       }
