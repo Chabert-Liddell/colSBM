@@ -28,6 +28,8 @@ lbmpop <- R6::R6Class(
     free_mixture = NULL,
     ICL_sbm = NULL,
     ICL = NULL,
+    sep_LBM_ICL = NULL, # A vector of size M containing the ICL for each
+                        # LBM its ICL
     BICL = NULL,
     vbound = NULL,
     best_fit = NULL,
@@ -2391,6 +2393,7 @@ lbmpop <- R6::R6Class(
         Q1 <= self$global_opts$Q1_max &&
         Q2 <= self$global_opts$Q2_max)
     },
+
     store_criteria_and_best_fit = function() {
       # Store the vbound, ICL and BICL into the appropriate lists
 
@@ -2413,6 +2416,27 @@ lbmpop <- R6::R6Class(
 
       # Assign the best_fit
       self$best_fit <- self$model_list[[which.max(self$BICL)]]
+    },
+
+    compute_sep_LBM_ICL = function() {
+      # Computes the sepLBM ICL to compare with the model
+
+      self$sep_LBM_ICL <- sapply(seq.int(self$M), function(m) {
+        sbm::estimateBipartiteSBM(
+          self$A[[m]],
+          model = self$model,
+          estimOptions = list(
+            verbosity = 0,
+            plot = FALSE
+          )
+        )$ICL
+      })
+
+      if (self$global_opts$verbosity >= 4) {
+        cat("\n==== Finished fitting ", self$M, "sepLBM ====")
+        cat("\n Total sepLBM ICL : ", sum(self$sep_LBM_ICL),"\n")
+      }
+
     }
   )
 )
