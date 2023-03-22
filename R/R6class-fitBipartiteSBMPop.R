@@ -1005,8 +1005,8 @@ fitBipartiteSBMPop <- R6::R6Class(
       prob_col <- pir %*% self$alpha
 
       # Find the order
-      row_order <- order(prob_row)
-      col_order <- order(col_row)
+      row_order <- order(prob_row, decreasing = TRUE)
+      col_order <- order(col_row, decreasing = TRUE)
 
       # Tau, emqr and nmqr, alpha & pi are reordered accordingly
       if (ncol(tau_1) != 1) {
