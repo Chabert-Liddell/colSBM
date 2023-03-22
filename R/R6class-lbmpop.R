@@ -301,6 +301,8 @@ lbmpop <- R6::R6Class(
             }
           )
 
+          possible_models_size <- choose(merge_Q[1], 2)
+
           merge_Q[1] <- merge_Q[1] - 1
 
           col_clustering <- lapply(
@@ -309,9 +311,8 @@ lbmpop <- R6::R6Class(
               origin_model$Z[[m]][[2]]
             }
           )
-
-          possible_models_size <- merge_Q[1]
         },
+
         col = {
           # If we are splitting on the columns
           col_clustering <- lapply(
@@ -320,6 +321,8 @@ lbmpop <- R6::R6Class(
               merge_clust(origin_model$MAP$Z[[m]][[2]], merge_Q[2])
             }
           )
+
+          possible_models_size <- choose(merge_Q[2], 2)
 
           merge_Q[2] <- merge_Q[2] - 1
 
@@ -330,7 +333,7 @@ lbmpop <- R6::R6Class(
             }
           )
 
-          possible_models_size <- merge_Q[2]
+
         },
       both = {
         # To perform both row and col merge
@@ -1580,10 +1583,14 @@ lbmpop <- R6::R6Class(
         cat("\nBeginning the forward pass.")
       }
       # Forward pass, where we split
+
       for (diag_index in seq.int(from = -depth, to = depth - 1)) {
         
         if (self$global_opts$verbosity >= 4) {
-          cat("\n----Step ", depth + 1 + diag_index, "/", 2 * depth + 1,"----")
+          cat(
+            "\n----Splitting Step ", depth + 1 + diag_index,
+            "/", 2 * depth, "----"
+          )
           cat(
             "\n\nFitting the column above the diagonal point (",
             toString(c(Q1_mode + diag_index, Q2_mode + diag_index)), ")."
@@ -1887,7 +1894,7 @@ lbmpop <- R6::R6Class(
           )
         }
 
-        # If the wanted model already exists in the model_list we store it as a 
+        # If the wanted model already exists in the model_list we store it as a
         # possible next diagonal model
         if (self$point_is_in_limits(c(Q1_mode + diag_index + 1, Q2_mode + diag_index + 1)) &&
           !is.null(self$model_list[[Q1_mode + diag_index + 1, Q2_mode + diag_index + 1]])) {
@@ -1948,21 +1955,24 @@ lbmpop <- R6::R6Class(
         }
 
         # Adding the other possible models to the discarded_model_list
-        self$discarded_model_list[[Q1_mode + diag_index + 1, Q2_mode + diag_index + 1]] <- 
-        append(
-          self$discarded_model_list[[Q1_mode + diag_index + 1, Q2_mode + diag_index + 1]],
-          possible_next_diag_models[-which.max(possible_next_diag_models_BICL)]
-        )
+        self$discarded_model_list[[Q1_mode + diag_index + 1, Q2_mode + diag_index + 1]] <-
+          append(
+            self$discarded_model_list[[Q1_mode + diag_index + 1, Q2_mode + diag_index + 1]],
+            possible_next_diag_models[-which.max(possible_next_diag_models_BICL)]
+          )
         self$state_space_plot()
       }
       if (self$global_opts$verbosity >= 4) {
-        cat("\nEnd of the Forward pass.")
+        cat("\nEnd of the Forward pass.\n")
       }
 
       # Backward pass, where we merge
       for (diag_index in seq.int(from = depth, to = - depth + 1)) {
         if (self$global_opts$verbosity >= 4) {
-          cat("\n----Step ", depth + 1 + diag_index, "/", 2 * depth + 1, "----")
+          cat(
+            "\n----Merging Step ", depth + 1 - diag_index,
+            "/", 2 * depth, "----"
+          )
         }
 
         # Merging columns
@@ -2351,11 +2361,21 @@ lbmpop <- R6::R6Class(
       }
 
       if (self$global_opts$verbosity >= 4) {
-        cat("\nEnd of the Backward pass.")
+        cat("\nEnd of the Backward pass.\n")
       }
 
       # After the two passes
       self$store_criteria_and_best_fit()
+
+      if (self$global_opts$verbosity >= 4) {
+        cat(
+          "\nAfter the moving window around (",
+          toString(c(Q1_mode, Q2_mode)),
+          ") the mode is at : (",
+          toString(self$best_fit$Q),
+          ")."
+        )
+      }
     },
 
     truncate_discarded_model_list = function() {
