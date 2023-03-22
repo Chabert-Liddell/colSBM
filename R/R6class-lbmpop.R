@@ -1380,14 +1380,37 @@ lbmpop <- R6::R6Class(
           self$print_metrics()
         }
 
+        # Storing the current important values
+        current_max_BICL <- self$model_list[[Q[1],Q[2]]]$BICL
+
         # Perform another iteration of the moving window
         self$moving_window(Q)
+
+        # Improvement criterion
+        has_the_mode_moved <- Q != self$best_fit$Q
+        self$improved <- (self$best_fit$BICL - current_max_BICL) > tolerance ||
+          has_the_mode_moved
 
         # We now set the new Q and check if the fit is better
         Q <- which(self$BICL == max(self$BICL), arr.ind = TRUE)
         improved <- self$improved
         nb_pass <- nb_pass + 1
       }
+      # Now compare to the sepLBM
+      self$compute_sep_LBM_ICL()
+
+      if (self$global_opts$verbosity >= 1) {
+        cat("\n==== Best fits criterion for the ", self$M, "networks ====")
+        cat("\nSep LBM total ICL: ", sum(self$sep_LBM_ICL))
+        cat("\ncolLBM BICL:", self$best_fit$BICL)
+      }
+
+      if (sum(self$sep_LBM_ICL) > self$best_fit$BICL) {
+        cat("\nSeparated modelisation preferred")
+      } else {
+        cat("\nJoint modelisation preferred")
+      }
+
     },
 
     choose_models = function(models, Q, index = seq(self$M), nb_clusters = 1L) {
