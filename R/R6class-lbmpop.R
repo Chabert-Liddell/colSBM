@@ -741,7 +741,7 @@ lbmpop <- R6::R6Class(
       self$separated_inits <- vector("list", 4) # The first coordinate is Q1, the second is Q2
       dim(self$separated_inits) <- c(2,2)
 
-      if (self$global_opts$verbosity >= 3) {
+      if (self$global_opts$verbosity >= 2) {
         cat("=== Beginning Burn in ===\n")
       }
 
@@ -1012,7 +1012,7 @@ lbmpop <- R6::R6Class(
 
       self$store_criteria_and_best_fit()
 
-      if(self$global_opts$verbosity >=3) {
+      if(self$global_opts$verbosity >= 2) {
         cat(
           "\n==== Finished Burn in",
           " for networks ", self$net_id, " in ", 
@@ -1020,23 +1020,8 @@ lbmpop <- R6::R6Class(
           " ====\n"
         )
 
-        # Capturing the pretty print of matrices
-        vbound_print <- paste0(capture.output(
-          print(round(self$vbound))
-        ), collapse = "\n")
+      self$print_metrics()
 
-        ICL_print <- paste0(capture.output(
-          print(round(self$ICL))
-        ), collapse = "\n")
-
-        BICL_print <- paste0(capture.output(
-          print(round(self$BICL))
-        ), collapse = "\n")
-
-        cat("vbound : \n", vbound_print, "\n\n")
-        cat("ICL    : \n", ICL_print, "\n\n")
-        cat("BICL   : \n", BICL_print, "\n\n")
-        cat("Best fit at Q=(", toString(best_mode),")\n")
       }
     },
 
@@ -1382,18 +1367,17 @@ lbmpop <- R6::R6Class(
       self$burn_in()
       improved <- TRUE
       nb_pass <- 0
+      tolerance <- 10e-3
       Q <- which(self$BICL == max(self$BICL), arr.ind = TRUE)
 
       self$global_opts$nb_models <- ceiling(self$global_opts$nb_models/2)
       while (improved & nb_pass < self$global_opts$max_pass) {
         if (self$global_opts$verbosity >= 2) {
           cat(
-            "==== Starting pass number ", nb_pass + 1,
+            "\n==== Starting pass number ", nb_pass + 1,
             " for networks ", self$net_id, " ===\n"
           )
-          cat("vbound : ", round(self$vbound), "\n")
-          cat("ICL    : ", round(self$ICL), "\n")
-          cat("BICL   : ", round(self$BICL), "\n")
+          self$print_metrics()
         }
 
         # Perform another iteration of the moving window
@@ -2437,6 +2421,26 @@ lbmpop <- R6::R6Class(
         cat("\n Total sepLBM ICL : ", sum(self$sep_LBM_ICL),"\n")
       }
 
+    },
+
+    print_metrics = function() {
+      # Capturing the pretty print of matrices
+      vbound_print <- paste0(capture.output(
+        print(round(self$vbound))
+      ), collapse = "\n")
+
+      ICL_print <- paste0(capture.output(
+        print(round(self$ICL))
+      ), collapse = "\n")
+
+      BICL_print <- paste0(capture.output(
+        print(round(self$BICL))
+      ), collapse = "\n")
+
+      cat("vbound : \n", vbound_print, "\n\n")
+      cat("ICL    : \n", ICL_print, "\n\n")
+      cat("BICL   : \n", BICL_print, "\n\n")
+      cat("Best fit at Q=(", toString(self$best_fit$Q), ")\n")
     }
   )
 )
