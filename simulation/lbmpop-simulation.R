@@ -21,14 +21,14 @@ nr <- 100
 nc <- 250
 
 pir <- c(0.2, 0.8)
-pic <- c(0.2, 0.3, 0.5)
+pic <- c(0.2, 0.8)
 
 Q <- c(length(pir), length(pic))
 
 alpha <- matrix(
     c(
-        0.9, eps, eps,
-        eps, 0.8, eps
+        0.9, eps,
+        eps, 0.8
     ), nrow = Q[1], ncol = Q[2], byrow = TRUE
 )
 
@@ -49,9 +49,12 @@ Z <- lapply(seq.int(M), function(m) {
 
 mylbmpop <- lbmpop$new(
     netlist = bipartite_collection_incidence,
-    global_opts = list(verbosity = 4, plot_details = 1)
+    global_opts = list(
+        verbosity = 4, 
+        plot_details = 1,
+        nb_cores = parallel::detectCores() / 2
+    )
 )
 mylbmpop$burn_in()
 old_BICL <- mylbmpop$best_fit$BICL
-mylbmpop$moving_window(mylbmpop$best_fit$Q)
-mylbmpop$state_space_plot()
+mylbmpop$optimize()
