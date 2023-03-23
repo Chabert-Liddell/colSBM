@@ -911,7 +911,10 @@ fitBipartiteSBMPop <- R6::R6Class(
           "given" = lapply(
             X = seq_along(self$Z),
             FUN = function(m) {
-              if (is.matrix(self$Z[[m]][[1]]) && is.matrix(self$Z[[m]][[2]])) {
+              if (is.matrix(self$Z[[m]][[1]]) &&
+              is.matrix(self$Z[[m]][[2]]) &&
+              all(dim(self$Z[[m]][[1]]) == c(self$nr[m],self$Q[1])) &&
+              all(dim(self$Z[[m]][[2]]) == c(self$nc[m],self$Q[2]))) {
                 # If Z was already provided as a list of two matrices
                 tau_1 <- self$Z[[m]][[1]]
                 tau_2 <- self$Z[[m]][[2]]
