@@ -93,7 +93,7 @@ for (condition_row in 1:nrow(condition_matrix)) {
         free_mixture = FALSE,
         free_density = FALSE,
         global_opts = list(
-            verbosity = 4,
+            verbosity = 0,
             plot_details = 0
         )
     )
