@@ -746,11 +746,12 @@ lbmpop <- R6::R6Class(
 
       if (self$global_opts$verbosity >= 2) {
         cat("=== Beginning Burn in ===\n")
+        cat("\nFitting good initilization points.")
       }
 
       # Init for Q = (1,2)
       if (self$global_opts$verbosity >= 4) {
-        cat("Fitting ", self$M, " networks for Q = (", toString(c(1, 2)), ")\n")
+        cat("\nFitting ", self$M, " networks for Q = (", toString(c(1, 2)), ")\n")
       }
 
       self$separated_inits[[1,2]] <- lapply(
@@ -992,6 +993,9 @@ lbmpop <- R6::R6Class(
 
       # We go looking for the mode with a greedy approach
       # Visiting each of the neighbors
+      if (self$global_opts$verbosity >= 1) {
+        cat("\n Greedy exploration to find a first mode.")
+      }
 
       # Greedy exploration from (1,2)
       mode_1_2 <- self$greedy_exploration(c(1, 2))

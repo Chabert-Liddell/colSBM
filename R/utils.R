@@ -110,15 +110,15 @@ generate_bipartite_collection <- function(nr, nc, pir, pic, alpha, M) {
   }
 
 # Generate the networks
-  for (m in seq(M)) {
-    out[[m]] <- generate_bipartite_network(
-      nr = nr[[m]],
-      nc = nc[[m]],
-      pir = pir,
-      pic = pic,
-      alpha = alpha
-    )
-  }
+out <- lapply(seq.int(M), function(m) {
+  generate_bipartite_network(
+    nr = nr[[m]],
+    nc = nc[[m]],
+    pir = pir,
+    pic = pic,
+    alpha = alpha
+  )
+})
   return(out)
 }
 

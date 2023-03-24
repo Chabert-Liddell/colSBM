@@ -3,73 +3,68 @@ require("sbm", quietly = T)
 require("dplyr", quietly = T)
 require("tictoc", quietly = T)
 require("ggplot2", quietly = T)
-
-# require("visNetwork", quietly = T)
-# require("igraph", quietly = T)
 source("R/utils.R")
 source("R/R6class-fitBipartiteSBMPop.R")
 source("R/R6class-lbmpop.R")
 
 set.seed(1234)
 eps <- 0.05
-M <- 1
+M <- 3
 
 # Cas hote parasite
 # Modulaire : avec les diagonaux qui sont x3 et x4 des petites probas non diag
 
-nr_hp <- 200
-nr_hp <- c(1 / 10 * nr_hp, 1 / 5 * nr_hp, nr_hp)
-nc_hp <- 500
-nc_hp <- c(1 / 10 * nc_hp, 1 / 5 * nc_hp, nc_hp)
+nr_modular <- 200
+nr_modular <- c(1 / 10 * nr_modular, 1 / 5 * nr_modular, nr_modular)
+nc_modular <- 500
+nc_modular <- c(1 / 10 * nc_modular, 1 / 5 * nc_modular, nc_modular)
 
-pir_hp <- c(0.6,0.4)
-pic_hp <- c(0.6,0.4)
+pir_modular <- c(0.6,0.4)
+pic_modular <- c(0.6,0.4)
 
-Q_hp <- c(length(pir_hp), length(pic_hp))
+Q_modular <- c(length(pir_modular), length(pic_modular))
 
-alpha_hp <- matrix(
+alpha_modular <- matrix(
     c(
         15*eps, eps,
         eps, 10*eps
     ),
-    nrow = Q_hp[1], ncol = Q_hp[2], byrow = TRUE
+    nrow = Q_modular[1], ncol = Q_modular[2], byrow = TRUE
 )
 
-hp_bipartite_collection <- generate_bipartite_network(nr_hp, nc_hp, pir_hp, pic_hp, alpha_hp)
-    #generate_bipartite_collection(nr_hp, nc_hp, pir_hp, pic_hp, alpha_hp, M)
+modular_bipartite_collection <- generate_bipartite_collection(nr_modular, nc_modular, pir_modular, pic_modular, alpha_modular, M)
 
-hp_bipartite_collection_incidence <- lapply(seq.int(M), function(m) {
-    hp_bipartite_collection$incidence_matrix
+modular_bipartite_collection_incidence <- lapply(seq.int(M), function(m) {
+    modular_bipartite_collection[[m]]$incidence_matrix
 })
 
 ### Cas plante-pollinisateurs double emboitements avec (1,3) partagé entre les emboîtements
-nr_pp <- 200
-nr_pp <- c(1/10*nr_pp, 1/5*nr_pp, nr_pp)
-nc_pp <- 500
-nc_pp <- c(1/10*nc_pp, 1/5*nc_pp, nc_pp)
+nr_nested <- 200
+nr_nested <- c(1/10*nr_nested, 1/5*nr_nested, nr_nested)
+nc_nested <- 500
+nc_nested <- c(1/10*nc_nested, 1/5*nc_nested, nc_nested)
 
-pir_pp <- c(1)
-pic_pp <- c(1)
+pir_nested <- c(1)
+pic_nested <- c(1)
 
-Q_pp <- c(length(pir_pp), length(pic_pp))
+Q_nested <- c(length(pir_nested), length(pic_nested))
 
-alpha_pp <- matrix(
+alpha_nested <- matrix(
     c(
         0.25
     ),
-    nrow = Q_pp[1], ncol = Q_pp[2], byrow = TRUE
+    nrow = Q_nested[1], ncol = Q_nested[2], byrow = TRUE
 )
 
-pp_bipartite_collection <- generate_bipartite_network(nr_pp, nc_pp, pir_pp, pic_pp, alpha_pp)
-#generate_bipartite_collection(nr_pp, nc_pp, pir_pp, pic_pp, alpha_pp, M)
+nested_bipartite_collection <- generate_bipartite_collection(nr_nested, nc_nested, pir_nested, pic_nested, alpha_nested, M)
 
-pp_bipartite_collection_incidence <- lapply(seq.int(M), function(m) {
-    pp_bipartite_collection$incidence_matrix
+nested_bipartite_collection_incidence <- lapply(seq.int(M), function(m) {
+    nested_bipartite_collection[[m]]$incidence_matrix
 })
 
 # La fusion des deux précédents
 
-bipartite_collection <- list(hp_bipartite_collection, pp_bipartite_collection)
+bipartite_collection <- list(modular_bipartite_collection, nested_bipartite_collection)
 # This is a list of the M incidence matrices
 bipartite_collection_incidence <- lapply(seq_along(bipartite_collection), function(m) {
     bipartite_collection[[m]]$incidence_matrix
@@ -94,25 +89,25 @@ bipartite_collection_incidence <- lapply(seq_along(bipartite_collection), functi
 # colLBM models
 cat("\n Hote-Parasite (Modulaire) :\n")
 
-hp_lbmpop <- lbmpop$new(
-    netlist = hp_bipartite_collection_incidence,
+modular_lbmpop <- lbmpop$new(
+    netlist = modular_bipartite_collection_incidence,
     free_density = FALSE,
     free_mixture = FALSE,
-    global_opts = list(verbosity = 4, plot_details = 1,nb_cores = 2)
+    global_opts = list(verbosity = 4, plot_details = 1, nb_cores = 2)
 )
 
-hp_lbmpop$optimize()
+modular_lbmpop$optimize()
 
 cat("\n Plantes-Pollinisateurs (Double emboîté) :\n")
 
-pp_lbmpop <- lbmpop$new(
-    netlist = pp_bipartite_collection_incidence,
+nested_lbmpop <- lbmpop$new(
+    netlist = nested_bipartite_collection_incidence,
     free_density = FALSE,
     free_mixture = FALSE,
     global_opts = list(verbosity = 4, plot_details = 1)
 )
 
-pp_lbmpop$optimize()
+nested_lbmpop$optimize()
 
 cat("\n La collection associant les deux précédentes:\n")
 
@@ -130,7 +125,7 @@ bad_lbmpop <- lbmpop$new(
 
 bad_lbmpop$optimize()
 
-hp <- estimateBipartiteSBM(bipartite_collection_incidence[[1]])
-pp <- estimateBipartiteSBM(bipartite_collection_incidence[[2]])
+modular <- estimateBipartiteSBM(bipartite_collection_incidence[[1]])
+nested <- estimateBipartiteSBM(bipartite_collection_incidence[[2]])
 
 beepr::beep(5)
