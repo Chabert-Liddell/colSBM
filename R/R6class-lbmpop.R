@@ -228,7 +228,7 @@ lbmpop <- R6::R6Class(
 
 
       # Fitting the Q splits and selecting the next model
-      possible_models <- lapply(seq.int(
+      possible_models <- bettermc::mclapply(seq.int(
         ifelse(!is_col_split,
                 origin_model$Q[1], # If splitting on the rows
                 origin_model$Q[2])), # If splitting on the columns
@@ -256,15 +256,19 @@ lbmpop <- R6::R6Class(
           net_id = self$net_id,
           fit_opts = self$fit_opts,
         )
+        q_th_model$optimize()
         q_th_model
-      })
+      },
+        mc.cores = self$global_opts$nb_cores,
+        mc.allow.recursive = FALSE,
+        mc.stdout = "output"
+      )
 
       # Now we fit all the models for the differents splits
       possible_models_BICLs <- lapply(seq_along(possible_models), function(s) {
         if (self$global_opts$verbosity >= 4) {
           cat("\n\tFitting ", s, "/", length(possible_models), "split for ", typeOfSplit, ".")
         }
-        possible_models[[s]]$optimize()
         possible_models[[s]]$BICL
       })
 
@@ -342,7 +346,7 @@ lbmpop <- R6::R6Class(
 
 
       # Fitting the Q splits and selecting the next model
-      possible_models <- lapply(seq.int(possible_models_size),
+      possible_models <- bettermc::mclapply(seq.int(possible_models_size),
       function(q) {
         # Once the row and col clustering are correctly split
         # they are merged
@@ -370,21 +374,27 @@ lbmpop <- R6::R6Class(
           net_id = self$net_id,
           fit_opts = self$fit_opts,
         )
+        q_th_model$optimize()
         q_th_model
-      })
+      },
+        mc.cores = self$global_opts$nb_cores,
+        mc.allow.recursive = FALSE,
+        mc.stdout = "output"
+      )
 
       # Now we fit all the models for the differents splits
-      possible_models_BICLs <- lapply(seq_along(possible_models), 
-      function(s) {
-        if (self$global_opts$verbosity >= 4) {
-          cat(
-            "\n\tFitting ", s, "/", length(possible_models), 
-            "merge for", axis
-          )
+      possible_models_BICLs <- lapply(
+        seq_along(possible_models),
+        function(s) {
+          if (self$global_opts$verbosity >= 4) {
+            cat(
+              "\n\tFitting ", s, "/", length(possible_models),
+              "merge for", axis
+            )
+          }
+          possible_models[[s]]$BICL
         }
-        possible_models[[s]]$optimize()
-        possible_models[[s]]$BICL
-      })
+      )
 
       # The best in sense of BICL is)
       if (self$global_opts$verbosity >= 4) {
@@ -519,14 +529,15 @@ lbmpop <- R6::R6Class(
 
 
           state_plot <- state_plot +
-          ggnewscale::new_scale_color() +
-          geom_point(aes(
-            x = Q1,
-            y = Q2,
-            size = BICL,
-            color = isMaxBICL,
-            alpha = BICL,
-          )) +
+            ggnewscale::new_scale_color() +
+            geom_point(aes(
+              x = Q1,
+              y = Q2,
+              size = BICL,
+              color = isMaxBICL,
+              alpha = BICL,
+            )) +
+            scale_size_continuous(trans = "exp") + # To have nice size for the BICL
           guides(color = guide_legend(title = "Is max value\nof BICL ?")) +
             ggnewscale::new_scale_color() +
             scale_colour_hue(l = 45, drop = FALSE) +
