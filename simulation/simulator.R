@@ -62,7 +62,13 @@ complete_tibble <- NULL
 # M takes 1,2 and 5
 condition_matrix <- expand.grid(blur = seq(0, 1, by = 0.1), M = c(1, 2, 5))
 
-simulation_function <- function(condition_row) {
+if (isParallelized) {
+    n.cores <- parallel::detectCores() - 1
+} else {
+    n.cores <- 1L
+}
+
+results <- bettermc::mclapply(seq.int(nrow(condition_matrix)), function(condition_row) {
     divergence_parameter <- condition_matrix[condition_row, 1]
     M <- condition_matrix[condition_row, 2]
 
@@ -95,7 +101,9 @@ simulation_function <- function(condition_row) {
         global_opts = list(
             verbosity = 0,
             plot_details = 0,
-            nb_cores = 1
+            nb_cores = 1,
+            Q1_max = 50,
+            Q2_max = 50
         )
     )
 
@@ -119,16 +127,6 @@ simulation_function <- function(condition_row) {
         )
     }))
     current_tibble
-}
-
-if (isParallelized) {
-    n.cores <- parallel::detectCores() - 1
-} else {
-    n.cores <- 1L
-}
-
-results <- bettermc::mclapply(seq.int(nrow(condition_matrix)), function(condition_row) {
-    simulation_function(condition_row)
 }, mc.cores = n.cores)
 
 complete_tibble <- dplyr::bind_rows(results)
