@@ -101,9 +101,7 @@ results <- bettermc::mclapply(seq.int(nrow(condition_matrix)), function(conditio
         global_opts = list(
             verbosity = 0,
             plot_details = 0,
-            nb_cores = 1,
-            Q1_max = 50,
-            Q2_max = 50
+            nb_cores = 1
         )
     )
 

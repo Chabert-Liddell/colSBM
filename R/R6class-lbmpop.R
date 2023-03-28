@@ -1672,6 +1672,27 @@ lbmpop <- R6::R6Class(
             cat("\nNo bottom neighbor already fitted")
           }
 
+          # If the point has no predecessor or current model
+          # a spectral is fitted
+          if (length(wanted_model_different_splits_origin) == 0) {
+            # OPTIONAL TODO : release the if, to test with more
+            # inits in the grid
+            spectral_init <- fitBipartiteSBMPop$new(
+              A = self$A,
+              Q = current_model_Q,
+              free_mixture = self$free_mixture,
+              free_density = self$free_mixture,
+              init_method = "spectral",
+              net_id = self$net_id,
+              fit_opts = self$fit_opts
+            )
+            spectral_init$optimize()
+            wanted_model_different_splits_origin <- append(
+              wanted_model_different_splits_origin,
+              spectral_init
+            )
+          }
+
           # Now we have the different models from different origins
           # and we can select the one that maximizes the BICL
 
