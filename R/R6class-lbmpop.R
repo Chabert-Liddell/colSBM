@@ -1425,14 +1425,12 @@ lbmpop <- R6::R6Class(
           cat("\n==== Best fits criterion for the ", self$M, "networks ====")
           cat("\nSep LBM total BICL: ", sum(self$sep_LBM_BICL))
           cat("\ncolLBM BICL:", self$best_fit$BICL)
+          if (sum(self$sep_LBM_BICL) > self$best_fit$BICL) {
+            cat("\nSeparated modelisation preferred")
+          } else {
+            cat("\nJoint modelisation preferred")
+          }
         }
-
-
-      if (sum(self$sep_LBM_BICL) > self$best_fit$BICL) {
-        cat("\nSeparated modelisation preferred")
-      } else {
-        cat("\nJoint modelisation preferred")
-      }
     } else {
       self$sep_LBM_BICL <- c(self$best_fit$BICL)
     }
