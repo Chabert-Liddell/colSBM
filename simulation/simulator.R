@@ -28,8 +28,7 @@ pic <- as.vector(gtools::rdirichlet(1, c(8, 5, 2)))
 
 Q <- c(length(pir), length(pic))
 
-isParallelized <- FALSE
-
+isParallelized <- TRUE
 first_alpha <- matrix(
     c(
         0.9, eps, eps,
@@ -134,7 +133,6 @@ data_to_save <- list(
     pic = pic,
     first_alpha = first_alpha,
     second_alpha = second_alpha,
-    diverging_alpha = diverging_alpha,
     results = complete_tibble
 )
 
