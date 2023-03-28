@@ -28,7 +28,7 @@ pic <- as.vector(gtools::rdirichlet(1, c(8, 5, 2)))
 
 Q <- c(length(pir), length(pic))
 
-isParallelized <- FALSE
+isParallelized <- TRUE
 
 first_alpha <- matrix(
     c(
