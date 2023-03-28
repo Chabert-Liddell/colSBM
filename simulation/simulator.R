@@ -61,7 +61,6 @@ complete_tibble <- NULL
 # Blur goes from 0 to 0.9 by 0.1 step
 # M takes 1,2 and 5
 condition_matrix <- expand.grid(blur = seq(0, 1, by = 0.1), M = c(1, 2, 5))
-condition_matrix <- expand.grid(blur = 0.1, M = 1)
 
 simulation_function <- function(condition_row) {
     divergence_parameter <- condition_matrix[condition_row, 1]
