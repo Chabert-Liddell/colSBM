@@ -1679,7 +1679,7 @@ lbmpop <- R6::R6Class(
             # inits in the grid
             spectral_init <- fitBipartiteSBMPop$new(
               A = self$A,
-              Q = current_model_Q,
+              Q = c(current_Q1, current_Q2),
               free_mixture = self$free_mixture,
               free_density = self$free_mixture,
               init_method = "spectral",
