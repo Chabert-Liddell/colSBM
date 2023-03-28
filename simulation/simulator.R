@@ -1,9 +1,13 @@
 # Source necessary files to work
+require("bettermc")
 require("ggplot2")
 require("ggnewscale")
 source("R/utils.R")
 source("R/R6class-fitBipartiteSBMPop.R")
 source("R/R6class-lbmpop.R")
+
+## Parallelization
+n.cores <- parallel::detectCores() - 1
 
 combine_matrices_print <- function(matrix_print1, matrix_print2, sep = "") {
     list1 <- strsplit(matrix_print1, "\n")[[1]]
@@ -67,7 +71,7 @@ progress_bar <- progress::progress_bar$new(
     width = 100, # Width of the progress bar
     show_after = 0.0
 )
-for (condition_row in 1:nrow(condition_matrix)) {
+bettermc::mclapply(seq.int(nrow(condition_matrix)),function(condition_row){
 
     blur_parameter <- condition_matrix[condition_row, 1]
     M <- condition_matrix[condition_row, 2]
@@ -94,7 +98,8 @@ for (condition_row in 1:nrow(condition_matrix)) {
         free_density = FALSE,
         global_opts = list(
             verbosity = 0,
-            plot_details = 0
+            plot_details = 0,
+            nb_cores = 1
         )
     )
 
@@ -112,13 +117,13 @@ for (condition_row in 1:nrow(condition_matrix)) {
                 current_lbmpop$best_fit$MAP$Z[[m]][[2]],
                 collection_clustering[[m]][[2]]
             ),
-            blur = blur_parameter
+            blur = blur_parameter,
+            sep_LBM_BICL = sum(current_lbmpop$sep_LBM_BICL),
+            BICL = current_lbmpop$best_fit$BICL
         )
     }))
-    complete_tibble <- dplyr::bind_rows(complete_tibble, current_tibble)
-    progress_bar$tick()
-
-}
+    current_tibble
+}, mc.cores = n.cores)
 
 data_to_save <- list(
     pir = pir,
