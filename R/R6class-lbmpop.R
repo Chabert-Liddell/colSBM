@@ -261,7 +261,8 @@ lbmpop <- R6::R6Class(
       },
         mc.cores = self$global_opts$nb_cores,
         mc.allow.recursive = FALSE,
-        mc.stdout = "output"
+        mc.silent = TRUE,
+        mc.progress = FALSE
       )
 
       # Now we fit all the models for the differents splits
@@ -379,7 +380,8 @@ lbmpop <- R6::R6Class(
       },
         mc.cores = self$global_opts$nb_cores,
         mc.allow.recursive = FALSE,
-        mc.stdout = "output"
+        mc.silent = TRUE,
+        mc.progress = FALSE
       )
 
       # Now we fit all the models for the differents splits
