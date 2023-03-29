@@ -1591,11 +1591,13 @@ lbmpop <- R6::R6Class(
           # Discard the value if it's out of bounds
           next
         }
-        for (current_Q2 in seq.int(from = Q2_mode -depth, to = Q2_mode + depth)){
+        for (current_Q2 in seq.int(from = Q2_mode-depth, to = Q2_mode + depth)){
           if (current_Q2 < 1 || current_Q2 > self$global_opts$Q2_max) {
             # Discard the value if it's out of bounds
             next
           }
+
+          current_model_Q <- c(current_Q1, current_Q2)
 
           # We list the split origins for the model and we'll keep the best
           # BICL and store the other one in the discarded model list
@@ -1603,9 +1605,16 @@ lbmpop <- R6::R6Class(
           left_model <- NULL
           bottom_model <- NULL
 
+          if (self$global_opts$verbosity >= 4) {
+            cat(
+              "\n\nLooking for possible origins by splitting to Q = (",
+              toString(current_model_Q), ")."
+            )
+          }
+
           # If the wanted model already exists in the model_list we store it as a possible model
-          if (self$point_is_in_limits(c(current_Q1, current_Q2)) &&
-          !is.null(self$model_list[[current_Q1, current_Q2]])) {
+          if (self$point_is_in_limits(current_model_Q) &&
+          !is.null(self$model_list[[current_model_Q[1], current_model_Q[2]]])) {
             if (self$global_opts$verbosity >= 4) {
               cat("\nA model was already fitted here ! Storing it to compare")
             }
@@ -1613,63 +1622,67 @@ lbmpop <- R6::R6Class(
             wanted_model_different_splits_origin <-
               append(
                 wanted_model_different_splits_origin,
-                self$model_list[[current_Q1, current_Q2]]
+                self$model_list[[current_model_Q[1], current_model_Q[2]]]
               )
-          }else if (self$point_is_in_limits(c(current_Q1, current_Q2)) &&
-          is.null(self$model_list[[current_Q1, current_Q2]])&&
+          }else if (self$point_is_in_limits(current_model_Q) &&
+          is.null(self$model_list[[current_model_Q[1], current_model_Q[2]]]) &&
           self$global_opts$verbosity >= 4) {
             cat("\nNo model already fitted for the point")
           }
 
+          left_model_Q <- current_model_Q + c(-1,0)
+
           # Checking if the left neighbor exists
-          if (self$point_is_in_limits(c(current_Q1 - 1, current_Q2)) &&
-            !is.null(self$model_list[[current_Q1 - 1, current_Q2]])) {
+          if (self$point_is_in_limits(left_model_Q) &&
+            !is.null(self$model_list[[left_model_Q[1], left_model_Q[2]]])) {
             # If the left neighbor exist then we can split from it
             if (self$global_opts$verbosity >= 4) {
               cat(
                 "\nThe left neighbor of (",
-                toString(c(current_Q1, current_Q2)),
+                toString(current_model_Q),
                 ") exists. It is (",
-                toString(c(current_Q1 - 1, current_Q2)),
+                toString(left_model_Q),
                 ").\nFitting the possible row splits from it."
               )
             }
 
-            left_model <- self$model_list[[current_Q1 - 1, current_Q2]]
+            left_model <- self$model_list[[left_model_Q[1], left_model_Q[2]]]
 
             wanted_model_different_splits_origin <- append(
               wanted_model_different_splits_origin,
               self$split_clustering(left_model)
             )
-          } else if (self$point_is_in_limits(c(current_Q1 - 1, current_Q2)) &&
-            is.null(self$model_list[[current_Q1 - 1, current_Q2]]) &&
+          } else if (self$point_is_in_limits(left_model_Q) &&
+            is.null(self$model_list[[left_model_Q[1], left_model_Q[2]]]) &&
             self$global_opts$verbosity >= 4) {
               cat("\nNo left neighbor already fitted")
             }
 
+          bottom_model_Q <- current_model_Q + c(0,-1)
+
           # Checking if the bottom neighbor exists
-          if (self$point_is_in_limits(c(current_Q1, current_Q2 - 1)) 
-          && !is.null(self$model_list[[current_Q1, current_Q2 - 1]])) {
+          if (self$point_is_in_limits(bottom_model_Q)&&
+          !is.null(self$model_list[[bottom_model_Q[1], bottom_model_Q[2]]])) {
             # If the bottom neighbor exist then we can split from it
             if (self$global_opts$verbosity >= 4) {
               cat(
                 "\nThe bottom neighbor of (",
-                toString(c(current_Q1, current_Q2)),
+                toString(current_model_Q),
                 ") exists. It is (",
                 toString(
-                  c(current_Q1, current_Q2 - 1)),
+                  bottom_model_Q),
                   ").\nFitting the possible column splits from it."
               )
             }
 
-            bottom_model <- self$model_list[[current_Q1, current_Q2 - 1]]
+            bottom_model <- self$model_list[[bottom_model_Q[1], bottom_model_Q[2]]]
 
             wanted_model_different_splits_origin <- append(
               wanted_model_different_splits_origin,
               self$split_clustering(bottom_model, is_col_split = TRUE)
             )
-          } else if (self$point_is_in_limits(c(current_Q1, current_Q2 - 1)) &&
-          is.null(self$model_list[[current_Q1, current_Q2 - 1]]) &&
+          } else if (self$point_is_in_limits(bottom_model_Q) &&
+          is.null(self$model_list[[bottom_model_Q[1], bottom_model_Q[2]]]) &&
           self$global_opts$verbosity >= 4) {
             cat("\nNo bottom neighbor already fitted")
           }
@@ -1680,176 +1693,6 @@ lbmpop <- R6::R6Class(
             if (self$global_opts$verbosity >= 4) {
               cat(
                 "\nNo possible origins nor fitted model for the point Q=(",
-                toString(current_model_Q),
-                "). Fitting a spectral at this point."
-              )
-            }
-            # OPTIONAL TODO : release the if, to test with more
-            # inits in the grid
-            spectral_init <- fitBipartiteSBMPop$new(
-              A = self$A,
-              Q = c(current_Q1, current_Q2),
-              free_mixture = self$free_mixture,
-              free_density = self$free_mixture,
-              init_method = "spectral",
-              net_id = self$net_id,
-              fit_opts = self$fit_opts
-            )
-            spectral_init$optimize()
-            wanted_model_different_splits_origin <- append(
-              wanted_model_different_splits_origin,
-              spectral_init
-            )
-          }
-
-          # Now we have the different models from different origins
-          # and we can select the one that maximizes the BICL
-
-          # We compute an intermediate list of the BICLs
-          wanted_model_different_splits_origin_BICL <- NULL
-          wanted_model_different_splits_origin_BICL <- lapply(
-            seq_along(wanted_model_different_splits_origin),
-            function(origin) {
-              wanted_model_different_splits_origin[[origin]]$BICL
-            }
-          )
-          # Adding the best of the possible models to the model_list
-          self$model_list[[current_Q1, current_Q2]] <-
-            wanted_model_different_splits_origin[[which.max(wanted_model_different_splits_origin_BICL)]]
-
-          if (self$global_opts$verbosity >= 4) {
-            cat(
-              "\nThe preferred origin for (",
-              toString(c(current_Q1, current_Q2)),
-              ") is the Q = (",
-              toString(wanted_model_different_splits_origin[[which.max(wanted_model_different_splits_origin_BICL)]]$Q),
-              ") model."
-            )
-          }
-
-          # Adding the other possible models to the discarded_model_list
-          self$discarded_model_list[[current_Q1, current_Q2]] <- append(
-            self$discarded_model_list[[current_Q1, current_Q2]],
-            wanted_model_different_splits_origin[-which.max(wanted_model_different_splits_origin_BICL)]
-          )
-        }
-        }
-
-        self$state_space_plot()
-
-      if (self$global_opts$verbosity >= 4) {
-        cat("\nEnd of the Forward pass.\n")
-      }
-
-      # Backward pass, where we merge
-      for (current_Q1 in seq.int(from = Q1_mode + depth, to = Q1_mode - depth)) {
-        if (current_Q1 < 1 || current_Q1 > self$global_opts$Q1_max) {
-          next
-        }
-        for (current_Q2 in seq.int(from = Q2_mode + depth, to = Q2_mode - depth)) {
-          if (current_Q2 < 1 || current_Q2 > self$global_opts$Q2_max) {
-            next
-          }
-          # Current model to merge
-          current_model_Q <- c(current_Q1, current_Q2)
-
-          # We list the split origins for the model and we'll keep the best
-          # BICL and store the other one in the discarded model list
-          wanted_model_different_splits_origin <- list()
-          right_model <- NULL
-          top_model <- NULL
-
-          if (self$global_opts$verbosity >= 4) {
-            cat(
-              "\nLooking for possible origins by merging to Q = (",
-              toString(current_model_Q), ")."
-            )
-          }
-
-          # If the wanted model already exists in the model_list 
-          # we store it as a possible model
-          if (self$point_is_in_limits(current_model_Q) &&
-            !is.null(self$model_list[[current_model_Q[1], current_model_Q[2]]])) {
-            if (self$global_opts$verbosity >= 4) {
-              cat("\nA model was already fitted here ! Storing it to compare")
-            }
-
-            wanted_model_different_splits_origin <-
-              append(
-                wanted_model_different_splits_origin,
-                self$model_list[[current_model_Q[1],current_model_Q[2]]]
-              )
-          } else if (self$point_is_in_limits(current_model_Q) &&
-            is.null(self$model_list[[current_model_Q[1], current_model_Q[2]]])&&
-            self$global_opts$verbosity >= 4) {
-            cat("\nNo model already fitted for the point")
-          }
-
-          # Checking if the right neighbor exists
-
-          right_model_Q <- current_model_Q + c(1,0)
-
-          if (self$point_is_in_limits(right_model_Q) &&
-            !is.null(self$model_list[[right_model_Q[1], right_model_Q[2]]])) {
-            # If the right neighbor exist then we can split from it
-            if (self$global_opts$verbosity >= 4) {
-              cat(
-                "\nThe right neighbor of (",
-                toString(current_model_Q),
-                ") exists. It is (",
-                toString(right_model_Q),
-                ").\nFitting the possible row merges from it."
-              )
-            }
-
-            right_model <- self$model_list[[right_model_Q[1], right_model_Q[2]]]
-
-            wanted_model_different_splits_origin <- append(
-              wanted_model_different_splits_origin,
-              self$merge_clustering(right_model)
-            )
-          } else if (self$point_is_in_limits(right_model_Q) &&
-            is.null(self$model_list[[right_model_Q[1], right_model_Q[2]]]) &&
-            self$global_opts$verbosity >= 4) {
-            cat("\nNo right neighbor already fitted")
-          }
-
-          # Checking if the top neighbor exists
-          top_model_Q <- current_model_Q + c(0, 1)
-
-          if (self$point_is_in_limits(top_model_Q) &&
-            !is.null(self$model_list[[top_model_Q[1], top_model_Q[2]]])) {
-            # If the top neighbor exist then we can split from it
-            if (self$global_opts$verbosity >= 4) {
-              cat(
-                "\nThe top neighbor of (",
-                toString(current_model_Q),
-                ") exists. It is (",
-                toString(
-                  top_model_Q
-                ),
-                ").\nFitting the possible column merges from it."
-              )
-            }
-
-            top_model <- self$model_list[[top_model_Q[1],top_model_Q[2]]]
-
-            wanted_model_different_splits_origin <- append(
-              wanted_model_different_splits_origin,
-              self$merge_clustering(top_model, axis = "col")
-            )
-          } else if (self$point_is_in_limits(top_model_Q) &&
-            is.null(self$model_list[[top_model_Q[1], top_model_Q[2]]]) &&
-            self$global_opts$verbosity >= 4) {
-            cat("\nNo top neighbor already fitted")
-          }
-
-          # If the point has no predecessor or current model
-          # a spectral is fitted
-          if (length(wanted_model_different_splits_origin) == 0) {
-            if (self$global_opts$verbosity >= 4) {
-              cat(
-                "\nNo possible origins nor fitted model for the point Q=(", 
                 toString(current_model_Q),
                 "). Fitting a spectral at this point."
               )
@@ -1892,8 +1735,179 @@ lbmpop <- R6::R6Class(
               "\nThe preferred origin for (",
               toString(current_model_Q),
               ") is the Q = (",
+              toString(wanted_model_different_splits_origin[[which.max(wanted_model_different_splits_origin_BICL)]]$Q),
+              ") model."
+            )
+          }
+
+          # Adding the other possible models to the discarded_model_list
+          self$discarded_model_list[[current_model_Q[1], current_model_Q[2]]] <- 
+          append(
+            self$discarded_model_list[[current_model_Q[1], current_model_Q[2]]],
+            wanted_model_different_splits_origin[-which.max(wanted_model_different_splits_origin_BICL)]
+          )
+        }
+        }
+
+        self$state_space_plot()
+
+      if (self$global_opts$verbosity >= 4) {
+        cat("\nEnd of the Forward pass.\n")
+      }
+
+      # Backward pass, where we merge
+      for (current_Q1 in seq.int(from = Q1_mode + depth, to = Q1_mode - depth)) {
+        if (current_Q1 < 1 || current_Q1 > self$global_opts$Q1_max) {
+          next
+        }
+        for (current_Q2 in seq.int(from = Q2_mode + depth, to = Q2_mode - depth)) {
+          if (current_Q2 < 1 || current_Q2 > self$global_opts$Q2_max) {
+            next
+          }
+          # Current model to merge
+          current_model_Q <- c(current_Q1, current_Q2)
+
+          # We list the split origins for the model and we'll keep the best
+          # BICL and store the other one in the discarded model list
+          wanted_model_different_merges_origin <- list()
+          right_model <- NULL
+          top_model <- NULL
+
+          if (self$global_opts$verbosity >= 4) {
+            cat(
+              "\n\nLooking for possible origins by merging to Q = (",
+              toString(current_model_Q), ")."
+            )
+          }
+
+          # If the wanted model already exists in the model_list 
+          # we store it as a possible model
+          if (self$point_is_in_limits(current_model_Q) &&
+            !is.null(self$model_list[[current_model_Q[1], current_model_Q[2]]])) {
+            if (self$global_opts$verbosity >= 4) {
+              cat("\nA model was already fitted here ! Storing it to compare")
+            }
+
+            wanted_model_different_merges_origin <-
+              append(
+                wanted_model_different_merges_origin,
+                self$model_list[[current_model_Q[1],current_model_Q[2]]]
+              )
+          } else if (self$point_is_in_limits(current_model_Q) &&
+            is.null(self$model_list[[current_model_Q[1], current_model_Q[2]]])&&
+            self$global_opts$verbosity >= 4) {
+            cat("\nNo model already fitted for the point")
+          }
+
+          # Checking if the right neighbor exists
+
+          right_model_Q <- current_model_Q + c(1,0)
+
+          if (self$point_is_in_limits(right_model_Q) &&
+            !is.null(self$model_list[[right_model_Q[1], right_model_Q[2]]])) {
+            # If the right neighbor exist then we can split from it
+            if (self$global_opts$verbosity >= 4) {
+              cat(
+                "\nThe right neighbor of (",
+                toString(current_model_Q),
+                ") exists. It is (",
+                toString(right_model_Q),
+                ").\nFitting the possible row merges from it."
+              )
+            }
+
+            right_model <- self$model_list[[right_model_Q[1], right_model_Q[2]]]
+
+            wanted_model_different_merges_origin <- append(
+              wanted_model_different_merges_origin,
+              self$merge_clustering(right_model)
+            )
+          } else if (self$point_is_in_limits(right_model_Q) &&
+            is.null(self$model_list[[right_model_Q[1], right_model_Q[2]]]) &&
+            self$global_opts$verbosity >= 4) {
+            cat("\nNo right neighbor already fitted")
+          }
+
+          # Checking if the top neighbor exists
+          top_model_Q <- current_model_Q + c(0, 1)
+
+          if (self$point_is_in_limits(top_model_Q) &&
+            !is.null(self$model_list[[top_model_Q[1], top_model_Q[2]]])) {
+            # If the top neighbor exist then we can split from it
+            if (self$global_opts$verbosity >= 4) {
+              cat(
+                "\nThe top neighbor of (",
+                toString(current_model_Q),
+                ") exists. It is (",
+                toString(
+                  top_model_Q
+                ),
+                ").\nFitting the possible column merges from it."
+              )
+            }
+
+            top_model <- self$model_list[[top_model_Q[1],top_model_Q[2]]]
+
+            wanted_model_different_merges_origin <- append(
+              wanted_model_different_merges_origin,
+              self$merge_clustering(top_model, axis = "col")
+            )
+          } else if (self$point_is_in_limits(top_model_Q) &&
+            is.null(self$model_list[[top_model_Q[1], top_model_Q[2]]]) &&
+            self$global_opts$verbosity >= 4) {
+            cat("\nNo top neighbor already fitted")
+          }
+
+          # If the point has no predecessor or current model
+          # a spectral is fitted
+          if (length(wanted_model_different_merges_origin) == 0) {
+            if (self$global_opts$verbosity >= 4) {
+              cat(
+                "\nNo possible origins nor fitted model for the point Q=(", 
+                toString(current_model_Q),
+                "). Fitting a spectral at this point."
+              )
+            }
+            # OPTIONAL TODO : release the if, to test with more
+            # inits in the grid
+            spectral_init <- fitBipartiteSBMPop$new(
+              A = self$A,
+              Q = current_model_Q,
+              free_mixture = self$free_mixture,
+              free_density = self$free_mixture,
+              init_method = "spectral",
+              net_id = self$net_id,
+              fit_opts = self$fit_opts
+            )
+            spectral_init$optimize()
+            wanted_model_different_merges_origin <- append(
+              wanted_model_different_merges_origin,
+              spectral_init
+            )
+          }
+
+          # Now we have the different models from different origins
+          # and we can select the one that maximizes the BICL
+
+          # We compute an intermediate list of the BICLs
+          wanted_model_different_merges_origin_BICL <- NULL
+          wanted_model_different_merges_origin_BICL <- lapply(
+            seq_along(wanted_model_different_merges_origin),
+            function(origin) {
+              wanted_model_different_merges_origin[[origin]]$BICL
+            }
+          )
+          # Adding the best of the possible models to the model_list
+          self$model_list[[current_model_Q[1], current_model_Q[2]]] <-
+            wanted_model_different_merges_origin[[which.max(wanted_model_different_merges_origin_BICL)]]
+
+          if (self$global_opts$verbosity >= 4) {
+            cat(
+              "\nThe preferred origin for (",
+              toString(current_model_Q),
+              ") is the Q = (",
               toString(
-                wanted_model_different_splits_origin[[which.max(wanted_model_different_splits_origin_BICL)]]$Q
+                wanted_model_different_merges_origin[[which.max(wanted_model_different_merges_origin_BICL)]]$Q
                 ),
               ") model."
             )
@@ -1902,7 +1916,7 @@ lbmpop <- R6::R6Class(
           # Adding the other possible models to the discarded_model_list
           self$discarded_model_list[[current_model_Q[1], current_model_Q[2]]] <- append(
             self$discarded_model_list[[current_model_Q[1], current_model_Q[2]]],
-            wanted_model_different_splits_origin[-which.max(wanted_model_different_splits_origin_BICL)]
+            wanted_model_different_merges_origin[-which.max(wanted_model_different_merges_origin_BICL)]
           )
         }
       }
