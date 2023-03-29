@@ -1587,11 +1587,13 @@ lbmpop <- R6::R6Class(
       # Forward pass, where we split
 
       for (current_Q1 in seq.int(from = Q1_mode -depth, to = Q1_mode + depth)) {
-        if (current_Q1 < 1) {
+        if (current_Q1 < 1 || current_Q1 > self$global_opts$Q1_max) {
+          # Discard the value if it's out of bounds
           next
         }
         for (current_Q2 in seq.int(from = Q2_mode -depth, to = Q2_mode + depth)){
-          if (current_Q2 < 1) {
+          if (current_Q2 < 1 || current_Q2 > self$global_opts$Q2_max) {
+            # Discard the value if it's out of bounds
             next
           }
 
@@ -1629,7 +1631,7 @@ lbmpop <- R6::R6Class(
                 toString(c(current_Q1, current_Q2)),
                 ") exists. It is (",
                 toString(c(current_Q1 - 1, current_Q2)),
-                ").\nFitting the possible splits from it."
+                ").\nFitting the possible row splits from it."
               )
             }
 
@@ -1675,6 +1677,13 @@ lbmpop <- R6::R6Class(
           # If the point has no predecessor or current model
           # a spectral is fitted
           if (length(wanted_model_different_splits_origin) == 0) {
+            if (self$global_opts$verbosity >= 4) {
+              cat(
+                "\nNo possible origins nor fitted model for the point Q=(",
+                toString(current_model_Q),
+                "). Fitting a spectral at this point."
+              )
+            }
             # OPTIONAL TODO : release the if, to test with more
             # inits in the grid
             spectral_init <- fitBipartiteSBMPop$new(
@@ -1734,11 +1743,11 @@ lbmpop <- R6::R6Class(
 
       # Backward pass, where we merge
       for (current_Q1 in seq.int(from = Q1_mode + depth, to = Q1_mode - depth)) {
-        if (current_Q1 < 1) {
+        if (current_Q1 < 1 || current_Q1 > self$global_opts$Q1_max) {
           next
         }
         for (current_Q2 in seq.int(from = Q2_mode + depth, to = Q2_mode - depth)) {
-          if (current_Q2 < 1) {
+          if (current_Q2 < 1 || current_Q2 > self$global_opts$Q2_max) {
             next
           }
           # Current model to merge
@@ -1749,6 +1758,13 @@ lbmpop <- R6::R6Class(
           wanted_model_different_splits_origin <- list()
           right_model <- NULL
           top_model <- NULL
+
+          if (self$global_opts$verbosity >= 4) {
+            cat(
+              "\nLooking for possible origins by merging to Q = (",
+              toString(current_model_Q), ")."
+            )
+          }
 
           # If the wanted model already exists in the model_list 
           # we store it as a possible model
@@ -1782,7 +1798,7 @@ lbmpop <- R6::R6Class(
                 toString(current_model_Q),
                 ") exists. It is (",
                 toString(right_model_Q),
-                ").\nFitting the possible splits from it."
+                ").\nFitting the possible row merges from it."
               )
             }
 
@@ -1812,7 +1828,7 @@ lbmpop <- R6::R6Class(
                 toString(
                   top_model_Q
                 ),
-                ").\nFitting the possible column splits from it."
+                ").\nFitting the possible column merges from it."
               )
             }
 
@@ -1831,6 +1847,13 @@ lbmpop <- R6::R6Class(
           # If the point has no predecessor or current model
           # a spectral is fitted
           if (length(wanted_model_different_splits_origin) == 0) {
+            if (self$global_opts$verbosity >= 4) {
+              cat(
+                "\nNo possible origins nor fitted model for the point Q=(", 
+                toString(current_model_Q),
+                "). Fitting a spectral at this point."
+              )
+            }
             # OPTIONAL TODO : release the if, to test with more
             # inits in the grid
             spectral_init <- fitBipartiteSBMPop$new(
