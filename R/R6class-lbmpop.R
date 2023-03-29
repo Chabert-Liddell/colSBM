@@ -11,7 +11,7 @@ lbmpop <- R6::R6Class(
     A = NULL,
     M = NULL,
     mask = NULL, # 1 for NA and 0 for observed
-    model = NULL,
+    distribution = NULL,
     net_id = NULL,
     model_list = NULL, # A list of size Q1max * Q2max containing the best models
     discarded_model_list = NULL, # A list of size Q1max * Q2max * (nb_models - 1) containing the discarded models
@@ -50,7 +50,7 @@ lbmpop <- R6::R6Class(
     #'
     initialize = function(netlist = NULL,
                           net_id = NULL,
-                          model = "bernoulli",
+                          distribution = "bernoulli",
                           free_density = FALSE,
                           free_mixture = FALSE,
                           fit_sbm = NULL,
@@ -87,7 +87,7 @@ lbmpop <- R6::R6Class(
       }
 
       self$Z_init <- Z_init
-      self$model <- model
+      self$distribution <- distribution
       self$fit_sbm <- fit_sbm
       self$free_density <-  free_density
       self$free_mixture <- free_mixture
@@ -149,7 +149,7 @@ lbmpop <- R6::R6Class(
         self$global_opts$Q2_max
       )
 
-      if (self$model == "poisson") {
+      if (self$distribution == "poisson") {
         self$logfactA <- vapply(
           seq_along(self$A),
           function(m) {
@@ -252,6 +252,7 @@ lbmpop <- R6::R6Class(
           free_mixture = self$free_mixture,
           free_density = self$free_mixture,
           init_method = "given",
+          distribution = self$distribution,
           Z = q_th_Z_init,
           net_id = self$net_id,
           fit_opts = self$fit_opts,
@@ -371,6 +372,7 @@ lbmpop <- R6::R6Class(
           free_mixture = self$free_mixture,
           free_density = self$free_mixture,
           init_method = "given",
+          distribution = self$distribution,
           Z = q_th_Z_init,
           net_id = self$net_id,
           fit_opts = self$fit_opts,
@@ -776,6 +778,7 @@ lbmpop <- R6::R6Class(
             Q = c(1, 2),
             free_mixture = self$free_mixture,
             free_density = self$free_mixture,
+            distribution = self$distribution,
             init_method = "spectral",
             fit_opts = self$fit_opts
           )
@@ -814,6 +817,7 @@ lbmpop <- R6::R6Class(
             A = list(self$A[[m]]), Q = c(2, 1),
             free_mixture = self$free_mixture,
             free_density = self$free_mixture,
+            distribution = self$distribution,
             init_method = "spectral",
             fit_opts = self$fit_opts
           )
@@ -912,6 +916,7 @@ lbmpop <- R6::R6Class(
         free_mixture = self$free_mixture,
         free_density = self$free_mixture,
         fit_opts = self$fit_opts,
+        distribution = self$distribution,
         greedy_exploration_starting_point = c(1,1),
       )
 
@@ -948,6 +953,7 @@ lbmpop <- R6::R6Class(
         free_density = self$free_mixture,
         Z = M_clusterings_1_2,
         init_method = "given",
+        distribution = self$distribution,
         fit_opts = self$fit_opts,
         greedy_exploration_starting_point = c(1,2)
       )
@@ -958,6 +964,7 @@ lbmpop <- R6::R6Class(
         free_density = self$free_mixture,
         Z = M_clusterings_2_1,
         init_method = "given",
+        distribution = self$distribution,
         fit_opts = self$fit_opts,
         greedy_exploration_starting_point = c(2,1)
       )
@@ -1182,7 +1189,7 @@ lbmpop <- R6::R6Class(
 
 
     show = function(type = "Fitted Collection of Bipartite SBM") {
-      cat(type, "--", self$model, "variant for", self$M, "networks \n")
+      cat(type, "--", self$distribution, "variant for", self$M, "networks \n")
       cat("=====================================================================\n")
       cat("net_id = (", self$net_id, ")\n")
       cat(
@@ -1390,6 +1397,7 @@ lbmpop <- R6::R6Class(
               free_mixture = self$free_mixture,
               free_density = self$free_mixture,
               init_method = "spectral",
+              distribution = self$distribution,
               net_id = self$net_id,
               fit_opts = self$fit_opts
             )
@@ -1561,6 +1569,7 @@ lbmpop <- R6::R6Class(
               free_mixture = self$free_mixture,
               free_density = self$free_mixture,
               init_method = "spectral",
+              distribution = self$distribution,
               net_id = self$net_id,
               fit_opts = self$fit_opts
             )
@@ -1669,7 +1678,7 @@ lbmpop <- R6::R6Class(
         self$sep_BiSBM_BICL <- sapply(seq.int(self$M), function(m) {
           sep_BiSBM <- lbmpop$new(
             netlist = list(self$A[[m]]),
-            model = self$model,
+            distribution = self$distribution,
             free_mixture = FALSE,
             free_density = FALSE,
             global_opts = list(
