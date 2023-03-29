@@ -32,7 +32,7 @@ fitBipartiteSBMPop <- R6::R6Class(
     free_mixture = NULL, # A boolean
     free_density = NULL, # A boolean
     weight = NULL, # A vector of size M for weighted likelihood
-    probabilityDistribution = NULL, # "poisson", "bernoulli"
+    distribution = NULL, # "poisson", "bernoulli"
     mloss = Inf, # Loss on the M step of the VEM
     vloss = NULL, # Loss on the VE step of the VEM
     vbound = NULL, # The Variational bound
@@ -72,7 +72,7 @@ fitBipartiteSBMPop <- R6::R6Class(
                           Z = NULL,
                           mask = NULL,
                           net_id = NULL,
-                          probabilityDistribution = "bernoulli",
+                          distribution = "bernoulli",
                           free_mixture = TRUE,
                           free_density = TRUE,
                           directed = NULL,
@@ -137,8 +137,8 @@ fitBipartiteSBMPop <- R6::R6Class(
       }
 
       self$Q <- Q
-      self$probabilityDistribution <- probabilityDistribution
-      if (self$probabilityDistribution == "poisson") {
+      self$distribution <- distribution
+      if (self$distribution == "poisson") {
         self$logfactA <- vapply(
           seq_along(self$A),
           function(m) {
@@ -249,7 +249,7 @@ fitBipartiteSBMPop <- R6::R6Class(
         alpha <- self$alpha
         delta <- self$delta[m]
       }
-      switch(self$probabilityDistribution,
+      switch(self$distribution,
         "bernoulli" = {
           # tau_tmp <- self$tau[[m]]
           # self$dircoef*sum(
@@ -574,7 +574,7 @@ fitBipartiteSBMPop <- R6::R6Class(
         c(self$vloss[[m]], self$vb_tau_alpha(m) + self$vb_tau_pi(m) +
           self$entropy_tau(m))
       tau_old <- self$tau[[m]][[d]]
-      tau_new <- switch(self$probabilityDistribution,
+      tau_new <- switch(self$distribution,
         "bernoulli" = {
           tau_new <-
             if (d == 1) {
@@ -635,7 +635,7 @@ fitBipartiteSBMPop <- R6::R6Class(
     },
     fixed_point_alpha_delta = function(MAP = FALSE, max_iter = 50, tol = 1e-6) {
       # switch(
-      #   self$probabilityDistribution,
+      #   self$distribution,
       #   "poisson" = {
       condition <- TRUE
       d <- self$delta
@@ -943,7 +943,7 @@ fitBipartiteSBMPop <- R6::R6Class(
           #TODO add a "given_tau" init method
         )
       lapply(seq(self$M), function(m) self$update_alpham(m))
-      if (self$probabilityDistribution == "bernoulli" & self$free_density &
+      if (self$distribution == "bernoulli" & self$free_density &
         !self$fit_opts$approx_pois) {
         self$fixed_point_alpha_delta()
       }
@@ -957,7 +957,7 @@ fitBipartiteSBMPop <- R6::R6Class(
         # deltas are all equals to 1
         self$update_alpha(MAP = MAP)
       } else {
-        switch(self$probabilityDistribution,
+        switch(self$distribution,
           "poisson" = self$fixed_point_alpha_delta(MAP = MAP),
           "bernoulli" =
             ifelse(self$fit_opts$approx_pois,

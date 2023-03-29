@@ -64,7 +64,7 @@ nested_bipartite_collection_incidence <- lapply(seq.int(M), function(m) {
 
 # La fusion des deux précédents
 
-bipartite_collection <- list(modular_bipartite_collection, nested_bipartite_collection)
+bipartite_collection <- append(modular_bipartite_collection, nested_bipartite_collection)
 # This is a list of the M incidence matrices
 bipartite_collection_incidence <- lapply(seq_along(bipartite_collection), function(m) {
     bipartite_collection[[m]]$incidence_matrix

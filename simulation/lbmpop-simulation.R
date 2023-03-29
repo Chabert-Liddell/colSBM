@@ -50,7 +50,7 @@ Z <- lapply(seq.int(M), function(m) {
 mylbmpop <- lbmpop$new(
     netlist = bipartite_collection_incidence,
     global_opts = list(
-        verbosity = 4,
+        verbosity = 1,
         plot_details = 1,
         nb_cores = parallel::detectCores() / 2
     )
