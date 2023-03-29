@@ -1129,64 +1129,6 @@ lbmpop <- R6::R6Class(
 
     },
 
-    choose_models = function(models, Q, index = seq(self$M), nb_clusters = 1L) {
-      # The provided models are ordered by their BICL in a decreasing order
-      ord_mod <- order(purrr::MAP_dbl(models, ~ .$BICL),#~max(.$MAP$ICL, .$BICL)),
-                       decreasing = TRUE)
-
-      # If the model_list of the object contains at list Q entries
-      # it is appended to the models being processed
-      if (length(self$model_list[[nb_clusters]]) >= Q) {
-        models <- c(self$model_list[[nb_clusters]][[Q]], models)
-      }
-      # The models are ordered once again
-      # TODO ask @Chabert-Liddell can't it be reduced to just this one step of reordering?
-      ord_mod <- order(purrr::MAP_dbl(models, ~.$BICL),
-                       decreasing = TRUE)
-
-      # best_models is initialized with the first model of the ord_mod id list
-      # ie the one with max BICL
-      best_models <- models[ord_mod[1]]
-      for(id in ord_mod) {
-        # We process the models by their id given by the ord_mod
-        if (length(best_models) >= self$global_opts$nb_models) {
-          # If we've added the wanted number of models to keep, we exit the loop
-          break
-        } else {
-          # ari is the vector of the model being processed
-          # versus all the previously selected best_models
-          ari <- purrr::MAP_dbl(
-            # This run for each of the best_models
-            seq_along(best_models),
-            function(m) {
-              # Here we sum all the ari for each of the networks clustering
-              sum(purrr::MAP_dbl(
-                seq_along(self$A),
-                ~ aricode::ARI(
-                  best_models[[m]]$Z[[.]],
-                  models[[id]]$Z[[.]]
-                )
-              ))
-            }
-          )
-          # If the model has all of his ari less than the number of networks
-          # ie the clustering isn't perfect (1 of ARI * M, would be perfect)
-          # then the model is  added to the list of best_models
-          if (all(ari < best_models[[1]]$M)) {
-            best_models <- c(best_models, models[[id]])
-          }
-        }
-      }
-
-      # After having selected the best_models we plot their points
-      # x being Q the number of clusters and y being their BICL
-      if (self$global_opts$plot_details >= 1) {
-        points(purrr::MAP_dbl(unlist(best_models), "Q"),
-               purrr::MAP_dbl(unlist(best_models), ~.$BICL))
-      }
-      return(best_models)
-    },
-
 
     show = function(type = "Fitted Collection of Bipartite SBM") {
       cat(type, "--", self$distribution, "variant for", self$M, "networks \n")
