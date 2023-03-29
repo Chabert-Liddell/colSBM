@@ -23,9 +23,9 @@ isParallelized <- TRUE
 
 first_alpha <- matrix(
     c(
-        0.9, eps, eps,
-        eps, 0.8, eps,
-        eps, eps, 0.9
+        0.45, eps, eps,
+        eps, 0.4, eps,
+        eps, eps, 0.45
     ),
     byrow = TRUE,
     nrow = Q[1],
@@ -34,9 +34,9 @@ first_alpha <- matrix(
 
 second_alpha <- matrix(
     c(
-        0.9, 0.8, 0.4,
-        0.8, 0.2, eps,
-        0.4, eps, eps
+        0.45, 0.4, 0.2,
+        0.4, 0.1, eps,
+        0.2, eps, eps
     ),
     byrow = TRUE,
     nrow = Q[1],
@@ -58,7 +58,7 @@ complete_tibble <- NULL
 # Blur goes from 0 to 0.9 by 0.1 step
 # M takes 1,2 and 5
 condition_matrix <- expand.grid(
-    blur = seq(0, 1, by = 0.1),
+    blur = seq(0, 0.15, by = 0.01),
     M = c(1, 2, 5),
     repetition = seq.int(repetition_number)
 )
