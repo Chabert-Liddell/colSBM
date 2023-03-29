@@ -113,9 +113,9 @@ results <- bettermc::mclapply(seq.int(nrow(condition_matrix)), function(conditio
 
     current_tibble <- dplyr::bind_rows(lapply(seq_along(current_lbmpop$best_fit$MAP$Z), function(m) {
         tibble::tibble(
-            Current_M = M,
+            current_M = M,
             repetition = repetition,
-            Network_id = current_lbmpop$best_fit$net_id[[m]],
+            network_id = current_lbmpop$best_fit$net_id[[m]],
             row_ARI = aricode::ARI(
                 as.vector(current_lbmpop$best_fit$MAP$Z[[m]][[1]]),
                 collection_clustering[[m]][[1]]
@@ -125,8 +125,10 @@ results <- bettermc::mclapply(seq.int(nrow(condition_matrix)), function(conditio
                 collection_clustering[[m]][[2]]
             ),
             divergence = divergence_parameter,
-            sep_LBM_BICL = sum(current_lbmpop$sep_LBM_BICL),
+            sep_BiSBM_BICL = sum(current_lbmpop$sep_BiSBM_BICL),
             BICL = current_lbmpop$best_fit$BICL,
+            selected_nb_clusters = current_lbmpop$best_fit$Q,
+            is_clustering_complete = current_lbmpop$best_fit$clustering_is_complete,
             begin_time = condition_beginning_time,
             end_time = condition_end_time,
             time_taken = condition_end_time - condition_beginning_time
