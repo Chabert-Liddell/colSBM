@@ -7,17 +7,6 @@ source("R/utils.R")
 source("R/R6class-fitBipartiteSBMPop.R")
 source("R/R6class-lbmpop.R")
 
-combine_matrices_print <- function(matrix_print1, matrix_print2, sep = "") {
-    list1 <- strsplit(matrix_print1, "\n")[[1]]
-    list2 <- strsplit(matrix_print2, "\n")[[1]]
-
-    sep <- append(c(ifelse(is.null(sep), "", paste(rep(" ", length(list1) + nchar(sep) - 4),
-        collapse = ""
-    ))), rep(sep, length(list1) - 1))
-
-    return(paste(as.list(paste(list1, sep, list2)), collapse = "\n"))
-}
-
 eps <- 0.05
 
 nr <- 250
@@ -28,7 +17,10 @@ pic <- as.vector(gtools::rdirichlet(1, c(8, 5, 2)))
 
 Q <- c(length(pir), length(pic))
 
+repetition_number <- 3
+
 isParallelized <- TRUE
+
 first_alpha <- matrix(
     c(
         0.9, eps, eps,
@@ -52,14 +44,24 @@ second_alpha <- matrix(
 )
 
 filename <- "divergence_modular_to_nested"
-filename <- paste0(getwd(), "/simulation/data/", filename, "_", format(Sys.time(), "%d-%m-%y_%X"), ".Rds")
+filename <- paste0(
+    getwd(), "/simulation/data/", 
+    filename, "_with_",
+    repetition_number, "_repetitions", 
+    "_", format(Sys.time(), "%d-%m-%y_%X"),
+    ".Rds"
+)
 
 
 complete_tibble <- NULL
 
 # Blur goes from 0 to 0.9 by 0.1 step
 # M takes 1,2 and 5
-condition_matrix <- expand.grid(blur = seq(0, 1, by = 0.1), M = c(1, 2, 5))
+condition_matrix <- expand.grid(
+    blur = seq(0, 1, by = 0.1),
+    M = c(1, 2, 5),
+    repetition = seq.int(repetition_number)
+)
 
 if (isParallelized) {
     n.cores <- parallel::detectCores() - 1
@@ -68,8 +70,10 @@ if (isParallelized) {
 }
 
 results <- bettermc::mclapply(seq.int(nrow(condition_matrix)), function(condition_row) {
+    condition_beginning_time <- Sys.time()
     divergence_parameter <- condition_matrix[condition_row, 1]
     M <- condition_matrix[condition_row, 2]
+    repetition <- condition_matrix[condition_row, 3]
 
     first_structure_collection <- generate_bipartite_collection(nr, nc, pir, pic, first_alpha, M)
 
@@ -105,10 +109,12 @@ results <- bettermc::mclapply(seq.int(nrow(condition_matrix)), function(conditio
     )
 
     current_lbmpop$optimize()
+    condition_end_time <- Sys.time()
 
     current_tibble <- dplyr::bind_rows(lapply(seq_along(current_lbmpop$best_fit$MAP$Z), function(m) {
         tibble::tibble(
             Current_M = M,
+            repetition = repetition,
             Network_id = current_lbmpop$best_fit$net_id[[m]],
             row_ARI = aricode::ARI(
                 as.vector(current_lbmpop$best_fit$MAP$Z[[m]][[1]]),
@@ -120,7 +126,10 @@ results <- bettermc::mclapply(seq.int(nrow(condition_matrix)), function(conditio
             ),
             divergence = divergence_parameter,
             sep_LBM_BICL = sum(current_lbmpop$sep_LBM_BICL),
-            BICL = current_lbmpop$best_fit$BICL
+            BICL = current_lbmpop$best_fit$BICL,
+            begin_time = condition_beginning_time,
+            end_time = condition_end_time,
+            time_taken = condition_end_time - condition_beginning_time
         )
     }))
     current_tibble
