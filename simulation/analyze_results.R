@@ -1,6 +1,6 @@
 library("ggplot2")
 
-filename <- "divergence_modular_to_nested_29-03-23_10:01:08.Rds"
+filename <- "divergence_modular_to_nested_with_3_repetitions_29-03-23_13:55:42.Rds"
 filename <- paste0(getwd(), "/simulation/data/",filename)
 
 current_data <- readRDS(filename)
