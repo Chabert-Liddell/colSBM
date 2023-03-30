@@ -441,19 +441,19 @@ lbmpop <- R6::R6Class(
           }
         }
 
-        data_state_space[nrow(data_state_space) + 1,] <- list(
-          0,
-          0,
-          -Inf,
-          FALSE,
-          "",
-          FALSE
-        )
+        # data_state_space[nrow(data_state_space) + 1,] <- list(
+        #   0,
+        #   0,
+        #   -Inf,
+        #   FALSE,
+        #   "",
+        #   FALSE
+        # )
 
         # Here the max BICL is highlighted
         data_state_space[which.max(data_state_space$BICL), ]$isMaxBICL <- TRUE
 
-        # FIXME only working on the first path
+        # Here the greedy exploration path is computed
         exploration_path <- as.data.frame(matrix(nrow = 0, ncol = 3))
         names(exploration_path) <- c("Q1", "Q2", "startingPoint")
 
@@ -541,7 +541,6 @@ lbmpop <- R6::R6Class(
               color = isMaxBICL,
               alpha = BICL,
             )) +
-            scale_size_continuous(trans = "exp") + # To have nice size for the BICL
           guides(color = guide_legend(title = "Is max value\nof BICL ?")) +
             ggnewscale::new_scale_color() +
             scale_colour_hue(l = 45, drop = FALSE) +
