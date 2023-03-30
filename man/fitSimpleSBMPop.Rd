@@ -248,7 +248,7 @@ once $optimize() is done
 \if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-fixed_point_tau}{}}}
 \subsection{Method \code{fixed_point_tau()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$fixed_point_tau(m, max_iter = 10, tol = 0.01)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$fixed_point_tau(m, max_iter = 1, tol = 0.01)}\if{html}{\out{</div>}}
 }
 
 }
