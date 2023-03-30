@@ -1106,25 +1106,12 @@ bisbmpop <- R6::R6Class(
 
       # Now compare to the sepBiSBM
       if (self$M > 1) {
-        self$compute_sep_BiSBM_BICL()
-
-        if (self$global_opts$verbosity >= 1) {
-          cat("\n==== Best fits criterion for the ", self$M, "networks ====")
-          cat("\nSep BiSBM total BICL: ", sum(self$sep_BiSBM_BICL))
-          cat("\ncolBiSBM BICL:", self$best_fit$BICL)
-          if (sum(self$sep_BiSBM_BICL) > self$best_fit$BICL) {
-            cat("\nSeparated modelisation preferred.\n")
-          } else {
-            cat(
-              "\nJoint modelisation preferred. With Q = (",
-              toString(self$best_fit$Q),
-              ").\n"
-            )
-          }
-        }
-    } else {
-      self$sep_BiSBM_BICL <- c(self$best_fit$BICL)
-    }
+        # If there is more than one network we launch the choose procedure
+        self$choose_joint_or_separated()
+      } else {
+        # Otherwise we're inside a choose procedure and store the BICL
+        self$sep_BiSBM_BICL <- c(self$best_fit$BICL)
+      }
 
     },
 
@@ -1638,6 +1625,26 @@ bisbmpop <- R6::R6Class(
         cat("\n Total sepBiSBM BICL : ", sum(self$sep_BiSBM_BICL),"\n")
       }
 
+    },
+
+    choose_joint_or_separated = function() {
+      # Now compare to the sepBiSBM
+      self$compute_sep_BiSBM_BICL()
+
+      if (self$global_opts$verbosity >= 1) {
+        cat("\n==== Best fits criterion for the ", self$M, "networks ====")
+        cat("\nSep BiSBM total BICL: ", sum(self$sep_BiSBM_BICL))
+        cat("\ncolBiSBM BICL:", self$best_fit$BICL)
+        if (sum(self$sep_BiSBM_BICL) > self$best_fit$BICL) {
+          cat("\nSeparated modelisation preferred.\n")
+        } else {
+          cat(
+            "\nJoint modelisation preferred. With Q = (",
+            toString(self$best_fit$Q),
+            ").\n"
+          )
+        }
+      }
     },
 
     print_metrics = function() {
