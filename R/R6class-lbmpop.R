@@ -2,8 +2,8 @@
 #'
 #' @export
 
-lbmpop <- R6::R6Class(
-  "lbmpop",
+bisbmpop <- R6::R6Class(
+  "bisbmpop",
   #
   public = list(
     nr = NULL,
@@ -44,7 +44,7 @@ lbmpop <- R6::R6Class(
 
 
     #' @description
-    #' Create a new instance of the lbmpop object
+    #' Create a new instance of the bisbmpop object
     #' 
     #' This class is generally called via the user function # FIXME put the user function name
     #'
@@ -1134,7 +1134,9 @@ lbmpop <- R6::R6Class(
       cat("=====================================================================\n")
       cat("net_id = (", self$net_id, ")\n")
       cat(
-        "Dimensions = (", toString(c(self$nr, self$nc)), ") - (",
+        "Dimensions = (", toString(lapply(seq.int(self$M), function(m) {
+          c(self$nr[[m]], self$nc[[m]])
+        })), ") - (",
         toString(self$best_fit$Q), ") blocks.\n"
       )
       cat("BICL = ", self$best_fit$BICL, " -- #Empty blocks : ", sum(!self$best_fit$Cpi), " \n")
@@ -1617,7 +1619,7 @@ lbmpop <- R6::R6Class(
     compute_sep_BiSBM_BICL = function() {
       # Computes the sepBiSBM ICL to compare with the model
         self$sep_BiSBM_BICL <- sapply(seq.int(self$M), function(m) {
-          sep_BiSBM <- lbmpop$new(
+          sep_BiSBM <- bisbmpop$new(
             netlist = list(self$A[[m]]),
             distribution = self$distribution,
             free_mixture = FALSE,
