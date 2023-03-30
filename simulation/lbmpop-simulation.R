@@ -8,7 +8,7 @@ require("ggplot2", quietly = T)
 # require("igraph", quietly = T)
 source("R/utils.R")
 source("R/R6class-fitBipartiteSBMPop.R")
-source("R/R6class-lbmpop.R")
+source("R/R6class-bisbmpop.R")
 
 set.seed(1234)
 
@@ -47,7 +47,7 @@ Z <- lapply(seq.int(M), function(m) {
 })
 
 
-mylbmpop <- lbmpop$new(
+mylbmpop <- bisbmpop$new(
     netlist = bipartite_collection_incidence,
     global_opts = list(
         verbosity = 1,
