@@ -4,11 +4,7 @@ require("dplyr", quietly = T)
 require("tictoc", quietly = T)
 require("ggplot2", quietly = T)
 
-# require("visNetwork", quietly = T)
-# require("igraph", quietly = T)
-source("R/utils.R")
-source("R/R6class-fitBipartiteSBMPop.R")
-source("R/R6class-bisbmpop.R")
+devtools::load_all(path = "R/")
 
 set.seed(1234)
 
@@ -47,12 +43,17 @@ Z <- lapply(seq.int(M), function(m) {
 })
 
 
-mylbmpop <- bisbmpop$new(
-    netlist = bipartite_collection_incidence,
-    global_opts = list(
-        verbosity = 1,
-        plot_details = 1,
-        nb_cores = parallel::detectCores() / 2
-    )
+# mylbmpop <- bisbmpop$new(
+#     netlist = bipartite_collection_incidence,
+#     global_opts = list(
+#         verbosity = 1,
+#         plot_details = 1,
+#         nb_cores = parallel::detectCores() / 2
+#     )
+# )
+# mylbmpop$optimize()
+choosed_bisbmpop <- estimate_colBiSBM(
+    netlist = bipartite_collection_incidence, 
+    colsbm_model = "iid", 
+    global_opts = list(nb_cores = 3)
 )
-mylbmpop$optimize()
