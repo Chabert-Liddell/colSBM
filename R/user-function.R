@@ -183,7 +183,6 @@ estimate_colSBM <-
 #' @param colsbm_model Which colBiSBM to use, one of "iid", "pi", "delta",
 #' "deltapi".
 #' @param net_id A vector of string, the name of the networks.
-#' @param directed A boolean, are the networks directed or not.
 #' @param distribution A string, the emission distribution, either "bernoulli"
 #' (the default) or "poisson"
 #' @param fit_sbm A list of model using the \code{sbm} package. Use to speed up
@@ -214,7 +213,6 @@ estimate_colSBM <-
 #' \dontrun{
 #' cl <- estimate_colSBM(Net,
 #'   colsbm_model = "delta",
-#'   directed = FALSE,
 #'   distribution = "bernoulli",
 #'   nb_run = 1
 #' )
@@ -223,7 +221,6 @@ estimate_colBiSBM <-
   function(netlist,
            colsbm_model,
            net_id = NULL,
-           directed = NULL,
            distribution = "bernoulli",
            fit_sbm = NULL,
            nb_run = 3L,
@@ -298,7 +295,6 @@ estimate_colBiSBM <-
             tmp_fit <- bisbmpop$new(
               netlist = netlist,
               net_id = net_id,
-              directed = directed,
               distribution = distribution,
               free_density = free_density,
               free_mixture = free_mixture,
