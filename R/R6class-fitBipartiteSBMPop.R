@@ -422,6 +422,7 @@ fitBipartiteSBMPop <- R6::R6Class(
       ))
     },
     compute_penalty = function() {
+      # TODO Réfléchir
       df_connect <- self$df_connect
       if (self$free_density) {
         df_connect <- self$df_connect + self$df_density
