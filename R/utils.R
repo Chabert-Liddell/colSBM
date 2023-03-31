@@ -82,8 +82,7 @@ generate_bipartite_network <- function(nr, nc, pir, pic, alpha) {
 #'
 #' @return A list of M lists, which contains : $incidence_matrix, $row_clustering, $col_clustering
 #'
-#' @noMd
-#' @noRd
+#' @export
 generate_bipartite_collection <- function(nr, nc, pir, pic, alpha, M) {
   out <- list()
 
