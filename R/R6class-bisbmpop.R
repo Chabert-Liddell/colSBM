@@ -17,7 +17,6 @@ bisbmpop <- R6::R6Class(
     discarded_model_list = NULL, # A list of size Q1max * Q2max * (nb_models - 1) containing the discarded models
     global_opts = NULL,
     fit_opts = NULL,
-    fit_sbm = NULL,
     separated_inits = NULL, # A nested list : Q1 init containing Q2 init
                             # with each entry containing list of size M 
                             # storing the separated inits for the class
@@ -26,7 +25,6 @@ bisbmpop <- R6::R6Class(
     Z_init = NULL,
     free_density = NULL,
     free_mixture = NULL,
-    ICL_sbm = NULL,
     ICL = NULL,
     sep_BiSBM_BICL = NULL, # A vector of size M containing the BICL for each BiSBM
     BICL = NULL,
@@ -53,7 +51,6 @@ bisbmpop <- R6::R6Class(
                           distribution = "bernoulli",
                           free_density = FALSE,
                           free_mixture = FALSE,
-                          fit_sbm = NULL,
                           Z_init = NULL,
                           global_opts = list(),
                           fit_opts = list()) {
@@ -88,18 +85,16 @@ bisbmpop <- R6::R6Class(
 
       self$Z_init <- Z_init
       self$distribution <- distribution
-      self$fit_sbm <- fit_sbm
       self$free_density <-  free_density
       self$free_mixture <- free_mixture
       self$global_opts <- list(Q1_min = 1L,
                                Q1_max = floor(log(sum(self$nr)))+2,
                                Q2_min = 1L,
                                Q2_max = floor(log(sum(self$nc)))+2,
-                               sbm_init = TRUE,
                                spectral_init = TRUE,
                                nb_init = 10L,
                                nb_models = 5L,
-                               depth = 3L,
+                               depth = 1L, # By default we set a small depth
                                plot_details = 1L,
                                max_pass = 10L,
                                verbosity = 0L,
@@ -157,7 +152,6 @@ bisbmpop <- R6::R6Class(
           },
           FUN.VALUE = .1)
       }
-      if(! is.null(self$fit_sbm))  self$global_opts$sbm_init <- FALSE
       self$fit_opts <- list(approx_pois = FALSE,
                             algo_ve = "fp",
                             minibatch = TRUE,
@@ -1080,7 +1074,7 @@ bisbmpop <- R6::R6Class(
         current_max_BICL <- self$model_list[[Q[1],Q[2]]]$BICL
 
         # Perform another iteration of the moving window
-        self$moving_window(Q)
+        self$moving_window(Q, depth = self$global_opts$depth)
 
         # Improvement criterion
         has_the_mode_moved <- all(Q != self$best_fit$Q)

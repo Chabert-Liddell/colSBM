@@ -73,7 +73,7 @@ estimate_colSBM <-
                              spectral_init = TRUE,
                              nb_init = 10L,
                              nb_models = 5L,
-                             depth = 3L,
+                             depth = 1L,
                              plot_details = 1L,
                              max_pass = 10L,
                              verbosity = 0L,
@@ -198,7 +198,7 @@ estimate_colSBM <-
 #' @export
 #'
 #' @seealso [colSBM::clusterize_networks()], \code{\link[colSBM]{bmpop}},
-#' \code{\link[colSBM]{fitSimpleSBMPop}}, `browseVignettes("colSBM")`
+#' \code{\link[colSBM]{fitBipartiteSBMPop}}, `browseVignettes("colSBM")`
 #'
 #' @examples
 #' # Trivial example with Gnp networks:
@@ -222,7 +222,6 @@ estimate_colBiSBM <-
            colsbm_model,
            net_id = NULL,
            distribution = "bernoulli",
-           fit_sbm = NULL,
            nb_run = 3L,
            global_opts = list(),
            fit_opts = list(),
@@ -255,7 +254,7 @@ estimate_colBiSBM <-
       Q2_max <- floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2),
       nb_init = 10L,
       nb_models = 5L,
-      depth = 3L,
+      depth = 1L,
       plot_details = 1L,
       max_pass = 10L,
       verbosity = 0L,
@@ -288,9 +287,6 @@ estimate_colBiSBM <-
         bettermc::mclapply(
           seq(nb_run),
           function(x) {
-            if (global_opts$verbosity >= 1) {
-              cat("\nRun ", x, "/", nb_run)
-            }
             global_opts$nb_cores <- max(1L, floor(global_opts$nb_cores / nb_run))
             tmp_fit <- bisbmpop$new(
               netlist = netlist,
@@ -298,7 +294,6 @@ estimate_colBiSBM <-
               distribution = distribution,
               free_density = free_density,
               free_mixture = free_mixture,
-              fit_sbm = fit_sbm,
               global_opts = global_opts,
               fit_opts = fit_opts
             )
