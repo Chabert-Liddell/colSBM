@@ -185,19 +185,42 @@ estimate_colSBM <-
 #' @param net_id A vector of string, the name of the networks.
 #' @param distribution A string, the emission distribution, either "bernoulli"
 #' (the default) or "poisson"
-#' @param fit_sbm A list of model using the \code{sbm} package. Use to speed up
-#' the initialization.
 #' @param nb_run An integer, the number of run the algorithm do.
-#' @param global_opts Global options for the outer algorithm and the output
+#' @param global_opts Global options for the outer algorithm and the output.
+#' See details.
 #' @param fit_opts Fit options for the VEM algorithm
 #' @param fit_init Do not use!
 #' Optional fit init from where initializing the algorithm.
 #'
-#' @return A bmpop object listing a collection of models for the collection.
+#' @details The list of parameters \code{global_opts} essentially tunes the
+#' optimization process and the variational EM algorithm, 
+#' with the following parameters
+#'  \itemize{
+#'  \item{\code{nb_cores} }{integer for number of cores used for 
+#'  parallelization. Default is 1}
+#'  \item{\code{verbosity} }{integer for verbosity (0, 1, 2, 3, 4). Default is 0}
+#'  \item{\code{Q1_max} }{integer for the max size in row to explore. Default is
+#'  computed with the following formula:
+#' `floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2)`}
+#'  \item{\code{Q2_max} }{integer for the max size in columns to explore. Default is
+#'  computed with the following formula:
+#' `floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2)`}
+#'  \item{\code{nb_models} }{the number of models to keep for each values of Q1,Q2.
+#'  Default is 5.}
+#'  \item{\code{depth} }{specifies how large will the moving window be. Default is 1,
+#'  meaning the window will go from (Q1 - 1, Q2 - 1) to (Q1 + 1, Q2 + 1) and all
+#'  the values in the square defined.}
+#'  \item{\code{plot_details} }{integer to control the display of the exploration and
+#'  moving window process. Values are 0 or 1. Default is 1.}
+#'  \item{\code{max_pass} }{the maximum number of moving window passes that will be
+#'  executed. Default is 10.}
+#' }
+#'
+#' @return A bisbmpop object listing a collection of models for the collection.
 #' of networks
 #' @export
 #'
-#' @seealso [colSBM::clusterize_networks()], \code{\link[colSBM]{bmpop}},
+#' @seealso [colSBM::clusterize_networks()], \code{\link[colSBM]{bisbmpop}},
 #' \code{\link[colSBM]{fitBipartiteSBMPop}}, `browseVignettes("colSBM")`
 #'
 #' @examples

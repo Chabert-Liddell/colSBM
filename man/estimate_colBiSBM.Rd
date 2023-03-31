@@ -9,7 +9,6 @@ estimate_colBiSBM(
   colsbm_model,
   net_id = NULL,
   distribution = "bernoulli",
-  fit_sbm = NULL,
   nb_run = 3L,
   global_opts = list(),
   fit_opts = list(),
@@ -27,12 +26,10 @@ estimate_colBiSBM(
 \item{distribution}{A string, the emission distribution, either "bernoulli"
 (the default) or "poisson"}
 
-\item{fit_sbm}{A list of model using the \code{sbm} package. Use to speed up
-the initialization.}
-
 \item{nb_run}{An integer, the number of run the algorithm do.}
 
-\item{global_opts}{Global options for the outer algorithm and the output}
+\item{global_opts}{Global options for the outer algorithm and the output.
+See details.}
 
 \item{fit_opts}{Fit options for the VEM algorithm}
 
@@ -40,11 +37,36 @@ the initialization.}
 Optional fit init from where initializing the algorithm.}
 }
 \value{
-A bmpop object listing a collection of models for the collection.
+A bisbmpop object listing a collection of models for the collection.
 of networks
 }
 \description{
 Estimate a colBiSBM on a collection of networks
+}
+\details{
+The list of parameters \code{global_opts} essentially tunes the
+optimization process and the variational EM algorithm,
+with the following parameters
+\itemize{
+\item{\code{nb_cores} }{integer for number of cores used for
+parallelization. Default is 1}
+\item{\code{verbosity} }{integer for verbosity (0, 1, 2, 3, 4). Default is 0}
+\item{\code{Q1_max} }{integer for the max size in row to explore. Default is
+computed with the following formula:
+\code{floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2)}}
+\item{\code{Q2_max} }{integer for the max size in columns to explore. Default is
+computed with the following formula:
+\code{floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2)}}
+\item{\code{nb_models} }{the number of models to keep for each values of Q1,Q2.
+Default is 5.}
+\item{\code{depth} }{specifies how large will the moving window be. Default is 1,
+meaning the window will go from (Q1 - 1, Q2 - 1) to (Q1 + 1, Q2 + 1) and all
+the values in the square defined.}
+\item{\code{plot_details} }{integer to control the display of the exploration and
+moving window process. Values are 0 or 1. Default is 1.}
+\item{\code{max_pass} }{the maximum number of moving window passes that will be
+executed. Default is 10.}
+}
 }
 \examples{
 # Trivial example with Gnp networks:
@@ -65,6 +87,6 @@ cl <- estimate_colSBM(Net,
 }
 }
 \seealso{
-\code{\link[=clusterize_networks]{clusterize_networks()}}, \code{\link[colSBM]{bmpop}},
-\code{\link[colSBM]{fitSimpleSBMPop}}, \code{browseVignettes("colSBM")}
+\code{\link[=clusterize_networks]{clusterize_networks()}}, \code{\link[colSBM]{bisbmpop}},
+\code{\link[colSBM]{fitBipartiteSBMPop}}, \code{browseVignettes("colSBM")}
 }
