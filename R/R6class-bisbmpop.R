@@ -164,7 +164,7 @@ bisbmpop <- R6::R6Class(
     #' @param is_col_split a boolean to indicate if this is a
     #'                      column split or a row split.
     #' @return best of the possible models tested
-    split_clustering = function(origin_model, is_col_split = FALSE) {
+    split_clustering = function(origin_model, is_col_split = FALSE, Cpi_threshold) {
       # TODO adapt this function to allow splitting from both sides
 
       # Initialize to prevent variable leaking
@@ -259,6 +259,11 @@ bisbmpop <- R6::R6Class(
         mc.progress = FALSE
       )
 
+      # Here I add if (self$free_mixture_row) {
+      #               if (self$free_mixture_col) {
+      #               } else {
+      #               }
+
       # Now we fit all the models for the differents splits
       possible_models_BICLs <- lapply(seq_along(possible_models), function(s) {
         if (self$global_opts$verbosity >= 4) {
@@ -281,7 +286,7 @@ bisbmpop <- R6::R6Class(
     #' @param axis a string to indicate if this is a "row", "col" 
     #' or "both" merge
     #' @return best of the possible models tested
-    merge_clustering = function(origin_model, axis = "row") {
+    merge_clustering = function(origin_model, axis = "row", Cpi_threshold) {
 
       # Initialize to prevent variable leaking
       # FIXME : this shouldn't be necessary but I'm not sure
@@ -378,6 +383,11 @@ bisbmpop <- R6::R6Class(
         mc.silent = TRUE,
         mc.progress = FALSE
       )
+
+      # Here I add if (self$free_mixture_row) {
+      #               if (self$free_mixture_col) {
+      #               } else {
+      #               }
 
       # Now we fit all the models for the differents splits
       possible_models_BICLs <- lapply(
