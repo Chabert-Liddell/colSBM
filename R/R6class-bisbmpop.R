@@ -92,7 +92,6 @@ bisbmpop <- R6::R6Class(
                                Q2_min = 1L,
                                Q2_max = floor(log(sum(self$nc)))+2,
                                spectral_init = TRUE,
-                               nb_init = 10L,
                                nb_models = 5L,
                                depth = 1L, # By default we set a small depth
                                plot_details = 1L,
