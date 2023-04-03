@@ -14,11 +14,13 @@ bisbmpop <- R6::R6Class(
     distribution = NULL,
     net_id = NULL,
     model_list = NULL, # A list of size Q1max * Q2max containing the best models
-    discarded_model_list = NULL, # A list of size Q1max * Q2max * (nb_models - 1) containing the discarded models
+    discarded_model_list = NULL, # A list of size
+                                 # Q1max * Q2max * (nb_models - 1) containing
+                                 # the discarded models
     global_opts = NULL,
     fit_opts = NULL,
     separated_inits = NULL, # A nested list : Q1 init containing Q2 init
-                            # with each entry containing list of size M 
+                            # with each entry containing list of size M
                             # storing the separated inits for the class
     exploration_order_list = NULL, # A list used to store the path taken
                                   # in the state space
@@ -33,7 +35,7 @@ bisbmpop <- R6::R6Class(
     logfactA = NULL,
     improved = NULL,
     moving_window_coordinates = NULL, # A list of size two containing the
-                                      # coordinates of the bottom left and top 
+                                      # coordinates of the bottom left and top
                                       # right points of the square
     old_moving_window_coordinates = NULL, # A list containing the previous
                                           # coordinates of the moving window
@@ -43,7 +45,7 @@ bisbmpop <- R6::R6Class(
 
     #' @description
     #' Create a new instance of the bisbmpop object
-    #' 
+    #'
     #' This class is generally called via the user function # FIXME put the user function name
     #'
     initialize = function(netlist = NULL,
@@ -58,7 +60,7 @@ bisbmpop <- R6::R6Class(
       # # Converting the matrices list to sparse matrix to save space
       # self$A <- lapply(netlist, Matrix::Matrix, sparse = TRUE)
       self$A <- netlist
-      
+
       # Computing the number of rows and cols
       self$nr <- vapply(self$A, nrow, FUN.VALUE = .1)
       self$nc <- vapply(self$A, ncol, FUN.VALUE = .1)
@@ -159,7 +161,7 @@ bisbmpop <- R6::R6Class(
     },
 
     #' A method to perform the splitting of the clusters
-    #' 
+    #'
     #' @param origin_model a model (fitBipartite object) to split from.
     #' @param is_col_split a boolean to indicate if this is a
     #'                      column split or a row split.
@@ -276,14 +278,14 @@ bisbmpop <- R6::R6Class(
       if (self$global_opts$verbosity >= 4) {
         cat("\nThe best ", typeOfSplit, " split is: ", which.max(possible_models_BICLs))
       }
-      
+
       return(possible_models[[which.max(possible_models_BICLs)]])
     },
 
     #' A method to perform the merging of the clusters
-    #' 
+    #'
     #' @param origin_model a model (fitBipartite object) to merge from.
-    #' @param axis a string to indicate if this is a "row", "col" 
+    #' @param axis a string to indicate if this is a "row", "col"
     #' or "both" merge
     #' @return best of the possible models tested
     merge_clustering = function(origin_model, axis = "row", Cpi_threshold) {
@@ -407,12 +409,12 @@ bisbmpop <- R6::R6Class(
       if (self$global_opts$verbosity >= 4) {
         cat("\nThe best ", axis, "merge is: ", which.max(possible_models_BICLs))
       }
-      
+
       return(possible_models[[which.max(possible_models_BICLs)]])
     },
 
     #' A method to plot the state of space and its current exploration.
-    #' 
+    #'
     #' @details the function takes no parameters and print a plot
     #' of the current state of the model_list.
     #' @return nothing
@@ -489,11 +491,11 @@ bisbmpop <- R6::R6Class(
           guides(color = guide_legend(title = "Path taken")) +
           scale_color_discrete() +
           scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q2_max)) +
-          scale_x_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q1_max)) 
+          scale_x_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q1_max))
 
           if (!is.null(self$old_moving_window_coordinates)) {
             # If there are previous moving windows coordinates
-            
+
             for (index in seq.int(
               from = ifelse(length(self$old_moving_window_coordinates) >= 3,
                 length(self$old_moving_window_coordinates) - 2,
@@ -562,15 +564,15 @@ bisbmpop <- R6::R6Class(
 
     #' Function to greedily explore state of space looking for the mode
     #' and storing the models discovered along the way
-    #' 
+    #'
     #' @param starting_point A vector of the two coordinates
     #' c(Q1,Q2) which are the starting point
     #' @param max_step_without_improvement defaults to 3, the
     #' number of steps to try improving before stopping the search
     #' @export
-    #' @return c(Q1_mode, Q2_mode) which indicates the Q1 and Q2 
+    #' @return c(Q1_mode, Q2_mode) which indicates the Q1 and Q2
     #' for which the BICL was maximal
-    greedy_exploration = function(starting_point, 
+    greedy_exploration = function(starting_point,
     max_step_without_improvement = 3){
       # Initialize
       current_Q1 <- starting_point[1]
@@ -592,7 +594,7 @@ bisbmpop <- R6::R6Class(
       step <- 0
 
       while (
-        max_BICL_has_improved && 
+        max_BICL_has_improved &&
         step < self$global_opts$Q1_max * self$global_opts$Q2_max
         ) {
         # The loop explores the space greedily
@@ -692,11 +694,11 @@ bisbmpop <- R6::R6Class(
         # we set the next point from which we'll loop again
         # by finding the neighbor with max BICL
         best_neighbor <- neighbors[[which.max(c(
-          ifelse(current_Q1 + neighbors[[1]][[1]] <= self$global_opts$Q1_max && current_Q2 + neighbors[[1]][[2]] <= self$global_opts$Q2_max, 
+          ifelse(current_Q1 + neighbors[[1]][[1]] <= self$global_opts$Q1_max && current_Q2 + neighbors[[1]][[2]] <= self$global_opts$Q2_max,
           self$model_list[[current_Q1 + neighbors[[1]][[1]],current_Q2 + neighbors[[1]][[2]]]]$BICL, # If the Q1 and Q2 are inbound we test them
           -Inf), # Else we compare to -Inf
 
-          ifelse(current_Q1 + neighbors[[2]][[1]] <= self$global_opts$Q1_max && current_Q2 + neighbors[[2]][[2]] <= self$global_opts$Q2_max, 
+          ifelse(current_Q1 + neighbors[[2]][[1]] <= self$global_opts$Q1_max && current_Q2 + neighbors[[2]][[2]] <= self$global_opts$Q2_max,
           self$model_list[[current_Q1 + neighbors[[2]][[1]], current_Q2 + neighbors[[2]][[2]]]]$BICL,
           -Inf
           )
@@ -749,9 +751,9 @@ bisbmpop <- R6::R6Class(
     },
 
     #' Burn-in method to start exploring the state of space
-    #' 
+    #'
     #' The functions takes no parameters but modify the object
-    #' 
+    #'
     #' @return nothing; but stores the values
     burn_in = function() {
       start_time <- Sys.time()
@@ -802,7 +804,7 @@ bisbmpop <- R6::R6Class(
         })
         cat(
           "Finished fitting ", self$M, " networks for Q = (", toString(c(1, 2)),
-          ")\nSeparated Variational Bounds for the networks", toString(seq.int(self$M)), 
+          ")\nSeparated Variational Bounds for the networks", toString(seq.int(self$M)),
           ":\n", toString(sep_vbounds), "\n"
         )
       }
@@ -861,7 +863,7 @@ bisbmpop <- R6::R6Class(
       for (m in seq.int(self$M)) {
         current_m_init <- self$separated_inits[[1,2]][[m]]
 
-        # The clustering are one hot encoded because the permutations are 
+        # The clustering are one hot encoded because the permutations are
         # easier to perform
 
         # One hot encoded row (1 cluster)
@@ -913,7 +915,7 @@ bisbmpop <- R6::R6Class(
       }
 
       self$model_list[[1, 1]] <- fitBipartiteSBMPop$new(
-        A = self$A, 
+        A = self$A,
         Q = c(1, 1),
         free_mixture = self$free_mixture,
         free_density = self$free_mixture,
@@ -938,11 +940,11 @@ bisbmpop <- R6::R6Class(
         }
       )
 
-      # We retrieve the clustering for the M (2,1) separated models 
+      # We retrieve the clustering for the M (2,1) separated models
       M_clusterings_2_1 <- lapply(
         seq.int(self$M),
         function(m) {
-          # We add [[1]] after Z because we fitted 
+          # We add [[1]] after Z because we fitted
           # only one network with the objects stored
           # where the class is supposed to store more
           self$separated_inits[[2,1]][[m]]$Z[[1]]
@@ -986,7 +988,7 @@ bisbmpop <- R6::R6Class(
             toString(c(index, 3 - index)), ")."
           )
         }
-        
+
         self$separated_inits[[index,3 - index]]$optimize()
       })
 
@@ -1045,7 +1047,7 @@ bisbmpop <- R6::R6Class(
       if(self$global_opts$verbosity >= 1) {
         cat(
           "\n==== Finished Burn in",
-          " for networks ", self$net_id, " in ", 
+          " for networks ", self$net_id, " in ",
           format(Sys.time() - start_time, digits = 3),
           " ===="
         )
@@ -1173,7 +1175,7 @@ bisbmpop <- R6::R6Class(
           ")",
           "\nThe window will only work on valid configurations"
         ))
-        
+
       }
 
       if (self$global_opts$verbosity >= 4) {
@@ -1243,7 +1245,7 @@ bisbmpop <- R6::R6Class(
             if (self$global_opts$verbosity >= 4) {
               cat("\nA model was already fitted here ! Storing it to compare")
             }
-            
+
             wanted_model_different_splits_origin <-
               append(
                 wanted_model_different_splits_origin,
@@ -1367,7 +1369,7 @@ bisbmpop <- R6::R6Class(
           }
 
           # Adding the other possible models to the discarded_model_list
-          self$discarded_model_list[[current_model_Q[1], current_model_Q[2]]] <- 
+          self$discarded_model_list[[current_model_Q[1], current_model_Q[2]]] <-
           append(
             self$discarded_model_list[[current_model_Q[1], current_model_Q[2]]],
             wanted_model_different_splits_origin[-which.max(wanted_model_different_splits_origin_BICL)]
@@ -1406,7 +1408,7 @@ bisbmpop <- R6::R6Class(
             )
           }
 
-          # If the wanted model already exists in the model_list 
+          # If the wanted model already exists in the model_list
           # we store it as a possible model
           if (self$point_is_in_limits(current_model_Q) &&
             !is.null(self$model_list[[current_model_Q[1], current_model_Q[2]]])) {
@@ -1489,7 +1491,7 @@ bisbmpop <- R6::R6Class(
           if (length(wanted_model_different_merges_origin) == 0) {
             if (self$global_opts$verbosity >= 4) {
               cat(
-                "\nNo possible origins nor fitted model for the point Q=(", 
+                "\nNo possible origins nor fitted model for the point Q=(",
                 toString(current_model_Q),
                 "). Fitting a spectral at this point."
               )
