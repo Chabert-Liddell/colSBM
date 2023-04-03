@@ -12,24 +12,33 @@ fitBipartiteSBMPop <- R6::R6Class(
     # TODO later : consider changing nr, nc for n[[m]][[1]] and n[[m]][[2]]
     # For user function add helpful n[[m]]$row and n[[m]]$col
     nr = NULL, # a vector of size M counting the number of rows for each matrix
-    nc = NULL, # a vector of size M counting the number of columns for each matrix
+    nc = NULL,  # a vector of size M counting the number of columns for each
+                # matrix
     M = NULL, # Number of networks
     A = NULL, # List of incidence Matrix of size nr[m]xnc[m]
-    mask = NULL, # List of M masks, indicating NAs in the matrices. 1 for NA, 0 else
-    nonNAs = NULL, # List of M masks, indicating non NAs in the matrices. 1 - mask, so 0 for NA, 1 for non NA
+    mask = NULL,  # List of M masks, indicating NAs in the matrices.
+                  # 1 for NA, 0 else
+    nonNAs = NULL,  # List of M masks, indicating non NAs in the matrices.
+                    # 1 - mask, so 0 for NA, 1 for non NA
     nb_inter = NULL, # A vector of length M the number of unique non NA entries
     directed = NULL, # Boolean for network direction, Constant
     Q = NULL, # Number of clusters, vectors of size2
-    tau = NULL, # List of size M of list of two variational parameters nr[m]xQ matrices and nc[m]xQ matrices
+    tau = NULL, # List of size M of list of two variational parameters nr[m]xQ
+                # matrices and nc[m]xQ matrices
     alpha = NULL, # Matrix of size QxQ, connection parameters
     delta = NULL, # Vector of M,  density parameters with delta[1] = 1
     pi = NULL, # List of M vectors of size Q, the mixture parameters
-    pim = NULL, # List of M vectors of size Q, the mixture parameters in case of free_mixture
+    pim = NULL, # List of M vectors of size Q, the mixture parameters in case
+                # of free_mixture
     e = NULL, # Vector of size M, the sum of unique entries
     emqr = NULL, # List of M QxQ matrix, the sum of edges between q and r in m, ie the edges that are observed
     nmqr = NULL, # list of M QxQ matrix, the number of entries between q and r in m, ie all the possible edges
     alpham = NULL, # list of M QxQ matrix, the classic sbm parameters
-    free_mixture = NULL, # A boolean
+    free_mixture = NULL, # TODO DELETE
+    free_mixture_row = NULL,  # A boolean indicating if there is a free mixture
+                              # on the rows
+    free_mixture_col = NULL,  # A boolean indicating if there is a free mixture
+                              # on the columns
     free_density = NULL, # A boolean
     weight = NULL, # A vector of size M for weighted likelihood
     distribution = NULL, # "poisson", "bernoulli"
@@ -1023,7 +1032,7 @@ fitBipartiteSBMPop <- R6::R6Class(
 
     },
 
-    compute_effective_clustering = function() { 
+    compute_effective_clustering = function() {
       self$effective_clustering_list <- lapply(seq.int(self$M), function(m) {
         list(
           length(unique(self$MAP$Z[[m]][[1]])),
