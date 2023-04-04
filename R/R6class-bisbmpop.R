@@ -14,9 +14,9 @@ bisbmpop <- R6::R6Class(
     distribution = NULL,
     net_id = NULL,
     model_list = NULL, # A list of size Q1max * Q2max containing the best models
-    discarded_model_list = NULL, # A list of size
-                                 # Q1max * Q2max * (nb_models - 1) containing
-                                 # the discarded models
+    discarded_model_list = NULL,# A list of size
+                                # Q1max * Q2max * (nb_models - 1) containing
+                                # the discarded models
     global_opts = NULL,
     fit_opts = NULL,
     separated_inits = NULL, # A nested list : Q1 init containing Q2 init
@@ -27,6 +27,8 @@ bisbmpop <- R6::R6Class(
     Z_init = NULL,
     free_density = NULL,
     free_mixture = NULL,
+    free_mixture_row = NULL,
+    free_mixture_col = NULL,
     ICL = NULL,
     sep_BiSBM_BICL = NULL, # A vector of size M containing the BICL for each BiSBM
     BICL = NULL,
@@ -53,6 +55,8 @@ bisbmpop <- R6::R6Class(
                           distribution = "bernoulli",
                           free_density = FALSE,
                           free_mixture = FALSE,
+                          free_mixture_row = FALSE,
+                          free_mixture_col = FALSE,
                           Z_init = NULL,
                           global_opts = list(),
                           fit_opts = list()) {
@@ -89,6 +93,8 @@ bisbmpop <- R6::R6Class(
       self$distribution <- distribution
       self$free_density <-  free_density
       self$free_mixture <- free_mixture
+      self$free_mixture_row <- free_mixture_row
+      self$free_mixture_col <- free_mixture_col
       self$global_opts <- list(Q1_min = 1L,
                                Q1_max = floor(log(sum(self$nr)))+2,
                                Q2_min = 1L,
@@ -245,7 +251,9 @@ bisbmpop <- R6::R6Class(
           A = self$A,
           Q = split_Q,
           free_mixture = self$free_mixture,
-          free_density = self$free_mixture,
+          free_mixture_row = self$free_mixture_row,
+          free_mixture_col = self$free_mixture_col,
+          free_density = self$free_density,
           init_method = "given",
           distribution = self$distribution,
           Z = q_th_Z_init,
@@ -370,7 +378,9 @@ bisbmpop <- R6::R6Class(
           A = self$A,
           Q = merge_Q,
           free_mixture = self$free_mixture,
-          free_density = self$free_mixture,
+          free_mixture_row = self$free_mixture_row,
+          free_mixture_col = self$free_mixture_col,
+          free_density = self$free_density,
           init_method = "given",
           distribution = self$distribution,
           Z = q_th_Z_init,
@@ -781,7 +791,9 @@ bisbmpop <- R6::R6Class(
             A = list(self$A[[m]]),
             Q = c(1, 2),
             free_mixture = self$free_mixture,
-            free_density = self$free_mixture,
+            free_mixture_row = self$free_mixture_row,
+            free_mixture_col = self$free_mixture_col,
+            free_density = self$free_density,
             distribution = self$distribution,
             init_method = "spectral",
             fit_opts = self$fit_opts
@@ -820,7 +832,9 @@ bisbmpop <- R6::R6Class(
           fitBipartiteSBMPop$new(
             A = list(self$A[[m]]), Q = c(2, 1),
             free_mixture = self$free_mixture,
-            free_density = self$free_mixture,
+            free_mixture_row = self$free_mixture_row,
+            free_mixture_col = self$free_mixture_col,
+            free_density = self$free_density,
             distribution = self$distribution,
             init_method = "spectral",
             fit_opts = self$fit_opts
@@ -918,7 +932,9 @@ bisbmpop <- R6::R6Class(
         A = self$A,
         Q = c(1, 1),
         free_mixture = self$free_mixture,
-        free_density = self$free_mixture,
+        free_mixture_row = self$free_mixture_row,
+        free_mixture_col = self$free_mixture_col,
+        free_density = self$free_density,
         fit_opts = self$fit_opts,
         distribution = self$distribution,
         greedy_exploration_starting_point = c(1,1),
@@ -954,7 +970,9 @@ bisbmpop <- R6::R6Class(
       self$separated_inits[[1,2]] <- fitBipartiteSBMPop$new(
         A = self$A, Q = c(1, 2),
         free_mixture = self$free_mixture,
-        free_density = self$free_mixture,
+        free_mixture_row = self$free_mixture_row,
+        free_mixture_col = self$free_mixture_col,
+        free_density = self$free_density,
         Z = M_clusterings_1_2,
         init_method = "given",
         distribution = self$distribution,
@@ -965,7 +983,9 @@ bisbmpop <- R6::R6Class(
       self$separated_inits[[2,1]] <- fitBipartiteSBMPop$new(
         A = self$A, Q = c(2, 1),
         free_mixture = self$free_mixture,
-        free_density = self$free_mixture,
+        free_mixture_row = self$free_mixture_row,
+        free_mixture_col = self$free_mixture_col,
+        free_density = self$free_density,
         Z = M_clusterings_2_1,
         init_method = "given",
         distribution = self$distribution,
@@ -1330,7 +1350,9 @@ bisbmpop <- R6::R6Class(
               A = self$A,
               Q = current_model_Q,
               free_mixture = self$free_mixture,
-              free_density = self$free_mixture,
+              free_mixture_row = self$free_mixture_row,
+              free_mixture_col = self$free_mixture_col,
+              free_density = self$free_density,
               init_method = "spectral",
               distribution = self$distribution,
               net_id = self$net_id,
@@ -1502,7 +1524,9 @@ bisbmpop <- R6::R6Class(
               A = self$A,
               Q = current_model_Q,
               free_mixture = self$free_mixture,
-              free_density = self$free_mixture,
+              free_mixture_row = self$free_mixture_row,
+              free_mixture_col = self$free_mixture_col,
+              free_density = self$free_density,
               init_method = "spectral",
               distribution = self$distribution,
               net_id = self$net_id,

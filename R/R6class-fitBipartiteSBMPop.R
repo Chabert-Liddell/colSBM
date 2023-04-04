@@ -49,6 +49,10 @@ fitBipartiteSBMPop <- R6::R6Class(
     df_mixture = NULL, # The degrees of freedom for mixture parameters pi,used to compute penalty
     df_connect = NULL, # The degrees of freedom for connection parameters alpha,used to compute penalty
     df_density = NULL, # The degrees of freedom for density parameters delta,used to compute penalty
+    Cpi1 = NULL, # A matrix of size M x Q1 containing TRUE (1) or FALSE (0) if
+                # the row cluster is represented in the network m
+    Cpi2 = NULL, # A matrix of size M x Q2 containing TRUE (1) or FALSE (0) if
+                # the col cluster is represented in the network m
     logfactA = NULL, # used with the Poisson probability distribution
     #  algo_ve = NULL,
     #  minibatch = NULL,
@@ -83,6 +87,8 @@ fitBipartiteSBMPop <- R6::R6Class(
                           net_id = NULL,
                           distribution = "bernoulli",
                           free_mixture = TRUE,
+                          free_mixture_row = TRUE,
+                          free_mixture_col = TRUE,
                           free_density = TRUE,
                           directed = NULL,
                           init_method = "spectral",
@@ -180,6 +186,8 @@ fitBipartiteSBMPop <- R6::R6Class(
       # delta colSBM : free_mixture = F, free_density = T
       # pi-delta colSBM : free_mixture = T, free_density = T
       self$free_mixture <- free_mixture
+      self$free_mixture_row <- free_mixture_row
+      self$free_mixture_col <- free_mixture_col
       self$free_density <- free_density
 
       # TODO if time
@@ -201,6 +209,7 @@ fitBipartiteSBMPop <- R6::R6Class(
       self$MAP$pim <- self$pim
 
       # Degrees of freedom
+      # for iid
       self$df_mixture <- self$Q - 1
       self$df_density <- self$M - 1
       self$df_connect <- self$Q[1] * self$Q[2]
@@ -432,12 +441,60 @@ fitBipartiteSBMPop <- R6::R6Class(
     },
     compute_penalty = function() {
       # TODO Réfléchir
-      df_connect <- self$df_connect
-      if (self$free_density) {
-        df_connect <- self$df_connect + self$df_density
+      if (self$free_mixture_row) {
+        Cpi1 <- self$Cpi1
+        pi1_penalty <- sum((rowSums(Cpi1) - 1) * log(self$nr))
+        log_p_Q1 <- -self$M * log(self$Q[1]) - sum(log(choose(
+          rep(self$Q[1], self$M), rowSums(Cpi1)
+        )))
+        S1_penalty <- -2 * log_p_Q1
+      } else {
+        # To account for the possibility of the other free_mixture we store a
+        # temporary support full of TRUE
+        Cpi1 <- matrix(rep(TRUE, self$M * self$Q[1]), nrow = self$M)
+        # If there is no free mixture on the cols
+        pi1_penalty <- (self$Q[1] - 1) * log(sum(self$nr))
+        S1_penalty <- 0
       }
-      self$penalty <- .5 * (df_connect * log(sum(self$nb_inter)) +
-        sum(self$df_mixture * log(c(sum(self$nr), sum(self$nc)))))
+
+      if (self$free_mixture_col) {
+        Cpi2 <- self$Cpi2
+        pi2_penalty <- sum((rowSums(Cpi2) - 1) * log(self$nc))
+        log_p_Q2 <- -self$M * log(self$Q[2]) - sum(log(choose(
+          rep(self$Q[2], self$M), rowSums(Cpi2)
+        )))
+        S2_penalty <- -2 * log_p_Q2
+      } else {
+        # If there is no free mixture on the cols
+        Cpi2 <- matrix(rep(TRUE, self$M * self$Q[2]), nrow = self$M)
+        pi2_penalty <- (self$Q[2] - 1) * log(sum(self$nc))
+        S2_penalty <- 0
+      }
+
+      N_M <- sum(self$nr * self$nc)
+
+      if (self$free_mixture_row || self$free_mixture_col) {
+        # If there is at least one free_mixture, the alpha penalty 
+        # will be computed using supports
+        alpha_penalty <- sum(t(Cpi1)%*%Cpi2 > 0)*log(N_M)
+      } else {
+        # iid or delta
+        alpha_penalty <- self$Q[1] * self$Q[2] * log(N_M)
+      }
+      self$penalty <- 0.5 * (pi1_penalty + pi2_penalty +
+        alpha_penalty +
+        S1_penalty + S2_penalty)
+
+      # df_connect <- self$df_connect
+      # if (self$free_density) {
+      #   df_connect <- self$df_connect + self$df_density
+      # }
+      # self$penalty <- .5 * (df_connect * log(sum(self$nb_inter)) +
+      #   sum(self$df_mixture * log(c(sum(self$nr), sum(self$nc))))) -
+      #   ifelse(self$free_mixture,
+      #     sum(log(choose(self$Q, colSums(self$Cpi)))) + self$M * log(self$Q),
+      #     0
+      #   ) #-
       invisible(self$penalty)
     },
 
@@ -456,13 +513,9 @@ fitBipartiteSBMPop <- R6::R6Class(
       return(ICL)
     },
 
-    # DONE change name and copy compute_BICL
     compute_BICL = function(MAP = TRUE) {
       self$BICL <- self$compute_vbound() -
-      self$compute_penalty() -
-      ifelse(self$free_mixture,
-        sum(log(choose(self$Q, colSums(self$Cpi)))) + self$M * log(self$Q),
-        0) #-
+      self$compute_penalty()
       invisible(self$BICL)
     },
 
@@ -824,13 +877,13 @@ fitBipartiteSBMPop <- R6::R6Class(
 
               # Permuter avec un ordre favorisant plus fortement
               # les plus gros clusters mais de manière stochastique
-              # colSums sur les tau1 et tau2 pour obtenir les pir et pic
+              # colSums sur les tau1 et tau2 pour obtenir les pi1 et pi2
               a <- self$emqr[m, , ] / self$nmqr[m, , ] # ? estimate of the alpha
-              pir <- .colSums(tau_1, self$nr[m], self$Q[[1]]) / sum(tau_1)
-              pic <- .colSums(tau_2, self$nc[m], self$Q[[2]])/sum(tau_2)
+              pi1 <- .colSums(tau_1, self$nr[m], self$Q[[1]]) / sum(tau_1)
+              pi2 <- .colSums(tau_2, self$nc[m], self$Q[[2]])/sum(tau_2)
 
-              prob1 <- as.vector(pic %*% t(a))
-              prob2 <- as.vector(pir %*% a)
+              prob1 <- as.vector(pi2 %*% t(a))
+              prob2 <- as.vector(pi1 %*% a)
               # p1 and p2 contain the clustering ordered using the highest probabilities first
 
               p1 <- order(prob1)
@@ -882,13 +935,13 @@ fitBipartiteSBMPop <- R6::R6Class(
 
               # Permuter avec un ordre favorisant plus fortement
               # les plus gros clusters mais de manière stochastique
-              # colSums sur les tau1 et tau2 pour obtenir les pir et pic
+              # colSums sur les tau1 et tau2 pour obtenir les pi1 et pi2
               a <- self$emqr[m, , ] / self$nmqr[m, , ] # ? estimate of the alpha
-              pir <- .colSums(tau_1, self$nr[m], self$Q[[1]]) / sum(tau_1)
-              pic <- .colSums(tau_2, self$nc[m], self$Q[[2]])/sum(tau_2)
+              pi1 <- .colSums(tau_1, self$nr[m], self$Q[[1]]) / sum(tau_1)
+              pi2 <- .colSums(tau_2, self$nc[m], self$Q[[2]])/sum(tau_2)
 
-              prob1 <- as.vector(pic %*% t(a))
-              prob2 <- as.vector(pir %*% a)
+              prob1 <- as.vector(pi2 %*% t(a))
+              prob2 <- as.vector(pi1 %*% a)
               # p1 and p2 contain the clustering ordered using the highest probabilities first
               # But it is still sampled and random according to the probabilities
               # p1 <- sample.int(self$Q[[1]], prob = prob1)
@@ -997,25 +1050,25 @@ fitBipartiteSBMPop <- R6::R6Class(
       # TODO : ask @Chabert-Liddell or @demiperimetre to see if such permutation are useful at the end
       if (self$free_mixture) {
         # Use pim
-        pir <- lapply(seq.int(self$M), function(m) {
+        pi1 <- lapply(seq.int(self$M), function(m) {
           self$pim[[m]][[1]]
         })
-        pic <- lapply(seq.int(self$M), function(m) {
+        pi2 <- lapply(seq.int(self$M), function(m) {
           self$pim[[m]][[2]]
         })
       } else {
         # Use pi
-        pir <- lapply(seq.int(self$M), function(m) {
+        pi1 <- lapply(seq.int(self$M), function(m) {
           self$pi[[m]][[1]]
         })
-        pic <- lapply(seq.int(self$M), function(m) {
+        pi2 <- lapply(seq.int(self$M), function(m) {
           self$pi[[m]][[2]]
         })
       }
 
       # Compute the marginal laws
-      prob_row <- pic %*% t(self$alpha)
-      prob_col <- pir %*% self$alpha
+      prob_row <- pi2 %*% t(self$alpha)
+      prob_col <- pi1 %*% self$alpha
 
       # Find the order
       row_order <- order(prob_row, decreasing = TRUE)
