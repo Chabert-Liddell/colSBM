@@ -53,6 +53,7 @@ fitBipartiteSBMPop <- R6::R6Class(
                 # the row cluster is represented in the network m
     Cpi2 = NULL, # A matrix of size M x Q2 containing TRUE (1) or FALSE (0) if
                 # the col cluster is represented in the network m
+    Calpha = NULL,
     logfactA = NULL, # used with the Poisson probability distribution
     #  algo_ve = NULL,
     #  minibatch = NULL,
@@ -90,6 +91,9 @@ fitBipartiteSBMPop <- R6::R6Class(
                           free_mixture_row = TRUE,
                           free_mixture_col = TRUE,
                           free_density = TRUE,
+                          Cpi1 = NULL,
+                          Cpi2 = NULL,
+                          Calpha = NULL,
                           directed = NULL,
                           init_method = "spectral",
                           weight = NULL, # A vector of size M, the weight of each network
@@ -190,6 +194,22 @@ fitBipartiteSBMPop <- R6::R6Class(
       self$free_mixture_col <- free_mixture_col
       self$free_density <- free_density
 
+      # Setting the needed matrices for free mixture models
+      if(is.null(Cpi1) | is.null(Cpi2) | 
+      is.null(Calpha) | ! self$free_mixture_row | self$free_mixture_col) {
+        if (is.null(Cpi1)) {
+          self$Cpi1 <- matrix(TRUE, self$Q[1], self$M)
+        }
+        if (is.null(Cpi2)) {
+          self$Cpi2 <- matrix(TRUE, self$Q[2], self$M)
+        }
+        self$Calpha <- tcrossprod(self$Cpi1, self$Cpi2) > 0
+      } else {
+        self$Cpi1 <- Cpi1
+        self$Cpi2 <- Cpi2
+        self$Calpha
+      }
+
       # TODO if time
       # self$weight <- weight
 
@@ -255,45 +275,32 @@ fitBipartiteSBMPop <- R6::R6Class(
     vb_tau_alpha = function(m, MAP = FALSE) {
       # Loading all the quantities useful for the computation
 
+      matrix_mqr_to_use <- outer(self$Cpi1[, m], self$Cpi2[, m])
+
       if (MAP) {
         # If we are calculating the maximum a posteriori
-        emqr <- self$MAP$emqr[m, , ]
-        nmqr <- self$MAP$nmqr[m, , ]
-        alpha <- self$MAP$alpha
+        emqr <- matrix_mqr_to_use * self$MAP$emqr[m, , ]
+        nmqr <- matrix_mqr_to_use * self$MAP$nmqr[m, , ]
+        alpha <- self$Calpha * self$MAP$alpha
         delta <- self$MAP$delta[m]
       } else {
-        emqr <- self$emqr[m, , ]
-        nmqr <- self$nmqr[m, , ]
-        alpha <- self$alpha
+        emqr <- matrix_mqr_to_use * self$emqr[m, , ]
+        nmqr <- matrix_mqr_to_use * self$nmqr[m, , ]
+        alpha <- self$Calpha * self$alpha
         delta <- self$delta[m]
       }
       switch(self$distribution,
         "bernoulli" = {
-          # tau_tmp <- self$tau[[m]]
-          # self$dircoef*sum(
-          #   self$M[[m]] *
-          #     (self$A[[m]] *
-          #        tcrossprod(tau_tmp %*% .logit(self$alpha*self$delta[m], eps=1e-6),
-          #                   tau_tmp) +
-          #        tcrossprod(tau_tmp %*% .log(1-self$alpha*self$delta[m], eps = 1e-6),
-          #                   tau_tmp)))
+
           sum(
-            .xlogy(emqr, alpha * delta, eps = 1e-12) +
-              .xlogy(nmqr - emqr, 1 - alpha * delta, eps = 1e-12)
+            self$Calpha * .xlogy(emqr, alpha * delta, eps = 1e-12) +
+              self$Calpha * .xlogy(nmqr - emqr, 1 - alpha * delta, eps = 1e-12)
           )
         },
         "poisson" = {
-          #          tau_tmp <- self$tau[[m]]
           sum(.xlogy(emqr, alpha * delta, eps = 1e-12) -
             nmqr * alpha * delta -
             self$logfactA[m])
-          # self$dircoef*sum(
-          #   self$M[[m]] * (self$A[[m]] *
-          #                    tcrossprod(tau_tmp %*% .log(self$alpha*self$delta[m], eps=1e-9),
-          #                               tau_tmp) -
-          #                    tcrossprod(tau_tmp %*% (self$alpha*self$delta[m]),
-          #                               tau_tmp)) -
-          #   lgamma(A[[m]]+1))
         }
       )
     },
@@ -636,7 +643,6 @@ fitBipartiteSBMPop <- R6::R6Class(
       self$vloss[[m]] <-
         c(self$vloss[[m]], self$vb_tau_alpha(m) + self$vb_tau_pi(m) +
           self$entropy_tau(m))
-      tau_old <- self$tau[[m]][[d]]
       tau_new <- switch(self$distribution,
         "bernoulli" = {
           tau_new <-
@@ -646,10 +652,13 @@ fitBipartiteSBMPop <- R6::R6Class(
                 t(matrix(log(self$pi[[m]][[d]]), self$Q[d], self$nr[m])) +
                 ((self$nonNAs[[m]]) * self$A[[m]]) %*%
                 self$tau[[m]][[2]] %*%
-                t(.logit(self$delta[m] * self$alpha, eps = 1e-9)) +
+                t(.logit(self$Calpha * self$delta[m] * self$alpha,
+                eps = 1e-9)) +
                 (self$nonNAs[[m]]) %*%
                 self$tau[[m]][[2]] %*%
-                t(.log(1 - self$alpha * self$delta[m], eps = 1e-9))
+                t(.log(1 - self$Calpha * self$alpha * self$delta[m],
+                  eps = 1e-9
+                ))
             }
           if (d == 2) {
             # nc * Q2
@@ -657,10 +666,10 @@ fitBipartiteSBMPop <- R6::R6Class(
               t(matrix(log(self$pi[[m]][[d]]), self$Q[d], self$nc[m])) +
               t((self$nonNAs[[m]]) * self$A[[m]]) %*%
               self$tau[[m]][[1]] %*%
-              .logit(self$delta[m] * self$alpha, eps = 1e-9) +
+              .logit(self$Calpha * self$delta[m] * self$alpha, eps = 1e-9) +
               t(self$nonNAs[[m]]) %*%
               self$tau[[m]][[1]] %*%
-              .log(1 - self$alpha * self$delta[m], eps = 1e-9)
+              .log(1 - self$Calpha * self$alpha * self$delta[m], eps = 1e-9)
           }
           invisible(tau_new)
         },
