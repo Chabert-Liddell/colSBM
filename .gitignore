@@ -3,5 +3,6 @@ docs
 inst/doc
 .Rhistory
 .vscode
+last.dump.rds
 
 wip
