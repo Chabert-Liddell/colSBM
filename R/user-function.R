@@ -273,8 +273,8 @@ estimate_colBiSBM <-
     go <- list(
       Q1_min = 1L,
       Q2_min = 1L,
-      Q1_max <- floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2),
-      Q2_max <- floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2),
+      Q1_max = floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2),
+      Q2_max = floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2),
       nb_init = 10L,
       nb_models = 5L,
       depth = 1L,
@@ -289,11 +289,14 @@ estimate_colBiSBM <-
       global_opts$nb_cores <- 1L
     }
     nb_cores <- global_opts$nb_cores
-    if (is.null(global_opts$Q_max)) {
+    if (is.null(global_opts$Q1_max)) {
       Q1_max <- floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2)
-      Q2_max <- floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2)
     } else {
       Q1_max <- global_opts$Q1_max
+    }
+    if (is.null(global_opts$Q2_max)){
+      Q2_max <- floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2)
+    }else {
       Q2_max <- global_opts$Q2_max
     }
     if (!is.null(fit_init)) {
