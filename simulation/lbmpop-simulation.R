@@ -42,18 +42,24 @@ Z <- lapply(seq.int(M), function(m) {
     list(bipartite_collection[[m]]$row_clustering, bipartite_collection[[m]]$col_clustering)
 })
 
-
-# mylbmpop <- bisbmpop$new(
-#     netlist = bipartite_collection_incidence,
-#     global_opts = list(
-#         verbosity = 1,
-#         plot_details = 1,
-#         nb_cores = parallel::detectCores() / 2
-#     )
-# )
-# mylbmpop$optimize()
 choosed_bisbmpop <- estimate_colBiSBM(
     netlist = bipartite_collection_incidence, 
     colsbm_model = "iid", 
     global_opts = list(nb_cores = 3)
+)
+
+ari_sums <- sapply(
+    seq_along(choosed_bisbmpop$best_fit$Z),
+    function(m) {
+        sum(c(
+            aricode::ARI(
+                Z[[m]][[1]],
+                choosed_bisbmpop$best_fit$Z[[m]][[1]]
+            ),
+            aricode::ARI(
+                Z[[m]][[2]],
+                choosed_bisbmpop$best_fit$Z[[m]][[2]]
+            )
+        ))
+    }
 )
