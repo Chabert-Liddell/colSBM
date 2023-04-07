@@ -306,9 +306,9 @@ fitBipartiteSBMPop <- R6::R6Class(
       TRUE
       if (!MAP) {
         sum(self$tau[[m]][[1]][,which(self$Cpi[[1]][,m])] %*% 
-          log(self$pi[[m]][[1]][,which(self$Cpi[[1]][,m])])) +
+          matrix(log(self$pi[[m]][[1]][which(self$Cpi[[1]][,m])]))) +
             sum(self$tau[[m]][[2]][, which(self$Cpi[[2]][, m])] %*%
-              log(self$pi[[m]][[2]][, which(self$Cpi[[2]][, m])]))
+              matrix(log(self$pi[[m]][[2]][which(self$Cpi[[2]][, m])])))
       } else {
         sum(.xlogy(
           tabulate(self$Z[[m]][[1]], self$Q[1]),
@@ -456,6 +456,7 @@ fitBipartiteSBMPop <- R6::R6Class(
     },
     compute_penalty = function() {
       # TODO Réfléchir
+      Cpi <- list()
       if (self$free_mixture_row) {
         Cpi[[1]] <- self$Cpi[[1]]
         pi1_penalty <- sum((rowSums(Cpi[[1]]) - 1) * log(self$nr))
@@ -761,8 +762,14 @@ fitBipartiteSBMPop <- R6::R6Class(
     # So those are the "pim"
       if (!MAP) {
         # The pim are the mean of all the tau for each column, ie the mean tau per block
-        pim1 <- .colMeans(self$tau[[m]][[1]], self$nr[m], self$Q[1])
-        pim2 <- .colMeans(self$tau[[m]][[2]], self$nc[m], self$Q[2])
+        pim1 <- matrix(.colMeans(
+          self$tau[[m]][[1]],
+          self$nr[m], self$Q[1]
+        ), nrow = 1)
+        pim2 <- matrix(.colMeans(
+          self$tau[[m]][[2]],
+          self$nc[m], self$Q[2]
+        ), nrow = 1)
 
         self$pim[[m]] <- list(pim1, pim2)
       } else {
@@ -788,13 +795,16 @@ fitBipartiteSBMPop <- R6::R6Class(
           pi1 <- matrix(self$nr * vapply(seq(self$M), function(m) {
             self$pim[[m]][[1]]
           }, FUN.VALUE = rep(.1, self$Q[1])), ncol = self$M, nrow = self$Q[1])
-          pi1 <- rowSums(pi1) / sum(pi1)
+          pi1 <- matrix(rowSums(pi1) / sum(pi1), nrow = 1)
+          # Need matrix() because there is a dot product in the vb_tau_pi
 
           # And columns
           pi2 <- matrix(self$nc * vapply(seq(self$M), function(m) {
             self$pim[[m]][[2]]
           }, FUN.VALUE = rep(.1, self$Q[2])), ncol = self$M, nrow = self$Q[2])
-          pi2 <- rowSums(pi2) / sum(pi2)
+          pi2 <- matrix(rowSums(pi2) / sum(pi2), nrow = 1)
+          # Need matrix() because there is a dot product in the vb_tau_pi
+
           self$pi <- lapply(seq.int(self$M), function(m) list(pi1, pi2))
         }
 
