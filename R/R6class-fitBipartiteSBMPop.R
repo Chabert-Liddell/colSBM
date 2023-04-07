@@ -1002,6 +1002,23 @@ fitBipartiteSBMPop <- R6::R6Class(
               list(tau_1, tau_2)
             }
           ),
+          "empty" = lapply(seq_along(self$Z),
+          function(m) {
+            tau_1 <- self$tau[[m]][[1]]
+            tau_1[, which(!self$Cpi[[1]][,m])] <- 0
+            tau_1[, which(self$Cpi[[1]][,m])] <-
+              .threshold(tau_1[, which(self$Cpi[[1]][,m])])
+
+            tau_2 <- self$tau[[m]][[2]]
+            tau_2[, which(!self$Cpi[[2]][, m])] <- 0
+            tau_2[, which(self$Cpi[[2]][, m])] <-
+              .threshold(tau_2[, which(self$Cpi[[2]][, m])])
+
+            self$emqr[m, , ] <- t(tau_1) %*%
+              (self$A[[m]] * (self$nonNAs[[m]])) %*% tau_2
+            self$nmqr[m, , ] <- t(tau_1) %*% (self$nonNAs[[m]]) %*% tau_2
+            list(tau_1, tau_2)
+          }),
           "given" = lapply(
             X = seq_along(self$Z),
             FUN = function(m) {
