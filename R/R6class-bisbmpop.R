@@ -355,20 +355,20 @@ bisbmpop <- R6::R6Class(
       })
 
 
-      # Fitting the Q splits and selecting the next model
+      # Fitting the Q merges and selecting the next model
       possible_models <- bettermc::mclapply(seq.int(possible_models_size),
       function(q) {
-        # Once the row and col clustering are correctly split
+        # Once the row and col clustering are correctly merged
         # they are merged
         switch(axis,
           row = {
-            # If it's a row split
+            # If it's a row merge
             q_th_Z_init <- lapply(seq.int(self$M), function(m) {
               list(row_clustering[[m]][[q]], col_clustering[[m]])
             })
           },
           col = {
-            # If it's a col split
+            # If it's a col merge
             q_th_Z_init <- lapply(seq.int(self$M), function(m) {
               list(row_clustering[[m]], col_clustering[[m]][[q]])
             })
