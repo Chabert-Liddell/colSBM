@@ -830,10 +830,11 @@ bisbmpop <- R6::R6Class(
         seq.int(self$M),
         function(m) {
           fitBipartiteSBMPop$new(
-            A = list(self$A[[m]]), Q = c(2, 1),
+            A = list(self$A[[m]]), 
+            Q = c(2, 1),
             free_mixture = self$free_mixture,
-            free_mixture_row = self$free_mixture_row,
-            free_mixture_col = self$free_mixture_col,
+            free_mixture_row = FALSE, # There can't be free mixture with 1 net
+            free_mixture_col = FALSE, # There can't be free mixture with 1 net
             free_density = self$free_density,
             distribution = self$distribution,
             init_method = "spectral",
@@ -932,8 +933,8 @@ bisbmpop <- R6::R6Class(
         A = self$A,
         Q = c(1, 1),
         free_mixture = self$free_mixture,
-        free_mixture_row = self$free_mixture_row,
-        free_mixture_col = self$free_mixture_col,
+        free_mixture_row = FALSE, # There can't be free mixture with 1 cluster
+        free_mixture_col = FALSE, # There can't be free mixture with 1 cluster
         free_density = self$free_density,
         fit_opts = self$fit_opts,
         distribution = self$distribution,
@@ -970,7 +971,7 @@ bisbmpop <- R6::R6Class(
       self$separated_inits[[1,2]] <- fitBipartiteSBMPop$new(
         A = self$A, Q = c(1, 2),
         free_mixture = self$free_mixture,
-        free_mixture_row = self$free_mixture_row,
+        free_mixture_row = FALSE, # There can't be free mixture with 1 cluster
         free_mixture_col = self$free_mixture_col,
         free_density = self$free_density,
         Z = M_clusterings_1_2,
@@ -984,7 +985,7 @@ bisbmpop <- R6::R6Class(
         A = self$A, Q = c(2, 1),
         free_mixture = self$free_mixture,
         free_mixture_row = self$free_mixture_row,
-        free_mixture_col = self$free_mixture_col,
+        free_mixture_col = FALSE, # There can't be free mixture with 1 cluster
         free_density = self$free_density,
         Z = M_clusterings_2_1,
         init_method = "given",
