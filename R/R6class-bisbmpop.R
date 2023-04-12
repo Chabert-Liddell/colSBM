@@ -791,8 +791,8 @@ bisbmpop <- R6::R6Class(
             A = list(self$A[[m]]),
             Q = c(1, 2),
             free_mixture = self$free_mixture,
-            free_mixture_row = self$free_mixture_row,
-            free_mixture_col = self$free_mixture_col,
+            free_mixture_row = FALSE, # There can't be free mixture with 1 net
+            free_mixture_col = FALSE, # There can't be free mixture with 1 net
             free_density = self$free_density,
             distribution = self$distribution,
             init_method = "spectral",
