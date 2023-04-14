@@ -294,11 +294,21 @@ estimate_colBiSBM <-
     } else {
       Q1_max <- global_opts$Q1_max
     }
-    if (is.null(global_opts$Q2_max)){
+    if (is.null(global_opts$Q2_max)) {
       Q2_max <- floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2)
-    }else {
+    } else {
       Q2_max <- global_opts$Q2_max
     }
+
+    # To warn the user about the verbosity and nb_cores
+    if (global_opts$verbosity >= 3 && global_opts$nb_cores > 1) {
+      cat(
+        "\nDue to the parallelization, the message logs",
+        "might be in confusing order.",
+        " You may want to use only one core for readability"
+      )
+    } 
+
     if (!is.null(fit_init)) {
       bisbmpop <- fit_init
     } else {
