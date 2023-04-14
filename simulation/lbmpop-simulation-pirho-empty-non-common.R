@@ -12,23 +12,32 @@ verbose <- TRUE
 test_alea <- TRUE
 
 eps <- 0.05
-M <- 3
+M <- 2
 nr <- 100
 nc <- 250
 
-pir <- c(0.2, 0.8)
-pic <- c(0.2, 0.8)
+pir1 <- c(0.2, 0, 0.8)
+pir2 <- c(0.4, 0.6, 0)
 
-Q <- c(length(pir), length(pic))
+pic1 <- c(0.6, 0, 0.4)
+pic2 <- c(0.4, 0.6, 0)
+
+Q <- c(length(pir1), length(pic1))
+
+# Make a non common alpha structure
 
 alpha <- matrix(
-    c(
-        0.9, eps,
-        eps, 0.8
+    c( # 12   2    1
+        0.4, eps, eps,# 12
+        eps, 0.5, 0,# 2
+        eps, 0, 0.2 # 1
     ), nrow = Q[1], ncol = Q[2], byrow = TRUE
 )
 
-bipartite_collection <- generate_bipartite_collection(nr, nc, pir, pic, alpha, M)
+bipartite_collection <- list(
+    generate_bipartite_network(nr, nc, pir1, pic1, alpha),
+    generate_bipartite_network(nr, nc, pir2, pic2, alpha)
+)
 
 # This is a list of the M incidence matrices
 bipartite_collection_incidence <- lapply(seq.int(M), function(m) {
@@ -44,8 +53,9 @@ Z <- lapply(seq.int(M), function(m) {
 
 mybisbmpop <- bisbmpop$new(
     netlist = bipartite_collection_incidence,
-    free_mixture_row = FALSE,
-    global_opts = list(nb_cores = 1, verbosity = 4)
+    free_mixture_row = TRUE,
+    free_mixture_col = TRUE,
+    global_opts = list(nb_cores = 6, verbosity = 4)
 )
 
 mybisbmpop$optimize()
@@ -59,7 +69,7 @@ mybisbmpop$optimize()
 ari_sums <- sapply(
     seq_along(mybisbmpop$best_fit$Z),
     function(m) {
-        sum(c(
+        c(
             aricode::ARI(
                 Z[[m]][[1]],
                 mybisbmpop$best_fit$Z[[m]][[1]]
@@ -68,6 +78,6 @@ ari_sums <- sapply(
                 Z[[m]][[2]],
                 mybisbmpop$best_fit$Z[[m]][[2]]
             )
-        ))
+        )
     }
 )

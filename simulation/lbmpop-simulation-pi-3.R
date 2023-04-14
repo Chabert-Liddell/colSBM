@@ -16,10 +16,15 @@ M <- 3
 nr <- 100
 nc <- 250
 
-pir <- c(0.2, 0.8)
+pir1 <- c(0.2, 0.8)
+pir2 <- c(0.4, 0.6)
+pir3 <- c(0.3, 0.7)
+
 pic <- c(0.2, 0.8)
 
-Q <- c(length(pir), length(pic))
+
+Q <- c(length(pir1), length(pic))
+
 
 alpha <- matrix(
     c(
@@ -28,7 +33,11 @@ alpha <- matrix(
     ), nrow = Q[1], ncol = Q[2], byrow = TRUE
 )
 
-bipartite_collection <- generate_bipartite_collection(nr, nc, pir, pic, alpha, M)
+bipartite_collection <- list(
+    generate_bipartite_network(nr, nc, pir1, pic, alpha),
+    generate_bipartite_network(nr, nc, pir2, pic, alpha),
+    generate_bipartite_network(nr, nc, pir3, pic, alpha)
+)
 
 # This is a list of the M incidence matrices
 bipartite_collection_incidence <- lapply(seq.int(M), function(m) {
@@ -44,11 +53,18 @@ Z <- lapply(seq.int(M), function(m) {
 
 mybisbmpop <- bisbmpop$new(
     netlist = bipartite_collection_incidence,
-    free_mixture_row = FALSE,
-    global_opts = list(nb_cores = 1, verbosity = 4)
+    free_mixture_row = TRUE,
+    global_opts = list(nb_cores = 6, verbosity = 4)
 )
 
 mybisbmpop$optimize()
+
+mybisbmpop_iid <- bisbmpop$new(
+    netlist = bipartite_collection_incidence,
+    global_opts = list(nb_cores = 6, verbosity = 4)
+)
+
+mybisbmpop_iid$optimize()
 
 # choosed_bisbmpop <- estimate_colBiSBM(
 #     netlist = bipartite_collection_incidence, 
