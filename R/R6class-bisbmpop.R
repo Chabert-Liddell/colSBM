@@ -6,8 +6,7 @@ bisbmpop <- R6::R6Class(
   "bisbmpop",
   #
   public = list(
-    nr = NULL,
-    nc = NULL,
+    n = NULL,
     A = NULL,
     M = NULL,
     mask = NULL, # 1 for NA and 0 for observed
@@ -26,7 +25,6 @@ bisbmpop <- R6::R6Class(
                                   # in the state space
     Z_init = NULL,
     free_density = NULL,
-    free_mixture = NULL,
     free_mixture_row = NULL,
     free_mixture_col = NULL,
     ICL = NULL,
@@ -48,26 +46,23 @@ bisbmpop <- R6::R6Class(
     #' @description
     #' Create a new instance of the bisbmpop object
     #'
-    #' This class is generally called via the user function # FIXME put the user function name
+    #' This class is generally called via the user function `estimate_colBiSBM`
     #'
     initialize = function(netlist = NULL,
                           net_id = NULL,
                           distribution = "bernoulli",
                           free_density = FALSE,
-                          free_mixture = FALSE,
                           free_mixture_row = FALSE,
                           free_mixture_col = FALSE,
                           Z_init = NULL,
                           global_opts = list(),
                           fit_opts = list()) {
-      # FIXME : to re-enable later
-      # # Converting the matrices list to sparse matrix to save space
-      # self$A <- lapply(netlist, Matrix::Matrix, sparse = TRUE)
       self$A <- netlist
 
       # Computing the number of rows and cols
-      self$nr <- vapply(self$A, nrow, FUN.VALUE = .1)
-      self$nc <- vapply(self$A, ncol, FUN.VALUE = .1)
+      self$n <- vector("list", 2)
+      self$n[[1]] <- vapply(self$A, nrow, FUN.VALUE = .1)
+      self$n[[2]] <- vapply(self$A, ncol, FUN.VALUE = .1)
 
       # Computing the NA mask
       self$M <- length(self$A)
@@ -92,13 +87,12 @@ bisbmpop <- R6::R6Class(
       self$Z_init <- Z_init
       self$distribution <- distribution
       self$free_density <-  free_density
-      self$free_mixture <- free_mixture
       self$free_mixture_row <- free_mixture_row
       self$free_mixture_col <- free_mixture_col
       self$global_opts <- list(Q1_min = 1L,
-                               Q1_max = floor(log(sum(self$nr)))+2,
+                               Q1_max = floor(log(sum(self$n[[1]])))+2,
                                Q2_min = 1L,
-                               Q2_max = floor(log(sum(self$nc)))+2,
+                               Q2_max = floor(log(sum(self$n[[2]])))+2,
                                spectral_init = TRUE,
                                nb_models = 5L,
                                depth = 1L, # By default we set a small depth
@@ -140,8 +134,6 @@ bisbmpop <- R6::R6Class(
       exploration_order_list <- vector("list")
 
       # Initialising the discarded model_list
-      # FIXME : for now i will fill each Q1*Q2 slot with an unlimited size list
-      # and cut it when it exceeds nb_models
       self$discarded_model_list <- vector(
         "list",
         self$global_opts$Q1_max * self$global_opts$Q2_max
@@ -169,22 +161,19 @@ bisbmpop <- R6::R6Class(
     #' A method to perform the splitting of the clusters
     #'
     #' @param origin_model a model (fitBipartite object) to split from.
-    #' @param is_col_split a boolean to indicate if this is a
-    #'                      column split or a row split.
+    #' @param axis a string to indicate if this is a
+    #'                      column split or a row split. "row" or "col".
     #' @return best of the possible models tested
-    split_clustering = function(origin_model, is_col_split = FALSE, Cpi_threshold) {
-      # TODO adapt this function to allow splitting from both sides
+    split_clustering = function(origin_model, axis = "row") {
 
       # Initialize to prevent variable leaking
-      # FIXME : this shouldn't be necessary but I'm not sure
       row_clustering <- NULL
       col_clustering <- NULL
       split_Q <- origin_model$Q
-      typeOfSplit <- ifelse(!is_col_split, "row", "col")
       possible_models_size <- NULL
 
       # Store the clustering to keep
-      if (!is_col_split) {
+      if (axis == "row") {
         # If we are splitting on the rows
         row_clustering <- lapply(seq.int(self$M), function(m) {
           # We retrieve the clustering in line for
@@ -207,7 +196,7 @@ bisbmpop <- R6::R6Class(
             origin_model$MAP$Z[[m]][[2]]
           }
         )
-      } else {
+      } else if (axis == "col"){
         # If we are splitting on the columns
         col_clustering <- lapply(seq.int(self$M), function(m) {
           # We retrieve the clustering in column for
@@ -237,7 +226,7 @@ bisbmpop <- R6::R6Class(
       function(q) {
         # Once the row and col clustering are correctly split
         # they are merged
-        if (!is_col_split) {
+        if (axis == "row") {
           # If it's a row split
           q_th_Z_init <- lapply(seq.int(self$M), function(m) {
             list(row_clustering[[m]][[q]], col_clustering[[m]])
@@ -251,7 +240,6 @@ bisbmpop <- R6::R6Class(
         q_th_model <- fitBipartiteSBMPop$new(
           A = self$A,
           Q = split_Q,
-          free_mixture = self$free_mixture,
           free_mixture_row = self$free_mixture_row,
           free_mixture_col = self$free_mixture_col,
           free_density = self$free_density,
@@ -263,10 +251,12 @@ bisbmpop <- R6::R6Class(
         )
         q_th_model$optimize()
         if (self$global_opts$verbosity >= 4) {
-          cat("\n\tFitting ", q, "/", possible_models_size, "split for ", typeOfSplit, ".")
+          cat(
+            "\n\tFitting ", q, "/", possible_models_size, "split for ",
+            axis, "\n"
+          )
         }
 
-        # TODO see if I can put the following code in another mclapply
         # For free_mixture
         q_th_models <- list(q_th_model)
 
@@ -274,7 +264,7 @@ bisbmpop <- R6::R6Class(
           # The levels of tolerance
           emptiness_levels <- seq(from = 0.01, to = 0.05, by = 0.01)
 
-          models_with_different_emptiness_levels <- lapply(
+          models_with_different_emptiness_levels <- bettermc::mclapply(
             seq_along(emptiness_levels),
             function(l) {
               Cpi <- list()
@@ -335,8 +325,14 @@ bisbmpop <- R6::R6Class(
               }
               q_th_model_with_supports$optimize()
               q_th_model_with_supports
-            }
-          )
+            },
+        mc.cores = ifelse(self$global_opts$nb_cores - possible_models_size > 1, 
+          self$global_opts$nb_cores - possible_models_size,
+          1),
+        mc.allow.recursive = TRUE,
+        mc.silent = TRUE,
+        mc.progress = FALSE
+      )
 
           # Now the two lists are merged
           q_th_models <- append(
@@ -366,7 +362,7 @@ bisbmpop <- R6::R6Class(
       # The best in sense of BICL is
       if (self$global_opts$verbosity >= 4) {
         cat(
-          "\nThe best ", typeOfSplit, " split is: ",
+          "\nThe best ", axis, " split is: ",
           which.max(possible_models_BICLs)
         )
       }
@@ -380,10 +376,9 @@ bisbmpop <- R6::R6Class(
     #' @param axis a string to indicate if this is a "row", "col"
     #' or "both" merge
     #' @return best of the possible models tested
-    merge_clustering = function(origin_model, axis = "row", Cpi_threshold) {
+    merge_clustering = function(origin_model, axis = "row") {
 
       # Initialize to prevent variable leaking
-      # FIXME : this shouldn't be necessary but I'm not sure
       row_clustering <- NULL
       col_clustering <- NULL
       merge_Q <- origin_model$Q
@@ -460,7 +455,6 @@ bisbmpop <- R6::R6Class(
         q_th_model <- fitBipartiteSBMPop$new(
           A = self$A,
           Q = merge_Q,
-          free_mixture = self$free_mixture,
           free_mixture_row = self$free_mixture_row,
           free_mixture_col = self$free_mixture_col,
           free_density = self$free_density,
@@ -473,12 +467,11 @@ bisbmpop <- R6::R6Class(
         if (self$global_opts$verbosity >= 4) {
           cat(
             "\n\tFitting ", q, "/", possible_models_size,
-            "merge for", axis
+            "merge for", axis, "\n"
           )
         }
         q_th_model$optimize()
         
-        # TODO see if I can put the following code in another mclapply
         # For free_mixture
         q_th_models <- list(q_th_model)
 
@@ -487,7 +480,7 @@ bisbmpop <- R6::R6Class(
           # The levels of tolerance
           emptiness_levels <- seq(from = 0.01, to = 0.05, by = 0.01)
 
-          models_with_different_emptiness_levels <- lapply(
+          models_with_different_emptiness_levels <- bettermc::mclapply(
             seq_along(emptiness_levels),
             function(l) {
               Cpi <- list()
@@ -548,8 +541,14 @@ bisbmpop <- R6::R6Class(
               }
               q_th_model_with_supports$optimize()
               q_th_model_with_supports
-            }
-          )
+            },
+        mc.cores = ifelse(self$global_opts$nb_cores - possible_models_size > 1, 
+          self$global_opts$nb_cores - possible_models_size,
+          1),
+        mc.allow.recursive = TRUE,
+        mc.silent = TRUE,
+        mc.progress = FALSE
+      )
 
           # Now the two lists are merged
           q_th_models <- append(
@@ -596,12 +595,9 @@ bisbmpop <- R6::R6Class(
       if (self$global_opts$plot_details >= 1) {
 
         # Creating an empty dataframe
-        # FIXME : there might be a better way than
-        # this horrible loop
+
         data_state_space <- as.data.frame(matrix(ncol=6, nrow=0))
         names(data_state_space) <- c("Q1", "Q2", "BICL", "isMaxBICL", "startingPoint", "clusteringComplete")
-
-        # TODO : replace the double for loop by two nested sapply
 
         for (i in seq.int(self$global_opts$Q1_max)) {
           for (j in seq.int(self$global_opts$Q2_max)) {
@@ -790,7 +786,7 @@ bisbmpop <- R6::R6Class(
         # The current model considered
         current_model <- self$model_list[[current_Q1, current_Q2]]
 
-        neighbors <- list(c(1, 0), c(0, 1)) # c(-1,0),c(0,-1), are merge, # TODO see if they are needed
+        neighbors <- list(c(1, 0), c(0, 1))
         # We loop through the neighbors of the current point
         for (neighbor in neighbors) {
           next_Q1 <- neighbor[1] + current_Q1
@@ -799,8 +795,7 @@ bisbmpop <- R6::R6Class(
           # Initialize
           next_Z_init <- vector("list", self$M)
 
-          # TODO : replace by point_is_in_limits
-          if (next_Q1 < 1 || next_Q1 > self$global_opts$Q1_max || next_Q2 < 1 || next_Q2 > self$global_opts$Q2_max) {
+          if (!self$point_is_in_limits(c(next_Q1, next_Q2))) {
             # The value is out of the allowed values, we quit this iteration
             if (self$global_opts$verbosity >= 4) {
               cat(
@@ -829,7 +824,7 @@ bisbmpop <- R6::R6Class(
           if (neighbor[[2]] == 1) {
             next_model <- self$split_clustering(
               current_model,
-              is_col_split = TRUE
+              axis = "col"
             )
           }
 
@@ -954,7 +949,6 @@ bisbmpop <- R6::R6Class(
           fitBipartiteSBMPop$new(
             A = list(self$A[[m]]),
             Q = c(1, 2),
-            free_mixture = self$free_mixture,
             free_mixture_row = FALSE, # There can't be free mixture with 1 net
             free_mixture_col = FALSE, # There can't be free mixture with 1 net
             free_density = self$free_density,
@@ -996,7 +990,6 @@ bisbmpop <- R6::R6Class(
           fitBipartiteSBMPop$new(
             A = list(self$A[[m]]), 
             Q = c(2, 1),
-            free_mixture = self$free_mixture,
             free_mixture_row = FALSE, # There can't be free mixture with 1 net
             free_mixture_col = FALSE, # There can't be free mixture with 1 net
             free_density = self$free_density,
@@ -1028,12 +1021,7 @@ bisbmpop <- R6::R6Class(
       )
     }
 
-      # LATER
-      # The function fit M BiSBM for Q = (1,2) and Q = (2,1) from blockmodels
-      # TODO : implement the M BiSBM from blockmodels
-
       # Here we match the clusters from the M fit objects
-      # DONE : implement the matching
       # By using the order of the marginal laws
       if (self$global_opts$verbosity >= 4) {
         cat("\nBeginning to match results for the Separated BiSBMs.")
@@ -1096,7 +1084,6 @@ bisbmpop <- R6::R6Class(
       self$model_list[[1, 1]] <- fitBipartiteSBMPop$new(
         A = self$A,
         Q = c(1, 1),
-        free_mixture = self$free_mixture,
         free_mixture_row = FALSE, # There can't be free mixture with 1 cluster
         free_mixture_col = FALSE, # There can't be free mixture with 1 cluster
         free_density = self$free_density,
@@ -1134,7 +1121,6 @@ bisbmpop <- R6::R6Class(
 
       self$separated_inits[[1,2]] <- fitBipartiteSBMPop$new(
         A = self$A, Q = c(1, 2),
-        free_mixture = self$free_mixture,
         free_mixture_row = FALSE, # There can't be free mixture with 1 cluster
         free_mixture_col = self$free_mixture_col,
         free_density = self$free_density,
@@ -1147,7 +1133,6 @@ bisbmpop <- R6::R6Class(
 
       self$separated_inits[[2,1]] <- fitBipartiteSBMPop$new(
         A = self$A, Q = c(2, 1),
-        free_mixture = self$free_mixture,
         free_mixture_row = self$free_mixture_row,
         free_mixture_col = FALSE, # There can't be free mixture with 1 cluster
         free_density = self$free_density,
@@ -1166,7 +1151,6 @@ bisbmpop <- R6::R6Class(
       function(index){
         # The index used here are a little trick to allow the use
         # of bettermc::mclapply()
-        # TODO : parallelize ?
         if (self$global_opts$verbosity >= 4){
           cat(
             "\nFitting the ", self$M, " networks for Q = (",
@@ -1245,7 +1229,6 @@ bisbmpop <- R6::R6Class(
     },
 
     optimize = function() {
-      # TODO : add a stop condition if (diffBICL < tolerance || mode_coords == mode coords for two passes of window)
       # The burn_in step computes models with a greedy approach
       self$burn_in()
       improved <- TRUE
@@ -1281,6 +1264,7 @@ bisbmpop <- R6::R6Class(
         Q <- which(self$BICL == max(self$BICL), arr.ind = TRUE)
         improved <- self$improved
         nb_pass <- nb_pass + 1
+        self$truncate_discarded_model_list()
 
         if (self$global_opts$verbosity >= 2) {
           self$print_metrics()
@@ -1312,7 +1296,7 @@ bisbmpop <- R6::R6Class(
       cat("net_id = (", self$net_id, ")\n")
       cat(
         "Dimensions = (", toString(lapply(seq.int(self$M), function(m) {
-          c(self$nr[[m]], self$nc[[m]])
+          c(self$n[[1]][[m]], self$n[[2]][[m]])
         })), ") - (",
         toString(self$best_fit$Q), ") blocks.\n"
       )
@@ -1346,7 +1330,6 @@ bisbmpop <- R6::R6Class(
       Q2_mode <- center[[2]]
 
       # Checking if the window's bound is in domain
-      # TODO ask the user if they want to extend the domain
       if (!self$point_is_in_limits(c(Q1_mode - depth, Q2_mode - depth)) ||
       !self$point_is_in_limits(c(Q1_mode + depth, Q2_mode + depth))) {
         warning(paste0(
@@ -1495,7 +1478,7 @@ bisbmpop <- R6::R6Class(
 
             wanted_model_different_splits_origin <- append(
               wanted_model_different_splits_origin,
-              self$split_clustering(bottom_model, is_col_split = TRUE)
+              self$split_clustering(bottom_model, axis = "col")
             )
           } else if (self$point_is_in_limits(bottom_model_Q) &&
           is.null(self$model_list[[bottom_model_Q[1], bottom_model_Q[2]]]) &&
@@ -1518,7 +1501,6 @@ bisbmpop <- R6::R6Class(
             spectral_init <- fitBipartiteSBMPop$new(
               A = self$A,
               Q = current_model_Q,
-              free_mixture = self$free_mixture,
               free_mixture_row = self$free_mixture_row,
               free_mixture_col = self$free_mixture_col,
               free_density = self$free_density,
@@ -1692,7 +1674,6 @@ bisbmpop <- R6::R6Class(
             spectral_init <- fitBipartiteSBMPop$new(
               A = self$A,
               Q = current_model_Q,
-              free_mixture = self$free_mixture,
               free_mixture_row = self$free_mixture_row,
               free_mixture_col = self$free_mixture_col,
               free_density = self$free_density,
@@ -1764,8 +1745,19 @@ bisbmpop <- R6::R6Class(
     },
 
     truncate_discarded_model_list = function() {
-      # TODO code the function
-      next
+      for (q1 in seq.int(self$global_opts$Q1_max)) {
+        for (q2 in seq.int(self$global_opts$Q2_max)) {
+          if (!is.null(self$discarded_model_list[[q1,q2]]) &&
+          length(self$discarded_model_list[[q1,q2]]) > self$global_opts$nb_models - 1) {
+            models_BICL <-
+              sapply(seq_along(self$discarded_model_list[[q1, q2]]), function(s) {
+                self$discarded_model_list[[q1, q2]][[s]]$BICL
+              })
+            self$discarded_model_list[[q1,q2]] <-
+              self$discarded_model_list[[q1,q2]][order(models_BICL, decreasing = TRUE)][1:(self$global_opts$nb_models - 1)]
+          }
+        }
+      }
     },
 
     point_is_in_limits = function(point) {
@@ -1807,7 +1799,8 @@ bisbmpop <- R6::R6Class(
           sep_BiSBM <- bisbmpop$new(
             netlist = list(self$A[[m]]),
             distribution = self$distribution,
-            free_mixture = FALSE,
+            free_mixture_row = FALSE,
+            free_mixture_col = FALSE,
             free_density = FALSE,
             global_opts = list(
               verbosity = 0,
