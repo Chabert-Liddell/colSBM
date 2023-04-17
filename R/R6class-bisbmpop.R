@@ -232,7 +232,6 @@ bisbmpop <- R6::R6Class(
         )
       }
 
-
       # Fitting the Q splits and selecting the next model
       possible_models <- bettermc::mclapply(seq.int(possible_models_size),
       function(q) {
@@ -351,7 +350,7 @@ bisbmpop <- R6::R6Class(
 
       },
         mc.cores = self$global_opts$nb_cores,
-        mc.allow.recursive = FALSE,
+        mc.allow.recursive = TRUE,
         mc.silent = TRUE,
         mc.progress = FALSE
       )
@@ -439,7 +438,6 @@ bisbmpop <- R6::R6Class(
         # To perform both row and col merge
       })
 
-
       # Fitting the Q merges and selecting the next model
       possible_models <- bettermc::mclapply(seq.int(possible_models_size),
       function(q) {
@@ -484,6 +482,7 @@ bisbmpop <- R6::R6Class(
         # For free_mixture
         q_th_models <- list(q_th_model)
 
+        emptiness_levels <- NULL
         if ((self$free_mixture_row | self$free_mixture_col)& self$M > 1) {
           # The levels of tolerance
           emptiness_levels <- seq(from = 0.01, to = 0.05, by = 0.01)
@@ -563,7 +562,7 @@ bisbmpop <- R6::R6Class(
                     # one element list).
       },
         mc.cores = self$global_opts$nb_cores,
-        mc.allow.recursive = FALSE,
+        mc.allow.recursive = TRUE,
         mc.silent = TRUE,
         mc.progress = FALSE
       )
@@ -1317,7 +1316,11 @@ bisbmpop <- R6::R6Class(
         })), ") - (",
         toString(self$best_fit$Q), ") blocks.\n"
       )
-      cat("BICL = ", self$best_fit$BICL, " -- #Empty blocks : ", sum(!self$best_fit$Cpi), " \n")
+      cat(
+        "BICL = ", self$best_fit$BICL, "\n#Empty row blocks : ",
+        sum(!self$best_fit$Cpi[[1]]), " -- #Empty columns blocks : ",
+        sum(!self$best_fit$Cpi[[2]]), " \n"
+      )
       cat("=====================================================================")
     },
 
