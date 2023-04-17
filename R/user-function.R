@@ -112,8 +112,6 @@ estimate_colSBM <-
             mc.silent = TRUE
           )
       }
-      # To test without an sbm init I need to have my spectral init here
-      # TODO : ask @Chabert-Liddell about this
       # tmp_fits run nb_run times a full model selection procedure
       # (the one from the research paper)
       tmp_fits <-
@@ -315,8 +313,6 @@ estimate_colBiSBM <-
       if (is.null(net_id)) {
         net_id <- seq_along(netlist)
       }
-      # To test without an sbm init I need to have my spectral init here
-      # TODO : ask @Chabert-Liddell about this
       # tmp_fits run nb_run times a full model selection procedure
       # (the one from the research paper)
       tmp_fits <-
