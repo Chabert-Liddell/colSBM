@@ -17,26 +17,40 @@ generate_unipartite_network <- function(n, pi, alpha) {
     ),
     nrow = nrow(node_node_interaction_prob)
   )
-  return(adjacency_matrix)
+  return(list(adjacency_matrix = adjacency_matrix, clustering = cluster_memberships))
 }
 
-# TODO : improve the generation by allowing to provide connectivity parameters, memberships parameters etc
-generate_unipartite_collection <- function(nodesPerClass, numberOfClass, numberOfNetworks, directed = F) {
-  A <- list()
-  for (m in seq(numberOfNetworks)) {
-    n <- nodesPerClass * numberOfClass
-
-    Z <- diag(numberOfClass) %x% matrix(1, nodesPerClass, 1)
-    P <- matrix(runif(numberOfClass * numberOfClass), numberOfClass, numberOfClass)
-    if (directed) {
-      P[lower.tri(P)] <- t(P)[lower.tri(P)]
-    }
-    A[[m]] <- 1 * (matrix(runif(n * n), n, n) < Z %*% P %*% t(Z)) ## adjacency matrix
-    if (directed) {
-      A[lower.tri(A)] <- t(A)[lower.tri(A)]
-    }
+#' Generate collection of unipartite
+#'
+#' @param n the number of nodes or a vector of the nodes per network
+#' @param pi a vector of probability to belong to the clusters
+#' @param alpha the matrix of connectivity between two clusters
+#' @param M the number of networks to generate
+#'
+#' @return A list of M lists, which contains : $adjacency_matrix, $clustering
+#'
+#' @export
+generate_unipartite_collection <- function(n, pi, alpha, M) {
+  if (length(n) == 1) {
+    n <- rep(n, M)
   }
-  A
+
+  # Check if n is the correct length
+  if (length(n) != M) {
+    stop(
+      "The length of n is not correct ! It should be : ",
+      M, " values and it is ", length(n)
+    )
+  }
+  # Generate the networks
+  out <- lapply(seq.int(M), function(m) {
+    generate_unipartite_network(
+      n = n[[m]],
+      pi = pi,
+      alpha = alpha
+    )
+  })
+  return(out)
 }
 
 #' Generate a bipartite network
@@ -137,7 +151,7 @@ spectral_clustering <- function(X, K) {
     return(rep(1L, nrow(X)))
   }
   n <- nrow(X)
-  X[X == -1] <- NA # FIXME : replacing NA ask Saint-Clair
+  X[X == -1] <- NA
   isolated <- which(rowSums(X, na.rm = TRUE) == 0)
   connected <- setdiff(seq(n), isolated)
   X <- X[connected, connected]
@@ -161,7 +175,6 @@ spectral_clustering <- function(X, K) {
 
 
 
-# ? # FIXME : implement a spectral bi-clustering, check if it works consistently with co-clustering
 #' Perform a spectral bi-clustering, clusters by row
 #' and by columns independently
 #'
@@ -173,7 +186,8 @@ spectral_clustering <- function(X, K) {
 #' @noMd
 #' @noRd
 #'
-#' @return A list of two vectors : The clusters labels. They are accessed using $row_clustering and $col_clustering
+#' @return A list of two vectors : The clusters labels.
+#' They are accessed using $row_clustering and $col_clustering
 spectral_biclustering <- function(X, K) {
   # Trivial clustering : everyone is part of the cluster
   if (all(K == c(1, 1))) {
