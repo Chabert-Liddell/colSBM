@@ -178,8 +178,8 @@ estimate_colSBM <-
 #' Estimate a colBiSBM on a collection of networks
 #'
 #' @param netlist A list of matrices.
-#' @param colsbm_model Which colBiSBM to use, one of "iid", "pi", "delta",
-#' "deltapi".
+#' @param colsbm_model Which colBiSBM to use, one of "iid", "pi", "rho", 
+#' "pirho", "deltapi".
 #' @param net_id A vector of string, the name of the networks.
 #' @param distribution A string, the emission distribution, either "bernoulli"
 #' (the default) or "poisson"
@@ -191,10 +191,10 @@ estimate_colSBM <-
 #' Optional fit init from where initializing the algorithm.
 #'
 #' @details The list of parameters \code{global_opts} essentially tunes the
-#' optimization process and the variational EM algorithm, 
+#' optimization process and the variational EM algorithm,
 #' with the following parameters
 #'  \itemize{
-#'  \item{\code{nb_cores} }{integer for number of cores used for 
+#'  \item{\code{nb_cores} }{integer for number of cores used for
 #'  parallelization. Default is 1}
 #'  \item{\code{verbosity} }{integer for verbosity (0, 1, 2, 3, 4). Default is 0}
 #'  \item{\code{Q1_max} }{integer for the max size in row to explore. Default is
@@ -250,19 +250,33 @@ estimate_colBiSBM <-
     switch(colsbm_model,
       "iid" = {
         free_density <- FALSE
-        free_mixture <- FALSE
+        free_mixture_row <- FALSE
+        free_mixture_col <- FALSE
       },
       "pi" = {
         free_density <- FALSE
-        free_mixture <- TRUE
+        free_mixture_row <- TRUE
+        free_mixture_col <- FALSE
+      },
+      "rho" = {
+        free_density <- FALSE
+        free_mixture_row <- FALSE
+        free_mixture_col <- TRUE
+      },
+      "pirho" = {
+        free_density <- FALSE
+        free_mixture_row <- TRUE
+        free_mixture_col <- TRUE
       },
       "delta" = {
         free_density <- TRUE
-        free_mixture <- FALSE
+        free_mixture_row <- FALSE
+        free_mixture_col <- FALSE
       },
       "deltapi" = {
         free_density <- TRUE
-        free_mixture <- TRUE
+        free_mixture_row <- TRUE
+        free_mixture_col <- FALSE
       },
       stop("colsbm_model unknown. Must be one of iid, pi, delta or deltapi")
     )
@@ -325,7 +339,8 @@ estimate_colBiSBM <-
               net_id = net_id,
               distribution = distribution,
               free_density = free_density,
-              free_mixture = free_mixture,
+              free_mixture_row = free_mixture_row,
+              free_mixture_col = free_mixture_col,
               global_opts = global_opts,
               fit_opts = fit_opts
             )
