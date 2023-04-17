@@ -692,7 +692,6 @@ bmpop <- R6::R6Class(
       nb_pass <- 0
       Q <- 1
 
-      # TODO ask @Chabert-Liddell why reduce the number of models ?
       self$global_opts$nb_models <- ceiling(self$global_opts$nb_models/2)
       while (improved & nb_pass < self$global_opts$max_pass) {
         if(self$global_opts$verbosity >=2) {
@@ -869,7 +868,6 @@ bmpop <- R6::R6Class(
         models <- c(self$model_list[[nb_clusters]][[Q]], models)
       }
       # The models are ordered once again
-      # TODO ask @Chabert-Liddell can't it be reduced to just this one step of reordering?
       ord_mod <- order(purrr::map_dbl(models, ~.$BICL),
                        decreasing = TRUE)
 
