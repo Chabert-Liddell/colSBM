@@ -333,6 +333,10 @@ estimate_colBiSBM <-
       }
       # tmp_fits run nb_run times a full model selection procedure
       # (the one from the research paper)
+      cores_for_runs <- min(nb_run, nb_cores)
+      if (nb_cores - cores_for_runs > 1) {
+        global_opts$nb_cores <- nb_cores - cores_for_runs
+      }
       tmp_fits <-
         bettermc::mclapply(
           seq(nb_run),
@@ -352,7 +356,7 @@ estimate_colBiSBM <-
             return(tmp_fit)
           },
           mc.progress = TRUE,
-          mc.cores = min(nb_run, nb_cores),
+          mc.cores = cores_for_runs,
           mc.stdout = "output"
         )
       # We choose the the bisbmpop to receive the best_fit in sense of the BICL

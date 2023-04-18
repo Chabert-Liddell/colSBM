@@ -6,7 +6,7 @@ require("ggplot2", quietly = T)
 
 devtools::load_all(path = "R/")
 
-set.seed(1234)
+tic()
 
 verbose <- TRUE
 test_alea <- TRUE
@@ -81,3 +81,4 @@ ari_sums <- sapply(
         )
     }
 )
+toc()
