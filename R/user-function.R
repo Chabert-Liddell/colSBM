@@ -196,7 +196,8 @@ estimate_colSBM <-
 #'  \itemize{
 #'  \item{\code{nb_cores} }{integer for number of cores used for
 #'  parallelization. Default is 1}
-#'  \item{\code{verbosity} }{integer for verbosity (0, 1, 2, 3, 4). Default is 0}
+#'  \item{\code{verbosity} }{integer for verbosity (0, 1, 2, 3, 4). Default is 1.
+#'   0 will disable completely the output of the function.}
 #'  \item{\code{Q1_max} }{integer for the max size in row to explore. Default is
 #'  computed with the following formula:
 #' `floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2)`}
@@ -278,7 +279,10 @@ estimate_colBiSBM <-
         free_mixture_row <- TRUE
         free_mixture_col <- FALSE
       },
-      stop("colsbm_model unknown. Must be one of iid, pi, delta or deltapi")
+      stop(
+        "colsbm_model unknown.",
+        " Must be one of iid, pi, rho, pirho, delta or deltapi"
+      )
     )
 
     # go is used to temporarily store the default global_opts
@@ -292,7 +296,7 @@ estimate_colBiSBM <-
       depth = 1L,
       plot_details = 1L,
       max_pass = 10L,
-      verbosity = 0L,
+      verbosity = 1L,
       nb_cores = 1L
     )
     go <- utils::modifyList(go, global_opts)

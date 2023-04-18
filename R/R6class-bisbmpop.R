@@ -931,7 +931,7 @@ bisbmpop <- R6::R6Class(
 
       self$separated_inits <- vector("list", 4) # The first coordinate is Q1, the second is Q2
       dim(self$separated_inits) <- c(2,2)
-      if (self$global_opts$verbosity >= 1) {
+      if (self$global_opts$verbosity >= 2) {
         cat("\n==== Beginning Burn in ====")
       }
       if (self$global_opts$verbosity >= 2) {
@@ -1213,7 +1213,7 @@ bisbmpop <- R6::R6Class(
 
       self$store_criteria_and_best_fit()
 
-      if(self$global_opts$verbosity >= 1) {
+      if(self$global_opts$verbosity >= 2) {
         cat(
           "\n==== Finished Burn in",
           " for networks ", self$net_id, " in ",
@@ -1236,7 +1236,7 @@ bisbmpop <- R6::R6Class(
       tolerance <- 10e-3
       Q <- which(self$BICL == max(self$BICL), arr.ind = TRUE)
 
-      if (self$global_opts$verbosity >= 1) {
+      if (self$global_opts$verbosity >= 2) {
         cat("\n==== Beginning the passes of moving windows ====")
       }
 
@@ -1271,7 +1271,7 @@ bisbmpop <- R6::R6Class(
         }
       }
 
-      if (self$global_opts$verbosity >= 1) {
+      if (self$global_opts$verbosity >= 2) {
         cat(
           "\n==== Finished the passes of moving windows ====",
           "\n==== Computing separated BiSBM BICL ===="
@@ -1775,17 +1775,16 @@ bisbmpop <- R6::R6Class(
       lapply(seq.int(self$global_opts$Q1_max), function(q1) {
         lapply(seq.int(self$global_opts$Q2_max), function(q2) {
           current_model <- self$model_list[[q1, q2]]
-          if (is.null(current_model)) {
-            # The model hasn't been seen by the exploration
-            return()
+          # If the model has been detected by the exploration
+          if (!is.null(current_model)) {
+            # The below expression handles the case where vbound is a null list
+            self$vbound[q1, q2] <- ifelse(is.null(unlist(tail(self$model_list[[q1, q2]]$vbound, n = 1))),
+              -Inf,
+              unlist(tail(self$model_list[[q1, q2]]$vbound, n = 1))
+            )
+            self$ICL[q1, q2] <- current_model$ICL
+            self$BICL[q1, q2] <- current_model$BICL
           }
-          # The below expression handles the case where vbound is a null list
-          self$vbound[q1, q2] <- ifelse(is.null(unlist(tail(self$model_list[[q1, q2]]$vbound, n = 1))),
-            -Inf,
-            unlist(tail(self$model_list[[q1, q2]]$vbound, n = 1))
-          )
-          self$ICL[q1, q2] <- current_model$ICL
-          self$BICL[q1, q2] <- current_model$BICL
         })
       })
 
@@ -1820,7 +1819,9 @@ bisbmpop <- R6::R6Class(
 
     choose_joint_or_separated = function() {
       # Now compare to the sepBiSBM
-      self$compute_sep_BiSBM_BICL()
+      if (is.null(self$sep_BiSBM_BICL)) {
+        self$compute_sep_BiSBM_BICL()
+      }
 
       if (self$global_opts$verbosity >= 1) {
         cat("\n==== Best fits criterion for the ", self$M, "networks ====")
