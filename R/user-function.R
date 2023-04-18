@@ -351,14 +351,63 @@ estimate_colBiSBM <-
             tmp_fit$optimize()
             return(tmp_fit)
           },
-          mc.progress = TRUE, mc.cores = min(nb_run, nb_cores),
+          mc.progress = TRUE,
+          mc.cores = min(nb_run, nb_cores),
           mc.stdout = "output"
         )
+      # We choose the the bisbmpop to receive the best_fit in sense of the BICL
       bisbmpop <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$BICL,
         FUN.VALUE = .1
       ))]]
+
+      # We perform the procedure only if nb_run > 1
+      if (nb_run > 1) {
+        # For each Q1 and Q2, we compare all
+        for (q1 in global_opts$Q1_max) {
+          for (q2 in global_opts$Q2_max) {
+            if (!is.null(bisbmpop$model_list[[q1, q2]])) {
+              # All the models for the current q1 and q2 are stored
+              models_comparison <- # Note : this object is a list
+                c(bisbmpop$model_list[[q1, q2]], lapply(
+                  tmp_fits,
+                  function(fit) fit$model_list[[q1, q2]]
+                ))
+              # The best in the sense of the BICL is chosen
+              bisbmpop$model_list[[q1, q2]] <-
+                models_comparison[which.max(
+                  vapply(models_comparison, function(model) model$BICL)
+                )]
+
+              # The same procedure is applied for the
+              discarded_models_comparison <-
+                c(bisbmpop$discarded_model_list[[q1, q2]], unlist(lapply(
+                  tmp_fits,
+                  function(fit) fit$discarded_model_list[[q1, q2]]
+                )))
+              bisbmpop$discarded_model_list[[q1, q2]] <-
+                discarded_models_comparison[which.max(
+                  vapply(discarded_models_comparison, function(model) model$BICL)
+                )]
+            }
+          }
+        }
+
+        # We now update the criteria and best fit
+        bisbmpop$store_criteria_and_best_fit()
+        # The discarded model list is truncated
+        bisbmpop$truncate_discarded_model_list()
+      }
       rm(tmp_fits)
       gc()
+      # At the end we show the results
+      if (global_opts$verbosity >= 1) {
+        cat(
+          "\nAfter merging the", nb_run, "model runs,",
+          "the criteria are the following:\n"
+        )
+        bisbmpop$print_metrics()
+      }
+      bisbmpop$choose_joint_or_separated()
     }
     return(bisbmpop)
   }
