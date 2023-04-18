@@ -63,7 +63,7 @@ Z <- lapply(seq.int(M), function(m) {
 mybisbmpop <- estimate_colBiSBM(
     netlist = bipartite_collection_incidence, 
     colsbm_model = "pirho", 
-    global_opts = list(nb_cores = 3)
+    global_opts = list(nb_cores = parallel::detectCores() - 1)
 )
 
 ari_sums <- sapply(
