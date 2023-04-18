@@ -264,7 +264,7 @@ bisbmpop <- R6::R6Class(
           # The levels of tolerance
           emptiness_levels <- seq(from = 0.01, to = 0.05, by = 0.01)
 
-          models_with_different_emptiness_levels <- bettermc::mclapply(
+          models_with_different_emptiness_levels <- lapply(
             seq_along(emptiness_levels),
             function(l) {
               Cpi <- list()
@@ -325,14 +325,8 @@ bisbmpop <- R6::R6Class(
               }
               q_th_model_with_supports$optimize()
               q_th_model_with_supports
-            },
-        mc.cores = ifelse(self$global_opts$nb_cores - possible_models_size > 1, 
-          self$global_opts$nb_cores - possible_models_size,
-          1),
-        mc.allow.recursive = TRUE,
-        mc.silent = TRUE,
-        mc.progress = FALSE
-      )
+            }
+          )
 
           # Now the two lists are merged
           q_th_models <- append(
@@ -480,7 +474,7 @@ bisbmpop <- R6::R6Class(
           # The levels of tolerance
           emptiness_levels <- seq(from = 0.01, to = 0.05, by = 0.01)
 
-          models_with_different_emptiness_levels <- bettermc::mclapply(
+          models_with_different_emptiness_levels <- lapply(
             seq_along(emptiness_levels),
             function(l) {
               Cpi <- list()
@@ -541,14 +535,7 @@ bisbmpop <- R6::R6Class(
               }
               q_th_model_with_supports$optimize()
               q_th_model_with_supports
-            },
-        mc.cores = ifelse(self$global_opts$nb_cores - possible_models_size > 1, 
-          self$global_opts$nb_cores - possible_models_size,
-          1),
-        mc.allow.recursive = TRUE,
-        mc.silent = TRUE,
-        mc.progress = FALSE
-      )
+            })
 
           # Now the two lists are merged
           q_th_models <- append(
@@ -1150,7 +1137,6 @@ bisbmpop <- R6::R6Class(
       lapply(seq.int(2),
       function(index){
         # The index used here are a little trick to allow the use
-        # of bettermc::mclapply()
         if (self$global_opts$verbosity >= 4){
           cat(
             "\nFitting the ", self$M, " networks for Q = (",
