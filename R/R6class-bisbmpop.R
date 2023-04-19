@@ -955,7 +955,7 @@ bisbmpop <- R6::R6Class(
           lapply(
             seq.int(self$global_opts$Q2_max),
             function(q2) {
-              if (!is.null(Z_init[[q1, q2]])) {
+              if (!is.null(self$Z_init[[q1, q2]])) {
                 model_list[[q1, q2]] <- optimize_init(
                   q1, q2, Z_init[[q1, q2]]
                   # FIXME we dont provide Cpi nor Calpha, thus the fitted points
