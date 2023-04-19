@@ -338,7 +338,8 @@ estimate_colBiSBM <-
       # tmp_fits run nb_run times a full model selection procedure
       # (the one from the research paper)
       tmp_fits <-
-        bettermc::mclapply(
+        #bettermc::mc
+        lapply(
           seq(nb_run),
           function(x) {
             # Computes the number of cores to allocate per run
@@ -359,10 +360,10 @@ estimate_colBiSBM <-
             )
             tmp_fit$optimize()
             return(tmp_fit)
-          },
-          mc.progress = TRUE,
-          mc.cores = min(nb_run, nb_cores),
-          mc.stdout = "output"
+          }#,
+          # mc.progress = TRUE,
+          # mc.cores = min(nb_run, nb_cores),
+          # mc.stdout = "output"
         )
       # We choose the the bisbmpop to receive the best_fit in sense of the BICL
       bisbmpop <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$BICL,

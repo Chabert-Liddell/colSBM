@@ -429,7 +429,9 @@ clusterize_bipartite_networks <- function(netlist,
                           fit_init = NULL,
                           full_inference = FALSE) {
 
-
+  if (global_opts$verbosity >= 1) {
+    cat("\n=== Fitting the full collection ===\n")
+  }
   my_bisbmpop <- colSBM::estimate_colBiSBM(
     netlist = netlist,
     colsbm_model = colsbm_model,
@@ -516,15 +518,15 @@ clusterize_bipartite_networks <- function(netlist,
             seq_along(fit$model_list),
             # Go over the Q1xQ2 models
             function(q) {
-              lapply( # This returns a list of two clustering memberships
-                seq.int(2), # To go over the two dimensions
-                            #             block  net clust dimension
-                            #               |        |      |
-                            #               v        v      v
-                function(d) fit$model_list[[q]]$Z[cl == k][[d]]
-              )
+                  if (!is.null(fit$model_list[[q]])) {
+                    fit$model_list[[q]]$Z[cl == k]
+                  }
             }
           )
+          # Reshaping the Z_init to be bi-dimensional
+          dim(Z_init) <- c(fit$global_opts$Q1_max, fit$global_opts$Q2_max)
+          print(Z_init)
+          
           # cl == k, is a bool vector with TRUE, if network m
           # is a member of cluster k
           # Here there are the min between sum(cl == k), ie the number of
@@ -608,9 +610,17 @@ clusterize_bipartite_networks <- function(netlist,
     }
   }
 
+  if (global_opts$verbosity >= 1) {
+    cat("\n=== Finished fitting the full collection ===\n")
+    cat("\n=== Beginning recursion ===\n")
+  }
+
   # This launches the recursion
   list_model_binary <- recursive_clustering(my_bisbmpop)
 
+  if (global_opts$verbosity >= 1) {
+    cat("\n=== Finished recursion ===\n")
+  }
   invisible(list_model_binary)
 
 }

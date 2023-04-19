@@ -222,7 +222,8 @@ bisbmpop <- R6::R6Class(
       }
 
       # Fitting the Q splits and selecting the next model
-      possible_models <- bettermc::mclapply(seq.int(possible_models_size),
+      possible_models <- #bettermc::mc
+      lapply(seq.int(possible_models_size),
       function(q) {
         # Once the row and col clustering are correctly split
         # they are merged
@@ -338,11 +339,11 @@ bisbmpop <- R6::R6Class(
         q_th_models # The list of models is returned (if no free_mixture it's a
         # one element list).
 
-      },
-        mc.cores = self$global_opts$nb_cores,
-        mc.allow.recursive = TRUE,
-        mc.silent = TRUE,
-        mc.progress = FALSE
+      }#,
+        # mc.cores = self$global_opts$nb_cores,
+        # mc.allow.recursive = TRUE,
+        # mc.silent = TRUE,
+        # mc.progress = FALSE
       )
 
       # If there is free_mixture it creates nestedness so we need to unlist
@@ -428,7 +429,8 @@ bisbmpop <- R6::R6Class(
       })
 
       # Fitting the Q merges and selecting the next model
-      possible_models <- bettermc::mclapply(seq.int(possible_models_size),
+      possible_models <- #bettermc::mc
+      lapply(seq.int(possible_models_size),
       function(q) {
         # Once the row and col clustering are correctly merged
         # they are merged
@@ -546,11 +548,11 @@ bisbmpop <- R6::R6Class(
 
         q_th_models # The list of models is returned (if no free_mixture it's a
                     # one element list).
-      },
-        mc.cores = self$global_opts$nb_cores,
-        mc.allow.recursive = TRUE,
-        mc.silent = TRUE,
-        mc.progress = FALSE
+      }#,
+        # mc.cores = self$global_opts$nb_cores,
+        # mc.allow.recursive = TRUE,
+        # mc.silent = TRUE,
+        # mc.progress = FALSE
       )
 
       # If there is free_mixture it creates nestedness so we need to unlist
@@ -957,7 +959,7 @@ bisbmpop <- R6::R6Class(
             function(q2) {
               if (!is.null(self$Z_init[[q1, q2]])) {
                 model_list[[q1, q2]] <- optimize_init(
-                  q1, q2, Z_init[[q1, q2]]
+                  q1, q2, self$Z_init[[q1, q2]]
                   # FIXME we dont provide Cpi nor Calpha, thus the fitted points
                   # will have iid-like fits.
                   # This will be overwritten when the moving window will perform
@@ -1297,6 +1299,7 @@ bisbmpop <- R6::R6Class(
       nb_pass <- 0
       tolerance <- 10e-3
       Q <- which(self$BICL == max(self$BICL), arr.ind = TRUE)
+      current_max_BICL <- self$model_list[[Q[1], Q[2]]]$BICL
 
       if (self$global_opts$verbosity >= 2) {
         cat("\n==== Beginning the passes of moving windows ====")
