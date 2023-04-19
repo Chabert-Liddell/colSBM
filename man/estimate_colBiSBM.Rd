@@ -12,14 +12,15 @@ estimate_colBiSBM(
   nb_run = 3L,
   global_opts = list(),
   fit_opts = list(),
-  fit_init = NULL
+  fit_init = NULL,
+  Z_init = NULL
 )
 }
 \arguments{
 \item{netlist}{A list of matrices.}
 
-\item{colsbm_model}{Which colBiSBM to use, one of "iid", "pi", "delta",
-"deltapi".}
+\item{colsbm_model}{Which colBiSBM to use, one of "iid", "pi", "rho",
+"pirho", "deltapi".}
 
 \item{net_id}{A vector of string, the name of the networks.}
 
@@ -35,6 +36,10 @@ See details.}
 
 \item{fit_init}{Do not use!
 Optional fit init from where initializing the algorithm.}
+
+\item{Z_init}{A bi-dimensional list of size Q1_max x Q2_max containing
+for each value a list of two vectors of clusters memberships. Default to
+NULL.}
 }
 \value{
 A bisbmpop object listing a collection of models for the collection.
@@ -50,7 +55,8 @@ with the following parameters
 \itemize{
 \item{\code{nb_cores} }{integer for number of cores used for
 parallelization. Default is 1}
-\item{\code{verbosity} }{integer for verbosity (0, 1, 2, 3, 4). Default is 0}
+\item{\code{verbosity} }{integer for verbosity (0, 1, 2, 3, 4). Default is 1.
+0 will disable completely the output of the function.}
 \item{\code{Q1_max} }{integer for the max size in row to explore. Default is
 computed with the following formula:
 \code{floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2)}}
