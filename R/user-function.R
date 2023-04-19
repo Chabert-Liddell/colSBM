@@ -178,7 +178,7 @@ estimate_colSBM <-
 #' Estimate a colBiSBM on a collection of networks
 #'
 #' @param netlist A list of matrices.
-#' @param colsbm_model Which colBiSBM to use, one of "iid", "pi", "rho", 
+#' @param colsbm_model Which colBiSBM to use, one of "iid", "pi", "rho",
 #' "pirho", "deltapi".
 #' @param net_id A vector of string, the name of the networks.
 #' @param distribution A string, the emission distribution, either "bernoulli"
@@ -189,6 +189,9 @@ estimate_colSBM <-
 #' @param fit_opts Fit options for the VEM algorithm
 #' @param fit_init Do not use!
 #' Optional fit init from where initializing the algorithm.
+#' @param Z_init A bi-dimensional list of size Q1_max x Q2_max containing
+#' for each value a list of two vectors of clusters memberships. Default to 
+#' NULL.
 #'
 #' @details The list of parameters \code{global_opts} essentially tunes the
 #' optimization process and the variational EM algorithm,
@@ -247,7 +250,8 @@ estimate_colBiSBM <-
            nb_run = 3L,
            global_opts = list(),
            fit_opts = list(),
-           fit_init = NULL) {
+           fit_init = NULL,
+           Z_init = NULL) {
     switch(colsbm_model,
       "iid" = {
         free_density <- FALSE
@@ -337,7 +341,11 @@ estimate_colBiSBM <-
         bettermc::mclapply(
           seq(nb_run),
           function(x) {
-            global_opts$nb_cores <- max(1L, floor(global_opts$nb_cores / nb_run))
+            # Computes the number of cores to allocate per run
+            global_opts$nb_cores <- max(
+              1L,
+              floor(global_opts$nb_cores / nb_run)
+            )
             tmp_fit <- bisbmpop$new(
               netlist = netlist,
               net_id = net_id,
@@ -346,7 +354,8 @@ estimate_colBiSBM <-
               free_mixture_row = free_mixture_row,
               free_mixture_col = free_mixture_col,
               global_opts = global_opts,
-              fit_opts = fit_opts
+              fit_opts = fit_opts,
+              Z_init = Z_init
             )
             tmp_fit$optimize()
             return(tmp_fit)

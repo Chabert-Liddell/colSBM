@@ -311,7 +311,7 @@ bisbmpop <- R6::R6Class(
               # and fit wrt the supports.
               q_th_model_with_supports <- q_th_model$clone()
 
-              # Adding the wanted parameters
+              # Adding the supports
               q_th_model_with_supports$Cpi <- Cpi
               q_th_model_with_supports$Calpha <-
                 tcrossprod(Cpi[[1]], Cpi[[2]]) > 0
@@ -465,7 +465,7 @@ bisbmpop <- R6::R6Class(
           )
         }
         q_th_model$optimize()
-        
+
         # For free_mixture
         q_th_models <- list(q_th_model)
 
@@ -521,7 +521,7 @@ bisbmpop <- R6::R6Class(
               # and fit wrt the supports.
               q_th_model_with_supports <- q_th_model$clone()
 
-              # Adding the wanted parameters
+              # Adding the supports
               q_th_model_with_supports$Cpi <- Cpi
               q_th_model_with_supports$Calpha <-
                 tcrossprod(Cpi[[1]], Cpi[[2]]) > 0
@@ -730,7 +730,7 @@ bisbmpop <- R6::R6Class(
     #' @return c(Q1_mode, Q2_mode) which indicates the Q1 and Q2
     #' for which the BICL was maximal
     greedy_exploration = function(starting_point,
-    max_step_without_improvement = 3){
+    max_step_without_improvement = 3) {
       # Initialize
       current_Q1 <- starting_point[1]
       current_Q2 <- starting_point[2]
@@ -906,6 +906,71 @@ bisbmpop <- R6::R6Class(
       return(max_BICL_coordinates)
     },
 
+    #' Optimization from a given Z_init
+    #' 
+    #' The functions takes no parameters
+    #' 
+    #' @return nothing but stores the models in the model list
+    optimize_from_zinit = function() {
+      model_list <- vector(
+        "list",
+        self$global_opts$Q1_max * self$global_opts$Q2_max
+      )
+      dim(model_list) <- c(self$global_opts$Q1_max, self$global_opts$Q2_max)
+
+      #' The function fit a fitBipartiteSBMPop object with the wanted
+      #' parameters
+      #'
+      #' @param q1 the row cluster number
+      #' @param q2 the col cluster number
+      #' @param Z the given clustering to fit from
+      #' @param Cpi (optional) the supports if provided
+      #' @param Calpha (optional) the alpha support, if provided
+      #'
+      #' @return a fitBipartite fitted object
+      optimize_init <- function(q1, q2, Z, Cpi = NULL, Calpha= NULL) {
+        fit <- fitBipartiteSBMPop$new(
+          A = self$A,
+          Q = c(q1, q2),
+          free_mixture_row = self$free_mixture_row,
+          free_mixture_col = self$free_mixture_col,
+          free_density = self$free_density,
+          Cpi = Cpi,
+          Calpha = Calpha,
+          init_method = "given",
+          distribution = self$distribution,
+          Z = Z, # This contains the Z_init to fit
+          net_id = self$net_id,
+          fit_opts = self$fit_opts,
+        )
+        fit$optimize()
+        return(fit)
+      }
+
+      # We fill the model_list from the Z_init provided
+      # assuming that Z_init is a bi-dimensional list
+      lapply(
+        seq.int(self$global_opts$Q1_max),
+        function(q1) {
+          lapply(
+            seq.int(self$global_opts$Q2_max),
+            function(q2) {
+              if (!is.null(Z_init[[q1, q2]])) {
+                model_list[[q1, q2]] <- optimize_init(
+                  q1, q2, Z_init[[q1, q2]]
+                  # FIXME we dont provide Cpi nor Calpha, thus the fitted points
+                  # will have iid-like fits.
+                  # This will be overwritten when the moving window will perform
+                )
+              }
+            }
+          )
+        }
+      )
+      # model_list contains the fitted objects and we can set the self$
+      self$model_list <- model_list
+    },
+
     #' Burn-in method to start exploring the state of space
     #'
     #' The functions takes no parameters but modify the object
@@ -916,286 +981,297 @@ bisbmpop <- R6::R6Class(
       # The function fit M fitBipartite from spectral clust for Q = (1,2) and Q = (2,1)
       # DONE : implement the M fitBipartite from spectral clust
 
-      self$separated_inits <- vector("list", 4) # The first coordinate is Q1, the second is Q2
-      dim(self$separated_inits) <- c(2,2)
+
       if (self$global_opts$verbosity >= 2) {
         cat("\n==== Beginning Burn in ====")
       }
-      if (self$global_opts$verbosity >= 2) {
-        cat("\nFitting good initilization points.")
-      }
+      if (!is.null(self$Z_init)) {
+        # If a Z_init was provided we perform its optimization to save time
+        if (self$global_opts$verbosity >= 2) {
+          cat("\nA Z_init was provided, fitting the provided points.")
+        }
+        self$optimize_from_zinit()
+      } else { # TODO I can choose to fit from Z_init AND THEN perform greedy
+               # exploration
+        # With no Z_init we perform a greedy exploration
+        self$separated_inits <- vector("list", 4) # The first coordinate is Q1, the second is Q2
+        dim(self$separated_inits) <- c(2,2)
+        if (self$global_opts$verbosity >= 2) {
+          cat("\nFitting good initilization points.")
+        }
 
-      # Init for Q = (1,2)
-      if (self$global_opts$verbosity >= 4) {
-        cat("\nFitting ", self$M, " networks for Q = (", toString(c(1, 2)), ")\n")
-      }
+        # Init for Q = (1,2)
+        if (self$global_opts$verbosity >= 4) {
+          cat("\nFitting ", self$M, " networks for Q = (", toString(c(1, 2)), ")\n")
+        }
 
-      self$separated_inits[[1,2]] <- lapply(
-        seq.int(self$M),
-        function(m) {
-          fitBipartiteSBMPop$new(
-            A = list(self$A[[m]]),
-            Q = c(1, 2),
-            free_mixture_row = FALSE, # There can't be free mixture with 1 net
-            free_mixture_col = FALSE, # There can't be free mixture with 1 net
-            free_density = self$free_density,
-            distribution = self$distribution,
-            init_method = "spectral",
-            fit_opts = self$fit_opts
+        self$separated_inits[[1,2]] <- lapply(
+          seq.int(self$M),
+          function(m) {
+            fitBipartiteSBMPop$new(
+              A = list(self$A[[m]]),
+              Q = c(1, 2),
+              free_mixture_row = FALSE, # There can't be free mixture with 1 net
+              free_mixture_col = FALSE, # There can't be free mixture with 1 net
+              free_density = self$free_density,
+              distribution = self$distribution,
+              init_method = "spectral",
+              fit_opts = self$fit_opts
+            )
+          }
+            )
+
+        # Fitting each model
+        lapply(
+          seq.int(self$M),
+          function(m) {
+            self$separated_inits[[1,2]][[m]]$optimize()
+          }
+        )
+
+        if (self$global_opts$verbosity >= 4) {
+          sep_vbounds <- lapply(seq.int(self$M),
+          function(m){
+            max(self$separated_inits[[1,2]][[m]]$vbound)
+          })
+          cat(
+            "Finished fitting ", self$M, " networks for Q = (", toString(c(1, 2)),
+            ")\nSeparated Variational Bounds for the networks", toString(seq.int(self$M)),
+            ":\n", toString(sep_vbounds), "\n"
           )
         }
-          )
 
-      # Fitting each model
-      lapply(
-        seq.int(self$M),
-        function(m) {
-          self$separated_inits[[1,2]][[m]]$optimize()
+        # Init for Q = (2,1)
+        if (self$global_opts$verbosity >= 4) {
+          cat("\nFitting ", self$M, " networks for Q = (", toString(c(2, 1)), ")\n")
         }
-      )
 
+        self$separated_inits[[2,1]] <- lapply(
+          seq.int(self$M),
+          function(m) {
+            fitBipartiteSBMPop$new(
+              A = list(self$A[[m]]), 
+              Q = c(2, 1),
+              free_mixture_row = FALSE, # There can't be free mixture with 1 net
+              free_mixture_col = FALSE, # There can't be free mixture with 1 net
+              free_density = self$free_density,
+              distribution = self$distribution,
+              init_method = "spectral",
+              fit_opts = self$fit_opts
+            )
+          }
+        )
+
+        # Fitting each model
+        lapply(
+          seq.int(self$M),
+          function(m) {
+            self$separated_inits[[2,1]][[m]]$optimize()
+          }
+        )
       if (self$global_opts$verbosity >= 4) {
-        sep_vbounds <- lapply(seq.int(self$M),
-        function(m){
-          max(self$separated_inits[[1,2]][[m]]$vbound)
-        })
+        sep_vbounds <- lapply(
+          seq.int(self$M),
+          function(m) {
+            max(self$separated_inits[[2,1]][[m]]$vbound)
+          }
+        )
         cat(
-          "Finished fitting ", self$M, " networks for Q = (", toString(c(1, 2)),
+          "Finished fitting ", self$M, " networks for Q = (", toString(c(2, 1)),
           ")\nSeparated Variational Bounds for the networks", toString(seq.int(self$M)),
           ":\n", toString(sep_vbounds), "\n"
         )
       }
 
-      # Init for Q = (2,1)
-      if (self$global_opts$verbosity >= 4) {
-        cat("\nFitting ", self$M, " networks for Q = (", toString(c(2, 1)), ")\n")
-      }
+        # Here we match the clusters from the M fit objects
+        # By using the order of the marginal laws
+        if (self$global_opts$verbosity >= 4) {
+          cat("\nBeginning to match results for the Separated BiSBMs.")
+        }
 
-      self$separated_inits[[2,1]] <- lapply(
-        seq.int(self$M),
-        function(m) {
-          fitBipartiteSBMPop$new(
-            A = list(self$A[[m]]), 
-            Q = c(2, 1),
-            free_mixture_row = FALSE, # There can't be free mixture with 1 net
-            free_mixture_col = FALSE, # There can't be free mixture with 1 net
-            free_density = self$free_density,
-            distribution = self$distribution,
-            init_method = "spectral",
-            fit_opts = self$fit_opts
+        for (m in seq.int(self$M)) {
+          current_m_init <- self$separated_inits[[1,2]][[m]]
+
+          # The clustering are one hot encoded because the permutations are
+          # easier to perform
+
+          # One hot encoded row (1 cluster)
+          row_clustering <- .one_hot(current_m_init$Z[[1]][[1]], 1)
+          # One hot encoded cols (2 clusters)
+          col_clustering <- .one_hot(current_m_init$Z[[1]][[2]], 2)
+
+          # The row clustering are reordered according to their marginal distribution
+          prob1 <- as.vector(
+            current_m_init$pi[[1]][[2]] %*% t(current_m_init$MAP$alpha)
           )
+
+          p1 <- order(prob1)
+
+          row_clustering <- row_clustering[, p1]
+
+          # The col clustering are reordered according to their marginal distribution
+          prob2 <- as.vector(
+            current_m_init$pi[[1]][[1]] %*% current_m_init$MAP$alpha
+          )
+          p2 <- order(prob2)
+          col_clustering <- col_clustering[, p2]
+
+
+          # The clustering are reverse one hot encoded
+          row_clustering <- .rev_one_hot(row_clustering)
+          col_clustering <- .rev_one_hot(col_clustering)
+
+          self$separated_inits[[1,2]][[m]]$Z[[1]][[1]] <- row_clustering
+          self$separated_inits[[1,2]][[m]]$Z[[1]][[2]] <- col_clustering
+
+          if (self$global_opts$verbosity >= 4) {
+            cat(
+              "\nNetwork:", m,
+              "\nOrder lines:", toString(p1),
+              "\nOrder columns:", toString(p2),
+              "\n"
+            )
+          }
         }
-      )
-
-      # Fitting each model
-      lapply(
-        seq.int(self$M),
-        function(m) {
-          self$separated_inits[[2,1]][[m]]$optimize()
-        }
-      )
-    if (self$global_opts$verbosity >= 4) {
-      sep_vbounds <- lapply(
-        seq.int(self$M),
-        function(m) {
-          max(self$separated_inits[[2,1]][[m]]$vbound)
-        }
-      )
-      cat(
-        "Finished fitting ", self$M, " networks for Q = (", toString(c(2, 1)),
-        ")\nSeparated Variational Bounds for the networks", toString(seq.int(self$M)),
-        ":\n", toString(sep_vbounds), "\n"
-      )
-    }
-
-      # Here we match the clusters from the M fit objects
-      # By using the order of the marginal laws
-      if (self$global_opts$verbosity >= 4) {
-        cat("\nBeginning to match results for the Separated BiSBMs.")
-      }
-
-      for (m in seq.int(self$M)) {
-        current_m_init <- self$separated_inits[[1,2]][[m]]
-
-        # The clustering are one hot encoded because the permutations are
-        # easier to perform
-
-        # One hot encoded row (1 cluster)
-        row_clustering <- .one_hot(current_m_init$Z[[1]][[1]], 1)
-        # One hot encoded cols (2 clusters)
-        col_clustering <- .one_hot(current_m_init$Z[[1]][[2]], 2)
-
-        # The row clustering are reordered according to their marginal distribution
-        prob1 <- as.vector(
-          current_m_init$pi[[1]][[2]] %*% t(current_m_init$MAP$alpha)
-        )
-
-        p1 <- order(prob1)
-
-        row_clustering <- row_clustering[, p1]
-
-        # The col clustering are reordered according to their marginal distribution
-        prob2 <- as.vector(
-          current_m_init$pi[[1]][[1]] %*% current_m_init$MAP$alpha
-        )
-        p2 <- order(prob2)
-        col_clustering <- col_clustering[, p2]
-
-
-        # The clustering are reverse one hot encoded
-        row_clustering <- .rev_one_hot(row_clustering)
-        col_clustering <- .rev_one_hot(col_clustering)
-
-        self$separated_inits[[1,2]][[m]]$Z[[1]][[1]] <- row_clustering
-        self$separated_inits[[1,2]][[m]]$Z[[1]][[2]] <- col_clustering
 
         if (self$global_opts$verbosity >= 4) {
-          cat(
-            "\nNetwork:", m,
-            "\nOrder lines:", toString(p1),
-            "\nOrder columns:", toString(p2),
-            "\n"
-          )
+          cat("\nMatching finished.\n")
+          cat("Beginning to combine networks.")
         }
-      }
 
-      if (self$global_opts$verbosity >= 4) {
-        cat("\nMatching finished.\n")
-        cat("Beginning to combine networks.")
-      }
-
-      if (self$global_opts$verbosity >= 4) {
-        cat("\nFitting full model Q=(1,1) for ", self$M)
-      }
-
-      self$model_list[[1, 1]] <- fitBipartiteSBMPop$new(
-        A = self$A,
-        Q = c(1, 1),
-        free_mixture_row = FALSE, # There can't be free mixture with 1 cluster
-        free_mixture_col = FALSE, # There can't be free mixture with 1 cluster
-        free_density = self$free_density,
-        fit_opts = self$fit_opts,
-        distribution = self$distribution,
-        greedy_exploration_starting_point = c(1,1),
-      )
-
-      self$model_list[[1,1]]$optimize()
-
-      # Here we combine the networks to fit a
-      # fitBipartite object on the M networks
-
-      # We retrieve the clustering for the M (1,2) separated models
-      M_clusterings_1_2 <- lapply(
-        seq.int(self$M),
-        function(m) {
-          # We add [[1]] after Z because we fitted
-          # only one network with the objects stored
-          # where the class is supposed to store more
-          self$separated_inits[[1,2]][[m]]$Z[[1]]
+        if (self$global_opts$verbosity >= 4) {
+          cat("\nFitting full model Q=(1,1) for ", self$M)
         }
-      )
 
-      # We retrieve the clustering for the M (2,1) separated models
-      M_clusterings_2_1 <- lapply(
-        seq.int(self$M),
-        function(m) {
-          # We add [[1]] after Z because we fitted
-          # only one network with the objects stored
-          # where the class is supposed to store more
-          self$separated_inits[[2,1]][[m]]$Z[[1]]
+        self$model_list[[1, 1]] <- fitBipartiteSBMPop$new(
+          A = self$A,
+          Q = c(1, 1),
+          free_mixture_row = FALSE, # There can't be free mixture with 1 cluster
+          free_mixture_col = FALSE, # There can't be free mixture with 1 cluster
+          free_density = self$free_density,
+          fit_opts = self$fit_opts,
+          distribution = self$distribution,
+          greedy_exploration_starting_point = c(1,1),
+        )
+
+        self$model_list[[1,1]]$optimize()
+
+        # Here we combine the networks to fit a
+        # fitBipartite object on the M networks
+
+        # We retrieve the clustering for the M (1,2) separated models
+        M_clusterings_1_2 <- lapply(
+          seq.int(self$M),
+          function(m) {
+            # We add [[1]] after Z because we fitted
+            # only one network with the objects stored
+            # where the class is supposed to store more
+            self$separated_inits[[1,2]][[m]]$Z[[1]]
+          }
+        )
+
+        # We retrieve the clustering for the M (2,1) separated models
+        M_clusterings_2_1 <- lapply(
+          seq.int(self$M),
+          function(m) {
+            # We add [[1]] after Z because we fitted
+            # only one network with the objects stored
+            # where the class is supposed to store more
+            self$separated_inits[[2,1]][[m]]$Z[[1]]
+          }
+        )
+
+        self$separated_inits[[1,2]] <- fitBipartiteSBMPop$new(
+          A = self$A, Q = c(1, 2),
+          free_mixture_row = FALSE, # There can't be free mixture with 1 cluster
+          free_mixture_col = self$free_mixture_col,
+          free_density = self$free_density,
+          Z = M_clusterings_1_2,
+          init_method = "given",
+          distribution = self$distribution,
+          fit_opts = self$fit_opts,
+          greedy_exploration_starting_point = c(1,2)
+        )
+
+        self$separated_inits[[2,1]] <- fitBipartiteSBMPop$new(
+          A = self$A, Q = c(2, 1),
+          free_mixture_row = self$free_mixture_row,
+          free_mixture_col = FALSE, # There can't be free mixture with 1 cluster
+          free_density = self$free_density,
+          Z = M_clusterings_2_1,
+          init_method = "given",
+          distribution = self$distribution,
+          fit_opts = self$fit_opts,
+          greedy_exploration_starting_point = c(2,1)
+        )
+
+        if (self$global_opts$verbosity >= 4) {
+          cat("\nFitting the combined colBiSBMs.")
         }
-      )
+        # Here we fit the models
+        lapply(seq.int(2),
+        function(index){
+          # The index used here are a little trick to allow the use
+          if (self$global_opts$verbosity >= 4){
+            cat(
+              "\nFitting the ", self$M, " networks for Q = (",
+              toString(c(index, 3 - index)), ")."
+            )
+          }
 
-      self$separated_inits[[1,2]] <- fitBipartiteSBMPop$new(
-        A = self$A, Q = c(1, 2),
-        free_mixture_row = FALSE, # There can't be free mixture with 1 cluster
-        free_mixture_col = self$free_mixture_col,
-        free_density = self$free_density,
-        Z = M_clusterings_1_2,
-        init_method = "given",
-        distribution = self$distribution,
-        fit_opts = self$fit_opts,
-        greedy_exploration_starting_point = c(1,2)
-      )
+          self$separated_inits[[index,3 - index]]$optimize()
+        })
 
-      self$separated_inits[[2,1]] <- fitBipartiteSBMPop$new(
-        A = self$A, Q = c(2, 1),
-        free_mixture_row = self$free_mixture_row,
-        free_mixture_col = FALSE, # There can't be free mixture with 1 cluster
-        free_density = self$free_density,
-        Z = M_clusterings_2_1,
-        init_method = "given",
-        distribution = self$distribution,
-        fit_opts = self$fit_opts,
-        greedy_exploration_starting_point = c(2,1)
-      )
+        if (self$global_opts$verbosity >= 4) {
+          cat("\nFinished fitting the colBiSBM.")
+          cat("\nResults for the the points :")
+          for (index in c(1,2)){
+            cat("\nQ = (", toString(c(index, 3 - index)), ") :")
+            cat(
+              "\n\tvbound:",
+              toString(self$separated_inits[[index,3 - index]]$vbound)
+            )
+            cat(
+              "\n\tICL:",
+              toString(self$separated_inits[[index,3 - index]]$ICL)
+            )
+            cat(
+              "\n\tBICL:",
+              toString(self$separated_inits[[index,3 - index]]$BICL)
+            )
+          }
+        }
 
-      if (self$global_opts$verbosity >= 4) {
-        cat("\nFitting the combined colBiSBMs.")
-      }
-      # Here we fit the models
-      lapply(seq.int(2),
-      function(index){
-        # The index used here are a little trick to allow the use
+        # Store the given initialization
+        self$model_list[1, 2] <- self$separated_inits[1, 2]
+        self$model_list[2, 1] <- self$separated_inits[2, 1]
+
+        # We go looking for the mode with a greedy approach
+        # Visiting each of the neighbors
+        if (self$global_opts$verbosity >= 3) {
+          cat("\n Greedy exploration to find a first mode.")
+        }
+
+        # Greedy exploration from (1,2)
+        mode_1_2 <- self$greedy_exploration(c(1, 2))
         if (self$global_opts$verbosity >= 4){
-          cat(
-            "\nFitting the ", self$M, " networks for Q = (",
-            toString(c(index, 3 - index)), ")."
-          )
+          cat("\nFrom (", toString(c(1,2)),") the mode is at: (", toString(mode_1_2),").")
         }
 
-        self$separated_inits[[index,3 - index]]$optimize()
-      })
-
-      if (self$global_opts$verbosity >= 4) {
-        cat("\nFinished fitting the colBiSBM.")
-        cat("\nResults for the the points :")
-        for (index in c(1,2)){
-          cat("\nQ = (", toString(c(index, 3 - index)), ") :")
-          cat(
-            "\n\tvbound:",
-            toString(self$separated_inits[[index,3 - index]]$vbound)
-          )
-          cat(
-            "\n\tICL:",
-            toString(self$separated_inits[[index,3 - index]]$ICL)
-          )
-          cat(
-            "\n\tBICL:",
-            toString(self$separated_inits[[index,3 - index]]$BICL)
-          )
+        # Greedy exploration from (2,1)
+        mode_2_1 <- self$greedy_exploration(c(2, 1))
+        if (self$global_opts$verbosity >= 4) {
+          cat("\nFrom (", toString(c(2, 1)), ") the mode is at: (", toString(mode_2_1), ").")
+          # Plot the state of space and it's exploration
+          self$state_space_plot()
         }
+
+        # Finding the best of the two modes
+        best_mode <- list(mode_1_2, mode_2_1)[[which.max(c(
+          self$model_list[[mode_1_2[1], mode_1_2[2]]]$BICL,
+          self$model_list[[mode_2_1[1], mode_2_1[2]]]$BICL
+        ))]]
       }
-
-      # Store the given initialization
-      self$model_list[1, 2] <- self$separated_inits[1, 2]
-      self$model_list[2, 1] <- self$separated_inits[2, 1]
-
-      # We go looking for the mode with a greedy approach
-      # Visiting each of the neighbors
-      if (self$global_opts$verbosity >= 3) {
-        cat("\n Greedy exploration to find a first mode.")
-      }
-
-      # Greedy exploration from (1,2)
-      mode_1_2 <- self$greedy_exploration(c(1, 2))
-      if (self$global_opts$verbosity >= 4){
-        cat("\nFrom (", toString(c(1,2)),") the mode is at: (", toString(mode_1_2),").")
-      }
-
-      # Greedy exploration from (2,1)
-      mode_2_1 <- self$greedy_exploration(c(2, 1))
-      if (self$global_opts$verbosity >= 4) {
-        cat("\nFrom (", toString(c(2, 1)), ") the mode is at: (", toString(mode_2_1), ").")
-        # Plot the state of space and it's exploration
-        self$state_space_plot()
-      }
-
-      # Finding the best of the two modes
-      best_mode <- list(mode_1_2, mode_2_1)[[which.max(c(
-        self$model_list[[mode_1_2[1], mode_1_2[2]]]$BICL,
-        self$model_list[[mode_2_1[1], mode_2_1[2]]]$BICL
-      ))]]
 
       self$store_criteria_and_best_fit()
 

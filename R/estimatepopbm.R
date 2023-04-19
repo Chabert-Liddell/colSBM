@@ -371,3 +371,246 @@ extract_best_partition <- function(l) {
   return(list(extract_best_partition(l[2]),
               extract_best_partition(l[3])))
 }
+
+
+#' Partition of a collection of bipartite networks based on their common
+#' mesoscale structures
+#'
+#' @param netlist A list of matrices.
+#' @param colsbm_model Which colSBM to use, one of "iid", "pi", "rho", "pirho",
+#' "delta", "deltapi".
+#' @param net_id A vector of string, the name of the networks.
+#' @param distribution A string, the emission distribution, either "bernoulli"
+#' (the default) or "poisson"
+#' @param nb_run An integer, the number of run the algorithm do.
+#' @param global_opts Global options for the outer algorithm and the output
+#' @param fit_opts Fit options for the VEM algorithm
+#' @param fit_init Do not use!
+#' Optional fit init from where initializing the algorithm.
+#' @param full_inference The default "FALSE", the algorithm stop once splitting
+#' groups of networks does not improve the BICL criterion. If "TRUE", then
+#' continue to split groups until a trivial classification of one network per
+#' group.
+#'
+#' @return A list of models for the recursive partition of
+#' the collection of networks.
+#'
+#' @details The best partition could be extract with the function
+#' `extract_best_partition()`. The object of the list are fitBipartiteSBMPop
+#' object, so it is a model for a given number of blocks Q1, Q2.
+#' @export
+#'
+#' @seealso [colSBM::extract_best_partition()], [colSBM::estimate_colSBM()],
+#' \code{\link[colSBM]{fitSimpleSBMPop}}, `browseVignettes("colSBM")`
+#'
+#' @examples
+#'
+#' #' # Trivial example with Gnp networks:
+#' Net <- lapply(list(.7, .7, .2, .2),
+#'               function(p) {
+#'                A <- matrix(0, 15, 15 )
+#'                A[lower.tri(A)][sample(15*14/2, size = round(p*15*14/2))] <- 1
+#'                A <- A + t(A)
+#'               })
+#' \dontrun{cl <- clusterized_networks(Net,
+#'                            colsbm_model = "iid",
+#'                            directed = FALSE,
+#'                            model = "bernoulli",
+#'                            nb_run = 1
+#'                            )}
+clusterize_bipartite_networks <- function(netlist,
+                          colsbm_model,
+                          net_id = NULL,
+                          distribution = "bernoulli",
+                          fit_sbm = NULL,
+                          nb_run = 3L,
+                          global_opts = list(),
+                          fit_opts = list(),
+                          fit_init = NULL,
+                          full_inference = FALSE) {
+
+
+  my_bisbmpop <- colSBM::estimate_colBiSBM(
+    netlist = netlist,
+    colsbm_model = colsbm_model,
+    net_id = net_id,
+    distribution = distribution,
+    nb_run = nb_run,
+    global_opts = global_opts,
+    fit_opts = fit_opts
+  )
+
+
+  #' Perform the recursive clustering of the networks
+  #'
+  #' @param fit is a bisbmpop object, ie an instance of the colBiSBM model
+  #' fitted
+  recursive_clustering <- function(fit) {
+    # If there is only one network base case reached
+    if (fit$best_fit$M == 1) {
+      return(fit$best_fit)
+    }
+
+    # Builds a distance matrix, m vs m'
+    # FIXME Could I build only the triangular matrix ? Symmetry ?
+    dist_bm <- diag(0, fit$best_fit$M)
+    for (i in seq_len(nrow(dist_bm))) {
+      for (j in seq_len(ncol(dist_bm))) {
+        fit_free_pi_rho <- fit$best_fit$pi[c(i, j)]
+        fit_pi_rho <- fit$best_fit$pim[c(i, j)]
+
+        # Handling free mixture on the rows
+        if (fit$free_mixture_row) {
+          fit_pi <- lapply(
+            seq_along(fit_pi_rho),
+            function(m) fit_free_pi_rho[[m]][[1]]
+          )
+        } else {
+          # We select the parameters for the two networks
+          fit_pi <- lapply(
+            seq_along(fit_pi_rho),
+            function(m) fit_pi_rho[[m]][[1]]
+          )
+        }
+
+        # Handling free mixture on the cols
+        if (fit$free_mixture_col) {
+          fit_rho <- lapply(
+            seq_along(fit_pi_rho),
+            function(m) fit_free_pi_rho[[m]][[2]]
+          )
+        } else {
+          fit_rho <- lapply(
+            seq_along(fit_pi_rho),
+            function(m) fit_pi_rho[[m]][[2]]
+          )
+        }
+
+        # Computing the distance
+        dist_bm[i,j] <-
+          dist_bisbmpop_max(
+            pi = fit_pi,
+            rho = fit_rho,
+            alpha = fit$best_fit$alpham[c(i,j)],
+            delta = fit$best_fit$delta[c(i,j)], weight = "max")
+      }
+    }
+
+    # Compute the clusters of networks
+    if (fit$M >= 3) {
+      # If there is more than 3 networks they are splitted using K-medioids
+      cl <- cluster::pam(x = sqrt(dist_bm), k = 2, diss = TRUE)$clustering
+    } else {
+      # Else if there is two networks, a Hierarchical Clustering is performed
+      cl <- stats::cutree(
+        stats::hclust(stats::as.dist(dist_bm), method = "ward.D2"), 2
+      )
+    }
+    # cl is a vector of size M, containing the networks clusters memberships
+
+    fits <- # Contains two new collections
+      lapply(
+        c(1, 2), # Go over the two new clusters of networks (ie collections)
+        function(k) {
+          Z_init <- lapply(
+            seq_along(fit$model_list),
+            # Go over the Q1xQ2 models
+            function(q) {
+              lapply( # This returns a list of two clustering memberships
+                seq.int(2), # To go over the two dimensions
+                            #             block  net clust dimension
+                            #               |        |      |
+                            #               v        v      v
+                function(d) fit$model_list[[q]]$Z[cl == k][[d]]
+              )
+            }
+          )
+          # cl == k, is a bool vector with TRUE, if network m
+          # is a member of cluster k
+          # Here there are the min between sum(cl == k), ie the number of
+          # networks part of the cluster that are fitted vs nb_run
+
+          return(colSBM::estimate_colBiSBM(
+            netlist = fit$A[cl == k],
+            colsbm_model = colsbm_model,
+            net_id = fit$net_id[cl == k],
+            distribution = distribution,
+            nb_run = min(sum(cl == k), nb_run),
+            Z_init = Z_init,
+            global_opts = global_opts,
+            fit_opts = fit_opts
+          ))
+
+
+          # tmp_fits <-
+          #   bettermc::mclapply(
+          #     seq(min(sum(cl == k), nb_run)),
+
+          #     function(x) {
+          #       global_opts$nb_cores <- max(1L, floor(global_opts$nb_cores / nb_run))
+          #       tmp_fit <- bmpop$new(fit$A[cl == k], fit$net_id[cl == k],
+          #         directed = directed,
+          #         distribution = distribution,
+          #         free_density = free_density,
+          #         free_mixture = free_mixture,
+          #         Z_init = Z_init,
+          #         global_opts = global_opts,
+          #         fit_opts = fit_opts
+          #       )
+          #       tmp_fit$optimize()
+          #       return(tmp_fit)
+          #     },
+          #     mc.progress = TRUE, mc.cores = min(nb_run, nb_cores),
+          #     mc.stdout = "output"
+          #   )
+          # res <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$BICL,
+          #   FUN.VALUE = .1
+          # ))]]
+          # res$model_list[[1]] <-
+          #   lapply(
+          #     X = seq_along(res$model_list[[1]]),
+          #     FUN = function(q) {
+          #       tmp_fits[[which.max(vapply(
+          #         tmp_fits,
+          #         function(fit) fit$model_list[[1]][[q]][[1]]$BICL,
+          #         FUN.VALUE = .1
+          #       ))]]$model_list[[1]][[q]]
+          #     }
+          #   )
+          # res$ICL <- vapply(res$model_list[[1]],
+          #   function(fit) fit[[1]]$ICL,
+          #   FUN.VALUE = .1
+          # )
+          # res$BICL <- vapply(res$model_list[[1]],
+          #   function(fit) fit[[1]]$BICL,
+          #   FUN.VALUE = .1
+          # )
+          # rm(tmp_fits)
+          # gc()
+          # return(res)
+        }
+      )
+    # Fully recursive (like a top down HCA)
+    if (full_inference) {
+      return(list(fit$best_fit, # The current collection
+                  recursive_clustering(fits[[1]]), # The first sub-collection
+                  recursive_clustering(fits[[2]]))) # The second sub-collection
+    } else {
+      # Here the recursion stops once the BICL doesn't improve
+      if (fits[[1]]$best_fit$BICL + fits[[2]]$best_fit$BICL >
+          fit$best_fit$BICL) {
+        return(list(fit$best_fit,
+                    recursive_clustering(fits[[1]]),
+                    recursive_clustering(fits[[2]])))
+      } else {
+        return(fit$best_fit)
+      }
+    }
+  }
+
+  # This launches the recursion
+  list_model_binary <- recursive_clustering(my_bisbmpop)
+
+  invisible(list_model_binary)
+
+}
