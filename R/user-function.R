@@ -358,6 +358,7 @@ estimate_colBiSBM <-
               fit_opts = fit_opts,
               Z_init = Z_init
             )
+            cat("\nDEBUG user-function: model", x)
             tmp_fit$optimize()
             return(tmp_fit)
           }#,
@@ -372,6 +373,9 @@ estimate_colBiSBM <-
 
       # We perform the procedure only if nb_run > 1
       if (nb_run > 1) {
+        if (global_opts$verbosity >= 1){
+          cat("\nMerging the", nb_run, "models")
+        }
         # For each Q1 and Q2, we compare all
         for (q1 in global_opts$Q1_max) {
           for (q2 in global_opts$Q2_max) {

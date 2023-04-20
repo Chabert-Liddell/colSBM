@@ -509,7 +509,6 @@ clusterize_bipartite_networks <- function(netlist,
       )
     }
     # cl is a vector of size M, containing the networks clusters memberships
-
     fits <- # Contains two new collections
       lapply(
         c(1, 2), # Go over the two new clusters of networks (ie collections)
@@ -538,58 +537,10 @@ clusterize_bipartite_networks <- function(netlist,
             net_id = fit$net_id[cl == k],
             distribution = distribution,
             nb_run = min(sum(cl == k), nb_run),
-            Z_init = Z_init,
+            Z_init = Z_init, # TODO Change this parameter name, cause all Q
             global_opts = global_opts,
             fit_opts = fit_opts
           ))
-
-
-          # tmp_fits <-
-          #   bettermc::mclapply(
-          #     seq(min(sum(cl == k), nb_run)),
-
-          #     function(x) {
-          #       global_opts$nb_cores <- max(1L, floor(global_opts$nb_cores / nb_run))
-          #       tmp_fit <- bmpop$new(fit$A[cl == k], fit$net_id[cl == k],
-          #         directed = directed,
-          #         distribution = distribution,
-          #         free_density = free_density,
-          #         free_mixture = free_mixture,
-          #         Z_init = Z_init,
-          #         global_opts = global_opts,
-          #         fit_opts = fit_opts
-          #       )
-          #       tmp_fit$optimize()
-          #       return(tmp_fit)
-          #     },
-          #     mc.progress = TRUE, mc.cores = min(nb_run, nb_cores),
-          #     mc.stdout = "output"
-          #   )
-          # res <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$BICL,
-          #   FUN.VALUE = .1
-          # ))]]
-          # res$model_list[[1]] <-
-          #   lapply(
-          #     X = seq_along(res$model_list[[1]]),
-          #     FUN = function(q) {
-          #       tmp_fits[[which.max(vapply(
-          #         tmp_fits,
-          #         function(fit) fit$model_list[[1]][[q]][[1]]$BICL,
-          #         FUN.VALUE = .1
-          #       ))]]$model_list[[1]][[q]]
-          #     }
-          #   )
-          # res$ICL <- vapply(res$model_list[[1]],
-          #   function(fit) fit[[1]]$ICL,
-          #   FUN.VALUE = .1
-          # )
-          # res$BICL <- vapply(res$model_list[[1]],
-          #   function(fit) fit[[1]]$BICL,
-          #   FUN.VALUE = .1
-          # )
-          # rm(tmp_fits)
-          # gc()
-          # return(res)
         }
       )
     # Fully recursive (like a top down HCA)

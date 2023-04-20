@@ -222,8 +222,7 @@ bisbmpop <- R6::R6Class(
       }
 
       # Fitting the Q splits and selecting the next model
-      possible_models <- #bettermc::mc
-      lapply(seq.int(possible_models_size),
+      possible_models <- bettermc::mclapply(seq.int(possible_models_size),
       function(q) {
         # Once the row and col clustering are correctly split
         # they are merged
@@ -339,11 +338,11 @@ bisbmpop <- R6::R6Class(
         q_th_models # The list of models is returned (if no free_mixture it's a
         # one element list).
 
-      }#,
-        # mc.cores = self$global_opts$nb_cores,
-        # mc.allow.recursive = TRUE,
-        # mc.silent = TRUE,
-        # mc.progress = FALSE
+      },
+        mc.cores = self$global_opts$nb_cores,
+        mc.allow.recursive = TRUE,
+        mc.silent = TRUE,
+        mc.progress = FALSE
       )
 
       # If there is free_mixture it creates nestedness so we need to unlist
@@ -429,8 +428,7 @@ bisbmpop <- R6::R6Class(
       })
 
       # Fitting the Q merges and selecting the next model
-      possible_models <- #bettermc::mc
-      lapply(seq.int(possible_models_size),
+      possible_models <- bettermc::mclapply(seq.int(possible_models_size),
       function(q) {
         # Once the row and col clustering are correctly merged
         # they are merged
@@ -548,11 +546,11 @@ bisbmpop <- R6::R6Class(
 
         q_th_models # The list of models is returned (if no free_mixture it's a
                     # one element list).
-      }#,
-        # mc.cores = self$global_opts$nb_cores,
-        # mc.allow.recursive = TRUE,
-        # mc.silent = TRUE,
-        # mc.progress = FALSE
+      },
+        mc.cores = self$global_opts$nb_cores,
+        mc.allow.recursive = TRUE,
+        mc.silent = TRUE,
+        mc.progress = FALSE
       )
 
       # If there is free_mixture it creates nestedness so we need to unlist
@@ -945,32 +943,52 @@ bisbmpop <- R6::R6Class(
           net_id = self$net_id,
           fit_opts = self$fit_opts,
         )
+        if (self$global_opts$verbosity >=4) {
+          cat("\nOptimizing from Z_init for", toString(c(q1,q2)))
+        }
+
         fit$optimize()
         return(fit)
       }
 
       # We fill the model_list from the Z_init provided
       # assuming that Z_init is a bi-dimensional list
-      lapply(
-        seq.int(self$global_opts$Q1_max),
-        function(q1) {
-          lapply(
-            seq.int(self$global_opts$Q2_max),
-            function(q2) {
-              if (!is.null(self$Z_init[[q1, q2]])) {
-                model_list[[q1, q2]] <- optimize_init(
-                  q1, q2, self$Z_init[[q1, q2]]
-                  # FIXME we dont provide Cpi nor Calpha, thus the fitted points
-                  # will have iid-like fits.
-                  # This will be overwritten when the moving window will perform
-                )
-              }
-            }
-          )
+      for (q1 in seq.int(self$global_opts$Q1_max)) {
+        for (q2 in seq.int(self$global_opts$Q2_max)) {
+          if (!is.null(self$Z_init[[q1, q2]])) {
+            model_list[[q1, q2]] <- optimize_init(
+              q1, q2, self$Z_init[[q1, q2]]
+              # FIXME we dont provide Cpi nor Calpha, thus the fitted points
+              # will have iid-like fits.
+              # This will be overwritten when the moving window will perform
+            )
+          }
         }
-      )
+      }
+      # FIXME This doesn't fill the model_list
+      # lapply(
+      #   seq.int(self$global_opts$Q1_max),
+      #   function(q1) {
+      #     lapply(
+      #       seq.int(self$global_opts$Q2_max),
+      #       function(q2) {
+      #         if (!is.null(self$Z_init[[q1, q2]])) {
+      #           model_list[[q1, q2]] <- optimize_init(
+      #             q1, q2, self$Z_init[[q1, q2]]
+      #             # FIXME we dont provide Cpi nor Calpha, thus the fitted points
+      #             # will have iid-like fits.
+      #             # This will be overwritten when the moving window will perform
+      #           )
+      #         }
+      #       }
+      #     )
+      #   }
+      # )
       # model_list contains the fitted objects and we can set the self$
       self$model_list <- model_list
+      dim(model_list) <- c(self$global_opts$Q1_max, self$global_opts$Q2_max)
+      browser()
+      self$store_criteria_and_best_fit()
     },
 
     #' Burn-in method to start exploring the state of space
@@ -1298,6 +1316,7 @@ bisbmpop <- R6::R6Class(
       improved <- TRUE
       nb_pass <- 0
       tolerance <- 10e-3
+      self$store_criteria_and_best_fit()
       Q <- which(self$BICL == max(self$BICL), arr.ind = TRUE)
       current_max_BICL <- self$model_list[[Q[1], Q[2]]]$BICL
 
@@ -1795,6 +1814,8 @@ bisbmpop <- R6::R6Class(
         cat("\nEnd of the Backward pass.\n")
       }
 
+      cat("\nDEBUG before:", self$best_fit$Q, self$best_fit$BICL)
+
       # After the two passes
       self$store_criteria_and_best_fit()
 
@@ -1807,6 +1828,7 @@ bisbmpop <- R6::R6Class(
           ")."
         )
       }
+      cat("\nDEBUG after:", self$best_fit$Q, self$best_fit$BICL)
     },
 
     truncate_discarded_model_list = function() {
@@ -1859,6 +1881,7 @@ bisbmpop <- R6::R6Class(
 
     compute_sep_BiSBM_BICL = function() {
       # Computes the sepBiSBM ICL to compare with the model
+      # TODO See if I can parallelize
         self$sep_BiSBM_BICL <- sapply(seq.int(self$M), function(m) {
           sep_BiSBM <- bisbmpop$new(
             netlist = list(self$A[[m]]),
