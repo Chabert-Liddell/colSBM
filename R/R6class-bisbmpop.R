@@ -987,7 +987,6 @@ bisbmpop <- R6::R6Class(
       # model_list contains the fitted objects and we can set the self$
       self$model_list <- model_list
       dim(model_list) <- c(self$global_opts$Q1_max, self$global_opts$Q2_max)
-      browser()
       self$store_criteria_and_best_fit()
     },
 
@@ -1372,27 +1371,6 @@ bisbmpop <- R6::R6Class(
       }
 
     },
-
-
-    show = function(type = "Fitted Collection of Bipartite SBM") {
-      cat(type, "--", self$distribution, "variant for", self$M, "networks \n")
-      cat("=====================================================================\n")
-      cat("net_id = (", self$net_id, ")\n")
-      cat(
-        "Dimensions = (", toString(lapply(seq.int(self$M), function(m) {
-          c(self$n[[1]][[m]], self$n[[2]][[m]])
-        })), ") - (",
-        toString(self$best_fit$Q), ") blocks.\n"
-      )
-      cat(
-        "BICL = ", self$best_fit$BICL, "\n#Empty row blocks : ",
-        sum(!self$best_fit$Cpi[[1]]), " -- #Empty columns blocks : ",
-        sum(!self$best_fit$Cpi[[2]]), " \n"
-      )
-      cat("=====================================================================")
-    },
-
-    print = function() self$show(),
 
     #' The moving window application
     #'

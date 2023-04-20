@@ -1348,7 +1348,27 @@ fitBipartiteSBMPop <- R6::R6Class(
       if (self$BICL == Inf | self$BICL == -Inf) {
         stop("Infinite BICL !")
       }
-    }
+    },
+
+    show = function(type = "Fitted Collection of Bipartite SBM") {
+      cat(type, "--", self$distribution, "variant for", self$M, "networks \n")
+      cat("=====================================================================\n")
+      cat("net_id = (", self$net_id, ")\n")
+      cat(
+        "Dimensions = (", toString(lapply(seq.int(self$M), function(m) {
+          c(self$n[[1]][[m]], self$n[[2]][[m]])
+        })), ") - (",
+        toString(self$best_fit$Q), ") blocks.\n"
+      )
+      cat(
+        "BICL = ", self$best_fit$BICL, 
+        "\n#Empty row blocks : ", sum(!self$best_fit$Cpi[[1]]), 
+        " -- #Empty columns blocks : ", sum(!self$best_fit$Cpi[[2]]), " \n"
+      )
+      cat("=====================================================================")
+    },
+
+    print = function() self$show()
   ),
   active = list()
 )
