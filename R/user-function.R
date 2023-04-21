@@ -220,10 +220,10 @@ estimate_colSBM <-
 #'  boolean specifies if the level should be parallelized. c(TRUE, TRUE) means
 #'  that : 
 #'  \itemize{
-#'  \item{[1] : the \code{nb_run} models will be computed in parallel}
-#'  \item{[2] : the possible models during the state space exploration will be 
-#'  computed in parallel. Default is c(TRUE, TRUE) which gives the best 
-#'  performances.}
+#'  \item{1st: the \code{nb_run} models will be computed in parallel}
+#'  \item{2nd: the possible models during the state space exploration will be 
+#'  computed in parallel.
+#'  \item{3rd: the sub fits (if free mixture is enabled) will be parallelized.}
 #'    }
 #'  }
 #' }
@@ -312,7 +312,7 @@ estimate_colBiSBM <-
       max_pass = 10L,
       verbosity = 1L,
       nb_cores = 1L,
-      parallelization_vector = c(TRUE, TRUE)
+      parallelization_vector = c(TRUE, TRUE, TRUE)
     )
     go <- utils::modifyList(go, global_opts)
     global_opts <- go
