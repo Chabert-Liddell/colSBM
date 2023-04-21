@@ -1358,12 +1358,12 @@ fitBipartiteSBMPop <- R6::R6Class(
         "Dimensions = (", toString(lapply(seq.int(self$M), function(m) {
           c(self$n[[1]][[m]], self$n[[2]][[m]])
         })), ") - (",
-        toString(self$best_fit$Q), ") blocks.\n"
+        toString(self$Q), ") blocks.\n"
       )
       cat(
-        "BICL = ", self$best_fit$BICL, 
-        "\n#Empty row blocks : ", sum(!self$best_fit$Cpi[[1]]), 
-        " -- #Empty columns blocks : ", sum(!self$best_fit$Cpi[[2]]), " \n"
+        "BICL = ", self$BICL,
+        "\n#Empty row blocks : ", sum(!self$Cpi[[1]]),
+        " -- #Empty columns blocks : ", sum(!self$Cpi[[2]]), " \n"
       )
       cat("=====================================================================")
     },
