@@ -218,9 +218,14 @@ estimate_colSBM <-
 #'  executed. Default is 10.}
 #'  \item{\code{parallelization_vector}}{a boolean vector of size 2. Each
 #'  boolean specifies if the level should be parallelized. c(TRUE, TRUE) means
-#'  that [1] : the \code{nb_run} models will be computed in parallel, [2] : the
-#'  possible models during the state space exploration will be computed in
-#'  parallel. Default is c(TRUE, TRUE) which gives the best performances.}
+#'  that : 
+#'  \itemize{
+#'  \item{[1] : the \code{nb_run} models will be computed in parallel}
+#'  \item{[2] : the possible models during the state space exploration will be 
+#'  computed in parallel. Default is c(TRUE, TRUE) which gives the best 
+#'  performances.}
+#'    }
+#'  }
 #' }
 #'
 #' @return A bisbmpop object listing a collection of models for the collection.

@@ -72,6 +72,16 @@ the values in the square defined.}
 moving window process. Values are 0 or 1. Default is 1.}
 \item{\code{max_pass} }{the maximum number of moving window passes that will be
 executed. Default is 10.}
+\item{\code{parallelization_vector}}{a boolean vector of size 2. Each
+boolean specifies if the level should be parallelized. c(TRUE, TRUE) means
+that :
+\itemize{
+\item{\link{1} : the \code{nb_run} models will be computed in parallel}
+\item{\link{2} : the possible models during the state space exploration will be
+computed in parallel. Default is c(TRUE, TRUE) which gives the best
+performances.}
+}
+}
 }
 }
 \examples{
