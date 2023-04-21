@@ -47,7 +47,14 @@ list_collection <- clusterize_bipartite_networks(
     netlist = incidence_matrices[1:3],
     colsbm_model = "pirho",
     global_opts = list(
-        nb_cores = parallel::detectCores() - 1, verbosity = 4,
+        nb_cores = parallel::detectCores() - 1, verbosity = 0,
         plot_details = 0
     )
 )
+
+saveRDS(list_collection, file = paste0(
+    "simulations/data/", 
+    "dore-collection-clustering", 
+    Sys.time(),
+    ".Rds"
+))
