@@ -43,11 +43,21 @@ if (!file.exists("simulation/data/dore-matrices.Rds")) {
     incidence_matrices <- readRDS(file = "simulation/data/dore-matrices.Rds")
 }
 
+number_of_net <- 10
+
 list_collection <- clusterize_bipartite_networks(
-    netlist = incidence_matrices[1:3],
+    netlist = incidence_matrices[1:number_of_net],
     colsbm_model = "pirho",
     global_opts = list(
         nb_cores = parallel::detectCores() - 1, verbosity = 4,
         plot_details = 0
     )
 )
+
+saveRDS(list_collection, file = paste0(
+    "simulation/data/", 
+    "dore_collection_clustering",
+    number_of_net, "-",
+    format(Sys.time(), "%d-%m-%y-%X"),
+    ".Rds"
+))
