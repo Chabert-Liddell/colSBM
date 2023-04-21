@@ -216,6 +216,11 @@ estimate_colSBM <-
 #'  moving window process. Values are 0 or 1. Default is 1.}
 #'  \item{\code{max_pass} }{the maximum number of moving window passes that will be
 #'  executed. Default is 10.}
+#'  \item{\code{parallelization_vector}}{a boolean vector of size 2. Each
+#'  boolean specifies if the level should be parallelized. c(TRUE, TRUE) means
+#'  that [1] : the \code{nb_run} models will be computed in parallel, [2] : the
+#'  possible models during the state space exploration will be computed in
+#'  parallel. Default is }
 #' }
 #'
 #' @return A bisbmpop object listing a collection of models for the collection.
@@ -244,14 +249,14 @@ estimate_colSBM <-
 #' }
 estimate_colBiSBM <-
   function(netlist,
-           colsbm_model,
-           net_id = NULL,
-           distribution = "bernoulli",
-           nb_run = 3L,
-           global_opts = list(),
-           fit_opts = list(),
-           fit_init = NULL,
-           Z_init = NULL) {
+          colsbm_model,
+          net_id = NULL,
+          distribution = "bernoulli",
+          nb_run = 3L,
+          global_opts = list(),
+          fit_opts = list(),
+          fit_init = NULL,
+          Z_init = NULL) {
     switch(colsbm_model,
       "iid" = {
         free_density <- FALSE
@@ -301,7 +306,8 @@ estimate_colBiSBM <-
       plot_details = 1L,
       max_pass = 10L,
       verbosity = 1L,
-      nb_cores = 1L
+      nb_cores = 1L,
+      parallelization_vector = c(TRUE, TRUE)
     )
     go <- utils::modifyList(go, global_opts)
     global_opts <- go
@@ -327,7 +333,7 @@ estimate_colBiSBM <-
         "might be in confusing order.",
         " You may want to use only one core for readability"
       )
-    } 
+    }
 
     if (!is.null(fit_init)) {
       bisbmpop <- fit_init
@@ -337,34 +343,60 @@ estimate_colBiSBM <-
       }
       # tmp_fits run nb_run times a full model selection procedure
       # (the one from the research paper)
-      tmp_fits <-
-        bettermc::mclapply(
-          seq(nb_run),
-          function(x) {
-            # Computes the number of cores to allocate per run
-            global_opts$nb_cores <- max(
-              1L,
-              floor(global_opts$nb_cores / nb_run)
-            )
-            tmp_fit <- bisbmpop$new(
-              netlist = netlist,
-              net_id = net_id,
-              distribution = distribution,
-              free_density = free_density,
-              free_mixture_row = free_mixture_row,
-              free_mixture_col = free_mixture_col,
-              global_opts = global_opts,
-              fit_opts = fit_opts,
-              Z_init = Z_init
-            )
-            cat("\nDEBUG user-function: model", x)
-            tmp_fit$optimize()
-            return(tmp_fit)
-          },
-          mc.progress = TRUE,
-          mc.cores = min(nb_run, nb_cores),
-          mc.stdout = "output"
-        )
+      if (global_opts$parallelization_vector[1]) {
+        tmp_fits <-
+          bettermc::mclapply(
+            seq(nb_run),
+            function(x) {
+              # Computes the number of cores to allocate per run
+              global_opts$nb_cores <- max(
+                1L,
+                floor(global_opts$nb_cores / nb_run)
+              )
+              tmp_fit <- bisbmpop$new(
+                netlist = netlist,
+                net_id = net_id,
+                distribution = distribution,
+                free_density = free_density,
+                free_mixture_row = free_mixture_row,
+                free_mixture_col = free_mixture_col,
+                global_opts = global_opts,
+                fit_opts = fit_opts,
+                Z_init = Z_init
+              )
+              tmp_fit$optimize()
+              return(tmp_fit)
+            },
+            mc.progress = TRUE,
+            mc.cores = min(nb_run, nb_cores),
+            mc.stdout = "output"
+          )
+      } else {
+        tmp_fits <-
+          lapply(
+            seq(nb_run),
+            function(x) {
+              # Computes the number of cores to allocate per run
+              global_opts$nb_cores <- max(
+                1L,
+                floor(global_opts$nb_cores / nb_run)
+              )
+              tmp_fit <- bisbmpop$new(
+                netlist = netlist,
+                net_id = net_id,
+                distribution = distribution,
+                free_density = free_density,
+                free_mixture_row = free_mixture_row,
+                free_mixture_col = free_mixture_col,
+                global_opts = global_opts,
+                fit_opts = fit_opts,
+                Z_init = Z_init
+              )
+              tmp_fit$optimize()
+              return(tmp_fit)
+            }
+          )
+      }
       # We choose the the bisbmpop to receive the best_fit in sense of the BICL
       bisbmpop <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$BICL,
         FUN.VALUE = .1
@@ -372,7 +404,7 @@ estimate_colBiSBM <-
 
       # We perform the procedure only if nb_run > 1
       if (nb_run > 1) {
-        if (global_opts$verbosity >= 1){
+        if (global_opts$verbosity >= 1) {
           cat("\nMerging the", nb_run, "models")
         }
         # For each Q1 and Q2, we compare all
