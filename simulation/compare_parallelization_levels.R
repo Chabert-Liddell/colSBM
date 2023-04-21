@@ -63,7 +63,8 @@ conditions <- expand.grid(seq.int(3),c(TRUE, FALSE), c(TRUE,FALSE))
 for (i in seq.int(10)) {
     cat(
         "\nCondition ", i, "/", nrow(conditions), "\n",
-        "user_func_parallel:", conditions[i, 2],
+        "repetition:", i,
+        " -- user_func_parallel:", conditions[i, 2],
         "-- exploration_parallel:", conditions[i, 3],
         "\n"
     )
@@ -102,3 +103,7 @@ for (i in seq.int(10)) {
         t1 - t0
     )
 }
+
+saveRDS(results,
+    file = paste0("./simulation/data/parallel_levels_", Sys.time(), ".Rds")
+)
