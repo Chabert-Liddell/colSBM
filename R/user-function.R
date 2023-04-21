@@ -220,7 +220,7 @@ estimate_colSBM <-
 #'  boolean specifies if the level should be parallelized. c(TRUE, TRUE) means
 #'  that [1] : the \code{nb_run} models will be computed in parallel, [2] : the
 #'  possible models during the state space exploration will be computed in
-#'  parallel. Default is }
+#'  parallel. Default is c(TRUE, TRUE) which gives the best performances.}
 #' }
 #'
 #' @return A bisbmpop object listing a collection of models for the collection.
