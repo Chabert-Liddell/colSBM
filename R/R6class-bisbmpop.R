@@ -99,7 +99,8 @@ bisbmpop <- R6::R6Class(
                                plot_details = 1L,
                                max_pass = 10L,
                                verbosity = 0L,
-                               nb_cores = 1L)
+                               nb_cores = 1L,
+                               parallelization_vector = c(TRUE, TRUE))
       self$global_opts <- utils::modifyList(self$global_opts, global_opts)
       self$vbound <- matrix(
         rep(-Inf, self$global_opts$Q1_max * self$global_opts$Q2_max),
