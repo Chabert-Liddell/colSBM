@@ -63,7 +63,7 @@ conditions <- expand.grid(
     c(TRUE, FALSE), c(TRUE, FALSE)
 )
 
-for (i in seq.int(10)) {
+for (i in seq_len(nrow(conditions))) {
     cat(
         "\nCondition ", i, "/", nrow(conditions), "\n",
         "repetition:", i,
