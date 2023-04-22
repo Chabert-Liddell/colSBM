@@ -47,7 +47,7 @@ Z <- lapply(seq.int(M), function(m) {
     )
 })
 
-results <- data.frame(matrix(nrow = 0, ncol = 5))
+results <- data.frame(matrix(nrow = 0, ncol = 6))
 names(results) <- c(
     "repetition",
     "user_func_parallel",
