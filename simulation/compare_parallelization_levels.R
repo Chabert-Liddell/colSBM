@@ -67,7 +67,7 @@ conditions <- expand.grid(
 for (i in seq_len(nrow(conditions))) {
     cat(
         "\nCondition ", i, "/", nrow(conditions), "\n",
-        "repetition:", i,
+        "repetition:", conditions[i, 1],
         " -- user_func_parallel:", conditions[i, 2],
         "-- exploration_parallel:", conditions[i, 3],
         "-- subexploration_parallel:", conditions[i, 4],
