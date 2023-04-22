@@ -69,7 +69,7 @@ for (i in seq.int(10)) {
         "repetition:", i,
         " -- user_func_parallel:", conditions[i, 2],
         "-- exploration_parallel:", conditions[i, 3],
-        "-- subexploration_parallel:", conditions[i, 3],
+        "-- subexploration_parallel:", conditions[i, 4],
         "\n"
     )
     t0 <- Sys.time()
@@ -79,7 +79,7 @@ for (i in seq.int(10)) {
         global_opts = list(
             nb_cores = parallel::detectCores() - 1,
             verbosity = 0,
-            parallelization_vector = unlist(conditions[i,c(2,3)])
+            parallelization_vector = unlist(conditions[i,c(2,3,4)])
         )
     )
     t1 <- Sys.time()
