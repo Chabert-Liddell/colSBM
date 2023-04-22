@@ -59,7 +59,7 @@ names(results) <- c(
 repetition_number <- 3
 
 conditions <- expand.grid(
-    seq.int(3), c(TRUE, FALSE),
+    seq.int(3), c(TRUE),
     c(TRUE, FALSE), c(TRUE, FALSE)
 )
 
