@@ -58,7 +58,10 @@ names(results) <- c(
 
 repetition_number <- 3
 
-conditions <- expand.grid(seq.int(3),c(TRUE, FALSE), c(TRUE,FALSE))
+conditions <- expand.grid(
+    seq.int(3), c(TRUE, FALSE),
+    c(TRUE, FALSE), c(TRUE, FALSE)
+)
 
 for (i in seq.int(10)) {
     cat(
@@ -66,6 +69,7 @@ for (i in seq.int(10)) {
         "repetition:", i,
         " -- user_func_parallel:", conditions[i, 2],
         "-- exploration_parallel:", conditions[i, 3],
+        "-- subexploration_parallel:", conditions[i, 3],
         "\n"
     )
     t0 <- Sys.time()
