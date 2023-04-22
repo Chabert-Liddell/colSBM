@@ -52,6 +52,7 @@ names(results) <- c(
     "repetition",
     "user_func_parallel",
     "exploration_parallel",
+    "subexploration_parallel",
     "ari_sum",
     "time"
 )
@@ -103,6 +104,7 @@ for (i in seq_len(nrow(conditions))) {
         conditions[i, 1],
         conditions[i, 2],
         conditions[i, 3],
+        conditions[i, 4],
         ari_sums,
         t1 - t0
     )
