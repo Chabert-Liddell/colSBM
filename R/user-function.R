@@ -216,9 +216,9 @@ estimate_colSBM <-
 #'  moving window process. Values are 0 or 1. Default is 1.}
 #'  \item{\code{max_pass} }{the maximum number of moving window passes that will be
 #'  executed. Default is 10.}
-#'  \item{\code{parallelization_vector}}{a boolean vector of size 2. Each
-#'  boolean specifies if the level should be parallelized. c(TRUE, TRUE) means
-#'  that : 
+#'  \item{\code{parallelization_vector}}{a boolean vector of size 3. Each
+#'  boolean specifies if the level should be parallelized. c(TRUE, TRUE, TRUE) 
+#'  means that : 
 #'  \itemize{
 #'  \item{1st: the \code{nb_run} models will be computed in parallel}
 #'  \item{2nd: the possible models during the state space exploration will be 
@@ -226,6 +226,7 @@ estimate_colSBM <-
 #'  \item{3rd: the sub fits (if free mixture is enabled) will be parallelized.}
 #'    }
 #'  }
+#'  The default is : c(TRUE, TRUE, FALSE) which gives best performance
 #' }
 #'
 #' @return A bisbmpop object listing a collection of models for the collection.
@@ -312,7 +313,7 @@ estimate_colBiSBM <-
       max_pass = 10L,
       verbosity = 1L,
       nb_cores = 1L,
-      parallelization_vector = c(TRUE, TRUE, TRUE)
+      parallelization_vector = c(TRUE, TRUE, FALSE)
     )
     go <- utils::modifyList(go, global_opts)
     global_opts <- go
