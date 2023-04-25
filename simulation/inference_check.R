@@ -211,7 +211,8 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(c) {
 
     return(data_frame_output)
 },
-mc.cores = parallel::detectCores() - 1)
+mc.cores = parallel::detectCores() - 1,
+mc.progress = TRUE)
 
 full_data_frame <- do.call(rbind, results)
 
