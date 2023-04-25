@@ -216,4 +216,6 @@ mc.progress = TRUE)
 
 full_data_frame <- do.call(rbind, results)
 
-saveRDS(results, "./simulation/data")
+saveRDS(full_data_frame,
+    file = paste0("./simulation/data/inference_testing_", Sys.time(), ".Rds")
+)
