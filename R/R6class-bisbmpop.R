@@ -89,7 +89,7 @@ bisbmpop <- R6::R6Class(
         M = self$M,
         models = vector("list", self$M), # to store the models
         BICL = NULL, # To store the BICL vector
-        Z = vector("list", self$M) # To store the sep clustering
+        Z = NULL
       )
       self$distribution <- distribution
       self$free_density <-  free_density
@@ -2384,7 +2384,7 @@ bisbmpop <- R6::R6Class(
     compute_sep_BiSBM_BICL = function() {
       # Computes the sepBiSBM ICL to compare with the model
       # TODO See if I can parallelize
-      self$sep_BiSBM$models <- sapply(seq.int(self$M), function(m) {
+      self$sep_BiSBM$models <- lapply(seq.int(self$M), function(m) {
         sep_BiSBM <- bisbmpop$new(
           netlist = list(self$A[[m]]),
           distribution = self$distribution,
@@ -2407,8 +2407,8 @@ bisbmpop <- R6::R6Class(
 
       self$sep_BiSBM$Z <- lapply(seq.int(self$M), function(m) {
         list(
-          self$sep_BiSBM$models[[m]]$Z[[1]]$row,
-          self$sep_BiSBM$models[[m]]$Z[[1]]$col
+          self$sep_BiSBM$models[[m]]$Z[[1]][[1]],
+          self$sep_BiSBM$models[[m]]$Z[[1]][[2]]
         )
       })
 

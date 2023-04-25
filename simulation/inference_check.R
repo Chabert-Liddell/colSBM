@@ -23,7 +23,7 @@ pi1 <- pi1[!duplicated(pi1),]
 rho2 <- matrix(unlist(combinat::permn(base_rho2)), byrow = TRUE, ncol = 4)
 rho2 <- rho2[!duplicated(rho2),]
 
-model <- c("sep","iid", "pi", "rho", "pirho")
+models <- c("sep","iid", "pi", "rho", "pirho")
 
 repetition <- seq.int(3)
 
@@ -34,11 +34,12 @@ conditions <- conditions[
     !apply(conditions$pi1[, 1:4] == 0 & conditions$rho2[, 1:4] == 0, 
     1, any),
 ]
+conditions <- conditions[1:5,]
 
 results <- bettermc::mclapply(seq_len(nrow(conditions)), function(c) {
     ea <- conditions[c,]$epsilon_alpha
-    pi1 <- conditions[c, ]$pi1
-    rho2 <- conditions[c,]$rho2
+    current_pi1 <- conditions[c, ]$pi1
+    current_rho2 <- conditions[c,]$rho2
     
     current_alpha <- base_alpha + matrix(c(
                             3 * ea, 2 * ea, ea, -ea,
@@ -49,8 +50,8 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(c) {
     )
 
     # Compute supports
-    Cpi1 <- matrix(c(pi1, pi2), byrow = TRUE, nrow = M) > 0
-    Cpi2 <- matrix(c(rho1, rho2), byrow = TRUE, nrow = M) > 0
+    Cpi1 <- matrix(c(current_pi1, pi2), byrow = TRUE, nrow = M) > 0
+    Cpi2 <- matrix(c(rho1, current_rho2), byrow = TRUE, nrow = M) > 0
 
     netlist_generated <- list(
         generate_bipartite_network(
@@ -127,6 +128,7 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(c) {
     BICLs <- c(sep_BICL, iid_BICL, pi_BICL, rho_BICL, pirho_BICL)
 
     # ARIs
+    print(fitted_bisbmpop_iid$sep_BiSBM$Z)
     compute_ARI <- function(model, Z) {
         # We compute the mean amongst the two networks and return values for
         # rows and columns in a vector
@@ -154,49 +156,49 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(c) {
 
     # Recovered blocks
     ## Less
-    pi_Q1_less <- fitted_bisbmpop_pi$Q[1] < 4
-    pi_Q2_less <- fitted_bisbmpop_pi$Q[2] < 4
+    pi_Q1_less <- fitted_bisbmpop_pi$best_fit$Q[1] < 4
+    pi_Q2_less <- fitted_bisbmpop_pi$best_fit$Q[2] < 4
 
-    rho_Q1_less <- fitted_bisbmpop_rho$Q[1] < 4
-    rho_Q2_less <- fitted_bisbmpop_rho$Q[2] < 4
+    rho_Q1_less <- fitted_bisbmpop_rho$best_fit$Q[1] < 4
+    rho_Q2_less <- fitted_bisbmpop_rho$best_fit$Q[2] < 4
 
-    pirho_Q1_less <- fitted_bisbmpop_pirho$Q[1] < 4
-    pirho_Q2_less <- fitted_bisbmpop_pirho$Q[2] < 4
+    pirho_Q1_less <- fitted_bisbmpop_pirho$best_fit$Q[1] < 4
+    pirho_Q2_less <- fitted_bisbmpop_pirho$best_fit$Q[2] < 4
 
     Q1_less <- c(NA, NA, pi_Q1_less, rho_Q1_less, pirho_Q1_less)
     Q2_less <- c(NA, NA, pi_Q2_less, rho_Q2_less, pirho_Q2_less)
 
     ## Greater
-    pi_Q1_great <- fitted_bisbmpop_pi$Q[1] > 4
-    pi_Q2_great <- fitted_bisbmpop_pi$Q[2] > 4
+    pi_Q1_great <- fitted_bisbmpop_pi$best_fit$Q[1] > 4
+    pi_Q2_great <- fitted_bisbmpop_pi$best_fit$Q[2] > 4
 
-    rho_Q1_great <- fitted_bisbmpop_rho$Q[1] > 4
-    rho_Q2_great <- fitted_bisbmpop_rho$Q[2] > 4
+    rho_Q1_great <- fitted_bisbmpop_rho$best_fit$Q[1] > 4
+    rho_Q2_great <- fitted_bisbmpop_rho$best_fit$Q[2] > 4
 
-    pirho_Q1_great <- fitted_bisbmpop_pirho$Q[1] > 4
-    pirho_Q2_great <- fitted_bisbmpop_pirho$Q[2] > 4
+    pirho_Q1_great <- fitted_bisbmpop_pirho$best_fit$Q[1] > 4
+    pirho_Q2_great <- fitted_bisbmpop_pirho$best_fit$Q[2] > 4
 
     Q1_great <- c(NA, NA, pi_Q1_great, rho_Q1_great, pirho_Q1_great)
     Q2_great <- c(NA, NA, pi_Q2_great, rho_Q2_great, pirho_Q2_great)
 
     ## Equals
-    pi_Q1_equal <- fitted_bisbmpop_pi$Q[1] == 4
-    pi_Q2_equal <- fitted_bisbmpop_pi$Q[2] == 4
+    pi_Q1_equal <- fitted_bisbmpop_pi$best_fit$Q[1] == 4
+    pi_Q2_equal <- fitted_bisbmpop_pi$best_fit$Q[2] == 4
 
-    rho_Q1_equal <- fitted_bisbmpop_rho$Q[1] == 4
-    rho_Q2_equal <- fitted_bisbmpop_rho$Q[2] == 4
+    rho_Q1_equal <- fitted_bisbmpop_rho$best_fit$Q[1] == 4
+    rho_Q2_equal <- fitted_bisbmpop_rho$best_fit$Q[2] == 4
 
-    pirho_Q1_equal <- fitted_bisbmpop_pirho$Q[1] == 4
-    pirho_Q2_equal <- fitted_bisbmpop_pirho$Q[2] == 4
+    pirho_Q1_equal <- fitted_bisbmpop_pirho$best_fit$Q[1] == 4
+    pirho_Q2_equal <- fitted_bisbmpop_pirho$best_fit$Q[2] == 4
 
     Q1_equal <- c(NA, NA, pi_Q1_equal, rho_Q1_equal, pirho_Q1_equal)
     Q2_equal <- c(NA, NA, pi_Q2_equal, rho_Q2_equal, pirho_Q2_equal)
 
     data_frame_output <- data.frame(
         epsilon_alpha = rep(ea, 5),
-        pi1 = matrix(pi1, nrow = 1),
-        rho2 = matrix(rho2, nrow = 1),
-        model = model,
+        pi1 = matrix(current_pi1, nrow = 1),
+        rho2 = matrix(current_rho2, nrow = 1),
+        model = models,
         BICL = BICLs,
         Q1_less = Q1_less,
         Q1_equal = Q1_equal,
