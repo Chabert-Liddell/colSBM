@@ -77,6 +77,7 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(c) {
     fitted_bisbmpop_iid <- estimate_colBiSBM(
         netlist = netlist,
         colsbm_model = "iid",
+        silent_parallelization = TRUE,
         global_opts = list(
             verbosity = 0,
             plot_details = 0,
@@ -87,6 +88,7 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(c) {
     fitted_bisbmpop_pi <- estimate_colBiSBM(
         netlist = netlist,
         colsbm_model = "pi",
+        silent_parallelization = TRUE,
         global_opts = list(
             verbosity = 0,
             plot_details = 0,
@@ -95,8 +97,9 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(c) {
     )
 
     fitted_bisbmpop_rho <- estimate_colBiSBM(
-        netlist = "rho",
-        colsbm_model = conditions[c, ]$model,
+        netlist = netlist,
+        colsbm_model = "rho",
+        silent_parallelization = TRUE,
         global_opts = list(
             verbosity = 0,
             plot_details = 0,
@@ -107,6 +110,7 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(c) {
     fitted_bisbmpop_pirho <- estimate_colBiSBM(
         netlist = netlist,
         colsbm_model = "pirho",
+        silent_parallelization = TRUE,
         global_opts = list(
             verbosity = 0,
             plot_details = 0,
