@@ -209,4 +209,6 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(c) {
 },
 mc.cores = parallel::detectCores() - 1)
 
+full_data_frame <- do.call(rbind, results)
+
 saveRDS(results, "./simulation/data")
