@@ -262,7 +262,8 @@ estimate_colBiSBM <-
           global_opts = list(),
           fit_opts = list(),
           fit_init = NULL,
-          Z_init = NULL) {
+          Z_init = NULL,
+          silent_parallelization = FALSE) {
     switch(colsbm_model,
       "iid" = {
         free_density <- FALSE
@@ -373,9 +374,10 @@ estimate_colBiSBM <-
               tmp_fit$optimize()
               return(tmp_fit)
             },
-            mc.progress = TRUE,
+            mc.progress = !silent_parallelization,
             mc.cores = min(nb_run, nb_cores),
-            mc.stdout = "output"
+            mc.stdout = "output",
+            mc.silent = silent_parallelization
           )
       } else {
         tmp_fits <-
