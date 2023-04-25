@@ -28,7 +28,7 @@ bisbmpop <- R6::R6Class(
     free_mixture_row = NULL,
     free_mixture_col = NULL,
     ICL = NULL,
-    sep_BiSBM_BICL = NULL, # A vector of size M containing the BICL for each BiSBM
+    sep_BiSBM = NULL, # A named list containing attributes for each sep BiSBM
     BICL = NULL,
     vbound = NULL,
     best_fit = NULL,
@@ -85,6 +85,12 @@ bisbmpop <- R6::R6Class(
       }
 
       self$Z_init <- Z_init
+      self$sep_BiSBM <- list(
+        M = self$M,
+        models = vector("list", self$M), # to store the models
+        BICL = NULL, # To store the BICL vector
+        Z = vector("list", self$M) # To store the sep clustering
+      )
       self$distribution <- distribution
       self$free_density <-  free_density
       self$free_mixture_row <- free_mixture_row
@@ -1099,7 +1105,8 @@ bisbmpop <- R6::R6Class(
     #' of the current state of the model_list.
     #' @return nothing
     state_space_plot = function(){
-      if (self$global_opts$plot_details >= 1) {
+      if (self$global_opts$plot_details >= 1 & 
+      !self$global_opts$parallelization_vector[1]) {
 
         # Creating an empty dataframe
 
@@ -1887,7 +1894,7 @@ bisbmpop <- R6::R6Class(
         self$choose_joint_or_separated()
       } else {
         # Otherwise we're inside a choose procedure and store the BICL
-        self$sep_BiSBM_BICL <- c(self$best_fit$BICL)
+        self$sep_BiSBM$BICL <- c(self$best_fit$BICL)
       }
 
     },
@@ -2377,40 +2384,52 @@ bisbmpop <- R6::R6Class(
     compute_sep_BiSBM_BICL = function() {
       # Computes the sepBiSBM ICL to compare with the model
       # TODO See if I can parallelize
-        self$sep_BiSBM_BICL <- sapply(seq.int(self$M), function(m) {
-          sep_BiSBM <- bisbmpop$new(
-            netlist = list(self$A[[m]]),
-            distribution = self$distribution,
-            free_mixture_row = FALSE,
-            free_mixture_col = FALSE,
-            free_density = FALSE,
-            global_opts = list(
-              verbosity = 0,
-              plot_details = 0
-            )
+      self$sep_BiSBM$models <- sapply(seq.int(self$M), function(m) {
+        sep_BiSBM <- bisbmpop$new(
+          netlist = list(self$A[[m]]),
+          distribution = self$distribution,
+          free_mixture_row = FALSE,
+          free_mixture_col = FALSE,
+          free_density = FALSE,
+          global_opts = list(
+            verbosity = 0,
+            plot_details = 0
           )
-          sep_BiSBM$optimize()
-          sep_BiSBM$best_fit$BICL
-        })
+        )
+        sep_BiSBM$optimize()
+        sep_BiSBM$best_fit
+      })
+      
+      self$sep_BiSBM$BICL <- sapply(seq.int(self$M), function(m) {
+        self$sep_BiSBM$models[[m]]$BICL  # We retrieve all the BICLs for
+                                                  # separated models
+      })
+
+      self$sep_BiSBM$Z <- lapply(seq.int(self$M), function(m) {
+        list(
+          self$sep_BiSBM$models[[m]]$Z[[1]]$row,
+          self$sep_BiSBM$models[[m]]$Z[[1]]$col
+        )
+      })
 
       if (self$global_opts$verbosity >= 2) {
         cat("\n==== Finished fitting ", self$M, "sepBiSBM ====")
-        cat("\n Total sepBiSBM BICL : ", sum(self$sep_BiSBM_BICL),"\n")
+        cat("\n Total sepBiSBM BICL : ", sum(self$sep_BiSBM$BICL),"\n")
       }
 
     },
 
     choose_joint_or_separated = function() {
       # Now compare to the sepBiSBM
-      if (is.null(self$sep_BiSBM_BICL)) {
+      if (is.null(self$sep_BiSBM$BICL)) {
         self$compute_sep_BiSBM_BICL()
       }
 
       if (self$global_opts$verbosity >= 1) {
         cat("\n==== Best fits criterion for the ", self$M, "networks ====")
-        cat("\nSep BiSBM total BICL: ", sum(self$sep_BiSBM_BICL))
+        cat("\nSep BiSBM total BICL: ", sum(self$sep_BiSBM$BICL))
         cat("\ncolBiSBM BICL:", self$best_fit$BICL)
-        if (sum(self$sep_BiSBM_BICL) > self$best_fit$BICL) {
+        if (sum(self$sep_BiSBM$BICL) > self$best_fit$BICL) {
           cat("\nSeparated modelisation preferred.\n")
         } else {
           cat(
