@@ -34,7 +34,6 @@ conditions <- conditions[
     !apply(conditions$pi1[, 1:4] == 0 & conditions$rho2[, 1:4] == 0, 
     1, any),
 ]
-conditions <- conditions[1:5,]
 
 results <- bettermc::mclapply(seq_len(nrow(conditions)), function(c) {
     ea <- conditions[c,]$epsilon_alpha
@@ -208,7 +207,7 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(c) {
         Q2_great = Q2_great,
         row_ARI = row_ARIs,
         col_ARI = col_ARIs,
-        repetition = rep(conditions[c,4], 5)
+        repetition = conditions[c,4]
     )
 
     return(data_frame_output)
