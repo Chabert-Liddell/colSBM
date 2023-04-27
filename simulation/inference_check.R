@@ -18,7 +18,7 @@ pi2 <- rep(0.25, 4)
 base_rho2 <- c(0, 1/3, 1/3, 1/3)
 
 pi1 <- matrix(unlist(combinat::permn(base_pi1)), byrow = TRUE, ncol = 4)
-pi1 <- pi1[!duplicated(pi1),]
+pi1 <- pi1[!duplicated(pi1), ][1:6, ]
 
 rho2 <- matrix(unlist(combinat::permn(base_rho2)), byrow = TRUE, ncol = 4)
 rho2 <- rho2[!duplicated(rho2),]
