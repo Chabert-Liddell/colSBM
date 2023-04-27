@@ -74,60 +74,75 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(c) {
         return(netlist_generated[[m]]$col_clustering)
     })
 
-    fitted_bisbmpop_iid <- estimate_colBiSBM(
-        netlist = netlist,
-        colsbm_model = "iid",
-        silent_parallelization = TRUE,
-        global_opts = list(
-            verbosity = 0,
-            plot_details = 0,
-            nb_cores = parallel::detectCores() - 1
+    fitted_models <- bettermc::mclapply(seq_along(models[-1]), function(s) {
+        estimate_colBiSBM(
+            netlist = netlist,
+            colsbm_model = models[s+1],
+            silent_parallelization = TRUE,
+            global_opts = list(
+                verbosity = 0,
+                plot_details = 0,
+                nb_cores = parallel::detectCores() - 1
+            )
         )
-    )
+    },
+    mc.cores = parallel::detectCores() - 1,
+    mc.progress = FALSE)
 
-    fitted_bisbmpop_pi <- estimate_colBiSBM(
-        netlist = netlist,
-        colsbm_model = "pi",
-        silent_parallelization = TRUE,
-        global_opts = list(
-            verbosity = 0,
-            plot_details = 0,
-            nb_cores = parallel::detectCores() - 1
-        )
-    )
+    # fitted_bisbmpop_iid <- estimate_colBiSBM(
+    #     netlist = netlist,
+    #     colsbm_model = "iid",
+    #     silent_parallelization = TRUE,
+    #     global_opts = list(
+    #         verbosity = 0,
+    #         plot_details = 0,
+    #         nb_cores = parallel::detectCores() - 1
+    #     )
+    # )
 
-    fitted_bisbmpop_rho <- estimate_colBiSBM(
-        netlist = netlist,
-        colsbm_model = "rho",
-        silent_parallelization = TRUE,
-        global_opts = list(
-            verbosity = 0,
-            plot_details = 0,
-            nb_cores = parallel::detectCores() - 1
-        )
-    )
+    # fitted_bisbmpop_pi <- estimate_colBiSBM(
+    #     netlist = netlist,
+    #     colsbm_model = "pi",
+    #     silent_parallelization = TRUE,
+    #     global_opts = list(
+    #         verbosity = 0,
+    #         plot_details = 0,
+    #         nb_cores = parallel::detectCores() - 1
+    #     )
+    # )
 
-    fitted_bisbmpop_pirho <- estimate_colBiSBM(
-        netlist = netlist,
-        colsbm_model = "pirho",
-        silent_parallelization = TRUE,
-        global_opts = list(
-            verbosity = 0,
-            plot_details = 0,
-            nb_cores = parallel::detectCores() - 1
-        )
-    )
+    # fitted_bisbmpop_rho <- estimate_colBiSBM(
+    #     netlist = netlist,
+    #     colsbm_model = "rho",
+    #     silent_parallelization = TRUE,
+    #     global_opts = list(
+    #         verbosity = 0,
+    #         plot_details = 0,
+    #         nb_cores = parallel::detectCores() - 1
+    #     )
+    # )
+
+    # fitted_bisbmpop_pirho <- estimate_colBiSBM(
+    #     netlist = netlist,
+    #     colsbm_model = "pirho",
+    #     silent_parallelization = TRUE,
+    #     global_opts = list(
+    #         verbosity = 0,
+    #         plot_details = 0,
+    #         nb_cores = parallel::detectCores() - 1
+    #     )
+    # )
 
     # BICLs
-    sep_BICL <- sum(fitted_bisbmpop_iid$sep_BiSBM$BICL)
-    iid_BICL <- fitted_bisbmpop_iid$best_fit$BICL
-    pi_BICL <- fitted_bisbmpop_pi$best_fit$BICL
-    rho_BICL <- fitted_bisbmpop_rho$best_fit$BICL
-    pirho_BICL <- fitted_bisbmpop_pirho$best_fit$BICL
+    sep_BICL <- sum(fitted_models[[1]]$sep_BiSBM$BICL)
+    iid_BICL <- fitted_models[[1]]$best_fit$BICL
+    pi_BICL <- fitted_models[[2]]$best_fit$BICL
+    rho_BICL <- fitted_models[[3]]$best_fit$BICL
+    pirho_BICL <- fitted_models[[4]]$best_fit$BICL
     BICLs <- c(sep_BICL, iid_BICL, pi_BICL, rho_BICL, pirho_BICL)
 
     # ARIs
-    print(fitted_bisbmpop_iid$sep_BiSBM$Z)
+    print(fitted_models[[1]]$sep_BiSBM$Z)
     compute_ARI <- function(model, Z) {
         # We compute the mean amongst the two networks and return values for
         # rows and columns in a vector
@@ -138,11 +153,11 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(c) {
             )
         }))
     }
-    sep_ARIs <- compute_ARI(fitted_bisbmpop_iid$sep_BiSBM)
-    iid_ARIs <- compute_ARI(fitted_bisbmpop_iid$best_fit)
-    pi_ARIs <- compute_ARI(fitted_bisbmpop_pi$best_fit)
-    rho_ARIs <- compute_ARI(fitted_bisbmpop_rho$best_fit)
-    pirho_ARIs <- compute_ARI(fitted_bisbmpop_pirho$best_fit)
+    sep_ARIs <- compute_ARI(fitted_models[[1]]$sep_BiSBM)
+    iid_ARIs <- compute_ARI(fitted_models[[1]]$best_fit)
+    pi_ARIs <- compute_ARI(fitted_models[[2]]$best_fit)
+    rho_ARIs <- compute_ARI(fitted_models[[3]]$best_fit)
+    pirho_ARIs <- compute_ARI(fitted_models[[4]]$best_fit)
     row_ARIs <- c(
         sep_ARIs[1], iid_ARIs[1], pi_ARIs[1], 
         rho_ARIs[1], pirho_ARIs[1]
@@ -155,40 +170,40 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(c) {
 
     # Recovered blocks
     ## Less
-    pi_Q1_less <- fitted_bisbmpop_pi$best_fit$Q[1] < 4
-    pi_Q2_less <- fitted_bisbmpop_pi$best_fit$Q[2] < 4
+    pi_Q1_less <- fitted_models[[2]]$best_fit$Q[1] < 4
+    pi_Q2_less <- fitted_models[[2]]$best_fit$Q[2] < 4
 
-    rho_Q1_less <- fitted_bisbmpop_rho$best_fit$Q[1] < 4
-    rho_Q2_less <- fitted_bisbmpop_rho$best_fit$Q[2] < 4
+    rho_Q1_less <- fitted_models[[3]]$best_fit$Q[1] < 4
+    rho_Q2_less <- fitted_models[[3]]$best_fit$Q[2] < 4
 
-    pirho_Q1_less <- fitted_bisbmpop_pirho$best_fit$Q[1] < 4
-    pirho_Q2_less <- fitted_bisbmpop_pirho$best_fit$Q[2] < 4
+    pirho_Q1_less <- fitted_models[[4]]$best_fit$Q[1] < 4
+    pirho_Q2_less <- fitted_models[[4]]$best_fit$Q[2] < 4
 
     Q1_less <- c(NA, NA, pi_Q1_less, rho_Q1_less, pirho_Q1_less)
     Q2_less <- c(NA, NA, pi_Q2_less, rho_Q2_less, pirho_Q2_less)
 
     ## Greater
-    pi_Q1_great <- fitted_bisbmpop_pi$best_fit$Q[1] > 4
-    pi_Q2_great <- fitted_bisbmpop_pi$best_fit$Q[2] > 4
+    pi_Q1_great <- fitted_models[[2]]$best_fit$Q[1] > 4
+    pi_Q2_great <- fitted_models[[2]]$best_fit$Q[2] > 4
 
-    rho_Q1_great <- fitted_bisbmpop_rho$best_fit$Q[1] > 4
-    rho_Q2_great <- fitted_bisbmpop_rho$best_fit$Q[2] > 4
+    rho_Q1_great <- fitted_models[[3]]$best_fit$Q[1] > 4
+    rho_Q2_great <- fitted_models[[3]]$best_fit$Q[2] > 4
 
-    pirho_Q1_great <- fitted_bisbmpop_pirho$best_fit$Q[1] > 4
-    pirho_Q2_great <- fitted_bisbmpop_pirho$best_fit$Q[2] > 4
+    pirho_Q1_great <- fitted_models[[4]]$best_fit$Q[1] > 4
+    pirho_Q2_great <- fitted_models[[4]]$best_fit$Q[2] > 4
 
     Q1_great <- c(NA, NA, pi_Q1_great, rho_Q1_great, pirho_Q1_great)
     Q2_great <- c(NA, NA, pi_Q2_great, rho_Q2_great, pirho_Q2_great)
 
     ## Equals
-    pi_Q1_equal <- fitted_bisbmpop_pi$best_fit$Q[1] == 4
-    pi_Q2_equal <- fitted_bisbmpop_pi$best_fit$Q[2] == 4
+    pi_Q1_equal <- fitted_models[[2]]$best_fit$Q[1] == 4
+    pi_Q2_equal <- fitted_models[[2]]$best_fit$Q[2] == 4
 
-    rho_Q1_equal <- fitted_bisbmpop_rho$best_fit$Q[1] == 4
-    rho_Q2_equal <- fitted_bisbmpop_rho$best_fit$Q[2] == 4
+    rho_Q1_equal <- fitted_models[[3]]$best_fit$Q[1] == 4
+    rho_Q2_equal <- fitted_models[[3]]$best_fit$Q[2] == 4
 
-    pirho_Q1_equal <- fitted_bisbmpop_pirho$best_fit$Q[1] == 4
-    pirho_Q2_equal <- fitted_bisbmpop_pirho$best_fit$Q[2] == 4
+    pirho_Q1_equal <- fitted_models[[4]]$best_fit$Q[1] == 4
+    pirho_Q2_equal <- fitted_models[[4]]$best_fit$Q[2] == 4
 
     Q1_equal <- c(NA, NA, pi_Q1_equal, rho_Q1_equal, pirho_Q1_equal)
     Q2_equal <- c(NA, NA, pi_Q2_equal, rho_Q2_equal, pirho_Q2_equal)
