@@ -428,7 +428,9 @@ estimate_colBiSBM <-
               # The best in the sense of the BICL is chosen
               bisbmpop$model_list[[q1, q2]] <-
                 models_comparison[which.max(
-                  vapply(models_comparison, function(model) model$BICL)
+                  vapply(models_comparison, function(model) model$BICL,
+                    FUN.VALUE = .1
+                  )
                 )]
 
               # The same procedure is applied for the
@@ -438,8 +440,11 @@ estimate_colBiSBM <-
                   function(fit) fit$discarded_model_list[[q1, q2]]
                 )))
               bisbmpop$discarded_model_list[[q1, q2]] <-
-                discarded_models_comparison[which.max(
-                  vapply(discarded_models_comparison, function(model) model$BICL)
+                discarded_models_comparison[order(
+                  vapply(discarded_models_comparison,
+                    function(model) model$BICL,
+                    FUN.VALUE = .1),
+                  decreasing = TRUE
                 )]
             }
           }
