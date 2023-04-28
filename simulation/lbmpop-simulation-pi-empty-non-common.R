@@ -52,19 +52,12 @@ Z <- lapply(seq.int(M), function(m) {
     list(bipartite_collection[[m]]$row_clustering, bipartite_collection[[m]]$col_clustering)
 })
 
-mybisbmpop <- bisbmpop$new(
-    netlist = bipartite_collection_incidence,
-    free_mixture_row = TRUE,
-    global_opts = list(nb_cores = 6, verbosity = 4)
+
+mybisbmpop <- estimate_colBiSBM(
+    netlist = bipartite_collection_incidence, 
+    colsbm_model = "pi", 
+    global_opts = list(nb_cores = 3)
 )
-
-mybisbmpop$optimize()
-
-# choosed_bisbmpop <- estimate_colBiSBM(
-#     netlist = bipartite_collection_incidence, 
-#     colsbm_model = "iid", 
-#     global_opts = list(nb_cores = 3)
-# )
 
 # ari_sums <- sapply(
 #     seq_along(choosed_bisbmpop$best_fit$Z),

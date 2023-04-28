@@ -47,26 +47,17 @@ bipartite_collection_incidence <- lapply(seq.int(M), function(m) {
 ## Init given with exact membership
 
 Z <- lapply(seq.int(M), function(m) {
-    list(bipartite_collection[[m]]$row_clustering, bipartite_collection[[m]]$col_clustering)
+    list(
+        bipartite_collection[[m]]$row_clustering,
+        bipartite_collection[[m]]$col_clustering
+    )
 })
 
-mybisbmpop <- bisbmpop$new(
-    netlist = bipartite_collection_incidence,
-    free_mixture_col = TRUE,
-    global_opts = list(
-        nb_cores = parallel::detectCores() - 1,
-        verbosity = 4,
-        parallelization_vector = c(FALSE, TRUE)
-    )
+mybisbmpop <- estimate_colBiSBM(
+    netlist = bipartite_collection_incidence, 
+    colsbm_model = "rho", 
+    global_opts = list(nb_cores = parallel::detectCores() - 1)
 )
-
-mybisbmpop$optimize()
-
-# choosed_bisbmpop <- estimate_colBiSBM(
-#     netlist = bipartite_collection_incidence, 
-#     colsbm_model = "iid", 
-#     global_opts = list(nb_cores = 3)
-# )
 
 ari_sums <- sapply(
     seq_along(mybisbmpop$best_fit$Z),
