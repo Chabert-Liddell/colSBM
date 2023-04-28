@@ -8,9 +8,6 @@ devtools::load_all(path = "R/")
 
 tic()
 
-verbose <- TRUE
-test_alea <- TRUE
-
 eps <- 0.05
 M <- 2
 nr <- 100
@@ -51,19 +48,15 @@ Z <- lapply(seq.int(M), function(m) {
     list(bipartite_collection[[m]]$row_clustering, bipartite_collection[[m]]$col_clustering)
 })
 
-# mybisbmpop <- bisbmpop$new(
-#     netlist = bipartite_collection_incidence,
-#     free_mixture_row = TRUE,
-#     free_mixture_col = TRUE,
-#     global_opts = list(nb_cores = 6, verbosity = 4)
-# )
-
-# mybisbmpop$optimize()
-
 mybisbmpop <- estimate_colBiSBM(
-    netlist = bipartite_collection_incidence, 
-    colsbm_model = "pirho", 
-    global_opts = list(nb_cores = parallel::detectCores() - 1)
+    netlist = bipartite_collection_incidence,
+    colsbm_model = "pirho",
+    silent_parallelization = FALSE,
+    global_opts = list(
+        nb_cores = parallel::detectCores() - 1, 
+        verbosity = 4,
+        parallelization_vector = c(TRUE, TRUE, FALSE)
+    )
 )
 
 ari_sums <- sapply(

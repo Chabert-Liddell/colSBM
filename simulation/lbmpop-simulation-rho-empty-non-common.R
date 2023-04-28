@@ -53,7 +53,11 @@ Z <- lapply(seq.int(M), function(m) {
 mybisbmpop <- bisbmpop$new(
     netlist = bipartite_collection_incidence,
     free_mixture_col = TRUE,
-    global_opts = list(nb_cores = 6, verbosity = 4)
+    global_opts = list(
+        nb_cores = parallel::detectCores() - 1,
+        verbosity = 4,
+        parallelization_vector = c(FALSE, TRUE)
+    )
 )
 
 mybisbmpop$optimize()
