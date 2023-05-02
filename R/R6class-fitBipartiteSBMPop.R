@@ -826,8 +826,37 @@ fitBipartiteSBMPop <- R6::R6Class(
       }
       if (! MAP) {
         if (self$free_mixture_row | self$free_mixture_col) {
+          # TODO : Can remove  the outer OR if and else to use the below
           # If free_mixture the pi are the pim
-          self$pi <- self$pim
+          if (self$free_mixture_row) {
+            for (m in seq.int(self$M)) {
+              self$pi[[m]][[1]] <- self$pim[[m]][[1]]
+            }
+          } else {
+            # No free_mixture on row so averaging on pi[[m]][[1]]
+            pi1 <- matrix(self$n[[1]] * vapply(seq(self$M), function(m) {
+              self$pim[[m]][[1]]
+            }, FUN.VALUE = rep(.1, self$Q[1])), ncol = self$M, nrow = self$Q[1])
+            pi1 <- matrix(rowSums(pi1) / sum(pi1), nrow = 1)
+            for (m in seq.int(self$M)) {
+              self$pi[[m]][[1]] <- pi1
+            }
+          }
+
+          if (self$free_mixture_col) {
+            for (m in seq.int(self$M)) {
+              self$pi[[m]][[2]] <- self$pim[[m]][[2]]
+            }
+          } else {
+            # No free_mixture on col so averaging on pi[[m]][[2]]
+            pi2 <- matrix(self$n[[2]] * vapply(seq(self$M), function(m) {
+              self$pim[[m]][[2]]
+            }, FUN.VALUE = rep(.1, self$Q[2])), ncol = self$M, nrow = self$Q[2])
+            pi2 <- matrix(rowSums(pi2) / sum(pi2), nrow = 1)
+            for (m in seq.int(self$M)) {
+              self$pi[[m]][[2]] <- pi2
+            }
+          }
         } else {
           # Otherwise we need to ponder based on the size for
           # Rows
