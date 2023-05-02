@@ -35,6 +35,13 @@ conditions <- conditions[
     1, any),
 ]
 
+# To speed up computations and debug adding a random selection
+choosed_conditions <- sample(seq_len(nrow(conditions)),
+    size = 10,
+    replace = FALSE, prob = NULL
+)
+conditions <- conditions[choosed_conditions,]
+
 results <- bettermc::mclapply(seq_len(nrow(conditions)), function(c) {
     ea <- conditions[c,]$epsilon_alpha
     current_pi1 <- conditions[c, ]$pi1
@@ -222,5 +229,8 @@ mc.progress = TRUE)
 full_data_frame <- do.call(rbind, results)
 
 saveRDS(full_data_frame,
-    file = paste0("./simulation/data/inference_testing_", Sys.time(), ".Rds")
+    file = paste0(
+        "./simulation/data/inference_testing_",
+        Sys.time(), , "_", toString(choosed_conditions), ".Rds"
+    )
 )
