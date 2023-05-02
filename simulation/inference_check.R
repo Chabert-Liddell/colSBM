@@ -231,6 +231,6 @@ full_data_frame <- do.call(rbind, results)
 saveRDS(full_data_frame,
     file = paste0(
         "./simulation/data/inference_testing_",
-        Sys.time(), , "_", toString(choosed_conditions), ".Rds"
+        Sys.time(), "_", toString(choosed_conditions), ".Rds"
     )
 )
