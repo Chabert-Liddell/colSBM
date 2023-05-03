@@ -333,7 +333,6 @@ fitBipartiteSBMPop <- R6::R6Class(
       )
     },
     vb_tau_pi = function(m, MAP = FALSE) {
-      TRUE
       if (!MAP) {
         sum(self$tau[[m]][[1]][,which(self$Cpi[[1]][,m])] %*% 
           matrix(log(self$pi[[m]][[1]][which(self$Cpi[[1]][,m])]))) +
