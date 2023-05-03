@@ -279,7 +279,7 @@ bisbmpop <- R6::R6Class(
 
                     # Compute the support for the rows
                     if (self$free_mixture_row) {
-                      if (self$global_opts$verbosity >= 5) {
+                      if (self$global_opts$verbosity >= 4) {
                         cat(
                           "\n\t\tFree mixture on the row, minimum pi threshold : ",
                           emptiness_levels[l]
@@ -298,7 +298,7 @@ bisbmpop <- R6::R6Class(
 
                     # Compute the support for the columns
                     if (self$free_mixture_col) {
-                      if (self$global_opts$verbosity >= 5) {
+                      if (self$global_opts$verbosity >= 4) {
                         cat(
                           "\n\t\tFree mixture on the columns, minimum rho threshold : ",
                           emptiness_levels[l]
@@ -324,7 +324,8 @@ bisbmpop <- R6::R6Class(
                     q_th_model_with_supports$Calpha <-
                       tcrossprod(Cpi[[1]], Cpi[[2]]) > 0
                     q_th_model_with_supports$init_method <- "empty"
-                    if (self$global_opts$verbosity >= 4) {
+                    if (self$free_mixture_row | self$free_mixture_col | 
+                        self$global_opts$verbosity >= 4) {
                       cat(
                         "\n\t\tFitting with threshold : ",
                         emptiness_levels[l],
@@ -347,7 +348,7 @@ bisbmpop <- R6::R6Class(
 
                     # Compute the support for the rows
                     if (self$free_mixture_row) {
-                      if (self$global_opts$verbosity >= 5) {
+                      if (self$global_opts$verbosity >= 4) {
                         cat(
                           "\n\t\tFree mixture on the row, minimum pi threshold : ",
                           emptiness_levels[l]
