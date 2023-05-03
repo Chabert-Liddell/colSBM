@@ -23,8 +23,6 @@ pi1 <- pi1[!duplicated(pi1), ][1:4, ]
 rho2 <- matrix(unlist(combinat::permn(base_rho2)), byrow = TRUE, ncol = 4)
 rho2 <- rho2[!duplicated(rho2),]
 
-models <- c("sep","iid", "pi", "rho", "pirho")
-
 repetition <- seq.int(3)
 
 conditions <- tidyr::crossing(epsilon_alpha, pi1, rho2, repetition)
@@ -44,12 +42,12 @@ if (identical(arg, character(0))) {
     )
     arg <- c(1, nrow(conditions))
 }
-if (arg[1] < 1) {
-    warning(paste("Arg 1 was inferior to 1\nSet to it."))
+if (arg[1] < 1 | arg[1] > nrow(conditions)) {
+    warning(paste("Arg 1 was invalid, set to 1."))
     arg[1] <- 1
 }
-if (arg[2] > nrow(conditions)) {
-    warning(paste("Arg 2 was superior to", nrow(conditions), "\nSet to it."))
+if (arg[2] > nrow(conditions) | arg[2] < 1) {
+    warning(paste("Arg 2 was invalid, set to", nrow(conditions)))
     arg[2] <- nrow(conditions)
 }
 
@@ -95,6 +93,16 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(c) {
     col_clusterings <- lapply(seq_along(netlist_generated), function(m) {
         return(netlist_generated[[m]]$col_clustering)
     })
+
+    full_row_clustering <- as.vector(sapply(
+        seq.int(model$M),
+        function(m) row_clusterings[[m]]
+    ))
+
+    full_col_clustering <- as.vector(sapply(
+        seq.int(model$M),
+        function(m) col_clusterings[[m]]
+    ))
 
     fitted_bisbmpop_iid <- estimate_colBiSBM(
         netlist = netlist,
@@ -153,10 +161,14 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(c) {
     BICLs <- c(sep_BICL, iid_BICL, pi_BICL, rho_BICL, pirho_BICL)
 
     # ARIs
-    print(fitted_bisbmpop_iid$sep_BiSBM$Z)
-    compute_ARI <- function(model, Z) {
+    compute_mean_ARI <- function(model, Z) {
         # We compute the mean amongst the two networks and return values for
         # rows and columns in a vector
+        # sapply ives a matrix with in row the axis ARIs
+        # and in columns the networks
+        #    1     2
+        # ax row1  row2
+        # ay col1  col2
         rowMeans(sapply(seq.int(model$M), function(m) {
             c(
                 aricode::ARI(model$Z[[m]][[1]], row_clusterings[[m]]),
@@ -164,76 +176,84 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(c) {
             )
         }))
     }
-    sep_ARIs <- compute_ARI(fitted_bisbmpop_iid$sep_BiSBM)
-    iid_ARIs <- compute_ARI(fitted_bisbmpop_iid$best_fit)
-    pi_ARIs <- compute_ARI(fitted_bisbmpop_pi$best_fit)
-    rho_ARIs <- compute_ARI(fitted_bisbmpop_rho$best_fit)
-    pirho_ARIs <- compute_ARI(fitted_bisbmpop_pirho$best_fit)
-    row_ARIs <- c(
-        sep_ARIs[1], iid_ARIs[1], pi_ARIs[1], 
-        rho_ARIs[1], pirho_ARIs[1]
-    )
+    sep_mean_ARIs <- compute_mean_ARI(fitted_bisbmpop_iid$sep_BiSBM)
+    iid_mean_ARIs <- compute_mean_ARI(fitted_bisbmpop_iid$best_fit)
+    pi_mean_ARIs <- compute_mean_ARI(fitted_bisbmpop_pi$best_fit)
+    rho_mean_ARIs <- compute_mean_ARI(fitted_bisbmpop_rho$best_fit)
+    pirho_mean_ARIs <- compute_mean_ARI(fitted_bisbmpop_pirho$best_fit)
 
-    col_ARIs <- c(
-        sep_ARIs[2], iid_ARIs[2], pi_ARIs[2],
-        rho_ARIs[2], pirho_ARIs[2]
-    )
+    compute_double_ARI <- function(model) {
+        model_row_Z <- as.vector(sapply(
+            seq.int(model$M),
+            function(m) model$Z[[m]][[1]]
+        ))
 
-    # Recovered blocks
-    ## Less
-    pi_Q1_less <- fitted_bisbmpop_pi$best_fit$Q[1] < 4
-    pi_Q2_less <- fitted_bisbmpop_pi$best_fit$Q[2] < 4
+        model_col_Z <- as.vector(sapply(
+            seq.int(model$M),
+            function(m) model$Z[[m]][[2]]
+        ))
 
-    rho_Q1_less <- fitted_bisbmpop_rho$best_fit$Q[1] < 4
-    rho_Q2_less <- fitted_bisbmpop_rho$best_fit$Q[2] < 4
+        return(list(
+            aricode::ARI(model_row_Z, full_row_clustering),
+            aricode::ARI(model_col_Z, full_col_clustering)
+        ))
+    }
 
-    pirho_Q1_less <- fitted_bisbmpop_pirho$best_fit$Q[1] < 4
-    pirho_Q2_less <- fitted_bisbmpop_pirho$best_fit$Q[2] < 4
-
-    Q1_less <- c(NA, NA, pi_Q1_less, rho_Q1_less, pirho_Q1_less)
-    Q2_less <- c(NA, NA, pi_Q2_less, rho_Q2_less, pirho_Q2_less)
-
-    ## Greater
-    pi_Q1_great <- fitted_bisbmpop_pi$best_fit$Q[1] > 4
-    pi_Q2_great <- fitted_bisbmpop_pi$best_fit$Q[2] > 4
-
-    rho_Q1_great <- fitted_bisbmpop_rho$best_fit$Q[1] > 4
-    rho_Q2_great <- fitted_bisbmpop_rho$best_fit$Q[2] > 4
-
-    pirho_Q1_great <- fitted_bisbmpop_pirho$best_fit$Q[1] > 4
-    pirho_Q2_great <- fitted_bisbmpop_pirho$best_fit$Q[2] > 4
-
-    Q1_great <- c(NA, NA, pi_Q1_great, rho_Q1_great, pirho_Q1_great)
-    Q2_great <- c(NA, NA, pi_Q2_great, rho_Q2_great, pirho_Q2_great)
-
-    ## Equals
-    pi_Q1_equal <- fitted_bisbmpop_pi$best_fit$Q[1] == 4
-    pi_Q2_equal <- fitted_bisbmpop_pi$best_fit$Q[2] == 4
-
-    rho_Q1_equal <- fitted_bisbmpop_rho$best_fit$Q[1] == 4
-    rho_Q2_equal <- fitted_bisbmpop_rho$best_fit$Q[2] == 4
-
-    pirho_Q1_equal <- fitted_bisbmpop_pirho$best_fit$Q[1] == 4
-    pirho_Q2_equal <- fitted_bisbmpop_pirho$best_fit$Q[2] == 4
-
-    Q1_equal <- c(NA, NA, pi_Q1_equal, rho_Q1_equal, pirho_Q1_equal)
-    Q2_equal <- c(NA, NA, pi_Q2_equal, rho_Q2_equal, pirho_Q2_equal)
+    sep_double_ARIs <- compute_double_ARI(fitted_bisbmpop_iid$sep_BiSBM)
+    iid_double_ARIs <- compute_double_ARI(fitted_bisbmpop_iid$best_fit)
+    pi_double_ARIs <- compute_double_ARI(fitted_bisbmpop_pi$best_fit)
+    rho_double_ARIs <- compute_double_ARI(fitted_bisbmpop_rho$best_fit)
+    pirho_double_ARIs <- compute_double_ARI(fitted_bisbmpop_pirho$best_fit)
 
     data_frame_output <- data.frame(
-        epsilon_alpha = rep(ea, 5),
+        # The conditions
+        epsilon_alpha = ea,
         pi1 = matrix(current_pi1, nrow = 1),
         rho2 = matrix(current_rho2, nrow = 1),
-        model = models,
-        BICL = BICLs,
-        Q1_less = Q1_less,
-        Q1_equal = Q1_equal,
-        Q1_great = Q1_great,
-        Q2_less = Q2_less,
-        Q2_equal = Q2_equal,
-        Q2_great = Q2_great,
-        row_ARI = row_ARIs,
-        col_ARI = col_ARIs,
-        repetition = conditions[c,4]
+        repetition = conditions[c, 4],
+        # The results
+        ## sep
+        sep_BICL = sep_BICL,
+        sep_mean_row_ARI = sep_mean_ARIs[1],
+        sep_mean_col_ARI = sep_mean_ARIs[2],
+        sep_double_row_ARI = sep_double_ARIs[1],
+        sep_double_col_ARI = sep_double_ARIs[2],
+        
+        ## iid
+        iid_BICL = iid_BICL,
+        iid_mean_row_ARI = iid_mean_ARIs[1],
+        iid_mean_col_ARI = iid_mean_ARIs[2],
+        iid_double_row_ARI = iid_double_ARIs[1],
+        iid_double_col_ARI = iid_double_ARIs[2],
+        iid_Q1 = fitted_bisbmpop_iid$Q[1],
+        iid_Q2 = fitted_bisbmpop_iid$Q[2],
+
+        ## pi
+        pi_BICL = pi_BICL,
+        pi_mean_row_ARI = pi_mean_ARIs[1],
+        pi_mean_col_ARI = pi_mean_ARIs[2],
+        pi_double_row_ARI = pi_double_ARIs[1],
+        pi_double_col_ARI = pi_double_ARIs[2],
+        pi_Q1 = fitted_bisbmpop_pi$best_fit$Q[1],
+        pi_Q2 = fitted_bisbmpop_pi$best_fit$Q[2],
+
+        ## pi
+        rho_BICL = rho_BICL,
+        rho_mean_row_ARI = rho_mean_ARIs[1],
+        rho_mean_col_ARI = rho_mean_ARIs[2],
+        rho_double_row_ARI = rho_double_ARIs[1],
+        rho_double_col_ARI = rho_double_ARIs[2],
+        rho_Q1 = fitted_bisbmpop_rho$best_fit$Q[1],
+        rho_Q2 = fitted_bisbmpop_rho$best_fit$Q[2],
+
+        ## pirho
+        pirho_BICL = pirho_BICL,
+        pirho_mean_row_ARI = pirho_mean_ARIs[1],
+        pirho_mean_col_ARI = pirho_mean_ARIs[2],
+        pirho_double_row_ARI = pirho_double_ARIs[1],
+        pirho_double_col_ARI = pirho_double_ARIs[2],
+        pirho_Q1 = fitted_bisbmpop_pirho$best_fit$Q[1],
+        pirho_Q2 = fitted_bisbmpop_pirho$best_fit$Q[2]
     )
 
     return(data_frame_output)
