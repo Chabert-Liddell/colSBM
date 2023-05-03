@@ -35,11 +35,26 @@ conditions <- conditions[
     1, any),
 ]
 
-# To speed up computations and debug adding a random selection
-choosed_conditions <- sample(seq_len(nrow(conditions)),
-    size = 10,
-    replace = FALSE, prob = NULL
-)
+# To speed up computations and debug adding an argument based selection
+arg <- commandArgs(trailingOnly = TRUE)
+if (identical(arg, character(0))) {
+    cat(
+        "\nNo arguments provided,",
+        "assuming you want to go over all the conditions."
+    )
+    arg <- c(1, nrow(conditions))
+}
+if (arg[1] < 1) {
+    warning(paste("Arg 1 was inferior to 1\nSet to it."))
+    arg[1] <- 1
+}
+if (arg[2] > nrow(conditions)) {
+    warning(paste("Arg 2 was superior to", nrow(conditions), "\nSet to it."))
+    arg[2] <- nrow(conditions)
+}
+
+choosed_conditions <- seq.int(from = arg[1], to = arg[2])
+
 conditions <- conditions[choosed_conditions,]
 
 results <- bettermc::mclapply(seq_len(nrow(conditions)), function(c) {
