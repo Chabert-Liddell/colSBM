@@ -104,8 +104,8 @@ mybisbmpop <- estimate_colBiSBM(
     silent_parallelization = FALSE,
     global_opts = list(
         nb_cores = parallel::detectCores() - 1,
-        verbosity = 4,
-        parallelization_vector = c(TRUE, FALSE, FALSE)
+        verbosity = 1,
+        parallelization_vector = c(TRUE, TRUE, FALSE)
     )
 )
 
@@ -115,8 +115,8 @@ mybisbmpop1 <- estimate_colBiSBM(
     silent_parallelization = FALSE,
     global_opts = list(
         nb_cores = parallel::detectCores() - 1, 
-        verbosity = 4,
-        parallelization_vector = c(TRUE, FALSE, FALSE)
+        verbosity = 1,
+        parallelization_vector = c(TRUE, TRUE, FALSE)
     )
 )
 
@@ -126,8 +126,8 @@ mybisbmpop2 <- estimate_colBiSBM(
     silent_parallelization = FALSE,
     global_opts = list(
         nb_cores = parallel::detectCores() - 1,
-        verbosity = 4,
-        parallelization_vector = c(TRUE, FALSE, FALSE)
+        verbosity = 1,
+        parallelization_vector = c(TRUE, TRUE, FALSE)
     )
 )
 
@@ -137,8 +137,8 @@ mybisbmpop3 <- estimate_colBiSBM(
     silent_parallelization = FALSE,
     global_opts = list(
         nb_cores = parallel::detectCores() - 1,
-        verbosity = 4,
-        parallelization_vector = c(TRUE, FALSE, FALSE)
+        verbosity = 1,
+        parallelization_vector = c(TRUE, TRUE, FALSE)
     )
 )
 
