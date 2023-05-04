@@ -26,7 +26,7 @@ Q <- c(length(pir1), length(pic1))
 
 alpha <- matrix(
     c( # 12   2    1
-        0.6, eps, eps,# 12
+        0.6, 0.25, eps,# 12
         eps, 0.8, 0,# 2
         0.2, 0, 0.4 # 1NB
     ), nrow = Q[1], ncol = Q[2], byrow = TRUE
@@ -105,7 +105,7 @@ mybisbmpop <- estimate_colBiSBM(
     global_opts = list(
         nb_cores = parallel::detectCores() - 1,
         verbosity = 4,
-        parallelization_vector = c(TRUE, TRUE, FALSE)
+        parallelization_vector = c(TRUE, FALSE, FALSE)
     )
 )
 
@@ -116,7 +116,7 @@ mybisbmpop1 <- estimate_colBiSBM(
     global_opts = list(
         nb_cores = parallel::detectCores() - 1, 
         verbosity = 4,
-        parallelization_vector = c(TRUE, TRUE, FALSE)
+        parallelization_vector = c(TRUE, FALSE, FALSE)
     )
 )
 
@@ -127,7 +127,7 @@ mybisbmpop2 <- estimate_colBiSBM(
     global_opts = list(
         nb_cores = parallel::detectCores() - 1,
         verbosity = 4,
-        parallelization_vector = c(TRUE, TRUE, FALSE)
+        parallelization_vector = c(TRUE, FALSE, FALSE)
     )
 )
 
@@ -138,7 +138,7 @@ mybisbmpop3 <- estimate_colBiSBM(
     global_opts = list(
         nb_cores = parallel::detectCores() - 1,
         verbosity = 4,
-        parallelization_vector = c(TRUE, TRUE, FALSE)
+        parallelization_vector = c(TRUE, FALSE, FALSE)
     )
 )
 
