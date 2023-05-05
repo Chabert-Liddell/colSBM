@@ -338,6 +338,7 @@ bisbmpop <- R6::R6Class(
                   mc.cores = self$global_opts$nb_cores,
                   mc.allow.recursive = TRUE,
                   mc.silent = TRUE,
+                  mc.retry = -1, # To prevent big crash
                   mc.progress = FALSE
                 )
               } else {
@@ -419,6 +420,7 @@ bisbmpop <- R6::R6Class(
           mc.cores = self$global_opts$nb_cores,
           mc.allow.recursive = TRUE,
           mc.silent = TRUE,
+          mc.retry = -1, # To prevent big crash
           mc.progress = FALSE
         )
       } 
@@ -532,6 +534,7 @@ bisbmpop <- R6::R6Class(
                 mc.cores = self$global_opts$nb_cores,
                 mc.allow.recursive = TRUE,
                 mc.silent = TRUE,
+                mc.retry = -1, # To prevent big crash
                 mc.progress = FALSE
               )
             } else {
@@ -807,6 +810,7 @@ bisbmpop <- R6::R6Class(
               },
               mc.cores = self$global_opts$nb_cores,
               mc.silent = TRUE,
+              mc.retry = -1, # To prevent big crash
               mc.allow.recursive = TRUE)
           } else {
             models_with_different_emptiness_levels <- lapply(
@@ -886,6 +890,7 @@ bisbmpop <- R6::R6Class(
         mc.cores = self$global_opts$nb_cores,
         mc.allow.recursive = TRUE,
         mc.silent = TRUE,
+        mc.retry = -1, # To prevent big crash
         mc.progress = FALSE
       )
       } else {
@@ -1000,6 +1005,7 @@ bisbmpop <- R6::R6Class(
             },
             mc.cores = self$global_opts$nb_cores,
             mc.silent = TRUE,
+            mc.retry = -1, # To prevent big crash
             mc.allow.recursive = TRUE
           )
         } else {

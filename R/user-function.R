@@ -377,6 +377,7 @@ estimate_colBiSBM <-
             mc.progress = !silent_parallelization,
             mc.cores = min(nb_run, nb_cores),
             mc.stdout = "output",
+            mc.retry = -1, # To prevent big crash
             mc.silent = silent_parallelization
           )
       } else {
