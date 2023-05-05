@@ -43,7 +43,12 @@ if (!file.exists("simulation/data/dore-matrices.Rds")) {
     incidence_matrices <- readRDS(file = "simulation/data/dore-matrices.Rds")
 }
 
-number_of_net <- length(incidence_matrices)
+arg <- commandArgs(trailingOnly = TRUE)
+if (identical(arg, character(0))) {
+    number_of_net <- length(incidence_matrices)
+} else {
+    number_of_net <- as.numeric(arg)
+}
 
 list_collection <- clusterize_bipartite_networks(
     netlist = incidence_matrices[1:number_of_net],
