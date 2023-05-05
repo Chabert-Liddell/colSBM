@@ -2433,17 +2433,23 @@ bisbmpop <- R6::R6Class(
       }
 
       if (self$global_opts$verbosity >= 1) {
-        cat("\n==== Best fits criterion for the ", self$M, "networks ====")
-        cat("\nSep BiSBM total BICL: ", sum(self$sep_BiSBM$BICL))
-        cat("\ncolBiSBM BICL:", self$best_fit$BICL)
-        if (sum(self$sep_BiSBM$BICL) > self$best_fit$BICL) {
-          cat("\nSeparated modelisation preferred.\n")
+        if (self$M > 1) {
+          cat("\n==== Best fits criterion for the", self$M, "networks ====")
+          cat("\nSep BiSBM total BICL: ", sum(self$sep_BiSBM$BICL))
+          cat("\ncolBiSBM BICL:", self$best_fit$BICL)
+          if (sum(self$sep_BiSBM$BICL) > self$best_fit$BICL) {
+            cat("\nSeparated modelisation preferred.\n")
+          } else {
+            cat(
+              "\nJoint modelisation preferred. With Q = (",
+              toString(self$best_fit$Q),
+              ").\n"
+            )
+          }
         } else {
-          cat(
-            "\nJoint modelisation preferred. With Q = (",
-            toString(self$best_fit$Q),
-            ").\n"
-          )
+          cat("\n==== Best fits criterion for the network ====")
+          cat("\nOnly 1 network")
+          cat("\nSep BiSBM total BICL: ", sum(self$sep_BiSBM$BICL))
         }
       }
     },

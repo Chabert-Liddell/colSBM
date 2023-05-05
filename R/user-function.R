@@ -459,7 +459,7 @@ estimate_colBiSBM <-
       rm(tmp_fits)
       gc()
       # At the end we show the results
-      if (global_opts$verbosity >= 1) {
+      if (global_opts$verbosity >= 1 & nb_run > 1) {
         cat(
           "\nAfter merging the", nb_run, "model runs,",
           "the criteria are the following:\n"

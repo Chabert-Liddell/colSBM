@@ -430,9 +430,9 @@ clusterize_bipartite_networks <- function(netlist,
                           full_inference = FALSE) {
 
   if (global_opts$verbosity >= 1) {
-    cat("\n=== Fitting the full collection ===\n")
+    cat(paste0("\n=== Fitting the full (M = ", length(netlist), ") collection ===\n"))
   }
-  my_bisbmpop <- colSBM::estimate_colBiSBM(
+  my_bisbmpop <- estimate_colBiSBM(
     netlist = netlist,
     colsbm_model = colsbm_model,
     net_id = net_id,
@@ -530,8 +530,13 @@ clusterize_bipartite_networks <- function(netlist,
           # is a member of cluster k
           # Here there are the min between sum(cl == k), ie the number of
           # networks part of the cluster that are fitted vs nb_run
-
-          return(colSBM::estimate_colBiSBM(
+          if (global_opts$verbosity >= 1) {
+            cat(
+              "\nFitting a sub collection with :",
+              toString(fit$net_id[cl == k]), "\n"
+            )
+          }
+          return(estimate_colBiSBM(
             netlist = fit$A[cl == k],
             colsbm_model = colsbm_model,
             net_id = fit$net_id[cl == k],
