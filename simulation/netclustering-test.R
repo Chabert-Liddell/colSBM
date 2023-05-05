@@ -43,7 +43,10 @@ if (!file.exists("simulation/data/dore-matrices.Rds")) {
     incidence_matrices <- readRDS(file = "simulation/data/dore-matrices.Rds")
 }
 
-arg <- commandArgs(trailingOnly = TRUE)
+if (!exists("arg")) {
+    arg <- commandArgs(trailingOnly = TRUE)
+}
+
 if (identical(arg, character(0))) {
     number_of_net <- length(incidence_matrices)
 } else {

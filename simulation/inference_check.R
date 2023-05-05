@@ -35,7 +35,9 @@ conditions <- conditions[
 ]
 
 # To speed up computations and debug adding an argument based selection
-arg <- commandArgs(trailingOnly = TRUE)
+if (!exists("arg")) {
+    arg <- commandArgs(trailingOnly = TRUE)
+}
 if (identical(arg, character(0))) {
     cat(
         "\nNo arguments provided,",
