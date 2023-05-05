@@ -1,5 +1,6 @@
 require("bettermc")
 require("gtools")
+require("tictoc")
 devtools::load_all("R/")
 
 # Network param
@@ -54,11 +55,11 @@ if (arg[2] > nrow(conditions) | arg[2] < 1) {
 choosed_conditions <- seq.int(from = arg[1], to = arg[2])
 
 conditions <- conditions[choosed_conditions,]
-
-results <- bettermc::mclapply(seq_len(nrow(conditions)), function(c) {
-    ea <- conditions[c,]$epsilon_alpha
-    current_pi1 <- conditions[c, ]$pi1
-    current_rho2 <- conditions[c,]$rho2
+tic()
+results <- bettermc::mclapply(seq_len(nrow(conditions)), function(s) {
+    ea <- conditions[s,]$epsilon_alpha
+    current_pi1 <- conditions[s, ]$pi1
+    current_rho2 <- conditions[s,]$rho2
     
     current_alpha <- base_alpha + matrix(c(
                             3 * ea, 2 * ea, ea, -ea,
@@ -74,11 +75,11 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(c) {
 
     netlist_generated <- list(
         generate_bipartite_network(
-            nr, nc, conditions[c, ]$pi1, rho1,
+            nr, nc, conditions[s, ]$pi1, rho1,
             current_alpha
         ),
         generate_bipartite_network(
-            nr, nc, pi2, conditions[c, ]$rho2,
+            nr, nc, pi2, conditions[s, ]$rho2,
             current_alpha
         )
     )
@@ -95,12 +96,12 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(c) {
     })
 
     full_row_clustering <- as.vector(sapply(
-        seq.int(model$M),
+        seq.int(M),
         function(m) row_clusterings[[m]]
     ))
 
     full_col_clustering <- as.vector(sapply(
-        seq.int(model$M),
+        seq.int(M),
         function(m) col_clusterings[[m]]
     ))
 
@@ -161,7 +162,7 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(c) {
     BICLs <- c(sep_BICL, iid_BICL, pi_BICL, rho_BICL, pirho_BICL)
 
     # ARIs
-    compute_mean_ARI <- function(model, Z) {
+    compute_mean_ARI <- function(model) {
         # We compute the mean amongst the two networks and return values for
         # rows and columns in a vector
         # sapply ives a matrix with in row the axis ARIs
@@ -208,32 +209,32 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(c) {
     data_frame_output <- data.frame(
         # The conditions
         epsilon_alpha = ea,
-        pi1 = matrix(current_pi1, nrow = 1),
-        rho2 = matrix(current_rho2, nrow = 1),
-        repetition = conditions[c, 4],
+        pi1 = current_pi1,
+        rho2 = current_rho2,
+        repetition = as.numeric(conditions[s, 4]),
         # The results
         ## sep
         sep_BICL = sep_BICL,
         sep_mean_row_ARI = sep_mean_ARIs[1],
         sep_mean_col_ARI = sep_mean_ARIs[2],
-        sep_double_row_ARI = sep_double_ARIs[1],
-        sep_double_col_ARI = sep_double_ARIs[2],
-        
+        sep_double_row_ARI = sep_double_ARIs[[1]],
+        sep_double_col_ARI = sep_double_ARIs[[2]],
+
         ## iid
         iid_BICL = iid_BICL,
         iid_mean_row_ARI = iid_mean_ARIs[1],
         iid_mean_col_ARI = iid_mean_ARIs[2],
-        iid_double_row_ARI = iid_double_ARIs[1],
-        iid_double_col_ARI = iid_double_ARIs[2],
-        iid_Q1 = fitted_bisbmpop_iid$Q[1],
-        iid_Q2 = fitted_bisbmpop_iid$Q[2],
+        iid_double_row_ARI = iid_double_ARIs[[1]],
+        iid_double_col_ARI = iid_double_ARIs[[2]],
+        iid_Q1 = fitted_bisbmpop_iid$best_fit$Q[1],
+        iid_Q2 = fitted_bisbmpop_iid$best_fit$Q[2],
 
         ## pi
         pi_BICL = pi_BICL,
         pi_mean_row_ARI = pi_mean_ARIs[1],
         pi_mean_col_ARI = pi_mean_ARIs[2],
-        pi_double_row_ARI = pi_double_ARIs[1],
-        pi_double_col_ARI = pi_double_ARIs[2],
+        pi_double_row_ARI = pi_double_ARIs[[1]],
+        pi_double_col_ARI = pi_double_ARIs[[2]],
         pi_Q1 = fitted_bisbmpop_pi$best_fit$Q[1],
         pi_Q2 = fitted_bisbmpop_pi$best_fit$Q[2],
 
@@ -241,8 +242,8 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(c) {
         rho_BICL = rho_BICL,
         rho_mean_row_ARI = rho_mean_ARIs[1],
         rho_mean_col_ARI = rho_mean_ARIs[2],
-        rho_double_row_ARI = rho_double_ARIs[1],
-        rho_double_col_ARI = rho_double_ARIs[2],
+        rho_double_row_ARI = rho_double_ARIs[[1]],
+        rho_double_col_ARI = rho_double_ARIs[[2]],
         rho_Q1 = fitted_bisbmpop_rho$best_fit$Q[1],
         rho_Q2 = fitted_bisbmpop_rho$best_fit$Q[2],
 
@@ -250,8 +251,8 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(c) {
         pirho_BICL = pirho_BICL,
         pirho_mean_row_ARI = pirho_mean_ARIs[1],
         pirho_mean_col_ARI = pirho_mean_ARIs[2],
-        pirho_double_row_ARI = pirho_double_ARIs[1],
-        pirho_double_col_ARI = pirho_double_ARIs[2],
+        pirho_double_row_ARI = pirho_double_ARIs[[1]],
+        pirho_double_col_ARI = pirho_double_ARIs[[2]],
         pirho_Q1 = fitted_bisbmpop_pirho$best_fit$Q[1],
         pirho_Q2 = fitted_bisbmpop_pirho$best_fit$Q[2]
     )
@@ -260,9 +261,9 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(c) {
 },
 mc.cores = parallel::detectCores() - 1,
 mc.progress = TRUE,
-mc.retry = -1 # To prevent big crash
+mc.retry = -1
 )
-
+toc()
 full_data_frame <- do.call(rbind, results)
 
 saveRDS(full_data_frame,
