@@ -427,6 +427,7 @@ clusterize_bipartite_networks <- function(netlist,
                           global_opts = list(),
                           fit_opts = list(),
                           fit_init = NULL,
+                          silent_parallelization = FALSE,
                           full_inference = FALSE) {
 
   if (global_opts$verbosity >= 1) {
@@ -439,7 +440,8 @@ clusterize_bipartite_networks <- function(netlist,
     distribution = distribution,
     nb_run = nb_run,
     global_opts = global_opts,
-    fit_opts = fit_opts
+    fit_opts = fit_opts,
+    silent_parallelization = silent_parallelization
   )
 
 
