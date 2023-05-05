@@ -42,6 +42,8 @@ if (identical(arg, character(0))) {
         "assuming you want to go over all the conditions."
     )
     arg <- c(1, nrow(conditions))
+} else {
+    arg <- as.numeric(arg)
 }
 if (arg[1] < 1 | arg[1] > nrow(conditions)) {
     warning(paste("Arg 1 was invalid, set to 1."))
