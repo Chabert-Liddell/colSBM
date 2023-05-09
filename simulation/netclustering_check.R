@@ -209,8 +209,8 @@ mc.retry = -1
 
 saveRDS(results, file = paste0(
     "simulation/data/",
-    "simulated_collection_clustering",
-    model_to_test, "-",
+    "simulated_collection_clustering_",
+    model_to_test, "_",
     format(Sys.time(), "%d-%m-%y-%X"),
     ".Rds"
 ))
