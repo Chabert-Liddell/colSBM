@@ -546,7 +546,8 @@ clusterize_bipartite_networks <- function(netlist,
             nb_run = min(sum(cl == k), nb_run),
             Z_init = Z_init, # TODO Change this parameter name, cause all Q
             global_opts = global_opts,
-            fit_opts = fit_opts
+            fit_opts = fit_opts,
+            silent_parallelization = silent_parallelization
           ))
         }
       )
