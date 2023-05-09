@@ -195,10 +195,10 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(s) {
     )
     toc()
     return(list(
-        list_collection,
-        list(
-            real_row_clustering,
-            real_col_clustering
+        list_of_clusterings = list_collection,
+        real_block_memberships = list(
+            row = real_row_clustering,
+            col = real_col_clustering
         )
     ))
 },
