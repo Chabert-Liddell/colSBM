@@ -4,8 +4,13 @@ require("tictoc")
 devtools::load_all("R/")
 
 # Generation of conditions
-model_to_test <- "iid"
-repetitions <- seq.int(3)
+if (!exists("model_to_test")) {
+    model_to_test <- "iid"
+}
+
+if (!exists("repetitions")) {
+    repetitions <- seq.int(3)
+}
 
 nr <- 75
 nc <- 75
@@ -205,7 +210,7 @@ mc.retry = -1
 saveRDS(results, file = paste0(
     "simulation/data/",
     "simulated_collection_clustering",
-    number_of_net, "-",
+    model_to_test, "-",
     format(Sys.time(), "%d-%m-%y-%X"),
     ".Rds"
 ))
