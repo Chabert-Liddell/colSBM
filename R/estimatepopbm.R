@@ -582,3 +582,26 @@ clusterize_bipartite_networks <- function(netlist,
   invisible(list_model_binary)
 
 }
+
+#' Extract the best partition from the list of model given by the function
+#' `clusterize_bipartite_networks()`.
+#'
+#' @param l A list of model obtained from the function  `clusterize_networks()`
+#'
+#' @return A list of model giving the best partition.
+#' @export
+#'
+#' @examples
+extract_bipartite_best_partition <- function(l) {
+  stopifnot(inherits(l[[1]], "fitBipartiteSBMPop"))
+  if (length(l) == 1) {
+    return(l[[1]])
+  }
+  if (length(l) == 2) {
+    return(l[[2]])
+  }
+  return(list(
+    extract_best_partition(l[[2]]),
+    extract_best_partition(l[[3]])
+  ))
+}
