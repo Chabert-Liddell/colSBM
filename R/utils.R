@@ -97,7 +97,7 @@ generate_bipartite_network <- function(nr, nc, pir, pic, alpha) {
 #' @return A list of M lists, which contains : $incidence_matrix, $row_clustering, $col_clustering
 #'
 #' @export
-generate_bipartite_collection <- function(nr, nc, pir, pic, alpha, M) {
+generate_bipartite_collection <- function(nr, nc, pir, pic, alpha, M, model = "iid") {
   out <- list()
 
   # Check if nr and nc are vectors
@@ -122,16 +122,52 @@ generate_bipartite_collection <- function(nr, nc, pir, pic, alpha, M) {
     )
   }
 
-# Generate the networks
-out <- lapply(seq.int(M), function(m) {
-  generate_bipartite_network(
-    nr = nr[[m]],
-    nc = nc[[m]],
-    pir = pir,
-    pic = pic,
-    alpha = alpha
+  switch(model, "iid" = {
+    out <- lapply(seq.int(M), function(m) {
+      generate_bipartite_network(
+        nr = nr[[m]],
+        nc = nc[[m]],
+        pir = pir,
+        pic = pic,
+        alpha = alpha
+      )
+    })
+  },
+    "pi" = {
+      out <- lapply(seq.int(M), function(m) {
+        generate_bipartite_network(
+          nr = nr[[m]],
+          nc = nc[[m]],
+          pir = sample(pir),
+          pic = pic,
+          alpha = alpha
+        )
+      })
+    },
+    "rho" = {
+      out <- lapply(seq.int(M), function(m) {
+        generate_bipartite_network(
+          nr = nr[[m]],
+          nc = nc[[m]],
+          pir = pir,
+          pic = sample(pic),
+          alpha = alpha
+        )
+      })
+    },
+    "pirho" = {
+      out <- lapply(seq.int(M), function(m) {
+        generate_bipartite_network(
+          nr = nr[[m]],
+          nc = nc[[m]],
+          pir = sample(pir),
+          pic = sample(pic),
+          alpha = alpha
+        )
+      })
+    }
   )
-})
+
   return(out)
 }
 

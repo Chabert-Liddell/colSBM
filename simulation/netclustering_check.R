@@ -28,16 +28,7 @@ if (identical(arg, character(0))) {
     epsilons <- as.numeric(arg)
 }
 
-switch(model_to_test,
-    "iid" = {
-        conditions <- tidyr::crossing(epsilons, pi, rho, repetitions)
-    },
-    # Default case with no model
-    {
-        model_to_test <- "iid"
-        conditions <- tidyr::crossing(epsilons, pi, rho, repetitions)
-    }
-)
+conditions <- tidyr::crossing(epsilons, pi, rho, repetitions)
 
 results <- bettermc::mclapply(seq_len(nrow(conditions)), function(s) {
     eps <- conditions[s, ]$epsilons
@@ -77,7 +68,8 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(s) {
     assortative_collection <- generate_bipartite_collection(
         nr, nc,
         current_pi, current_rho,
-        alpha_assortative, 3
+        alpha_assortative, 3,
+        model = model_to_test
     )
 
     assortative_incidence <- lapply(
@@ -104,7 +96,8 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(s) {
     core_periphery_collection <- generate_bipartite_collection(
         nr, nc,
         current_pi, current_rho,
-        alpha_core_periphery, 3
+        alpha_core_periphery, 3,
+        model = model_to_test
     )
 
     core_periphery_incidence <- lapply(
@@ -131,7 +124,8 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(s) {
     disassortative_collection <- generate_bipartite_collection(
         nr, nc,
         current_pi, current_rho,
-        alpha_disassortative, 3
+        alpha_disassortative, 3,
+        model = model_to_test
     )
 
     disassortative_incidence <- lapply(
@@ -190,11 +184,13 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(s) {
             nb_cores = parallel::detectCores() - 1, verbosity = 1,
             plot_details = 0
         ),
-        silent_parallelization = TRUE,
-        full_inference = TRUE
+        silent_parallelization = TRUE
     )
     toc()
-    return(list(
+    return(
+        list(
+        epsilon = eps,
+        repetition = repetition,
         list_of_clusterings = list_collection,
         real_block_memberships = list(
             row = real_row_clustering,
