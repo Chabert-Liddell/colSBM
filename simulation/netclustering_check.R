@@ -191,7 +191,7 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(s) {
     return(
         list(
         epsilon = eps,
-        repetition = repetition,
+        repetitions = repetitions,
         list_of_clusterings = list_collection,
         real_block_memberships = list(
             row = real_row_clustering,
