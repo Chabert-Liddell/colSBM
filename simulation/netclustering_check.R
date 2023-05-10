@@ -17,15 +17,16 @@ nc <- 75
 
 pi <- matrix(c(0.2, 0.3, 0.5), nrow = 1, byrow = TRUE)
 rho <- matrix(rep(1 / 3, 3), nrow = 1, byrow = TRUE)
+epsilons <- c(0.1, 0.4)
 
 if (!exists("arg")) {
     arg <- commandArgs(trailingOnly = TRUE)
 }
 
 if (identical(arg, character(0))) {
-    epsilons <- c(0.1, 0.4)
+    model_to_test <- "iid"
 } else {
-    epsilons <- as.numeric(arg)
+    model_to_test <- arg
 }
 
 conditions <- tidyr::crossing(epsilons, pi, rho, repetitions)
