@@ -159,8 +159,8 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(s) {
         # The conditions
         epsilon_pi = epsilon_pi,
         epsilon_rho = epsilon_rho,
-        pi2 = current_pi2,
-        rho2 = current_rho2,
+        pi2 = matrix(current_pi2, nrow = 1),
+        rho2 = matrix(current_rho2, nrow = 1),
         repetition = as.numeric(conditions[s,]$repetition),
 
         # The results
