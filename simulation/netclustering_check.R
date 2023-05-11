@@ -16,7 +16,7 @@ nr <- 75
 nc <- 75
 
 pi <- matrix(c(0.2, 0.3, 0.5), nrow = 1, byrow = TRUE)
-rho <- matrix(rep(1 / 3, 3), nrow = 1, byrow = TRUE)
+rho <- matrix(c(0.2, 0.3, 0.5), nrow = 1, byrow = TRUE)
 epsilons <- c(0.1, 0.4)
 
 if (!exists("arg")) {
