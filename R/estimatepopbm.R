@@ -505,6 +505,8 @@ clusterize_bipartite_networks <- function(netlist,
       # If there is more than 3 networks they are splitted using K-medioids
       cl <- cluster::pam(x = sqrt(dist_bm), k = 2, diss = TRUE)$clustering
     } else {
+      # TODO : check if this step is necessary or if this could be replaced
+      # by c(1,2)
       # Else if there is two networks, a Hierarchical Clustering is performed
       cl <- stats::cutree(
         stats::hclust(stats::as.dist(dist_bm), method = "ward.D2"), 2
@@ -520,13 +522,15 @@ clusterize_bipartite_networks <- function(netlist,
             # Go over the Q1xQ2 models
             function(q) {
                   if (!is.null(fit$model_list[[q]])) {
-                    fit$model_list[[q]]$Z[cl == k]
+                    return(fit$model_list[[q]]$Z[cl == k])
+                  } else {
+                    return(NULL)
                   }
             }
           )
           # Reshaping the Z_init to be bi-dimensional
           dim(Z_init) <- c(fit$global_opts$Q1_max, fit$global_opts$Q2_max)
-          print(Z_init)
+          print(Z_init) # TODO Remove
           
           # cl == k, is a bool vector with TRUE, if network m
           # is a member of cluster k
