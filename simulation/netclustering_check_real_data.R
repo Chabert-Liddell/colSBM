@@ -60,14 +60,14 @@ list_collection <- clusterize_bipartite_networks(
         nb_cores = parallel::detectCores() - 1, verbosity = 1,
         plot_details = 0
     ),
-    full_inference = TRUE
+    silent_parallelization = TRUE
 )
 toc()
 
 saveRDS(list_collection, file = paste0(
-    "simulation/data/", 
-    "dore_collection_clustering",
-    number_of_net, "-",
+    "simulation/data/",
+    "dore_collection_clustering_",
+    number_of_net, "_",
     format(Sys.time(), "%d-%m-%y-%X"),
     ".Rds"
 ))
