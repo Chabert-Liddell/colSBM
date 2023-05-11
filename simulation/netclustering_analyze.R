@@ -1,7 +1,9 @@
 require("ggplot2")
 require("tictoc")
 
-result_clustering <- readRDS("simulation/data/simulated_collection_clustering_iid_09-05-23-18:36:54.Rds")
+devtools::load_all("R/")
+
+result_clustering <- readRDS("simulation/data/simulated_collection_clustering_rho_10-05-23-14:40:46.Rds")
 
 list_clustering <- lapply(
     seq_along(result_clustering), function(s) result_clustering[[s]]$list_of_clusterings
