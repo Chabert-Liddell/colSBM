@@ -27,7 +27,7 @@ prob_order <- seq(1,3)
 prob_order <- t(sapply(combinat::permn(prob_order), function(v) v))
 
 
-repetitions <- seq.int(1)
+repetitions <- seq.int(3)
 
 conditions <- tidyr::crossing(
     epsilon_pi = epsilons_pi,
