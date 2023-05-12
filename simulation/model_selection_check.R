@@ -202,7 +202,9 @@ full_data_frame <- do.call(rbind, results)
 
 saveRDS(full_data_frame,
     file = paste0(
-        "./simulation/data/model_selection_check_",
-        Sys.time(), "_", toString(arg), ".Rds"
+        "./simulation/data/model_selection_check_", max(repetitions), "_rep_",
+        toString(sprintf("%04d", arg)), "_", 
+        format(Sys.time(), "%d-%m-%y_%H-%M"),
+        ".Rds"
     )
 )
