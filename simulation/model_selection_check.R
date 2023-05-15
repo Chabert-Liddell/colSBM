@@ -89,7 +89,7 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(s) {
             alpha
         ),
         generate_bipartite_network(
-            nr, nc, current_pi2, current_pi2,
+            nr, nc, current_pi2, current_rho2,
             alpha
         )
     )
