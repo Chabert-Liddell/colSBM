@@ -244,6 +244,30 @@ bisbmpop <- R6::R6Class(
                 list(row_clustering[[m]], col_clustering[[m]][[q]])
               })
             }
+            # Disabled useless
+            # # Checking if the clustering has been encountered before
+            # # in the model list
+            # if (!is.null(self$model_list[[split_Q[1], split_Q[2]]])) {
+            #     cat("\nCurrent model is identical ?:\n", identical(self$model_list[[split_Q[1], split_Q[2]]]$Z, q_th_Z_init))
+            #   if (identical(self$model_list[[split_Q[1], split_Q[2]]]$Z, q_th_Z_init)) {
+            #     cat("\nIdentical in present model spotted !")
+            #     beepr::beep(5)
+            #     return(NULL)
+            #   }
+            # }
+            # # in the discarded model list
+            # if (!is.null(self$discarded_model_list[[split_Q[1], split_Q[2]]])) {
+            #   for (discarded_model in self$discarded_model_list[[split_Q[1], split_Q[2]]]) {
+            #     cat("\nDiscarded model is identical ?:\n", identical(discarded_model$Z, q_th_Z_init))
+
+            #     if (identical(discarded_model$Z, q_th_Z_init)) {
+            #       cat("\nIdentical in discarded models spotted !")
+            #       beepr::beep(5)
+            #       return(NULL)
+            #     }
+            #   }
+            # }
+
             q_th_model <- fitBipartiteSBMPop$new(
               A = self$A,
               Q = split_Q,
