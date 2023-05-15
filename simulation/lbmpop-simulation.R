@@ -50,6 +50,10 @@ mybisbmpop <- bisbmpop$new(
 
 mybisbmpop$optimize()
 
+mybisbmpop <- estimate_colBiSBM(
+    netlist = bipartite_collection_incidence, colsbm_model = "iid",
+    global_opts = list(nb_cores = 1, verbosity = 1)
+)
 # choosed_bisbmpop <- estimate_colBiSBM(
 #     netlist = bipartite_collection_incidence, 
 #     colsbm_model = "iid", 
