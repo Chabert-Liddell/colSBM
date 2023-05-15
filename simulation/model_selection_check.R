@@ -47,8 +47,10 @@ if (identical(arg, character(0))) {
         "assuming you want to go over all the conditions."
     )
     arg <- c(1, nrow(conditions))
+    batch_name <- "default"
 } else {
-    arg <- as.numeric(arg)
+    batch_name <- arg[3]
+    arg <- as.numeric(arg[-3])
 }
 if (arg[1] < 1 | arg[1] > nrow(conditions)) {
     warning(paste("Arg 1 was invalid, set to 1."))
@@ -202,7 +204,8 @@ full_data_frame <- do.call(rbind, results)
 
 saveRDS(full_data_frame,
     file = paste0(
-        "./simulation/data/model_selection_check_", max(repetitions), "_rep_",
+        "./simulation/data/model_selection_check_batch_", batch_name, "_",
+        max(repetitions), "_rep_",
         toString(sprintf("%04d", arg)), "_", 
         format(Sys.time(), "%d-%m-%y_%H-%M"),
         ".Rds"
