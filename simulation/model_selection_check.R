@@ -49,7 +49,11 @@ if (identical(arg, character(0))) {
     arg <- c(1, nrow(conditions))
     batch_name <- "default"
 } else {
-    batch_name <- arg[3]
+    if (!is.na(arg[3])) {
+        batch_name <- arg[3]
+    } else {
+        batch_name <- "default"
+    }
     arg <- as.numeric(arg[-3])
 }
 if (arg[1] < 1 | arg[1] > nrow(conditions)) {
@@ -62,7 +66,6 @@ if (arg[2] > nrow(conditions) | arg[2] < 1) {
 }
 
 choosed_conditions <- seq.int(from = arg[1], to = arg[2])
-
 conditions <- conditions[choosed_conditions, ]
 tic()
 results <- bettermc::mclapply(seq_len(nrow(conditions)), function(s) {
