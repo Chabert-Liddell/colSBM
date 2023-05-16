@@ -1132,7 +1132,7 @@ fitBipartiteSBMPop <- R6::R6Class(
       }
     },
 
-    m_step = function(MAP = FALSE, max_iter = 100, tol = 1e-3, ...) {
+    m_step = function(MAP = FALSE, max_iter = 20, tol = 1e-3, ...) {
       # browser()
       # lapply(seq_along(self$pi), function(m) self$update_pi(m, MAP = MAP))
       self$update_pi(MAP = MAP)
@@ -1214,7 +1214,7 @@ fitBipartiteSBMPop <- R6::R6Class(
       })
     },
 
-    optimize = function(max_step = 100, tol = 1e-3, ...) {
+    optimize = function(max_step = 20, tol = 1e-3, ...) {
       if (all(self$Q == c(1, 1))) {
         # DONE urgently : handle the case where Q1 == 1 && Q2 != 1 || Q1 != 1 && Q2 == 1
         # DONE Two dimensions for tau, Z and pi
