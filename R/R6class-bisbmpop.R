@@ -95,18 +95,20 @@ bisbmpop <- R6::R6Class(
       self$free_density <-  free_density
       self$free_mixture_row <- free_mixture_row
       self$free_mixture_col <- free_mixture_col
-      self$global_opts <- list(Q1_min = 1L,
-                               Q1_max = floor(log(sum(self$n[[1]])))+2,
-                               Q2_min = 1L,
-                               Q2_max = floor(log(sum(self$n[[2]])))+2,
-                               spectral_init = TRUE,
-                               nb_models = 5L,
-                               depth = 1L, # By default we set a small depth
-                               plot_details = 1L,
-                               max_pass = 10L,
-                               verbosity = 0L,
-                               nb_cores = 1L,
-                               parallelization_vector = c(TRUE, TRUE, TRUE))
+      self$global_opts <- list(
+        Q1_min = 1L,
+        Q1_max = floor(log(sum(self$n[[1]]))) + 2,
+        Q2_min = 1L,
+        Q2_max = floor(log(sum(self$n[[2]]))) + 2,
+        spectral_init = TRUE,
+        nb_models = 5L,
+        depth = 1L, # By default we set a small depth
+        plot_details = 1L,
+        max_pass = 10L,
+        verbosity = 0L,
+        nb_cores = 1L,
+        parallelization_vector = c(TRUE, TRUE, TRUE),
+        compare_stored = TRUE)
       self$global_opts <- utils::modifyList(self$global_opts, global_opts)
       self$vbound <- matrix(
         rep(-Inf, self$global_opts$Q1_max * self$global_opts$Q2_max),
@@ -244,29 +246,103 @@ bisbmpop <- R6::R6Class(
                 list(row_clustering[[m]], col_clustering[[m]][[q]])
               })
             }
-            # Disabled useless
-            # # Checking if the clustering has been encountered before
-            # # in the model list
-            # if (!is.null(self$model_list[[split_Q[1], split_Q[2]]])) {
-            #     cat("\nCurrent model is identical ?:\n", identical(self$model_list[[split_Q[1], split_Q[2]]]$Z, q_th_Z_init))
-            #   if (identical(self$model_list[[split_Q[1], split_Q[2]]]$Z, q_th_Z_init)) {
-            #     cat("\nIdentical in present model spotted !")
-            #     beepr::beep(5)
-            #     return(NULL)
-            #   }
-            # }
-            # # in the discarded model list
-            # if (!is.null(self$discarded_model_list[[split_Q[1], split_Q[2]]])) {
-            #   for (discarded_model in self$discarded_model_list[[split_Q[1], split_Q[2]]]) {
-            #     cat("\nDiscarded model is identical ?:\n", identical(discarded_model$Z, q_th_Z_init))
+          if (self$global_opts$compare_stored) {
+            # Checking if the clustering has been encountered before
+            # in the model list
+            if (!is.null(self$model_list[[split_Q[1], split_Q[2]]])) {
+              stored_Z1 <- unlist(
+                lapply(
+                  seq_along(self$model_list[[split_Q[1], split_Q[2]]]$Z),
+                  function(m) self$model_list[[split_Q[1], split_Q[2]]]$Z[[m]][[1]]
+                )
+              )
 
-            #     if (identical(discarded_model$Z, q_th_Z_init)) {
-            #       cat("\nIdentical in discarded models spotted !")
-            #       beepr::beep(5)
-            #       return(NULL)
-            #     }
-            #   }
-            # }
+              q_th_Z1 <- unlist(
+                lapply(
+                  seq_along(q_th_Z_init),
+                  function(m) q_th_Z_init[[m]][[1]]
+                )
+              )
+
+              ARI_Z1 <- aricode::ARI(stored_Z1, q_th_Z1)
+
+              stored_Z2 <- unlist(
+                lapply(
+                  seq_along(self$model_list[[split_Q[1], split_Q[2]]]$Z),
+                  function(m) self$model_list[[split_Q[1], split_Q[2]]]$Z[[m]][[2]]
+                )
+              )
+
+              q_th_Z2 <- unlist(
+                lapply(
+                  seq_along(q_th_Z_init),
+                  function(m) q_th_Z_init[[m]][[2]]
+                )
+              )
+
+              ARI_Z2 <- aricode::ARI(stored_Z2, q_th_Z2)
+
+              #cat("\n1:", ARI_Z1, "| 2:", ARI_Z2)
+
+              # Using ARI to account for label switching
+              if (ARI_Z1 == 1 && ARI_Z2 == 1) {
+                if (self$global_opts$verbosity >= 4) {
+                  cat(
+                    "\nThe splitting memberships", q,
+                    "is identical to the model stored in (", 
+                    toString(split_Q), "). It will not be computed."
+                  )
+                }
+                return(self$model_list[[split_Q[1], split_Q[2]]])
+              }
+            }
+            # in the discarded model list
+            if (!is.null(self$discarded_model_list[[split_Q[1], split_Q[2]]])) {
+              for (discarded_model in self$discarded_model_list[[split_Q[1], split_Q[2]]]) {
+                stored_Z1 <- unlist(
+                  lapply(
+                    seq_along(discarded_model$Z),
+                    function(m) discarded_model$Z[[m]][[1]]
+                  )
+                )
+
+                q_th_Z1 <- unlist(
+                  lapply(
+                    seq_along(q_th_Z_init),
+                    function(m) q_th_Z_init[[m]][[1]]
+                  )
+                )
+
+                ARI_Z1 <- aricode::ARI(stored_Z1, q_th_Z1)
+
+                stored_Z2 <- unlist(
+                  lapply(
+                    seq_along(discarded_model$Z),
+                    function(m) discarded_model$Z[[m]][[2]]
+                  )
+                )
+
+                q_th_Z2 <- unlist(
+                  lapply(
+                    seq_along(q_th_Z_init),
+                    function(m) q_th_Z_init[[m]][[2]]
+                  )
+                )
+
+                ARI_Z2 <- aricode::ARI(stored_Z2, q_th_Z2)
+                if (ARI_Z1 == 1 && ARI_Z2 == 1) {
+                  if (self$global_opts$verbosity >= 4) {
+                    cat(
+                      "\nThe splitting memberships", q,
+                      "is identical to a discarded model stored in (",
+                      toString(split_Q), "). It will not be computed."
+                    )
+                  }
+                  return(discarded_model)
+                }
+              }
+            }
+          }
 
             q_th_model <- fitBipartiteSBMPop$new(
               A = self$A,
@@ -348,7 +424,7 @@ bisbmpop <- R6::R6Class(
                     q_th_model_with_supports$Calpha <-
                       tcrossprod(Cpi[[1]], Cpi[[2]]) > 0
                     q_th_model_with_supports$init_method <- "empty"
-                    if (self$free_mixture_row | self$free_mixture_col | 
+                    if (self$free_mixture_row | self$free_mixture_col |
                         self$global_opts$verbosity >= 4) {
                       cat(
                         "\n\t\tFitting with threshold : ",
@@ -466,6 +542,105 @@ bisbmpop <- R6::R6Class(
                 list(row_clustering[[m]], col_clustering[[m]][[q]])
               })
             }
+
+          if (self$global_opts$compare_stored) {
+            # Checking if the clustering has been encountered before
+            # in the model list
+            if (!is.null(self$model_list[[split_Q[1], split_Q[2]]])) {
+              stored_Z1 <- unlist(
+                lapply(
+                  seq_along(self$model_list[[split_Q[1], split_Q[2]]]$Z),
+                  function(m) self$model_list[[split_Q[1], split_Q[2]]]$Z[[m]][[1]]
+                )
+              )
+
+              q_th_Z1 <- unlist(
+                lapply(
+                  seq_along(q_th_Z_init),
+                  function(m) q_th_Z_init[[m]][[1]]
+                )
+              )
+
+              ARI_Z1 <- aricode::ARI(stored_Z1, q_th_Z1)
+
+              stored_Z2 <- unlist(
+                lapply(
+                  seq_along(self$model_list[[split_Q[1], split_Q[2]]]$Z),
+                  function(m) self$model_list[[split_Q[1], split_Q[2]]]$Z[[m]][[2]]
+                )
+              )
+
+              q_th_Z2 <- unlist(
+                lapply(
+                  seq_along(q_th_Z_init),
+                  function(m) q_th_Z_init[[m]][[2]]
+                )
+              )
+
+              ARI_Z2 <- aricode::ARI(stored_Z2, q_th_Z2)
+
+              # cat("\n1:", ARI_Z1, "| 2:", ARI_Z2)
+
+              # Using ARI to account for label switching
+              if (ARI_Z1 == 1 && ARI_Z2 == 1) {
+                if (self$global_opts$verbosity >= 4) {
+                  cat(
+                    "\nThe splitting memberships", q,
+                    "is identical to the model stored in (",
+                    toString(split_Q), "). It will not be computed."
+                  )
+                }
+                return(self$model_list[[split_Q[1], split_Q[2]]])
+              }
+            }
+            # in the discarded model list
+            if (!is.null(self$discarded_model_list[[split_Q[1], split_Q[2]]])) {
+              for (discarded_model in self$discarded_model_list[[split_Q[1], split_Q[2]]]) {
+                stored_Z1 <- unlist(
+                  lapply(
+                    seq_along(discarded_model$Z),
+                    function(m) discarded_model$Z[[m]][[1]]
+                  )
+                )
+
+                q_th_Z1 <- unlist(
+                  lapply(
+                    seq_along(q_th_Z_init),
+                    function(m) q_th_Z_init[[m]][[1]]
+                  )
+                )
+
+                ARI_Z1 <- aricode::ARI(stored_Z1, q_th_Z1)
+
+                stored_Z2 <- unlist(
+                  lapply(
+                    seq_along(discarded_model$Z),
+                    function(m) discarded_model$Z[[m]][[2]]
+                  )
+                )
+
+                q_th_Z2 <- unlist(
+                  lapply(
+                    seq_along(q_th_Z_init),
+                    function(m) q_th_Z_init[[m]][[2]]
+                  )
+                )
+
+                ARI_Z2 <- aricode::ARI(stored_Z2, q_th_Z2)
+                if (ARI_Z1 == 1 && ARI_Z2 == 1) {
+                  if (self$global_opts$verbosity >= 4) {
+                    cat(
+                      "\nThe splitting memberships", q,
+                      "is identical to a discarded model stored in (",
+                      toString(split_Q), "). It will not be computed."
+                    )
+                  }
+                  return(discarded_model)
+                }
+              }
+            }
+          }
+
             q_th_model <- fitBipartiteSBMPop$new(
               A = self$A,
               Q = split_Q,
@@ -742,6 +917,105 @@ bisbmpop <- R6::R6Class(
             })
           }
         )
+
+        if (self$global_opts$compare_stored) {
+            # Checking if the clustering has been encountered before
+            # in the model list
+            if (!is.null(self$model_list[[merge_Q[1], merge_Q[2]]])) {
+              stored_Z1 <- unlist(
+                lapply(
+                  seq_along(self$model_list[[merge_Q[1], merge_Q[2]]]$Z),
+                  function(m) self$model_list[[merge_Q[1], merge_Q[2]]]$Z[[m]][[1]]
+                )
+              )
+
+              q_th_Z1 <- unlist(
+                lapply(
+                  seq_along(q_th_Z_init),
+                  function(m) q_th_Z_init[[m]][[1]]
+                )
+              )
+
+              ARI_Z1 <- aricode::ARI(stored_Z1, q_th_Z1)
+
+              stored_Z2 <- unlist(
+                lapply(
+                  seq_along(self$model_list[[merge_Q[1], merge_Q[2]]]$Z),
+                  function(m) self$model_list[[merge_Q[1], merge_Q[2]]]$Z[[m]][[2]]
+                )
+              )
+
+              q_th_Z2 <- unlist(
+                lapply(
+                  seq_along(q_th_Z_init),
+                  function(m) q_th_Z_init[[m]][[2]]
+                )
+              )
+
+              ARI_Z2 <- aricode::ARI(stored_Z2, q_th_Z2)
+
+              # cat("\n1:", ARI_Z1, "| 2:", ARI_Z2)
+
+              # Using ARI to account for label switching
+              if (ARI_Z1 == 1 && ARI_Z2 == 1) {
+                if (self$global_opts$verbosity >= 4) {
+                  cat(
+                    "\nThe merging memberships", q,
+                    "is identical to the model stored in (",
+                    toString(merge_Q), "). It will not be computed."
+                  )
+                }
+                return(self$model_list[[merge_Q[1], merge_Q[2]]])
+              }
+            }
+            # in the discarded model list
+            if (!is.null(self$discarded_model_list[[merge_Q[1], merge_Q[2]]])) {
+              for (discarded_model in self$discarded_model_list[[merge_Q[1], merge_Q[2]]]) {
+                stored_Z1 <- unlist(
+                  lapply(
+                    seq_along(discarded_model$Z),
+                    function(m) discarded_model$Z[[m]][[1]]
+                  )
+                )
+
+                q_th_Z1 <- unlist(
+                  lapply(
+                    seq_along(q_th_Z_init),
+                    function(m) q_th_Z_init[[m]][[1]]
+                  )
+                )
+
+                ARI_Z1 <- aricode::ARI(stored_Z1, q_th_Z1)
+
+                stored_Z2 <- unlist(
+                  lapply(
+                    seq_along(discarded_model$Z),
+                    function(m) discarded_model$Z[[m]][[2]]
+                  )
+                )
+
+                q_th_Z2 <- unlist(
+                  lapply(
+                    seq_along(q_th_Z_init),
+                    function(m) q_th_Z_init[[m]][[2]]
+                  )
+                )
+
+                ARI_Z2 <- aricode::ARI(stored_Z2, q_th_Z2)
+                if (ARI_Z1 == 1 && ARI_Z2 == 1) {
+                  if (self$global_opts$verbosity >= 4) {
+                    cat(
+                      "\nThe merging memberships", q,
+                      "is identical to a discarded model stored in (",
+                      toString(merge_Q), "). It will not be computed."
+                    )
+                  }
+                  return(discarded_model)
+                }
+              }
+            }
+        }
+
         q_th_model <- fitBipartiteSBMPop$new(
           A = self$A,
           Q = merge_Q,
@@ -936,6 +1210,105 @@ bisbmpop <- R6::R6Class(
             })
           }
         )
+
+        if (self$global_opts$compare_stored) {
+          # Checking if the clustering has been encountered before
+          # in the model list
+          if (!is.null(self$model_list[[merge_Q[1], merge_Q[2]]])) {
+            stored_Z1 <- unlist(
+              lapply(
+                seq_along(self$model_list[[merge_Q[1], merge_Q[2]]]$Z),
+                function(m) self$model_list[[merge_Q[1], merge_Q[2]]]$Z[[m]][[1]]
+              )
+            )
+
+            q_th_Z1 <- unlist(
+              lapply(
+                seq_along(q_th_Z_init),
+                function(m) q_th_Z_init[[m]][[1]]
+              )
+            )
+
+            ARI_Z1 <- aricode::ARI(stored_Z1, q_th_Z1)
+
+            stored_Z2 <- unlist(
+              lapply(
+                seq_along(self$model_list[[merge_Q[1], merge_Q[2]]]$Z),
+                function(m) self$model_list[[merge_Q[1], merge_Q[2]]]$Z[[m]][[2]]
+              )
+            )
+
+            q_th_Z2 <- unlist(
+              lapply(
+                seq_along(q_th_Z_init),
+                function(m) q_th_Z_init[[m]][[2]]
+              )
+            )
+
+            ARI_Z2 <- aricode::ARI(stored_Z2, q_th_Z2)
+
+            # cat("\n1:", ARI_Z1, "| 2:", ARI_Z2)
+
+            # Using ARI to account for label switching
+            if (ARI_Z1 == 1 && ARI_Z2 == 1) {
+              if (self$global_opts$verbosity >= 4) {
+                cat(
+                  "\nThe merging memberships", q,
+                  "is identical to the model stored in (", 
+                  toString(merge_Q), "). It will not be computed."
+                )
+              }
+              return(self$model_list[[merge_Q[1], merge_Q[2]]])
+            }
+          }
+          # in the discarded model list
+          if (!is.null(self$discarded_model_list[[merge_Q[1], merge_Q[2]]])) {
+            for (discarded_model in self$discarded_model_list[[merge_Q[1], merge_Q[2]]]) {
+              stored_Z1 <- unlist(
+                lapply(
+                  seq_along(discarded_model$Z),
+                  function(m) discarded_model$Z[[m]][[1]]
+                )
+              )
+
+              q_th_Z1 <- unlist(
+                lapply(
+                  seq_along(q_th_Z_init),
+                  function(m) q_th_Z_init[[m]][[1]]
+                )
+              )
+
+              ARI_Z1 <- aricode::ARI(stored_Z1, q_th_Z1)
+
+              stored_Z2 <- unlist(
+                lapply(
+                  seq_along(discarded_model$Z),
+                  function(m) discarded_model$Z[[m]][[2]]
+                )
+              )
+
+              q_th_Z2 <- unlist(
+                lapply(
+                  seq_along(q_th_Z_init),
+                  function(m) q_th_Z_init[[m]][[2]]
+                )
+              )
+
+              ARI_Z2 <- aricode::ARI(stored_Z2, q_th_Z2)
+              if (ARI_Z1 == 1 && ARI_Z2 == 1) {
+                if (self$global_opts$verbosity >= 4){
+                cat(
+                  "\nThe merging memberships", q,
+                  "is identical to a discarded model stored in (",
+                  toString(merge_Q), "). It will not be computed."
+                )
+              }
+                return(discarded_model)
+              }
+            }
+          }
+        }
+
         q_th_model <- fitBipartiteSBMPop$new(
           A = self$A,
           Q = merge_Q,
