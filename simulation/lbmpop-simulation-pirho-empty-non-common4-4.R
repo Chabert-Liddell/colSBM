@@ -131,37 +131,4 @@ mybisbmpop3 <- estimate_colBiSBM(
         parallelization_vector = c(TRUE, TRUE, FALSE)
     )
 )
-
-compute_double_ARI <- function(model) {
-    model_row_Z <- as.vector(sapply(
-        seq.int(model$M),
-        function(m) model$Z[[m]][[1]]
-    ))
-
-    model_col_Z <- as.vector(sapply(
-        seq.int(model$M),
-        function(m) model$Z[[m]][[2]]
-    ))
-
-    return(list(
-        aricode::ARI(model_row_Z, full_row_clustering),
-        aricode::ARI(model_col_Z, full_col_clustering)
-    ))
-}
-
-ari_sums <- sapply(
-    seq_along(mybisbmpop3$best_fit$Z),
-    function(m) {
-        c(
-            aricode::ARI(
-                Z[[m]][[1]],
-                mybisbmpop3$best_fit$Z[[m]][[1]]
-            ),
-            aricode::ARI(
-                Z[[m]][[2]],
-                mybisbmpop3$best_fit$Z[[m]][[2]]
-            )
-        )
-    }
-)
 toc()
