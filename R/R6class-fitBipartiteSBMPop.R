@@ -303,8 +303,9 @@ fitBipartiteSBMPop <- R6::R6Class(
     vb_tau_alpha = function(m, MAP = FALSE) {
       # Loading all the quantities useful for the computation
 
-      matrix_mqr_to_use <- outer(self$Cpi[[1]][, m], self$Cpi[[2]][, m])
-
+      # matrix_mqr_to_use <- outer(self$Cpi[[1]][, m], self$Cpi[[2]][, m])
+      # OPTIM
+      matrix_mqr_to_use <- self$Cpi[[1]][, m] %*% t(self$Cpi[[2]][, m])
       if (MAP) {
         # If we are calculating the maximum a posteriori
         emqr <- matrix_mqr_to_use * self$MAP$emqr[m, , ]
@@ -742,17 +743,28 @@ fitBipartiteSBMPop <- R6::R6Class(
       # To force the invalid taus to be zero
       # which(self$Cpi[[d]][,m]) returns a vector with the index of the support
       # for the network m that are TRUE
-      # Select the tau for the individuals 
+      # Select the tau for the individuals
       tau_new[, which(!self$Cpi[[d]][, m])] <- 0
 
-      tau_new[, which(self$Cpi[[d]][, m])] <- .softmax(
-        matrix(tau_new[, which(self$Cpi[[d]][, m])], nrow = ifelse(d == 1,
-          self$n[[1]][m], # This can be improved by using self$n[[d]][m] # TODO implement
-          self$n[[2]][m]
-        ), ncol = sum(self$Cpi[[d]][,m]))
+      # tau_new[, which(self$Cpi[[d]][, m])] <- .softmax(
+      #   matrix(tau_new[, which(self$Cpi[[d]][, m])], nrow = ifelse(d == 1,
+      #     self$n[[1]][m], # This can be improved by using self$n[[d]][m] # TODO implement
+      #     self$n[[2]][m]
+      #   ), ncol = sum(self$Cpi[[d]][,m]))
+      # )
+      # tau_new[, which(self$Cpi[[d]][, m])][tau_new[, which(self$Cpi[[d]][, m])] < 1e-9] <- 1e-9
+      # tau_new[, which(self$Cpi[[d]][, m])][tau_new[, which(self$Cpi[[d]][, m])] > 1 - 1e-9] <- 1 - 1e-9
+      # OPTIM
+      tau_cols_to_use <- which(self$Cpi[[d]][, m])
+      tau_new[, tau_cols_to_use] <- .softmax(
+        matrix(tau_new[, tau_cols_to_use],
+          nrow = self$n[[d]][m],
+          ncol = sum(self$Cpi[[d]][, m])
+        )
       )
-      tau_new[, which(self$Cpi[[d]][, m])][tau_new[, which(self$Cpi[[d]][, m])] < 1e-9] <- 1e-9
-      tau_new[, which(self$Cpi[[d]][, m])][tau_new[, which(self$Cpi[[d]][, m])] > 1 - 1e-9] <- 1 - 1e-9
+      tau_new[, tau_cols_to_use][tau_new[, tau_cols_to_use] < 1e-9] <- 1e-9
+      tau_new[, tau_cols_to_use][tau_new[, tau_cols_to_use] > 1 - 1e-9] <- 1 - 1e-9
+
       tau_new <- tau_new / rowSums(tau_new)
       self$tau[[m]][[d]] <- tau_new
       invisible(tau_new)

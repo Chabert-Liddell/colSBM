@@ -2797,7 +2797,8 @@ bisbmpop <- R6::R6Class(
           free_density = FALSE,
           global_opts = list(
             verbosity = 0,
-            plot_details = 0
+            plot_details = 0,
+            nb_cores = self$global_opts$nb_cores
           )
         )
         sep_BiSBM$optimize()
