@@ -1704,7 +1704,7 @@ bisbmpop <- R6::R6Class(
         # The current model considered
         current_model <- self$model_list[[current_Q1, current_Q2]]
 
-        neighbors <- list(c(1, 0), c(0, 1))
+        neighbors <- list(c(1, 0), c(0, 1), c(-1, 0), c(0, -1))
         # We loop through the neighbors of the current point
         for (neighbor in neighbors) {
           next_Q1 <- neighbor[1] + current_Q1
@@ -1738,12 +1738,19 @@ bisbmpop <- R6::R6Class(
             next_model <- self$split_clustering(current_model)
           }
 
+          if (neighbor[[1]] == -1) {
+            next_model <- self$merge_clustering(current_model)
+          }
+
           # If we are splitting on the columns
           if (neighbor[[2]] == 1) {
             next_model <- self$split_clustering(
               current_model,
               axis = "col"
             )
+          }
+          if (neighbor[[2]] == -1) {
+            next_model <- self$merge_clustering(current_model, axis = "col")
           }
 
           if (is.null(self$model_list[[next_Q1, next_Q2]])) {
