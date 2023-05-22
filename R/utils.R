@@ -476,7 +476,10 @@ logit <- function(x) log(x / (1 - x))
   if (is.null(eps)) {
     res <- log(x)
   } else {
-    res <- log(pmax(pmin(x, 1 - eps), eps))
+    # OPTIM
+    x[x >= 1 - eps] <- 1 - eps
+    x[x <= eps] <- eps
+    res <- log(x)
   }
   return(res)
 }
