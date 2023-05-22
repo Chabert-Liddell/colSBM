@@ -57,15 +57,21 @@ if (!exists("arg")) {
 
 if (identical(arg, character(0))) {
     number_of_net <- length(incidence_matrices)
+    model <- "pirho"
+    nb_run <- 3
 } else {
-    number_of_net <- as.numeric(arg)
+    number_of_net <- as.numeric(arg[1])
+    model <- arg[2]
+    nb_run <- as.numeric(arg[3])
 }
-
+print(number_of_net)
+print(model)
+print(nb_run)
 tic()
 list_collection <- clusterize_bipartite_networks(
     netlist = incidence_matrices[1:number_of_net],
-    colsbm_model = "pirho",
-    nb_run = 1,
+    colsbm_model = model,
+    nb_run = nb_run,
     global_opts = list(
         nb_cores = parallel::detectCores() - 1, verbosity = 1,
         plot_details = 0
@@ -76,8 +82,8 @@ toc()
 
 saveRDS(list_collection, file = paste0(
     "simulation/data/",
-    "dore_collection_clustering_",
-    number_of_net, "_",
+    "dore_collection_clustering_nb_run", nb_run,"_",model,"_",
+    number_of_net, "networks_",
     format(Sys.time(), "%d-%m-%y-%X"),
     ".Rds"
 ))
