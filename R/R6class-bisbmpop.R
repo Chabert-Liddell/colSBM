@@ -1787,16 +1787,17 @@ bisbmpop <- R6::R6Class(
         # Now that all possible neighbors have been visited
         # we set the next point from which we'll loop again
         # by finding the neighbor with max BICL
-        best_neighbor <- neighbors[[which.max(c(
-          ifelse(current_Q1 + neighbors[[1]][[1]] <= self$global_opts$Q1_max && current_Q2 + neighbors[[1]][[2]] <= self$global_opts$Q2_max,
-          self$model_list[[current_Q1 + neighbors[[1]][[1]],current_Q2 + neighbors[[1]][[2]]]]$BICL, # If the Q1 and Q2 are inbound we test them
-          -Inf), # Else we compare to -Inf
 
-          ifelse(current_Q1 + neighbors[[2]][[1]] <= self$global_opts$Q1_max && current_Q2 + neighbors[[2]][[2]] <= self$global_opts$Q2_max,
-          self$model_list[[current_Q1 + neighbors[[2]][[1]], current_Q2 + neighbors[[2]][[2]]]]$BICL,
-          -Inf
-          )
-        ))]]
+        neighbors_BICL <- sapply(neighbors, function(neighbor) {
+          full_neighbor <- c(current_Q1, current_Q2) + neighbor
+          if (self$point_is_in_limits(full_neighbor)) {
+            self$model_list[[full_neighbor[1], full_neighbor[2]]]$BICL
+          } else {
+            return(-Inf)
+          }
+        })
+
+        best_neighbor <- neighbors[[which.max(neighbors_BICL)]]
         best_neighbor <- c(current_Q1 + best_neighbor[1], current_Q2 + best_neighbor[2])
 
         # Now we set the current Q to the best neighbor
