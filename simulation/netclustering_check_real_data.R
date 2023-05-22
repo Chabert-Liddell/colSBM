@@ -1,5 +1,6 @@
 require("ggplot2")
 require("tictoc")
+require("tidyverse")
 
 devtools::load_all("R/")
 
@@ -8,7 +9,15 @@ if (!file.exists("simulation/data/dore-matrices.Rds")) {
     interaction_data <- read.table(file = "simulation/data/interaction-data.txt", sep = "\t", header = TRUE)
 
     seq_ids_network_aggreg <- unique(interaction_data$id_network_aggreg)
-
+    names_aggreg_networks <- sapply(
+        seq_ids_network_aggreg,
+        function(id) {
+            paste0(
+                unique(interaction_data[which(interaction_data$id_network_aggreg == id), ]$web),
+                collapse = "+"
+            )
+        }
+    )
     # Computation of incidence matrices
     incidence_matrices <- lapply(
         seq_ids_network_aggreg,
@@ -35,7 +44,7 @@ if (!file.exists("simulation/data/dore-matrices.Rds")) {
         }
     )
 
-    names(incidence_matrices) <- seq_ids_network_aggreg
+    names(incidence_matrices) <- names_aggreg_networks
 
     saveRDS(incidence_matrices, file = "simulation/data/dore-matrices.Rds")
 } else {
