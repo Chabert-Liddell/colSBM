@@ -65,6 +65,7 @@ tic()
 list_collection <- clusterize_bipartite_networks(
     netlist = incidence_matrices[1:number_of_net],
     colsbm_model = "pirho",
+    nb_run = 1,
     global_opts = list(
         nb_cores = parallel::detectCores() - 1, verbosity = 1,
         plot_details = 0
