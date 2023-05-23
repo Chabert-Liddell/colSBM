@@ -2799,7 +2799,7 @@ bisbmpop <- R6::R6Class(
     compute_sep_BiSBM_BICL = function() {
       # Computes the sepBiSBM ICL to compare with the model
       # TODO See if I can parallelize
-      self$sep_BiSBM$models <- lapply(seq.int(self$M), function(m) {
+      self$sep_BiSBM$models <- bettermc::mclapply(seq.int(self$M), function(m) {
         sep_BiSBM <- bisbmpop$new(
           netlist = list(self$A[[m]]),
           distribution = self$distribution,
@@ -2814,7 +2814,13 @@ bisbmpop <- R6::R6Class(
         )
         sep_BiSBM$optimize()
         sep_BiSBM$best_fit
-      })
+      },
+        mc.cores = self$global_opts$nb_cores,
+        mc.allow.recursive = TRUE,
+        mc.silent = TRUE,
+        mc.retry = -1, # To prevent big crash
+        mc.progress = FALSE
+      )
       
       self$sep_BiSBM$BICL <- sapply(seq.int(self$M), function(m) {
         self$sep_BiSBM$models[[m]]$BICL  # We retrieve all the BICLs for
