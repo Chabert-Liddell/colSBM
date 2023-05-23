@@ -814,10 +814,10 @@ bisbmpop <- R6::R6Class(
           }
         )
       }
-
+      t0 <- Sys.time()
       # If there is free_mixture it creates nestedness so we need to unlist
       possible_models <- append(list(), unlist(possible_models))
-
+      print(Sys.time() - t0)
       # Now we fit all the models for the differents splits
       possible_models_BICLs <- lapply(seq_along(possible_models), function(s) {
         possible_models[[s]]$BICL
