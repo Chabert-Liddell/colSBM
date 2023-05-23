@@ -1655,13 +1655,13 @@ bisbmpop <- R6::R6Class(
     #'
     #' @param starting_point A vector of the two coordinates
     #' c(Q1,Q2) which are the starting point
-    #' @param max_step_without_improvement defaults to 3, the
+    #' @param max_step_without_improvement defaults to 2, the
     #' number of steps to try improving before stopping the search
     #' @export
     #' @return c(Q1_mode, Q2_mode) which indicates the Q1 and Q2
     #' for which the BICL was maximal
     greedy_exploration = function(starting_point, max_iter = 12,
-    max_step_without_improvement = 3) {
+    max_step_without_improvement = 2) {
       # Initialize
       current_Q1 <- starting_point[1]
       current_Q2 <- starting_point[2]
@@ -1834,7 +1834,8 @@ bisbmpop <- R6::R6Class(
         if (self$global_opts$verbosity >= 4) {
           cat(
             "\nFor this round (", step+1, "/", max_iter,
-            ")the best neighbor is: ", toString(best_neighbor), end_of_text
+            "allowed total steps)the best neighbor is: ", 
+            toString(best_neighbor), end_of_text
           )
         }
 
