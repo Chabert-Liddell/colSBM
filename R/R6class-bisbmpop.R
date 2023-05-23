@@ -1834,7 +1834,7 @@ bisbmpop <- R6::R6Class(
         if (self$global_opts$verbosity >= 4) {
           cat(
             "\nFor this round (", step+1, "/", max_iter,
-            "allowed total steps)the best neighbor is: ", 
+            "allowed total steps) the best neighbor is: ", 
             toString(best_neighbor), end_of_text
           )
         }
