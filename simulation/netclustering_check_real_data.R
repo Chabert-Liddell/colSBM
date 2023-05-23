@@ -70,7 +70,7 @@ print(nb_run)
 tic()
 list_collection <- clusterize_bipartite_networks(
     netlist = incidence_matrices[1:number_of_net],
-    net_id = names(incidence_matrices),
+    net_id = names(incidence_matrices)[1:number_of_net],
     colsbm_model = model,
     nb_run = nb_run,
     global_opts = list(
