@@ -355,11 +355,6 @@ estimate_colBiSBM <-
           bettermc::mclapply(
             seq(nb_run),
             function(x) {
-              # Computes the number of cores to allocate per run
-              global_opts$nb_cores <- max(
-                1L,
-                floor(global_opts$nb_cores / nb_run)
-              )
               tmp_fit <- bisbmpop$new(
                 netlist = netlist,
                 net_id = net_id,
@@ -385,11 +380,6 @@ estimate_colBiSBM <-
           lapply(
             seq(nb_run),
             function(x) {
-              # Computes the number of cores to allocate per run
-              global_opts$nb_cores <- max(
-                1L,
-                floor(global_opts$nb_cores / nb_run)
-              )
               tmp_fit <- bisbmpop$new(
                 netlist = netlist,
                 net_id = net_id,
