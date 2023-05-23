@@ -505,12 +505,7 @@ clusterize_bipartite_networks <- function(netlist,
       # If there is more than 3 networks they are splitted using K-medioids
       cl <- cluster::pam(x = sqrt(dist_bm), k = 2, diss = TRUE)$clustering
     } else {
-      # TODO : check if this step is necessary or if this could be replaced
-      # by c(1,2)
-      # Else if there is two networks, a Hierarchical Clustering is performed
-      cl <- stats::cutree(
-        stats::hclust(stats::as.dist(dist_bm), method = "ward.D2"), 2
-      )
+      cl <- c(1,2)
     }
     # cl is a vector of size M, containing the networks clusters memberships
     fits <- # Contains two new collections
