@@ -1660,7 +1660,7 @@ bisbmpop <- R6::R6Class(
     #' @export
     #' @return c(Q1_mode, Q2_mode) which indicates the Q1 and Q2
     #' for which the BICL was maximal
-    greedy_exploration = function(starting_point,
+    greedy_exploration = function(starting_point, max_iter = 12,
     max_step_without_improvement = 3) {
       # Initialize
       current_Q1 <- starting_point[1]
@@ -1683,7 +1683,7 @@ bisbmpop <- R6::R6Class(
 
       while (
         max_BICL_has_improved &&
-        step < self$global_opts$Q1_max * self$global_opts$Q2_max
+        step < max_iter
         ) {
         # The loop explores the space greedily
         if (self$global_opts$verbosity >= 4) {
@@ -1832,7 +1832,10 @@ bisbmpop <- R6::R6Class(
         }
 
         if (self$global_opts$verbosity >= 4) {
-          cat("\nFor this round the best neighbor is: ", toString(best_neighbor), end_of_text)
+          cat(
+            "\nFor this round (", step+1, "/", max_iter,
+            ")the best neighbor is: ", toString(best_neighbor), end_of_text
+          )
         }
 
         # We increase the step
