@@ -554,16 +554,34 @@ clusterize_bipartite_networks <- function(netlist,
       )
     # Fully recursive (like a top down HCA)
     if (full_inference) {
-      return(list(fit$best_fit, # The current collection
-                  recursive_clustering(fits[[1]]), # The first sub-collection
-                  recursive_clustering(fits[[2]]))) # The second sub-collection
+        return(append(
+          list(fit$best_fit),
+          # New recursion over the 2 new fits
+          bettermc::mclapply(
+            c(1, 2),
+            function(s) {
+              recursive_clustering(fits[[s]])
+            },
+            mc.cores = global_opts$nb_cores,
+            mc.retry = -1
+          )
+        ))
     } else {
       # Here the recursion stops once the BICL doesn't improve
       if (fits[[1]]$best_fit$BICL + fits[[2]]$best_fit$BICL >
           fit$best_fit$BICL) {
-        return(list(fit$best_fit,
-                    recursive_clustering(fits[[1]]),
-                    recursive_clustering(fits[[2]])))
+        return(append(
+          list(fit$best_fit),
+          # New recursion over the 2 new fits
+          bettermc::mclapply(
+            c(1, 2),
+            function(s) {
+              recursive_clustering(fits[[s]])
+            },
+            mc.cores = global_opts$nb_cores,
+            mc.retry = -1
+          )
+        ))
       } else {
         return(fit$best_fit)
       }
