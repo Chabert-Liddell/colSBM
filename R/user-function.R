@@ -459,3 +459,37 @@ estimate_colBiSBM <-
     }
     return(bisbmpop)
   }
+
+#' Adjust a colBiSBM on a given point
+#'
+#' @param fitted_bisbmpop a fitted bisbmpop, obtained by using the
+#' \code{estimate_colBiSBM}
+#' @param Q a vector of size 2, containing the coordinates of the model we want
+#' to fit
+#' @param depth the depth (how far from the center to explore) of the moving
+#' window. Default to 1.
+#' @param nb_pass the number of passes of moving window to perform. Default to 
+#' 1.
+#'
+#' @return A bisbmpop object models for the collection of networks. Not the same
+#' object as \code{fitted_bisbmpop}
+#' @export
+#'
+adjust_colBiSBM <- function(
+  fitted_bisbmpop,
+  Q,
+  depth = 1L,
+  nb_pass = 1L
+){
+  # Sanity checks
+  stopifnot(inherits(fitted_bisbmpop, "bisbmpop"))
+  stopifnot(length(Q) == 2)
+  # We clone the object and fit the desired point
+  adjusted_bisbmpop <- fitted_bisbmpop$clone()
+  for (pass in seq.int(nb_pass)) {
+    cat("\n=== Adjustment pass", pass,"/",nb_pass,"===")
+    adjusted_bisbmpop$moving_window(Q, depth = depth)
+  }
+  adjusted_bisbmpop$adjusted_fit <- adjusted_bisbmpop$model_list[[Q[1],Q[2]]]
+  return(adjusted_bisbmpop)
+}

@@ -32,6 +32,7 @@ bisbmpop <- R6::R6Class(
     BICL = NULL,
     vbound = NULL,
     best_fit = NULL,
+    adjusted_fit = NULL, # Defining a field in case the user wants to adjust
     logfactA = NULL,
     improved = NULL,
     moving_window_coordinates = NULL, # A list of size two containing the
@@ -1985,6 +1986,7 @@ bisbmpop <- R6::R6Class(
       if (self$global_opts$verbosity >= 2) {
         cat("\n==== Beginning the passes of moving windows ====")
       }
+      start_time <- Sys.time()
 
       self$global_opts$nb_models <- ceiling(self$global_opts$nb_models/2)
       while (improved & nb_pass < self$global_opts$max_pass) {
@@ -1994,6 +1996,7 @@ bisbmpop <- R6::R6Class(
             " for networks ", self$net_id, " ====\n"
           )
         }
+        current_pass_time <- Sys.time()
 
         # Storing the current important values
         current_max_BICL <- self$model_list[[Q[1],Q[2]]]$BICL
@@ -2015,11 +2018,19 @@ bisbmpop <- R6::R6Class(
         if (self$global_opts$verbosity >= 2) {
           self$print_metrics()
         }
+        if (self$global_opts$verbosity >= 2) {
+          cat(
+            "\n==== Finished pass number ", nb_pass + 1,
+            " for networks ", self$net_id, " in ",
+            format(Sys.time() - current_pass_time, digits = 3),"====\n"
+          )
+        }
       }
 
       if (self$global_opts$verbosity >= 2) {
         cat(
-          "\n==== Finished the passes of moving windows ====",
+          "\n==== Finished the passes of moving windows in",
+          format(Sys.time() - start_time, digits = 3), "====",
           "\n==== Computing separated BiSBM BICL ===="
         )
       }
