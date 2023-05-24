@@ -216,14 +216,13 @@ estimate_colSBM <-
 #'  moving window process. Values are 0 or 1. Default is 1.}
 #'  \item{\code{max_pass} }{the maximum number of moving window passes that will be
 #'  executed. Default is 10.}
-#'  \item{\code{parallelization_vector}}{a boolean vector of size 3. Each
-#'  boolean specifies if the level should be parallelized. c(TRUE, TRUE, TRUE) 
+#'  \item{\code{parallelization_vector}}{a boolean vector of size 2. Each
+#'  boolean specifies if the level should be parallelized. c(TRUE, TRUE) 
 #'  means that : 
 #'  \itemize{
 #'  \item{1st: the \code{nb_run} models will be computed in parallel}
 #'  \item{2nd: the possible models during the state space exploration will be 
 #'  computed in parallel.
-#'  \item{3rd: the sub fits (if free mixture is enabled) will be parallelized.}
 #'    }
 #'  }
 #'  The default is : c(TRUE, TRUE, FALSE) which gives best performance
@@ -314,7 +313,7 @@ estimate_colBiSBM <-
       max_pass = 10L,
       verbosity = 1L,
       nb_cores = 1L,
-      parallelization_vector = c(TRUE, TRUE, FALSE)
+      parallelization_vector = c(TRUE, TRUE)
     )
     go <- utils::modifyList(go, global_opts)
     global_opts <- go
@@ -355,11 +354,6 @@ estimate_colBiSBM <-
           bettermc::mclapply(
             seq(nb_run),
             function(x) {
-              # Computes the number of cores to allocate per run
-              global_opts$nb_cores <- max(
-                1L,
-                floor(global_opts$nb_cores / nb_run)
-              )
               tmp_fit <- bisbmpop$new(
                 netlist = netlist,
                 net_id = net_id,
@@ -385,11 +379,6 @@ estimate_colBiSBM <-
           lapply(
             seq(nb_run),
             function(x) {
-              # Computes the number of cores to allocate per run
-              global_opts$nb_cores <- max(
-                1L,
-                floor(global_opts$nb_cores / nb_run)
-              )
               tmp_fit <- bisbmpop$new(
                 netlist = netlist,
                 net_id = net_id,

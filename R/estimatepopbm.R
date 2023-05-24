@@ -505,12 +505,7 @@ clusterize_bipartite_networks <- function(netlist,
       # If there is more than 3 networks they are splitted using K-medioids
       cl <- cluster::pam(x = sqrt(dist_bm), k = 2, diss = TRUE)$clustering
     } else {
-      # TODO : check if this step is necessary or if this could be replaced
-      # by c(1,2)
-      # Else if there is two networks, a Hierarchical Clustering is performed
-      cl <- stats::cutree(
-        stats::hclust(stats::as.dist(dist_bm), method = "ward.D2"), 2
-      )
+      cl <- c(1,2)
     }
     # cl is a vector of size M, containing the networks clusters memberships
     fits <- # Contains two new collections
@@ -542,17 +537,227 @@ clusterize_bipartite_networks <- function(netlist,
               toString(fit$net_id[cl == k]), "\n"
             )
           }
-          return(estimate_colBiSBM(
-            netlist = fit$A[cl == k],
-            colsbm_model = colsbm_model,
-            net_id = fit$net_id[cl == k],
-            distribution = distribution,
-            nb_run = min(sum(cl == k), nb_run),
-            Z_init = Z_init, # TODO Change this parameter name, cause all Q
-            global_opts = global_opts,
-            fit_opts = fit_opts,
-            silent_parallelization = silent_parallelization
-          ))
+          return(
+            # estimate_colBiSBM(
+            #   netlist = fit$A[cl == k],
+            #   colsbm_model = colsbm_model,
+            #   net_id = fit$net_id[cl == k],
+            #   distribution = distribution,
+            #   nb_run = min(sum(cl == k), nb_run),
+            #   Z_init = Z_init, # TODO Change this parameter name, cause all Q
+            #   global_opts = global_opts,
+            #   fit_opts = fit_opts,
+            #   silent_parallelization = silent_parallelization
+            # )
+            {
+              switch(colsbm_model,
+              "iid" = {
+                free_density <- FALSE
+                free_mixture_row <- FALSE
+                free_mixture_col <- FALSE
+              },
+              "pi" = {
+                free_density <- FALSE
+                free_mixture_row <- TRUE
+                free_mixture_col <- FALSE
+              },
+              "rho" = {
+                free_density <- FALSE
+                free_mixture_row <- FALSE
+                free_mixture_col <- TRUE
+              },
+              "pirho" = {
+                free_density <- FALSE
+                free_mixture_row <- TRUE
+                free_mixture_col <- TRUE
+              },
+              "delta" = {
+                free_density <- TRUE
+                free_mixture_row <- FALSE
+                free_mixture_col <- FALSE
+              },
+              "deltapi" = {
+                free_density <- TRUE
+                free_mixture_row <- TRUE
+                free_mixture_col <- FALSE
+              },
+              stop(
+                "colsbm_model unknown.",
+                " Must be one of iid, pi, rho, pirho, delta or deltapi"
+              )
+            )
+
+            # go is used to temporarily store the default global_opts
+            go <- list(
+              Q1_min = 1L,
+              Q2_min = 1L,
+              Q1_max = floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2),
+              Q2_max = floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2),
+              nb_init = 10L,
+              nb_models = 5L,
+              depth = 1L,
+              plot_details = 1L,
+              max_pass = 10L,
+              verbosity = 1L,
+              nb_cores = 1L,
+              parallelization_vector = c(TRUE, TRUE, FALSE)
+            )
+            go <- utils::modifyList(go, global_opts)
+            global_opts <- go
+            if (is.null(global_opts$nb_cores)) {
+              global_opts$nb_cores <- 1L
+            }
+            nb_cores <- global_opts$nb_cores
+            if (is.null(global_opts$Q1_max)) {
+              Q1_max <- floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2)
+            } else {
+              Q1_max <- global_opts$Q1_max
+            }
+            if (is.null(global_opts$Q2_max)) {
+              Q2_max <- floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2)
+            } else {
+              Q2_max <- global_opts$Q2_max
+            }
+
+            # To warn the user about the verbosity and nb_cores
+            if (global_opts$verbosity >= 3 && global_opts$nb_cores > 1) {
+              cat(
+                "\nDue to the parallelization, the message logs",
+                "might be in confusing order.",
+                " You may want to use only one core for readability"
+              )
+            }
+
+            if (!is.null(fit_init)) {
+              bisbmpop <- fit_init
+            } else {
+              if (is.null(net_id)) {
+                net_id <- seq_along(netlist)
+              }
+              # tmp_fits run nb_run times a full model selection procedure
+              # (the one from the research paper)
+              if (global_opts$parallelization_vector[1]) {
+                tmp_fits <-
+                  bettermc::mclapply(
+                    seq(nb_run),
+                    function(x) {
+                      # Computes the number of cores to allocate per run
+                      global_opts$nb_cores <- max(
+                        1L,
+                        floor(global_opts$nb_cores / nb_run)
+                      )
+                      tmp_fit <- bisbmpop$new(
+                        netlist = netlist,
+                        net_id = net_id,
+                        distribution = distribution,
+                        free_density = free_density,
+                        free_mixture_row = free_mixture_row,
+                        free_mixture_col = free_mixture_col,
+                        global_opts = global_opts,
+                        fit_opts = fit_opts,
+                        Z_init = Z_init
+                      )
+                      tmp_fit$optimize()
+                      return(tmp_fit)
+                    },
+                    mc.progress = !silent_parallelization,
+                    mc.cores = min(nb_run, nb_cores),
+                    mc.stdout = "output",
+                    mc.retry = -1, # To prevent big crash
+                    mc.silent = silent_parallelization
+                  )
+              } else {
+                tmp_fits <-
+                  lapply(
+                    seq(nb_run),
+                    function(x) {
+                      # Computes the number of cores to allocate per run
+                      global_opts$nb_cores <- max(
+                        1L,
+                        floor(global_opts$nb_cores / nb_run)
+                      )
+                      tmp_fit <- bisbmpop$new(
+                        netlist = netlist,
+                        net_id = net_id,
+                        distribution = distribution,
+                        free_density = free_density,
+                        free_mixture_row = free_mixture_row,
+                        free_mixture_col = free_mixture_col,
+                        global_opts = global_opts,
+                        fit_opts = fit_opts,
+                        Z_init = Z_init
+                      )
+                      tmp_fit$optimize()
+                      return(tmp_fit)
+                    }
+                  )
+              }
+              # We choose the the bisbmpop to receive the best_fit in sense of the BICL
+              bisbmpop <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$BICL,
+                FUN.VALUE = .1
+              ))]]
+
+              # We perform the procedure only if nb_run > 1
+              if (nb_run > 1) {
+                if (global_opts$verbosity >= 1) {
+                  cat("\nMerging the", nb_run, "models")
+                }
+                # For each Q1 and Q2, we compare all
+                for (q1 in global_opts$Q1_max) {
+                  for (q2 in global_opts$Q2_max) {
+                    if (!is.null(bisbmpop$model_list[[q1, q2]])) {
+                      # All the models for the current q1 and q2 are stored
+                      models_comparison <- # Note : this object is a list
+                        c(bisbmpop$model_list[[q1, q2]], lapply(
+                          tmp_fits,
+                          function(fit) fit$model_list[[q1, q2]]
+                        ))
+                      # The best in the sense of the BICL is chosen
+                      bisbmpop$model_list[[q1, q2]] <-
+                        models_comparison[which.max(
+                          vapply(models_comparison, function(model) model$BICL,
+                            FUN.VALUE = .1
+                          )
+                        )]
+
+                      # The same procedure is applied for the
+                      discarded_models_comparison <-
+                        c(bisbmpop$discarded_model_list[[q1, q2]], unlist(lapply(
+                          tmp_fits,
+                          function(fit) fit$discarded_model_list[[q1, q2]]
+                        )))
+                      bisbmpop$discarded_model_list[[q1, q2]] <-
+                        discarded_models_comparison[order(
+                          vapply(discarded_models_comparison,
+                            function(model) model$BICL,
+                            FUN.VALUE = .1),
+                          decreasing = TRUE
+                        )]
+                    }
+                  }
+                }
+
+                # We now update the criteria and best fit
+                bisbmpop$store_criteria_and_best_fit()
+                # The discarded model list is truncated
+                bisbmpop$truncate_discarded_model_list()
+              }
+              rm(tmp_fits)
+              gc()
+              # At the end we show the results
+              if (global_opts$verbosity >= 1 & nb_run > 1) {
+                cat(
+                  "\nAfter merging the", nb_run, "model runs,",
+                  "the criteria are the following:\n"
+                )
+                bisbmpop$print_metrics()
+              }
+              bisbmpop$choose_joint_or_separated()
+            }
+            return(bisbmpop)
+            }
+
+          )
         }
       )
     # Fully recursive (like a top down HCA)

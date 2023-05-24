@@ -36,7 +36,7 @@ iid_Z <- lapply(seq.int(iid_M), function(m) {
 iid_choosed_bisbmpop <- colSBM::estimate_colBiSBM(
     netlist = iid_bipartite_collection_incidence,
     colsbm_model = "iid",
-    global_opts = list(nb_cores = 3, plot_details = 0)
+    global_opts = list(nb_cores = parallel::detectCores() - 1, plot_details = 0)
 )
 
 iid_ari_sums <- sapply(

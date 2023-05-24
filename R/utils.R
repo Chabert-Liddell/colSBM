@@ -431,16 +431,10 @@ build_fold_matrix <- function(X, K) {
 
 
 .xlogx <- function(x) {
-  # ifelse(x < 2 * .Machine$double.eps, 0, x * log(x))
-  # OPTIM
-  out <- rep(0, length(x))
-  out[x < 2*.Machine$double.eps] <- x * log(x)
+  ifelse(x < 2 * .Machine$double.eps, 0, x * log(x))
 }
 .xlogy <- function(x, y, eps = NULL) {
-  # ifelse(x < 2 * .Machine$double.eps, 0, x * .log(y, eps = eps))
-  # OPTIM
-  out <- rep(0, length(x))
-  out[x < 2 * .Machine$double.eps] <- x * .log(y, eps = eps)
+  ifelse(x < 2 * .Machine$double.eps, 0, x * .log(y, eps = eps))
 }
 .quadform <- function(x, y) tcrossprod(x %*% y, x)
 .tquadform <- function(x, y) crossprod(x, y %*% x)
