@@ -563,6 +563,7 @@ clusterize_bipartite_networks <- function(netlist,
               recursive_clustering(fits[[s]])
             },
             mc.cores = global_opts$nb_cores,
+            mc.stdout = "output",
             mc.retry = -1
           )
         ))
@@ -579,6 +580,7 @@ clusterize_bipartite_networks <- function(netlist,
               recursive_clustering(fits[[s]])
             },
             mc.cores = global_opts$nb_cores,
+            mc.stdout = "output",
             mc.retry = -1
           )
         ))
