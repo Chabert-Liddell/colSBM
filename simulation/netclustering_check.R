@@ -17,7 +17,7 @@ nc <- 75
 
 pi <- matrix(c(0.2, 0.3, 0.5), nrow = 1, byrow = TRUE)
 rho <- matrix(c(0.2, 0.3, 0.5), nrow = 1, byrow = TRUE)
-epsilons <- c(0.1, 0.4)
+epsilons <- c(0.4)
 
 if (!exists("arg")) {
     arg <- commandArgs(trailingOnly = TRUE)
@@ -180,10 +180,12 @@ results <- bettermc::mclapply(seq_len(nrow(conditions)), function(s) {
     list_collection <- clusterize_bipartite_networks(
         netlist = incidence_matrices,
         net_id = netids,
+        nb_run = 1,
         colsbm_model = model_to_test,
         global_opts = list(
-            nb_cores = parallel::detectCores() - 1, verbosity = 1,
-            plot_details = 0
+            nb_cores = parallel::detectCores() - 1, verbosity = 2,
+            plot_details = 0#,
+            #parallelization_vector = c(FALSE, FALSE, FALSE)
         ),
         silent_parallelization = TRUE
     )
