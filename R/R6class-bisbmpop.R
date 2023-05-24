@@ -107,7 +107,7 @@ bisbmpop <- R6::R6Class(
         max_pass = 10L,
         verbosity = 0L,
         nb_cores = 1L,
-        parallelization_vector = c(TRUE, TRUE, TRUE),
+        parallelization_vector = c(TRUE, TRUE),
         compare_stored = TRUE)
       self$global_opts <- utils::modifyList(self$global_opts, global_opts)
       self$vbound <- matrix(
@@ -370,142 +370,70 @@ bisbmpop <- R6::R6Class(
             if ((self$free_mixture_row | self$free_mixture_col) & self$M > 1) {
               # The levels of tolerance
               emptiness_levels <- seq(from = 0.01, to = 0.05, by = 0.01)
+              models_with_different_emptiness_levels <- lapply(
+                seq_along(emptiness_levels),
+                function(l) {
+                  Cpi <- list()
 
-              if (self$global_opts$parallelization_vector[3]) {
-                models_with_different_emptiness_levels <- bettermc::mclapply(
-                  seq_along(emptiness_levels),
-                  function(l) {
-                    Cpi <- list()
-
-                    # Compute the support for the rows
-                    if (self$free_mixture_row) {
-                      if (self$global_opts$verbosity >= 4) {
-                        cat(
-                          "\n\t\tFree mixture on the row, minimum pi threshold : ",
-                          emptiness_levels[l]
-                        )
-                      }
-                      Cpi[[1]] <- vapply(seq(q_th_model$M), function(m) {
-                        q_th_model$pi[[m]][[1]] > emptiness_levels[l]
-                      },
-                      FUN.VALUE = rep(TRUE, split_Q[1])
-                      )
-                      dim(Cpi[[1]]) <- c(split_Q[1], q_th_model$M)
-                    } else {
-                      # All networks use all clusters
-                      Cpi[[1]] <- matrix(TRUE, nrow = split_Q[1], ncol = q_th_model$M)
-                    }
-
-                    # Compute the support for the columns
-                    if (self$free_mixture_col) {
-                      if (self$global_opts$verbosity >= 4) {
-                        cat(
-                          "\n\t\tFree mixture on the columns, minimum rho threshold : ",
-                          emptiness_levels[l]
-                        )
-                      }
-                      Cpi[[2]] <- vapply(seq(q_th_model$M), function(m) {
-                        q_th_model$pi[[m]][[2]] > emptiness_levels[l]
-                      },
-                      FUN.VALUE = rep(TRUE, split_Q[2])
-                      )
-                      dim(Cpi[[2]]) <- c(split_Q[2], q_th_model$M)
-                    } else {
-                      # All networks use all clusters
-                      Cpi[[2]] <- matrix(TRUE, nrow = split_Q[2], ncol = q_th_model$M)
-                    }
-
-                    # With the supports computed we can now clone the fitBipartite
-                    # and fit wrt the supports.
-                    q_th_model_with_supports <- q_th_model$clone()
-
-                    # Adding the supports
-                    q_th_model_with_supports$Cpi <- Cpi
-                    q_th_model_with_supports$Calpha <-
-                      tcrossprod(Cpi[[1]], Cpi[[2]]) > 0
-                    q_th_model_with_supports$init_method <- "empty"
-                    if (self$free_mixture_row | self$free_mixture_col |
-                        self$global_opts$verbosity >= 4) {
-                      cat(
-                        "\n\t\tFitting with threshold : ",
-                        emptiness_levels[l],
-                        ". Threshold number ", l, "/", length(emptiness_levels)
-                      )
-                    }
-                    q_th_model_with_supports$optimize()
-                    q_th_model_with_supports
-                  },
-                  mc.cores = self$global_opts$nb_cores,
-                  mc.allow.recursive = TRUE,
-                  mc.silent = TRUE,
-                  mc.retry = -1, # To prevent big crash
-                  mc.progress = FALSE
-                )
-              } else {
-                models_with_different_emptiness_levels <- lapply(
-                  seq_along(emptiness_levels),
-                  function(l) {
-                    Cpi <- list()
-
-                    # Compute the support for the rows
-                    if (self$free_mixture_row) {
-                      if (self$global_opts$verbosity >= 4) {
-                        cat(
-                          "\n\t\tFree mixture on the row, minimum pi threshold : ",
-                          emptiness_levels[l]
-                        )
-                      }
-                      Cpi[[1]] <- vapply(seq(q_th_model$M), function(m) {
-                        q_th_model$pi[[m]][[1]] > emptiness_levels[l]
-                      },
-                      FUN.VALUE = rep(TRUE, split_Q[1])
-                      )
-                      dim(Cpi[[1]]) <- c(split_Q[1], q_th_model$M)
-                    } else {
-                      # All networks use all clusters
-                      Cpi[[1]] <- matrix(TRUE, nrow = split_Q[1], ncol = q_th_model$M)
-                    }
-
-                    # Compute the support for the columns
-                    if (self$free_mixture_col) {
-                      if (self$global_opts$verbosity >= 5) {
-                        cat(
-                          "\n\t\tFree mixture on the columns, minimum rho threshold : ",
-                          emptiness_levels[l]
-                        )
-                      }
-                      Cpi[[2]] <- vapply(seq(q_th_model$M), function(m) {
-                        q_th_model$pi[[m]][[2]] > emptiness_levels[l]
-                      },
-                      FUN.VALUE = rep(TRUE, split_Q[2])
-                      )
-                      dim(Cpi[[2]]) <- c(split_Q[2], q_th_model$M)
-                    } else {
-                      # All networks use all clusters
-                      Cpi[[2]] <- matrix(TRUE, nrow = split_Q[2], ncol = q_th_model$M)
-                    }
-
-                    # With the supports computed we can now clone the fitBipartite
-                    # and fit wrt the supports.
-                    q_th_model_with_supports <- q_th_model$clone()
-
-                    # Adding the supports
-                    q_th_model_with_supports$Cpi <- Cpi
-                    q_th_model_with_supports$Calpha <-
-                      tcrossprod(Cpi[[1]], Cpi[[2]]) > 0
-                    q_th_model_with_supports$init_method <- "empty"
+                  # Compute the support for the rows
+                  if (self$free_mixture_row) {
                     if (self$global_opts$verbosity >= 4) {
                       cat(
-                        "\n\t\tFitting with threshold : ",
-                        emptiness_levels[l],
-                        ". Threshold number ", l, "/", length(emptiness_levels)
+                        "\n\t\tFree mixture on the row, minimum pi threshold : ",
+                        emptiness_levels[l]
                       )
                     }
-                    q_th_model_with_supports$optimize()
-                    q_th_model_with_supports
+                    Cpi[[1]] <- vapply(seq(q_th_model$M), function(m) {
+                      q_th_model$pi[[m]][[1]] > emptiness_levels[l]
+                    },
+                    FUN.VALUE = rep(TRUE, split_Q[1])
+                    )
+                    dim(Cpi[[1]]) <- c(split_Q[1], q_th_model$M)
+                  } else {
+                    # All networks use all clusters
+                    Cpi[[1]] <- matrix(TRUE, nrow = split_Q[1], ncol = q_th_model$M)
                   }
-                )
-              }
+
+                  # Compute the support for the columns
+                  if (self$free_mixture_col) {
+                    if (self$global_opts$verbosity >= 5) {
+                      cat(
+                        "\n\t\tFree mixture on the columns, minimum rho threshold : ",
+                        emptiness_levels[l]
+                      )
+                    }
+                    Cpi[[2]] <- vapply(seq(q_th_model$M), function(m) {
+                      q_th_model$pi[[m]][[2]] > emptiness_levels[l]
+                    },
+                    FUN.VALUE = rep(TRUE, split_Q[2])
+                    )
+                    dim(Cpi[[2]]) <- c(split_Q[2], q_th_model$M)
+                  } else {
+                    # All networks use all clusters
+                    Cpi[[2]] <- matrix(TRUE, nrow = split_Q[2], ncol = q_th_model$M)
+                  }
+
+                  # With the supports computed we can now clone the fitBipartite
+                  # and fit wrt the supports.
+                  q_th_model_with_supports <- q_th_model$clone()
+
+                  # Adding the supports
+                  q_th_model_with_supports$Cpi <- Cpi
+                  q_th_model_with_supports$Calpha <-
+                    tcrossprod(Cpi[[1]], Cpi[[2]]) > 0
+                  q_th_model_with_supports$init_method <- "empty"
+                  if (self$global_opts$verbosity >= 4) {
+                    cat(
+                      "\n\t\tFitting with threshold : ",
+                      emptiness_levels[l],
+                      ". Threshold number ", l, "/", length(emptiness_levels)
+                    )
+                  }
+                  q_th_model_with_supports$optimize()
+                  q_th_model_with_supports
+                }
+              )
+
 
               # Now the two lists are merged
               q_th_models <- append(
@@ -519,6 +447,7 @@ bisbmpop <- R6::R6Class(
           },
           mc.cores = self$global_opts$nb_cores,
           mc.allow.recursive = TRUE,
+          mc.share.copy = FALSE, # Trying to increase speed
           mc.silent = TRUE,
           mc.retry = -1, # To prevent big crash
           mc.progress = FALSE
@@ -667,76 +596,6 @@ bisbmpop <- R6::R6Class(
             if ((self$free_mixture_row | self$free_mixture_col) & self$M > 1) {
               # The levels of tolerance
               emptiness_levels <- seq(from = 0.01, to = 0.05, by = 0.01)
-            if (self$global_opts$parallelization_vector[3]) {
-              models_with_different_emptiness_levels <- bettermc::mclapply(
-                seq_along(emptiness_levels),
-                function(l) {
-                  Cpi <- list()
-
-                  # Compute the support for the rows
-                  if (self$free_mixture_row) {
-                    if (self$global_opts$verbosity >= 5) {
-                      cat(
-                        "\n\t\tFree mixture on the row, minimum pi threshold : ",
-                        emptiness_levels[l]
-                      )
-                    }
-                    Cpi[[1]] <- vapply(seq(q_th_model$M), function(m) {
-                      q_th_model$pi[[m]][[1]] > emptiness_levels[l]
-                    },
-                    FUN.VALUE = rep(TRUE, split_Q[1])
-                    )
-                    dim(Cpi[[1]]) <- c(split_Q[1], q_th_model$M)
-                  } else {
-                    # All networks use all clusters
-                    Cpi[[1]] <- matrix(TRUE, nrow = split_Q[1], ncol = q_th_model$M)
-                  }
-
-                  # Compute the support for the columns
-                  if (self$free_mixture_col) {
-                    if (self$global_opts$verbosity >= 5) {
-                      cat(
-                        "\n\t\tFree mixture on the columns, minimum rho threshold : ",
-                        emptiness_levels[l]
-                      )
-                    }
-                    Cpi[[2]] <- vapply(seq(q_th_model$M), function(m) {
-                      q_th_model$pi[[m]][[2]] > emptiness_levels[l]
-                    },
-                    FUN.VALUE = rep(TRUE, split_Q[2])
-                    )
-                    dim(Cpi[[2]]) <- c(split_Q[2], q_th_model$M)
-                  } else {
-                    # All networks use all clusters
-                    Cpi[[2]] <- matrix(TRUE, nrow = split_Q[2], ncol = q_th_model$M)
-                  }
-
-                  # With the supports computed we can now clone the fitBipartite
-                  # and fit wrt the supports.
-                  q_th_model_with_supports <- q_th_model$clone()
-
-                  # Adding the supports
-                  q_th_model_with_supports$Cpi <- Cpi
-                  q_th_model_with_supports$Calpha <-
-                    tcrossprod(Cpi[[1]], Cpi[[2]]) > 0
-                  q_th_model_with_supports$init_method <- "empty"
-                  if (self$global_opts$verbosity >= 4) {
-                    cat(
-                      "\n\t\tFitting with threshold : ",
-                      emptiness_levels[l],
-                      ". Threshold number ", l, "/", length(emptiness_levels)
-                    )
-                  }
-                  q_th_model_with_supports$optimize()
-                  q_th_model_with_supports
-                },
-                mc.cores = self$global_opts$nb_cores,
-                mc.allow.recursive = TRUE,
-                mc.silent = TRUE,
-                mc.retry = -1, # To prevent big crash
-                mc.progress = FALSE
-              )
-            } else {
               models_with_different_emptiness_levels <- lapply(
                 seq_along(emptiness_levels),
                 function(l) {
@@ -800,7 +659,7 @@ bisbmpop <- R6::R6Class(
                   q_th_model_with_supports
                 }
               )
-            }
+
 
               # Now the two lists are merged
               q_th_models <- append(
@@ -814,10 +673,8 @@ bisbmpop <- R6::R6Class(
           }
         )
       }
-      t0 <- Sys.time()
       # If there is free_mixture it creates nestedness so we need to unlist
       possible_models <- append(list(), unlist(possible_models))
-      print(Sys.time() - t0)
       # Now we fit all the models for the differents splits
       possible_models_BICLs <- lapply(seq_along(possible_models), function(s) {
         possible_models[[s]]$BICL
@@ -1040,141 +897,74 @@ bisbmpop <- R6::R6Class(
         q_th_models <- list(q_th_model)
 
         emptiness_levels <- NULL
-        if ((self$free_mixture_row | self$free_mixture_col)& self$M > 1) {
+        if ((self$free_mixture_row | self$free_mixture_col) & self$M > 1) {
           # The levels of tolerance
           emptiness_levels <- seq(from = 0.01, to = 0.05, by = 0.01)
-          if (self$global_opts$parallelization_vector[3]){
-            models_with_different_emptiness_levels <- bettermc::mclapply(
-              seq_along(emptiness_levels),
-              function(l) {
-                Cpi <- list()
 
-                # Compute the support for the rows
-                if (self$free_mixture_row) {
-                  if (self$global_opts$verbosity >= 5) {
-                    cat(
-                      "\n\t\tFree mixture on the row, minimum pi threshold : ",
-                      emptiness_levels[l]
-                    )
-                  }
-                  Cpi[[1]] <- vapply(seq(q_th_model$M), function(m) {
-                    q_th_model$pi[[m]][[1]] > emptiness_levels[l]
-                  },
-                  FUN.VALUE = rep(TRUE, merge_Q[1])
-                  )
-                  dim(Cpi[[1]]) <- c(merge_Q[1], q_th_model$M)
-                } else {
-                  # All networks use all clusters
-                  Cpi[[1]] <- matrix(TRUE, nrow = merge_Q[1], ncol = q_th_model$M)
-                }
+          models_with_different_emptiness_levels <- lapply(
+            seq_along(emptiness_levels),
+            function(l) {
+              Cpi <- list()
 
-                # Compute the support for the columns
-                if (self$free_mixture_col) {
-                  if (self$global_opts$verbosity >= 5) {
-                    cat(
-                      "\n\t\tFree mixture on the columns, minimum rho threshold : ",
-                      emptiness_levels[l]
-                    )
-                  }
-                  Cpi[[2]] <- vapply(seq(q_th_model$M), function(m) {
-                    q_th_model$pi[[m]][[2]] > emptiness_levels[l]
-                  },
-                  FUN.VALUE = rep(TRUE, merge_Q[2])
-                  )
-                  dim(Cpi[[2]]) <- c(merge_Q[2], q_th_model$M)
-                } else {
-                  # All networks use all clusters
-                  Cpi[[2]] <- matrix(TRUE, nrow = merge_Q[2], ncol = q_th_model$M)
-                }
-
-                # With the supports computed we can now clone the fitBipartite
-                # and fit wrt the supports.
-                q_th_model_with_supports <- q_th_model$clone()
-
-                # Adding the supports
-                q_th_model_with_supports$Cpi <- Cpi
-                q_th_model_with_supports$Calpha <-
-                  tcrossprod(Cpi[[1]], Cpi[[2]]) > 0
-                q_th_model_with_supports$init_method <- "empty"
-                if (self$global_opts$verbosity >= 4) {
+              # Compute the support for the rows
+              if (self$free_mixture_row) {
+                if (self$global_opts$verbosity >= 5) {
                   cat(
-                    "\n\t\tFitting with threshold : ",
-                    emptiness_levels[l],
-                    ". Threshold number ", l, "/", length(emptiness_levels)
+                    "\n\t\tFree mixture on the row, minimum pi threshold : ",
+                    emptiness_levels[l]
                   )
                 }
-                q_th_model_with_supports$optimize()
-                q_th_model_with_supports
-              },
-              mc.cores = self$global_opts$nb_cores,
-              mc.silent = TRUE,
-              mc.retry = -1, # To prevent big crash
-              mc.allow.recursive = TRUE)
-          } else {
-            models_with_different_emptiness_levels <- lapply(
-              seq_along(emptiness_levels),
-              function(l) {
-                Cpi <- list()
-
-                # Compute the support for the rows
-                if (self$free_mixture_row) {
-                  if (self$global_opts$verbosity >= 5) {
-                    cat(
-                      "\n\t\tFree mixture on the row, minimum pi threshold : ",
-                      emptiness_levels[l]
-                    )
-                  }
-                  Cpi[[1]] <- vapply(seq(q_th_model$M), function(m) {
-                    q_th_model$pi[[m]][[1]] > emptiness_levels[l]
-                  },
-                  FUN.VALUE = rep(TRUE, merge_Q[1])
-                  )
-                  dim(Cpi[[1]]) <- c(merge_Q[1], q_th_model$M)
-                } else {
-                  # All networks use all clusters
-                  Cpi[[1]] <- matrix(TRUE, nrow = merge_Q[1], ncol = q_th_model$M)
-                }
-
-                # Compute the support for the columns
-                if (self$free_mixture_col) {
-                  if (self$global_opts$verbosity >= 5) {
-                    cat(
-                      "\n\t\tFree mixture on the columns, minimum rho threshold : ",
-                      emptiness_levels[l]
-                    )
-                  }
-                  Cpi[[2]] <- vapply(seq(q_th_model$M), function(m) {
-                    q_th_model$pi[[m]][[2]] > emptiness_levels[l]
-                  },
-                  FUN.VALUE = rep(TRUE, merge_Q[2])
-                  )
-                  dim(Cpi[[2]]) <- c(merge_Q[2], q_th_model$M)
-                } else {
-                  # All networks use all clusters
-                  Cpi[[2]] <- matrix(TRUE, nrow = merge_Q[2], ncol = q_th_model$M)
-                }
-
-                # With the supports computed we can now clone the fitBipartite
-                # and fit wrt the supports.
-                q_th_model_with_supports <- q_th_model$clone()
-
-                # Adding the supports
-                q_th_model_with_supports$Cpi <- Cpi
-                q_th_model_with_supports$Calpha <-
-                  tcrossprod(Cpi[[1]], Cpi[[2]]) > 0
-                q_th_model_with_supports$init_method <- "empty"
-                if (self$global_opts$verbosity >= 4) {
-                  cat(
-                    "\n\t\tFitting with threshold : ",
-                    emptiness_levels[l],
-                    ". Threshold number ", l, "/", length(emptiness_levels)
-                  )
-                }
-                q_th_model_with_supports$optimize()
-                q_th_model_with_supports
+                Cpi[[1]] <- vapply(seq(q_th_model$M), function(m) {
+                  q_th_model$pi[[m]][[1]] > emptiness_levels[l]
+                },
+                FUN.VALUE = rep(TRUE, merge_Q[1])
+                )
+                dim(Cpi[[1]]) <- c(merge_Q[1], q_th_model$M)
+              } else {
+                # All networks use all clusters
+                Cpi[[1]] <- matrix(TRUE, nrow = merge_Q[1], ncol = q_th_model$M)
               }
-            )
-          }
+
+              # Compute the support for the columns
+              if (self$free_mixture_col) {
+                if (self$global_opts$verbosity >= 5) {
+                  cat(
+                    "\n\t\tFree mixture on the columns, minimum rho threshold : ",
+                    emptiness_levels[l]
+                  )
+                }
+                Cpi[[2]] <- vapply(seq(q_th_model$M), function(m) {
+                  q_th_model$pi[[m]][[2]] > emptiness_levels[l]
+                },
+                FUN.VALUE = rep(TRUE, merge_Q[2])
+                )
+                dim(Cpi[[2]]) <- c(merge_Q[2], q_th_model$M)
+              } else {
+                # All networks use all clusters
+                Cpi[[2]] <- matrix(TRUE, nrow = merge_Q[2], ncol = q_th_model$M)
+              }
+
+              # With the supports computed we can now clone the fitBipartite
+              # and fit wrt the supports.
+              q_th_model_with_supports <- q_th_model$clone()
+
+              # Adding the supports
+              q_th_model_with_supports$Cpi <- Cpi
+              q_th_model_with_supports$Calpha <-
+                tcrossprod(Cpi[[1]], Cpi[[2]]) > 0
+              q_th_model_with_supports$init_method <- "empty"
+              if (self$global_opts$verbosity >= 4) {
+                cat(
+                  "\n\t\tFitting with threshold : ",
+                  emptiness_levels[l],
+                  ". Threshold number ", l, "/", length(emptiness_levels)
+                )
+              }
+              q_th_model_with_supports$optimize()
+              q_th_model_with_supports
+            }
+          )
+
           # Now the two lists are merged
           q_th_models <- append(
             q_th_models,
@@ -1188,6 +978,7 @@ bisbmpop <- R6::R6Class(
         mc.cores = self$global_opts$nb_cores,
         mc.allow.recursive = TRUE,
         mc.silent = TRUE,
+        mc.share.copy = FALSE, # Trying to increase speed
         mc.retry = -1, # To prevent big crash
         mc.progress = FALSE
       )
@@ -1336,76 +1127,6 @@ bisbmpop <- R6::R6Class(
         if ((self$free_mixture_row | self$free_mixture_col)& self$M > 1) {
           # The levels of tolerance
           emptiness_levels <- seq(from = 0.01, to = 0.05, by = 0.01)
-
-        if (self$global_opts$parallelization_vector[3]) {
-          models_with_different_emptiness_levels <- bettermc::mclapply(
-            seq_along(emptiness_levels),
-            function(l) {
-              Cpi <- list()
-
-              # Compute the support for the rows
-              if (self$free_mixture_row) {
-                if (self$global_opts$verbosity >= 5) {
-                  cat(
-                    "\n\t\tFree mixture on the row, minimum pi threshold : ",
-                    emptiness_levels[l]
-                  )
-                }
-                Cpi[[1]] <- vapply(seq(q_th_model$M), function(m) {
-                  q_th_model$pi[[m]][[1]] > emptiness_levels[l]
-                },
-                FUN.VALUE = rep(TRUE, merge_Q[1])
-                )
-                dim(Cpi[[1]]) <- c(merge_Q[1], q_th_model$M)
-              } else {
-                # All networks use all clusters
-                Cpi[[1]] <- matrix(TRUE, nrow = merge_Q[1], ncol = q_th_model$M)
-              }
-
-              # Compute the support for the columns
-              if (self$free_mixture_col) {
-                if (self$global_opts$verbosity >= 5) {
-                  cat(
-                    "\n\t\tFree mixture on the columns, minimum rho threshold : ",
-                    emptiness_levels[l]
-                  )
-                }
-                Cpi[[2]] <- vapply(seq(q_th_model$M), function(m) {
-                  q_th_model$pi[[m]][[2]] > emptiness_levels[l]
-                },
-                FUN.VALUE = rep(TRUE, merge_Q[2])
-                )
-                dim(Cpi[[2]]) <- c(merge_Q[2], q_th_model$M)
-              } else {
-                # All networks use all clusters
-                Cpi[[2]] <- matrix(TRUE, nrow = merge_Q[2], ncol = q_th_model$M)
-              }
-
-              # With the supports computed we can now clone the fitBipartite
-              # and fit wrt the supports.
-              q_th_model_with_supports <- q_th_model$clone()
-
-              # Adding the supports
-              q_th_model_with_supports$Cpi <- Cpi
-              q_th_model_with_supports$Calpha <-
-                tcrossprod(Cpi[[1]], Cpi[[2]]) > 0
-              q_th_model_with_supports$init_method <- "empty"
-              if (self$global_opts$verbosity >= 4) {
-                cat(
-                  "\n\t\tFitting with threshold : ",
-                  emptiness_levels[l],
-                  ". Threshold number ", l, "/", length(emptiness_levels)
-                )
-              }
-              q_th_model_with_supports$optimize()
-              q_th_model_with_supports
-            },
-            mc.cores = self$global_opts$nb_cores,
-            mc.silent = TRUE,
-            mc.retry = -1, # To prevent big crash
-            mc.allow.recursive = TRUE
-          )
-        } else {
           models_with_different_emptiness_levels <- lapply(
             seq_along(emptiness_levels),
             function(l) {
@@ -1469,7 +1190,7 @@ bisbmpop <- R6::R6Class(
               q_th_model_with_supports
             }
           )
-        }
+
 
           # Now the two lists are merged
           q_th_models <- append(
@@ -1484,9 +1205,7 @@ bisbmpop <- R6::R6Class(
       }
 
       # If there is free_mixture it creates nestedness so we need to unlist
-      t0 <- Sys.time()
       possible_models <- append(list(),unlist(possible_models))
-      print(Sys.time() - t0)
 
       # Now we fit all the models for the differents splits
       possible_models_BICLs <- lapply(
