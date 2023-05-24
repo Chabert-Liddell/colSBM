@@ -350,7 +350,7 @@ estimate_colBiSBM <-
       }
       # tmp_fits run nb_run times a full model selection procedure
       # (the one from the research paper)
-      if (global_opts$parallelization_vector[1]) {
+      if (global_opts$parallelization_vector[1] && nb_run > 1) {
         tmp_fits <-
           bettermc::mclapply(
             seq(nb_run),
