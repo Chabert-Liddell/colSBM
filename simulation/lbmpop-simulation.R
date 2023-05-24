@@ -41,19 +41,12 @@ bipartite_collection_incidence <- lapply(seq.int(M), function(m) {
 Z <- lapply(seq.int(M), function(m) {
     list(bipartite_collection[[m]]$row_clustering, bipartite_collection[[m]]$col_clustering)
 })
-
-mybisbmpop <- bisbmpop$new(
-    netlist = bipartite_collection_incidence,
-    free_mixture_row = FALSE,
-    global_opts = list(nb_cores = 1, verbosity = 4)
-)
-
-mybisbmpop$optimize()
-
+tic()
 mybisbmpop <- estimate_colBiSBM(
-    netlist = bipartite_collection_incidence, colsbm_model = "iid",
-    global_opts = list(nb_cores = 1, verbosity = 1)
+    netlist = bipartite_collection_incidence, colsbm_model = "pirho",
+    global_opts = list(nb_cores = 6, verbosity = 4)
 )
+toc()
 # choosed_bisbmpop <- estimate_colBiSBM(
 #     netlist = bipartite_collection_incidence, 
 #     colsbm_model = "iid", 
