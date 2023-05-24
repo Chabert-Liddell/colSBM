@@ -1144,7 +1144,7 @@ fitBipartiteSBMPop <- R6::R6Class(
       }
     },
 
-    m_step = function(MAP = FALSE, max_iter = 20, tol = 1e-3, ...) {
+    m_step = function(MAP = FALSE, max_iter = 2, tol = 1e-3, ...) {
       # browser()
       # lapply(seq_along(self$pi), function(m) self$update_pi(m, MAP = MAP))
       self$update_pi(MAP = MAP)
@@ -1162,7 +1162,7 @@ fitBipartiteSBMPop <- R6::R6Class(
         )
       }
     },
-    ve_step = function(m, max_iter = 20, tol = 1e-3, ...) {
+    ve_step = function(m, max_iter = 2, tol = 1e-3, ...) {
       # Place holder for gradient ascent or other optimization methods
     },
     update_mqr = function(m) {
