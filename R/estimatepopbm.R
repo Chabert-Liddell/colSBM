@@ -600,7 +600,7 @@ clusterize_bipartite_networks <- function(netlist,
               max_pass = 10L,
               verbosity = 1L,
               nb_cores = 1L,
-              parallelization_vector = c(TRUE, TRUE, FALSE)
+              parallelization_vector = c(TRUE, TRUE)
             )
             go <- utils::modifyList(go, global_opts)
             global_opts <- go
