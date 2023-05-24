@@ -5,16 +5,16 @@ require("ggplot2", quietly = T)
 devtools::load_all(path = "R/")
 
 tic()
-
+p <- profvis::profvis({
 eps <- 0.05
 nr <- 250
 nc <- 250
 
-pir1 <- c(0.4, 0, 0.5, 0.1)
-pir2 <- c(0.4, 0.5, 0, 0.1)
+pir1 <- c(0.3, 0.2, 0.4, 0.1)
+pir2 <- c(0.3, 0.4, 0.2, 0.1)
 
-pic1 <- c(0.4, 0, 0.5, 0.1)
-pic2 <- c(0.4, 0.5, 0, 0.1)
+pic1 <- c(0.3, 0.2, 0.4, 0.1)
+pic2 <- c(0.3, 0.4, 0.2, 0.1)
 
 
 Q <- c(length(pir1), length(pic1))
@@ -86,7 +86,6 @@ Cpi[[2]] <- vapply(seq(M), function(m) {
 },
 FUN.VALUE = rep(TRUE, Q[2])
 )
-
 Calpha <- tcrossprod(Cpi[[1]], Cpi[[2]]) > 0
 
 
@@ -94,9 +93,12 @@ mybisbmpop3 <- estimate_colBiSBM(
     netlist = bipartite_collection_incidence,
     colsbm_model = "pirho",
     silent_parallelization = FALSE,
+    nb_run = 3,
     global_opts = list(
         nb_cores = parallel::detectCores() - 1,
-        verbosity = 4
+        verbosity = 4,
+        parallelization_vector = c(FALSE, FALSE, FALSE)
     )
-)
+)}, prof_output = "./prof.out")
+htmlwidgets::saveWidget(p, "profile_paral_pirho_unclear.html")
 toc()
