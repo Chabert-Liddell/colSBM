@@ -486,3 +486,61 @@ logit <- function(x) log(x / (1 - x))
 .rev_one_hot <- function(X){
   return(as.vector(max.col(X)))
 }
+
+reorder_parameters <- function(model) {
+  out_model <- model$clone()
+  if (all(self$Q == c(1, 1))) {
+    return(out_model)
+  }
+  mean_pi <- sapply(out_model$pi, function(pi) pi[[1]])
+  if (self$Q[1] > 1) {
+    mean_pi <- matrixStats::rowMeans2(mean_pi)
+  } else {
+    mean_pi <- matrix(1, 1, 1)
+  }
+  mean_rho <- sapply(out_model$pi, function(pi) pi[[2]])
+  if (self$Q[2] > 1) {
+    mean_rho <- matrixStats::rowMeans2(mean_rho)
+  } else {
+    mean_rho <- matrix(1, 1, 1)
+  }
+  # The row clustering are reordered according to their marginal distribution
+  prob1 <- as.vector(mean_rho %*% t(out_model$MAP$alpha))
+  p1 <- order(prob1, decreasing = TRUE)
+
+  # The col clustering are reordered according to their marginal distribution
+  prob2 <- as.vector(mean_pi %*% out_model$MAP$alpha)
+  p2 <- order(prob2, decreasing = TRUE)
+
+  lapply(seq.int(out_model$M), function(m) {
+    # Reordering the parameters
+    out_model$Cpi[[1]][, m] <- out_model$Cpi[[1]][p1, m]
+    out_model$Cpi[[2]][, m] <- out_model$Cpi[[2]][p2, m]
+
+    out_model$pim[[m]][[1]] <- out_model$pim[[m]][[1]][p1]
+    out_model$pim[[m]][[2]] <- out_model$pim[[m]][[2]][p2]
+
+    out_model$pi[[m]][[1]] <- out_model$pi[[m]][[1]][p1]
+    out_model$pi[[m]][[2]] <- out_model$pi[[m]][[2]][p2]
+
+    out_model$Calpha <- out_model$Calpha[p1, p2]
+    out_model$alpha <- out_model$alpha[p1, p2]
+
+    out_model$emqr[m, , ] <- out_model$emqr[m, p1, p2]
+    out_model$nmqr[m, , ] <- out_model$nmqr[m, p1, p2]
+    out_model$alpham[[m]] <- out_model$alpham[[m]][p1, p2]
+    out_model$tau[[m]][[1]] <- out_model$tau[[m]][[1]][, p1]
+    out_model$tau[[m]][[2]] <- out_model$tau[[m]][[2]][, p2]
+
+    # MAP parameters
+    out_model$MAP$alpha <- out_model$MAP$alpha[p1, p2]
+    out_model$MAP$emqr[m, , ] <- out_model$MAP$emqr[m, p1, p2]
+    out_model$MAP$nmqr[m, , ] <- out_model$MAP$nmqr[m, p1, p2]
+    out_model$MAP$alpham[[m]] <- out_model$MAP$alpham[[m]][p1, p2]
+    out_model$MAP$pim[[m]][[1]] <- out_model$MAP$pim[[m]][[1]][p1]
+    out_model$MAP$pim[[m]][[2]] <- out_model$MAP$pim[[m]][[2]][p2]
+    out_model$MAP$pi[[m]][[1]] <- out_model$MAP$pi[[m]][[1]][p1]
+    out_model$MAP$pi[[m]][[2]] <- out_model$MAP$pi[[m]][[2]][p2]
+  })
+  return(out_model)
+}

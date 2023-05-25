@@ -918,10 +918,12 @@ fitBipartiteSBMPop <- R6::R6Class(
       if (!MAP) {
         alpham <- self$emqr[m, , ] / self$nmqr[m, , ]
         alpham[is.nan(alpham)] <- 0
+        alpham <- matrix(alpham, self$Q[1], self$Q[2])
         self$alpham[[m]] <- alpham
       } else {
         alpham <- self$MAP$emqr[m, , ] / self$MAP$nmqr[m, , ]
         alpham[is.nan(alpham)] <- 0
+        alpham <- matrix(alpham, self$Q[1], self$Q[2])
         self$MAP$alpham[[m]] <- alpham
       }
       invisible(alpham)
@@ -1388,6 +1390,7 @@ fitBipartiteSBMPop <- R6::R6Class(
       if (self$BICL == Inf | self$BICL == -Inf) {
         stop("Infinite BICL !")
       }
+      self$reorder_parameters()
     },
 
     show = function(type = "Fitted Collection of Bipartite SBM") {
@@ -1406,6 +1409,72 @@ fitBipartiteSBMPop <- R6::R6Class(
         " -- #Empty columns blocks : ", sum(!self$Cpi[[2]]), " \n"
       )
       cat("=====================================================================")
+    },
+
+    reorder_parameters = function() {
+      if (all(self$Q == c(1,1))) {
+        return()
+      }
+      mean_pi <- sapply(self$pi, function(pi) pi[[1]])
+      if (self$Q[1] > 1) {
+        mean_pi <- matrixStats::rowMeans2(mean_pi)
+      } else {
+        mean_pi <- matrix(1,1,1)
+      }
+      mean_rho <- sapply(self$pi, function(pi) pi[[2]])
+      if (self$Q[2] > 1) {
+        mean_rho <- matrixStats::rowMeans2(mean_rho)
+      }else {
+        mean_rho <- matrix(1, 1,1)
+      }
+      # The row clustering are reordered according to their marginal distribution
+      prob1 <- as.vector(mean_rho %*% t(self$alpha))
+      p1 <- order(prob1, decreasing = TRUE)
+
+      # The col clustering are reordered according to their marginal distribution
+      prob2 <- as.vector(mean_pi %*% self$alpha)
+      p2 <- order(prob2, decreasing = TRUE)
+
+      lapply(seq.int(self$M), function(m) {
+        # Reordering the parameters
+        self$Cpi[[1]][, m] <- self$Cpi[[1]][p1, m]
+        self$Cpi[[2]][, m] <- self$Cpi[[2]][p2, m]
+
+        self$pim[[m]][[1]] <- self$pim[[m]][[1]][p1]
+        self$pim[[m]][[2]] <- self$pim[[m]][[2]][p2]
+
+        self$pi[[m]][[1]] <- self$pi[[m]][[1]][p1]
+        self$pi[[m]][[2]] <- self$pi[[m]][[2]][p2]
+
+        self$Calpha <- matrix(self$Calpha[p1, p2],
+          nrow = self$Q[1], ncol = self$Q[2]
+        )
+        self$alpha <- matrix(self$alpha[p1, p2],
+          nrow = self$Q[1], ncol = self$Q[2]
+        )
+
+        self$emqr[m, , ] <- self$emqr[m, p1, p2]
+        self$nmqr[m, , ] <- self$nmqr[m, p1, p2]
+        self$alpham[[m]] <- matrix(self$alpham[[m]][p1, p2],
+                  nrow = self$Q[1], ncol = self$Q[2]
+        )
+        self$tau[[m]][[1]] <- self$tau[[m]][[1]][, p1]
+        self$tau[[m]][[2]] <- self$tau[[m]][[2]][, p2]
+
+        # MAP parameters
+        self$MAP$alpha <- matrix(self$MAP$alpha[p1, p2],
+          nrow = self$Q[1], ncol = self$Q[2]
+        )
+        self$MAP$emqr[m, , ] <- self$MAP$emqr[m, p1, p2]
+        self$MAP$nmqr[m, , ] <- self$MAP$nmqr[m, p1, p2]
+        self$MAP$alpham[[m]] <- matrix(self$MAP$alpham[[m]][p1, p2],
+          nrow = self$Q[1], ncol = self$Q[2]
+        )
+        self$MAP$pim[[m]][[1]] <- self$MAP$pim[[m]][[1]][p1]
+        self$MAP$pim[[m]][[2]] <- self$MAP$pim[[m]][[2]][p2]
+        self$MAP$pi[[m]][[1]] <- self$MAP$pi[[m]][[1]][p1]
+        self$MAP$pi[[m]][[2]] <- self$MAP$pi[[m]][[2]][p2]
+      })
     },
 
     print = function() self$show()
