@@ -489,17 +489,17 @@ logit <- function(x) log(x / (1 - x))
 
 reorder_parameters <- function(model) {
   out_model <- model$clone()
-  if (all(self$Q == c(1, 1))) {
+  if (all(out_model$Q == c(1, 1))) {
     return(out_model)
   }
   mean_pi <- sapply(out_model$pi, function(pi) pi[[1]])
-  if (self$Q[1] > 1) {
+  if (out_model$Q[1] > 1) {
     mean_pi <- matrixStats::rowMeans2(mean_pi)
   } else {
     mean_pi <- matrix(1, 1, 1)
   }
   mean_rho <- sapply(out_model$pi, function(pi) pi[[2]])
-  if (self$Q[2] > 1) {
+  if (out_model$Q[2] > 1) {
     mean_rho <- matrixStats::rowMeans2(mean_rho)
   } else {
     mean_rho <- matrix(1, 1, 1)
