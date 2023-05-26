@@ -9,3 +9,6 @@ iid_best_partition <- extract_bipartite_best_partition(iid_clustering)
 
 rho_clustering <- readRDS("simulation/data/dore_collection_clustering_nb_run1_rho_123networks_25-05-23-13:58:30.Rds")
 rho_best_partition <- extract_bipartite_best_partition(rho_clustering)
+
+pi_clustering <- readRDS("simulation/data/dore_collection_clustering_nb_run1_pi_123networks_25-05-23-17:31:25.Rds")
+pi_best_partition <- extract_bipartite_best_partition(rho_clustering)
