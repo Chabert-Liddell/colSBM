@@ -43,8 +43,11 @@ Z <- lapply(seq.int(M), function(m) {
 })
 tic()
 mybisbmpop <- estimate_colBiSBM(
-    netlist = bipartite_collection_incidence, colsbm_model = "pirho",
-    global_opts = list(nb_cores = 6, verbosity = 4)
+    netlist = bipartite_collection_incidence, colsbm_model = "iid",
+    global_opts = list(
+        parallelization_vector = c(F,F),
+        nb_cores = 6, verbosity = 4
+    )
 )
 toc()
 # choosed_bisbmpop <- estimate_colBiSBM(
