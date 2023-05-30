@@ -12,4 +12,7 @@ rho_clustering <- readRDS("simulation/data/dore_collection_clustering_nb_run1_rh
 rho_best_partition <- extract_bipartite_best_partition(rho_clustering)
 
 pi_clustering <- readRDS("simulation/data/dore_collection_clustering_nb_run1_pi_123networks_25-05-23-17:31:25.Rds")
-pi_best_partition <- extract_bipartite_best_partition(rho_clustering)
+pi_best_partition <- extract_bipartite_best_partition(pi_clustering)
+
+pirho_clustering <- readRDS("simulation/data/dore_collection_clustering_nb_run1_pirho_123networks_26-05-23-19:22:55.Rds")
+pirho_best_partition <- extract_bipartite_best_partition(pirho_clustering)
