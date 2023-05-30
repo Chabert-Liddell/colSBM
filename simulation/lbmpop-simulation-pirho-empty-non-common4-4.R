@@ -88,38 +88,38 @@ FUN.VALUE = rep(TRUE, Q[2])
 
 Calpha <- tcrossprod(Cpi[[1]], Cpi[[2]]) > 0
 
-mybisbmpop <- estimate_colBiSBM(
-    netlist = bipartite_collection_incidence,
-    colsbm_model = "iid",
-    silent_parallelization = FALSE,
-    global_opts = list(
-        nb_cores = parallel::detectCores() - 1,
-        verbosity = 4,
-        parallelization_vector = c(TRUE, TRUE)
-    )
-)
+# mybisbmpop <- estimate_colBiSBM(
+#     netlist = bipartite_collection_incidence,
+#     colsbm_model = "iid",
+#     silent_parallelization = FALSE,
+#     global_opts = list(
+#         nb_cores = parallel::detectCores() - 1,
+#         verbosity = 4,
+#         parallelization_vector = c(TRUE, TRUE)
+#     )
+# )
 
-mybisbmpop1 <- estimate_colBiSBM(
-    netlist = bipartite_collection_incidence,
-    colsbm_model = "pi",
-    silent_parallelization = FALSE,
-    global_opts = list(
-        nb_cores = parallel::detectCores() - 1, 
-        verbosity = 4,
-        parallelization_vector = c(TRUE, TRUE)
-    )
-)
+# mybisbmpop1 <- estimate_colBiSBM(
+#     netlist = bipartite_collection_incidence,
+#     colsbm_model = "pi",
+#     silent_parallelization = FALSE,
+#     global_opts = list(
+#         nb_cores = parallel::detectCores() - 1, 
+#         verbosity = 4,
+#         parallelization_vector = c(TRUE, TRUE)
+#     )
+# )
 
-mybisbmpop2 <- estimate_colBiSBM(
-    netlist = bipartite_collection_incidence,
-    colsbm_model = "rho",
-    silent_parallelization = FALSE,
-    global_opts = list(
-        nb_cores = parallel::detectCores() - 1,
-        verbosity = 4,
-        parallelization_vector = c(TRUE, TRUE)
-    )
-)
+# mybisbmpop2 <- estimate_colBiSBM(
+#     netlist = bipartite_collection_incidence,
+#     colsbm_model = "rho",
+#     silent_parallelization = FALSE,
+#     global_opts = list(
+#         nb_cores = parallel::detectCores() - 1,
+#         verbosity = 4,
+#         parallelization_vector = c(TRUE, TRUE)
+#     )
+# )
 
 mybisbmpop3 <- estimate_colBiSBM(
     netlist = bipartite_collection_incidence,
