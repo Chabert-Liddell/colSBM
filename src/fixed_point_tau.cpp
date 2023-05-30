@@ -10,7 +10,7 @@ using namespace Rcpp;
 // Function to calculate logit
 inline arma::mat logit(const arma::mat &x)
 {
-    return log(x/ (1.0 - x));
+    return log(x / (1.0 - x));
 }
 
 // // Function to calculate log
@@ -86,7 +86,7 @@ inline arma::mat logit(const arma::mat &x)
 // [[Rcpp::export]]
 arma::mat fixed_point_tau(
     int d, arma::mat tau_m_old_other_dim,
-    arma::vec Cpi_1_m, arma::vec Cpi_2_m, 
+    arma::mat Cpi_1_m, arma::mat Cpi_2_m,
     arma::mat pi_m_d, int Q_d, int n_d_m,
     arma::mat nonNAs_m, float delta,
     arma::mat Calpha, arma::mat alpha, arma::mat A_m)
@@ -97,28 +97,17 @@ arma::mat fixed_point_tau(
 
     if (d == 1)
     {
-        //     tau_new <-t(matrix(.xlogy(self$Cpi[[1]][, m],
-        //                                self$pi [[m]] [[d]], eps = NULL),
-        //                         self$Q[d], self$n[[1]][m])) +
-        //                   ((self$nonNAs [[m]]) * self$A [[m]]) % * %
-        //                       t(self$Cpi[[2]][, m] * t(self$tau [[m]][[2]])) % * %
-        //                       t(.logit(self$Calpha * self$delta[m] * self$alpha,
-        //                                eps = 1e-9)) +
-        //                   (self$nonNAs [[m]]) % * %
-        //                       t(self$Cpi[[2]][, m] * t(self$tau [[m]][[2]])) % * %
-        //                       t(.log(1 - self$Calpha * self$alpha * self$delta[m],
-        //                              eps = 1e-9))
-        tau_new = (Cpi_1_m % log(pi_m_d)).t() +
-                  (nonNAs_m % A_m) * (Cpi_2_m % tau_m_old_other_dim.t()).t() *
-                      (logit(delta * Calpha % alpha)).t() +
-                  nonNAs_m * (Cpi_2_m % tau_m_old_other_dim.t()).t() *
-                      (log(1 - Calpha % alpha * delta));
-
+        tau_new = log(pi_m_d) + (nonNAs_m % A_m) * tau_m_old_other_dim * (logit(delta * alpha)).t() + nonNAs_m * tau_m_old_other_dim * (log(ones(size(alpha)) - delta * Calpha % alpha)).t();
+        return tau_new;
+    }
+    else if (d == 2)
+    {
+        // Assuming d == 2
+        tau_new = log(pi_m_d) + (nonNAs_m % A_m).t() * tau_m_old_other_dim * logit(delta * alpha) + nonNAs_m.t() * tau_m_old_other_dim * log(ones(size(alpha)) - delta * Calpha % alpha);
         return tau_new;
     }
     else
     {
-        // Assuming d == 2
         return tau_new;
     }
 }
