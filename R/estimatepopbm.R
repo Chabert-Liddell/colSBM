@@ -396,12 +396,12 @@ extract_best_partition <- function(l) {
 #' the collection of networks.
 #'
 #' @details The best partition could be extract with the function
-#' `extract_best_partition()`. The object of the list are fitBipartiteSBMPop
+#' `extract_best_bipartite_partition()`. The object of the list are fitBipartiteSBMPop
 #' object, so it is a model for a given number of blocks Q1, Q2.
 #' @export
 #'
-#' @seealso [colSBM::extract_best_partition()], [colSBM::estimate_colSBM()],
-#' \code{\link[colSBM]{fitSimpleSBMPop}}, `browseVignettes("colSBM")`
+#' @seealso [colSBM::extract_best_bipartite_partition()], [colSBM::estimate_colBiSBM()],
+#' \code{\link[colSBM]{fitBipartiteSBMPop}}, `browseVignettes("colSBM")`
 #'
 #' @examples
 #'
