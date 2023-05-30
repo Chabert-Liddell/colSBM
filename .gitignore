@@ -6,3 +6,6 @@ inst/doc
 last.dump.rds
 
 wip
+
+src/*.o
+src/*.so
