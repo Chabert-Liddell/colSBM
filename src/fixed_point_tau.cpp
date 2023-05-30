@@ -13,12 +13,6 @@ inline arma::mat logit(const arma::mat &x)
     return log(x / (1.0 - x));
 }
 
-// // Function to calculate log
-// inline NumericMatrix log(const NumericMatrix &x, double eps = 1e-9)
-// {
-//     return log(x + eps);
-// }
-
 // // Function to calculate softmax of a matrix
 // NumericMatrix softmax(const NumericMatrix &matrix)
 // {
@@ -44,43 +38,6 @@ inline arma::mat logit(const arma::mat &x)
 //     return result;
 // }
 
-// The fixed point algorithm to update the tau
-//          tau_new <-
-// if (d == 1)
-// {
-// #n[[1]] * Q1
-//     tau_new < -t(matrix(.xlogy(self$Cpi[[1]][, m],
-//                                self$pi [[m]] [[d]], eps = NULL),
-//                         self$Q[d], self$n[[1]][m])) +
-//                   ((self$nonNAs [[m]]) * self$A [[m]]) % * %
-//                       t(self$Cpi[[2]][, m] * t(self$tau [[m]][[2]])) % * %
-//                       t(.logit(self$Calpha * self$delta[m] * self$alpha,
-//                                eps = 1e-9)) +
-//                   (self$nonNAs [[m]]) % * %
-//                       t(self$Cpi[[2]][, m] * t(self$tau [[m]][[2]])) % * %
-//                       t(.log(1 - self$Calpha * self$alpha * self$delta[m],
-//                              eps = 1e-9))
-// #In order to fix NaN appearing in the formula(log(Pi) when Pi
-// #= 0), the.xlogy function is used with eps = 1e-9
-// #POSSIBLE POINT OF FAILURE
-// }
-// if (d == 2)
-// {
-// #n[[2]] * Q2
-//     tau_new <- t(matrix(.xlogy(self$Cpi[[2]][, m],
-//                                self$pi [[m]] [[d]], eps = NULL),
-//                         self$Q[d], self$n[[2]][m])) +
-//                   t((self$nonNAs [[m]]) * self$A [[m]]) % * %
-//                       t(self$Cpi[[1]][, m] * t(self$tau [[m]][[1]])) % * %
-//                                                                            .logit(self$Calpha * self$delta[m] * self$alpha, eps = 1e-9) +
-//                   t(self$nonNAs [[m]]) % * %
-//                       t(self$Cpi[[1]][, m] * t(self$tau [[m]][[1]])) % * %
-//                                                                            .log(1 - self$Calpha * self$alpha * self$delta[m], eps = 1e-9)
-// #In order to fix NaN appearing in the formula(log(Pi) when Pi
-// #= 0), the.xlogy function is used with eps = 1e-9
-// #POSSIBLE POINT OF FAILURE
-// }
-// invisible(tau_new)
 // [[Rcpp::depends(RcppArmadillo)]]
 
 // [[Rcpp::export]]
@@ -97,13 +54,12 @@ arma::mat fixed_point_tau(
 
     if (d == 1)
     {
-        tau_new = log(pi_m_d) + (nonNAs_m % A_m) * tau_m_old_other_dim * (logit(delta * alpha)).t() + nonNAs_m * tau_m_old_other_dim * (log(ones(size(alpha)) - delta * Calpha % alpha)).t();
+        tau_new = log(Cpi_1_m % pi_m_d) + (nonNAs_m % A_m) * (Cpi_2_m % tau_m_old_other_dim) * (logit(delta * alpha)).t() + nonNAs_m * (Cpi_2_m % tau_m_old_other_dim) * (log(ones(size(alpha)) - delta * Calpha % alpha)).t();
         return tau_new;
     }
     else if (d == 2)
     {
-        // Assuming d == 2
-        tau_new = log(pi_m_d) + (nonNAs_m % A_m).t() * tau_m_old_other_dim * logit(delta * alpha) + nonNAs_m.t() * tau_m_old_other_dim * log(ones(size(alpha)) - delta * Calpha % alpha);
+        tau_new = log(Cpi_2_m % pi_m_d) + (nonNAs_m % A_m).t() * (Cpi_1_m % tau_m_old_other_dim) * logit(delta * alpha) + nonNAs_m.t() * (Cpi_1_m % tau_m_old_other_dim) * log(ones(size(alpha)) - delta * Calpha % alpha);
         return tau_new;
     }
     else

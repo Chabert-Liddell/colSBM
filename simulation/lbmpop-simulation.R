@@ -41,50 +41,80 @@ bipartite_collection_incidence <- lapply(seq.int(M), function(m) {
 Z <- lapply(seq.int(M), function(m) {
     list(bipartite_collection[[m]]$row_clustering, bipartite_collection[[m]]$col_clustering)
 })
+mybisbmpop <- estimate_colBiSBM(
+    netlist = bipartite_collection_incidence, colsbm_model = "pirho",
+    nb_run = 1,
+    global_opts = list(
+        parallelization_vector = c(F, F),
+        nb_cores = 6, verbosity = 0
+    )
+)
+
+# minibatch_bench <- microbenchmark::microbenchmark("With minibatch" = {
+#     mybisbmpop <- estimate_colBiSBM(
+#         netlist = bipartite_collection_incidence, colsbm_model = "pirho",
+#         nb_run = 1,
+#         global_opts = list(
+#             parallelization_vector = c(F, F),
+#             nb_cores = 6, verbosity = 0
+#         ),
+#         fit_opts = list(minibatch = TRUE)
+#     )
+# }, "Without minibatch" = {
+#     mybisbmpop <- estimate_colBiSBM(
+#         netlist = bipartite_collection_incidence, colsbm_model = "pirho",
+#         nb_run = 1,
+#         global_opts = list(
+#             parallelization_vector = c(F, F),
+#             nb_cores = 6, verbosity = 0
+#         ),
+#         fit_opts = list(minibatch = FALSE)
+#     )
+# }, times = 10)
 bench <- microbenchmark::microbenchmark(
     "R" = {
         mybisbmpop <- estimate_colBiSBM(
-            netlist = bipartite_collection_incidence, colsbm_model = "iid",
+            netlist = bipartite_collection_incidence, colsbm_model = "pirho",
             nb_run = 1,
             global_opts = list(
                 parallelization_vector = c(F, F),
-                nb_cores = 6, verbosity = 0
+                nb_cores = 6, verbosity = 0, plot_details = 0
             )
         )
     },
     "Cpp1" = {
         mybisbmpop <- estimate_colBiSBM(
-            netlist = bipartite_collection_incidence, colsbm_model = "iid",
+            netlist = bipartite_collection_incidence, colsbm_model = "pirho",
             nb_run = 1,
             global_opts = list(
                 parallelization_vector = c(F, F),
-                nb_cores = 6, verbosity = 0
+                nb_cores = 6, verbosity = 0, plot_details = 0
             ),
             fit_opts = list(cpp1 = TRUE)
         )
     },
     "Cpp2" = {
         mybisbmpop <- estimate_colBiSBM(
-            netlist = bipartite_collection_incidence, colsbm_model = "iid",
+            netlist = bipartite_collection_incidence, colsbm_model = "pirho",
             nb_run = 1,
             global_opts = list(
                 parallelization_vector = c(F, F),
-                nb_cores = 6, verbosity = 0
+                nb_cores = 6, verbosity = 0, plot_details = 0
             ),
             fit_opts = list(cpp2 = TRUE)
         )
     },
     "Cpp12" = {
         mybisbmpop <- estimate_colBiSBM(
-            netlist = bipartite_collection_incidence, colsbm_model = "iid",
+            netlist = bipartite_collection_incidence, colsbm_model = "pirho",
             nb_run = 1,
             global_opts = list(
                 parallelization_vector = c(F, F),
-                nb_cores = 6, verbosity = 0
+                nb_cores = 6, verbosity = 0, plot_details = 0
             ),
             fit_opts = list(cpp1 = TRUE, cpp2 = TRUE)
         )
-    }, times = 3
+    }, times = 10
 )
 # choosed_bisbmpop <- estimate_colBiSBM(
 #     netlist = bipartite_collection_incidence, 
