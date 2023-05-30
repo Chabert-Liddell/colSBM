@@ -15,6 +15,7 @@ clusterize_bipartite_networks(
   global_opts = list(),
   fit_opts = list(),
   fit_init = NULL,
+  silent_parallelization = FALSE,
   full_inference = FALSE
 )
 }

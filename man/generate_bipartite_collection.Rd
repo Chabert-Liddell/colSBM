@@ -4,7 +4,7 @@
 \alias{generate_bipartite_collection}
 \title{Generate collection of bipartite}
 \usage{
-generate_bipartite_collection(nr, nc, pir, pic, alpha, M)
+generate_bipartite_collection(nr, nc, pir, pic, alpha, M, model = "iid")
 }
 \arguments{
 \item{nr}{the number of row nodes or a vector of the row nodes per network}

@@ -13,7 +13,8 @@ estimate_colBiSBM(
   global_opts = list(),
   fit_opts = list(),
   fit_init = NULL,
-  Z_init = NULL
+  Z_init = NULL,
+  silent_parallelization = FALSE
 )
 }
 \arguments{

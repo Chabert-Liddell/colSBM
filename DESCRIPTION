@@ -25,6 +25,7 @@ Imports:
     magrittr,
     patchwork,
     purrr,
+    Rcpp,
     sbm,
     stats,
     tidyr,
@@ -34,6 +35,9 @@ Suggests:
     covr,
     testthat (>= 3.0.0),
     rmarkdown
+LinkingTo:
+    Rcpp,
+    RcppArmadillo
 Config/testthat/edition: 3
 Depends: 
     R (>= 2.10)
