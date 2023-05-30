@@ -842,6 +842,140 @@ fitBipartiteSBMPop <- R6::R6Class(
       self$tau[[m]][[d]] <- tau_new
       invisible(tau_new)
     },
+
+    fixed_point_tau_cpp = function(m, d, max_iter = 1, tol = 1e-3) {
+      # Just 1 step is necessary because tau1 depends only on tau2
+      condition <- TRUE
+      it <- 0
+      # reup_counter <- 0
+      self$vloss[[m]] <-
+        c(self$vloss[[m]], self$vb_tau_alpha(m) + self$vb_tau_pi(m) +
+          self$entropy_tau(m))
+      tau_new <- switch(self$distribution,
+        "bernoulli" = {
+          tau_new <-
+            if (d == 1) {
+              # n[[1]] * Q1
+              # Completing pi
+              pi_m_matrix_d <- matrix(self$pi[[m]][[d]],
+                nrow = self$n[[1]][[m]], self$Q[1],
+                byrow = TRUE
+              )
+              # Completing supports
+              Cpi_1_m_matrix <- matrix(
+                self$Cpi[[1]][, m],
+                self$n[[1]][[m]], self$Q[1],
+                byrow = TRUE
+              )
+              Cpi_2_m_matrix <- matrix(
+                self$Cpi[[2]][, m],
+                self$n[[2]][[m]], self$Q[2],
+                byrow = TRUE
+              )
+                tau_new <- fixed_point_tau(
+                  d = d,
+                  tau_m_old_other_dim = self$tau[[m]][[2]],
+                  Cpi_1_m = Cpi_1_m_matrix,
+                  Cpi_2_m = Cpi_2_m_matrix,
+                  pi_m_d = pi_m_matrix_d, # self$pi[[m]][[d]],
+                  Q_d = self$Q[d],
+                  n_d_m = self$n[[d]][[m]],
+                  nonNAs_m = self$nonNAs[[m]],
+                  delta = self$delta[[m]],
+                  Calpha = self$Calpha,
+                  alpha = self$alpha,
+                  A_m = self$A[[m]]
+                )
+            }
+            if (d == 2) {
+              # n[[2]] * Q2
+              # Completing pi
+              pi_m_matrix_d <- matrix(self$pi[[m]][[2]],
+                nrow = self$n[[2]][[m]], self$Q[2],
+                byrow = TRUE
+              )
+              # Completing supports
+              Cpi_1_m_matrix <- matrix(
+                self$Cpi[[1]][, m],
+                self$n[[1]][[m]], self$Q[1],
+                byrow = TRUE
+              )
+              Cpi_2_m_matrix <- matrix(
+                self$Cpi[[2]][, m],
+                self$n[[2]][[m]], self$Q[2],
+                byrow = TRUE
+              )
+                tau_new <- fixed_point_tau(
+                  d = d,
+                  tau_m_old_other_dim = self$tau[[m]][[1]],
+                  Cpi_1_m = Cpi_1_m_matrix,
+                  Cpi_2_m = Cpi_2_m_matrix,
+                  pi_m_d = pi_m_matrix_d, # self$pi[[m]][[d]],
+                  Q_d = self$Q[d],
+                  n_d_m = self$n[[d]][[m]],
+                  nonNAs_m = self$nonNAs[[m]],
+                  delta = self$delta[[m]],
+                  Calpha = self$Calpha,
+                  alpha = self$alpha,
+                  A_m = self$A[[m]]
+                )
+                }
+          invisible(tau_new)
+        },
+        "poisson" = {
+          if (d == 1) {
+            tau_new <-
+              t(matrix(log(self$pi[[m]][[d]]), self$Q[d], self$n[[1]][m])) +
+              ((self$nonNAs[[m]]) * self$A[[m]]) %*%
+              self$tau[[m]][[2]] %*%
+              t(log(self$delta[m] * self$alpha)) -
+              (self$nonNAs[[m]]) %*%
+              self$tau[[m]][[2]] %*%
+              t(self$alpha * self$delta[m])
+          }
+          if (d == 2) {
+            tau_new <-
+              t(matrix(log(self$pi[[m]][[d]]), self$Q[d], self$n[[2]][m])) +
+              t((self$nonNAs[[m]]) * self$A[[m]]) %*%
+              self$tau[[m]][[1]] %*%
+              log(self$delta[m] * self$alpha) -
+              t(self$nonNAs[[m]]) %*%
+              self$tau[[m]][[1]] %*%
+              (self$alpha * self$delta[m])
+            # See later the reason why lfactorial(k) isn't present
+          }
+          invisible(tau_new)
+        }
+      )
+      # To force the invalid taus to be zero
+      # which(self$Cpi[[d]][,m]) returns a vector with the index of the support
+      # for the network m that are TRUE
+      # Select the tau for the individuals
+      tau_new[, which(!self$Cpi[[d]][, m])] <- 0
+
+      # tau_new[, which(self$Cpi[[d]][, m])] <- .softmax(
+      #   matrix(tau_new[, which(self$Cpi[[d]][, m])], nrow = ifelse(d == 1,
+      #     self$n[[1]][m], # This can be improved by using self$n[[d]][m] # TODO implement
+      #     self$n[[2]][m]
+      #   ), ncol = sum(self$Cpi[[d]][,m]))
+      # )
+      # tau_new[, which(self$Cpi[[d]][, m])][tau_new[, which(self$Cpi[[d]][, m])] < 1e-9] <- 1e-9
+      # tau_new[, which(self$Cpi[[d]][, m])][tau_new[, which(self$Cpi[[d]][, m])] > 1 - 1e-9] <- 1 - 1e-9
+      # OPTIM
+      tau_cols_to_use <- which(self$Cpi[[d]][, m])
+      tau_new[, tau_cols_to_use] <- .softmax(
+        matrix(tau_new[, tau_cols_to_use],
+          nrow = self$n[[d]][m],
+          ncol = sum(self$Cpi[[d]][, m])
+        )
+      )
+      tau_new[, tau_cols_to_use][tau_new[, tau_cols_to_use] < 1e-9] <- 1e-9
+      tau_new[, tau_cols_to_use][tau_new[, tau_cols_to_use] > 1 - 1e-9] <- 1 - 1e-9
+
+      tau_new <- tau_new / rowSums(tau_new)
+      self$tau[[m]][[d]] <- tau_new
+      invisible(tau_new)
+    },
     fixed_point_alpha_delta = function(MAP = FALSE, max_iter = 50, tol = 1e-6) {
       # switch(
       #   self$distribution,
@@ -1377,6 +1511,15 @@ fitBipartiteSBMPop <- R6::R6Class(
 
                   self$fixed_point_tau(m, d = 2)
                   self$update_mqr(m)
+                  self$m_step(...)
+                },
+                "fpcpp" = {
+                  self$fixed_point_tau_cpp(m, d = 1)
+                  self$update_mqr()
+                  self$m_step(...)
+
+                  self$fixed_point_tau_cpp(m, d = 1)
+                  self$update_mqr()
                   self$m_step(...)
                 },
                 # If we're not using the previous methods default to gradient ascent
