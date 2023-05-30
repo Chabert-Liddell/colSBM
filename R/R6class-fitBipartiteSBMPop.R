@@ -1291,48 +1291,27 @@ fitBipartiteSBMPop <- R6::R6Class(
         self$vbound <- vb
         step_condition <- TRUE
         while (step_condition) {
-          if (!self$fit_opts$minibatch) {
-            lapply(
-              seq(self$M),
-              function(m) {
-                switch(self$fit_opts$algo_ve,
-                  "fp" = {
-                    self$fixed_point_tau(m, d = 1)
-                    self$update_mqr(m)
-                    self$m_step(...)
+          seq_m_minibatch <- sample.int(self$M)
+          lapply(
+            # Minibatch or not
+            ifelse(self$fit_opts$minibatch, seq_m_minibatch, seq(self$M)),
+            function(m) {
+              switch(self$fit_opts$algo_ve,
+                "fp" = {
+                  self$fixed_point_tau(m, d = 1)
+                  self$update_mqr(m)
+                  self$m_step(...)
 
-                    self$fixed_point_tau(m, d = 2)
-                    self$update_mqr(m)
-                    self$m_step(...)
-                  },
-                  # If we're not using the previous methods default to gradient ascent
-                  self$ve_step(m, ...)
-                )
-              }
-            )
-          } else {
-            # Minibatch
-            seq_m_minibatch <- sample.int(self$M)
-            lapply(
-              seq_m_minibatch,
-              function(m) {
-                switch(self$fit_opts$algo_ve,
-                  "fp" = {
-                    self$fixed_point_tau(m, d = 1)
-                    self$update_mqr(m)
-                    self$m_step(...)
+                  self$fixed_point_tau(m, d = 2)
+                  self$update_mqr(m)
+                  self$m_step(...)
+                },
+                # If we're not using the previous methods default to gradient ascent
+                self$ve_step(m, ...)
+              )
+            }
+          )
 
-                    self$fixed_point_tau(m, d = 2)
-                    self$update_mqr(m)
-                    self$m_step(...)
-                  },
-                  # If we're not using the previous methods default to gradient ascent
-                  self$ve_step(m, ...)
-                )
-
-              }
-            )
-          }
           vb <- self$compute_vbound()
           self$vbound <- c(self$vbound, vb)
           step <- step + 1
