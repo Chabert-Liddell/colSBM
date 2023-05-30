@@ -46,8 +46,9 @@ mybisbmpop <- estimate_colBiSBM(
     nb_run = 1,
     global_opts = list(
         parallelization_vector = c(F, F),
-        nb_cores = 6, verbosity = 0
-    )
+        nb_cores = 1, verbosity = 4
+    ),
+    fit_opts = list(cpp1 = TRUE)
 )
 
 # minibatch_bench <- microbenchmark::microbenchmark("With minibatch" = {
@@ -70,70 +71,70 @@ mybisbmpop <- estimate_colBiSBM(
 #         ),
 #         fit_opts = list(minibatch = FALSE)
 #     )
-# }, times = 10)
-bench <- microbenchmark::microbenchmark(
-    "R" = {
-        mybisbmpop <- estimate_colBiSBM(
-            netlist = bipartite_collection_incidence, colsbm_model = "pirho",
-            nb_run = 1,
-            global_opts = list(
-                parallelization_vector = c(F, F),
-                nb_cores = 6, verbosity = 0, plot_details = 0
-            )
-        )
-    },
-    "Cpp1" = {
-        mybisbmpop <- estimate_colBiSBM(
-            netlist = bipartite_collection_incidence, colsbm_model = "pirho",
-            nb_run = 1,
-            global_opts = list(
-                parallelization_vector = c(F, F),
-                nb_cores = 6, verbosity = 0, plot_details = 0
-            ),
-            fit_opts = list(cpp1 = TRUE)
-        )
-    },
-    "Cpp2" = {
-        mybisbmpop <- estimate_colBiSBM(
-            netlist = bipartite_collection_incidence, colsbm_model = "pirho",
-            nb_run = 1,
-            global_opts = list(
-                parallelization_vector = c(F, F),
-                nb_cores = 6, verbosity = 0, plot_details = 0
-            ),
-            fit_opts = list(cpp2 = TRUE)
-        )
-    },
-    "Cpp12" = {
-        mybisbmpop <- estimate_colBiSBM(
-            netlist = bipartite_collection_incidence, colsbm_model = "pirho",
-            nb_run = 1,
-            global_opts = list(
-                parallelization_vector = c(F, F),
-                nb_cores = 6, verbosity = 0, plot_details = 0
-            ),
-            fit_opts = list(cpp1 = TRUE, cpp2 = TRUE)
-        )
-    }, times = 10
-)
-# choosed_bisbmpop <- estimate_colBiSBM(
-#     netlist = bipartite_collection_incidence, 
-#     colsbm_model = "iid", 
-#     global_opts = list(nb_cores = 3)
+# # }, times = 10)
+# bench <- microbenchmark::microbenchmark(
+#     "R" = {
+#         mybisbmpop <- estimate_colBiSBM(
+#             netlist = bipartite_collection_incidence, colsbm_model = "pirho",
+#             nb_run = 1,
+#             global_opts = list(
+#                 parallelization_vector = c(F, F),
+#                 nb_cores = 6, verbosity = 0, plot_details = 0
+#             )
+#         )
+#     },
+#     "Cpp1" = {
+#         mybisbmpop <- estimate_colBiSBM(
+#             netlist = bipartite_collection_incidence, colsbm_model = "pirho",
+#             nb_run = 1,
+#             global_opts = list(
+#                 parallelization_vector = c(F, F),
+#                 nb_cores = 6, verbosity = 0, plot_details = 0
+#             ),
+#             fit_opts = list(cpp1 = TRUE)
+#         )
+#     },
+#     "Cpp2" = {
+#         mybisbmpop <- estimate_colBiSBM(
+#             netlist = bipartite_collection_incidence, colsbm_model = "pirho",
+#             nb_run = 1,
+#             global_opts = list(
+#                 parallelization_vector = c(F, F),
+#                 nb_cores = 6, verbosity = 0, plot_details = 0
+#             ),
+#             fit_opts = list(cpp2 = TRUE)
+#         )
+#     },
+#     "Cpp12" = {
+#         mybisbmpop <- estimate_colBiSBM(
+#             netlist = bipartite_collection_incidence, colsbm_model = "pirho",
+#             nb_run = 1,
+#             global_opts = list(
+#                 parallelization_vector = c(F, F),
+#                 nb_cores = 6, verbosity = 0, plot_details = 0
+#             ),
+#             fit_opts = list(cpp1 = TRUE, cpp2 = TRUE)
+#         )
+#     }, times = 10
 # )
+# # choosed_bisbmpop <- estimate_colBiSBM(
+# #     netlist = bipartite_collection_incidence, 
+# #     colsbm_model = "iid", 
+# #     global_opts = list(nb_cores = 3)
+# # )
 
-ari_sums <- sapply(
-    seq_along(mybisbmpop$best_fit$Z),
-    function(m) {
-        sum(c(
-            aricode::ARI(
-                Z[[m]][[1]],
-                mybisbmpop$best_fit$Z[[m]][[1]]
-            ),
-            aricode::ARI(
-                Z[[m]][[2]],
-                mybisbmpop$best_fit$Z[[m]][[2]]
-            )
-        ))
-    }
-)
+# ari_sums <- sapply(
+#     seq_along(mybisbmpop$best_fit$Z),
+#     function(m) {
+#         sum(c(
+#             aricode::ARI(
+#                 Z[[m]][[1]],
+#                 mybisbmpop$best_fit$Z[[m]][[1]]
+#             ),
+#             aricode::ARI(
+#                 Z[[m]][[2]],
+#                 mybisbmpop$best_fit$Z[[m]][[2]]
+#             )
+#         ))
+#     }
+# )
