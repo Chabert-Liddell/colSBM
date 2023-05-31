@@ -1935,19 +1935,19 @@ bisbmpop <- R6::R6Class(
 
         # We go looking for the mode with a greedy approach
         # Visiting each of the neighbors
-        if (self$global_opts$verbosity >= 3) {
-          cat("\n Greedy exploration to find a first mode.")
+        if (self$global_opts$verbosity >= 2) {
+          cat("\nGreedy exploration to find a first mode.")
         }
 
         # Greedy exploration from (1,2)
         mode_1_2 <- self$greedy_exploration(c(1, 2))
-        if (self$global_opts$verbosity >= 4){
+        if (self$global_opts$verbosity >= 2){
           cat("\nFrom (", toString(c(1,2)),") the mode is at: (", toString(mode_1_2),").")
         }
 
         # Greedy exploration from (2,1)
         mode_2_1 <- self$greedy_exploration(c(2, 1))
-        if (self$global_opts$verbosity >= 4) {
+        if (self$global_opts$verbosity >= 2) {
           cat("\nFrom (", toString(c(2, 1)), ") the mode is at: (", toString(mode_2_1), ").")
           # Plot the state of space and it's exploration
           self$state_space_plot()
@@ -2024,7 +2024,7 @@ bisbmpop <- R6::R6Class(
         }
         if (self$global_opts$verbosity >= 2) {
           cat(
-            "\n==== Finished pass number ", nb_pass + 1,
+            "\n==== Finished pass number ", nb_pass,
             " for networks ", self$net_id, " in ",
             format(Sys.time() - current_pass_time, digits = 3),"====\n"
           )
@@ -2034,16 +2034,11 @@ bisbmpop <- R6::R6Class(
       if (self$global_opts$verbosity >= 2) {
         cat(
           "\n==== Finished the passes of moving windows in",
-          format(Sys.time() - start_time, digits = 3), "====",
-          "\n==== Computing separated BiSBM BICL ===="
+          format(Sys.time() - start_time, digits = 3), "===="
         )
       }
 
-      # Now compare to the sepBiSBM
-      if (self$M > 1) {
-        # If there is more than one network we launch the choose procedure
-        self$choose_joint_or_separated()
-      } else {
+      if (self$M == 1) {
         # Otherwise we're inside a choose procedure and store the BICL
         self$sep_BiSBM$BICL <- c(self$best_fit$BICL)
       }
@@ -2085,7 +2080,7 @@ bisbmpop <- R6::R6Class(
           ")---(",
           toString(c(self$global_opts$Q1_max, 1)),
           ")",
-          "\nThe window will only work on valid configurations"
+          "\nThe window will work best on valid configurations"
         ))
 
       }
@@ -2582,13 +2577,18 @@ bisbmpop <- R6::R6Class(
 
     choose_joint_or_separated = function() {
       # Now compare to the sepBiSBM
+      start_time <- Sys.time()
       if (is.null(self$sep_BiSBM$BICL)) {
         self$compute_sep_BiSBM_BICL()
       }
 
       if (self$global_opts$verbosity >= 1) {
         if (self$M > 1) {
-          cat("\n==== Best fits criterion for the", self$M, "networks ====")
+          cat(
+            "\n==== Best fits criterion for the", self$M, 
+            "networks. Computed in",
+            format(Sys.time() - start_time, digits = 3), "===="
+          )
           cat("\nSep BiSBM total BICL: ", sum(self$sep_BiSBM$BICL))
           cat("\ncolBiSBM BICL:", self$best_fit$BICL)
           if (sum(self$sep_BiSBM$BICL) > self$best_fit$BICL) {
