@@ -178,9 +178,7 @@ fitBipartiteSBMPop <- R6::R6Class(
         algo_ve = "fp",
         approx_pois = TRUE,
         minibatch = TRUE,
-        verbosity = 1,
-        cpp1 = FALSE,
-        cpp2 = FALSE
+        verbosity = 1
       )
       # If the user provided custom fit options they are applied here
       self$fit_opts <- utils::modifyList(self$fit_opts, fit_opts)
@@ -698,22 +696,6 @@ fitBipartiteSBMPop <- R6::R6Class(
                 self$n[[2]][[m]], self$Q[2],
                 byrow = TRUE
               )
-              if (self$fit_opts$cpp1) {
-                tau_new <- fixed_point_tau(
-                  d = d,
-                  tau_m_old_other_dim = self$tau[[m]][[2]],
-                  Cpi_1_m = Cpi_1_m_matrix,
-                  Cpi_2_m = Cpi_2_m_matrix,
-                  pi_m_d = pi_m_matrix_d, # self$pi[[m]][[d]],
-                  Q_d = self$Q[d],
-                  n_d_m = self$n[[d]][[m]],
-                  nonNAs_m = self$nonNAs[[m]],
-                  delta = self$delta[[m]],
-                  Calpha = self$Calpha,
-                  alpha = self$alpha,
-                  A_m = self$A[[m]]
-                )
-              } else {
                 # For pi I can replace the full transpose by inverting the Q
                 # and n1
                 tau_new <- t(matrix(
@@ -736,7 +718,7 @@ fitBipartiteSBMPop <- R6::R6Class(
                 # In order to fix NaN appearing in the formula (log(Pi) when Pi
                 # = 0), the .xlogy function is used with eps = 1e-9
                 # POSSIBLE POINT OF FAILURE
-              }
+
             }
             if (d == 2) {
               # n[[2]] * Q2
@@ -756,22 +738,6 @@ fitBipartiteSBMPop <- R6::R6Class(
                 self$n[[2]][[m]], self$Q[2],
                 byrow = TRUE
               )
-              if (self$fit_opts$cpp2) {
-                tau_new <- fixed_point_tau(
-                  d = d,
-                  tau_m_old_other_dim = self$tau[[m]][[1]],
-                  Cpi_1_m = Cpi_1_m_matrix,
-                  Cpi_2_m = Cpi_2_m_matrix,
-                  pi_m_d = pi_m_matrix_d, # self$pi[[m]][[d]],
-                  Q_d = self$Q[d],
-                  n_d_m = self$n[[d]][[m]],
-                  nonNAs_m = self$nonNAs[[m]],
-                  delta = self$delta[[m]],
-                  Calpha = self$Calpha,
-                  alpha = self$alpha,
-                  A_m = self$A[[m]]
-                )
-              } else {
                 tau_new <- t(matrix(.xlogy(self$Cpi[[2]][,m],
                 self$pi[[m]][[d]], eps = NULL),
                 self$Q[d], self$n[[2]][m])) +
@@ -784,7 +750,7 @@ fitBipartiteSBMPop <- R6::R6Class(
                 # In order to fix NaN appearing in the formula (log(Pi) when Pi
                 # = 0), the .xlogy function is used with eps = 1e-9
                 # POSSIBLE POINT OF FAILURE
-              }
+
             }
           invisible(tau_new)
         },
@@ -878,8 +844,6 @@ fitBipartiteSBMPop <- R6::R6Class(
                   Cpi_1_m = Cpi_1_m_matrix,
                   Cpi_2_m = Cpi_2_m_matrix,
                   pi_m_d = pi_m_matrix_d, # self$pi[[m]][[d]],
-                  Q_d = self$Q[d],
-                  n_d_m = self$n[[d]][[m]],
                   nonNAs_m = self$nonNAs[[m]],
                   delta = self$delta[[m]],
                   Calpha = self$Calpha,
@@ -911,8 +875,6 @@ fitBipartiteSBMPop <- R6::R6Class(
                   Cpi_1_m = Cpi_1_m_matrix,
                   Cpi_2_m = Cpi_2_m_matrix,
                   pi_m_d = pi_m_matrix_d, # self$pi[[m]][[d]],
-                  Q_d = self$Q[d],
-                  n_d_m = self$n[[d]][[m]],
                   nonNAs_m = self$nonNAs[[m]],
                   delta = self$delta[[m]],
                   Calpha = self$Calpha,
@@ -1515,11 +1477,11 @@ fitBipartiteSBMPop <- R6::R6Class(
                 },
                 "fpcpp" = {
                   self$fixed_point_tau_cpp(m, d = 1)
-                  self$update_mqr()
+                  self$update_mqr(m)
                   self$m_step(...)
 
                   self$fixed_point_tau_cpp(m, d = 1)
-                  self$update_mqr()
+                  self$update_mqr(m)
                   self$m_step(...)
                 },
                 # If we're not using the previous methods default to gradient ascent

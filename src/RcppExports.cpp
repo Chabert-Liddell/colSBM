@@ -12,30 +12,28 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // fixed_point_tau
-arma::mat fixed_point_tau(int d, arma::mat tau_m_old_other_dim, arma::mat Cpi_1_m, arma::mat Cpi_2_m, arma::mat pi_m_d, int Q_d, int n_d_m, arma::mat nonNAs_m, float delta, arma::mat Calpha, arma::mat alpha, arma::mat A_m);
-RcppExport SEXP _colSBM_fixed_point_tau(SEXP dSEXP, SEXP tau_m_old_other_dimSEXP, SEXP Cpi_1_mSEXP, SEXP Cpi_2_mSEXP, SEXP pi_m_dSEXP, SEXP Q_dSEXP, SEXP n_d_mSEXP, SEXP nonNAs_mSEXP, SEXP deltaSEXP, SEXP CalphaSEXP, SEXP alphaSEXP, SEXP A_mSEXP) {
+arma::mat fixed_point_tau(const int& d, const arma::mat& tau_m_old_other_dim, const arma::mat& Cpi_1_m, const arma::mat& Cpi_2_m, const arma::mat& pi_m_d, const arma::mat& nonNAs_m, const float& delta, const arma::mat& Calpha, const arma::mat& alpha, const arma::mat& A_m);
+RcppExport SEXP _colSBM_fixed_point_tau(SEXP dSEXP, SEXP tau_m_old_other_dimSEXP, SEXP Cpi_1_mSEXP, SEXP Cpi_2_mSEXP, SEXP pi_m_dSEXP, SEXP nonNAs_mSEXP, SEXP deltaSEXP, SEXP CalphaSEXP, SEXP alphaSEXP, SEXP A_mSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type d(dSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type tau_m_old_other_dim(tau_m_old_other_dimSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type Cpi_1_m(Cpi_1_mSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type Cpi_2_m(Cpi_2_mSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type pi_m_d(pi_m_dSEXP);
-    Rcpp::traits::input_parameter< int >::type Q_d(Q_dSEXP);
-    Rcpp::traits::input_parameter< int >::type n_d_m(n_d_mSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type nonNAs_m(nonNAs_mSEXP);
-    Rcpp::traits::input_parameter< float >::type delta(deltaSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type Calpha(CalphaSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type alpha(alphaSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type A_m(A_mSEXP);
-    rcpp_result_gen = Rcpp::wrap(fixed_point_tau(d, tau_m_old_other_dim, Cpi_1_m, Cpi_2_m, pi_m_d, Q_d, n_d_m, nonNAs_m, delta, Calpha, alpha, A_m));
+    Rcpp::traits::input_parameter< const int& >::type d(dSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type tau_m_old_other_dim(tau_m_old_other_dimSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Cpi_1_m(Cpi_1_mSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Cpi_2_m(Cpi_2_mSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type pi_m_d(pi_m_dSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type nonNAs_m(nonNAs_mSEXP);
+    Rcpp::traits::input_parameter< const float& >::type delta(deltaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Calpha(CalphaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type A_m(A_mSEXP);
+    rcpp_result_gen = Rcpp::wrap(fixed_point_tau(d, tau_m_old_other_dim, Cpi_1_m, Cpi_2_m, pi_m_d, nonNAs_m, delta, Calpha, alpha, A_m));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_colSBM_fixed_point_tau", (DL_FUNC) &_colSBM_fixed_point_tau, 12},
+    {"_colSBM_fixed_point_tau", (DL_FUNC) &_colSBM_fixed_point_tau, 10},
     {NULL, NULL, 0}
 };
 
