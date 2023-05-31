@@ -5,6 +5,7 @@ require("tictoc", quietly = T)
 require("ggplot2", quietly = T)
 
 devtools::load_all(path = "R/")
+set.seed(1234)
 
 tic()
 
@@ -124,11 +125,12 @@ Calpha <- tcrossprod(Cpi[[1]], Cpi[[2]]) > 0
 mybisbmpop3 <- estimate_colBiSBM(
     netlist = bipartite_collection_incidence,
     colsbm_model = "pirho",
-    silent_parallelization = FALSE,
+    nb_run = 1,
     global_opts = list(
         nb_cores = parallel::detectCores() - 1,
-        verbosity = 4,
-        parallelization_vector = c(TRUE, TRUE)
-    )
+        verbosity = 2,
+        parallelization_vector = c(FALSE, FALSE)
+    ),
+    fit_opts = list(algo_ve = "fpcpp")
 )
 toc()
