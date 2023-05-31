@@ -1681,6 +1681,25 @@ bisbmpop <- R6::R6Class(
       } else { # TODO I can choose to fit from Z_init AND THEN perform greedy
                # exploration
         # With no Z_init we perform a greedy exploration
+
+        # Fitting the trivial 1,1
+        if (self$global_opts$verbosity >= 3) {
+          cat("\nFitting full model Q=(1,1) for ", self$M)
+        }
+
+        self$model_list[[1, 1]] <- fitBipartiteSBMPop$new(
+          A = self$A,
+          Q = c(1, 1),
+          free_mixture_row = FALSE, # There can't be free mixture with 1 cluster
+          free_mixture_col = FALSE, # There can't be free mixture with 1 cluster
+          free_density = self$free_density,
+          fit_opts = self$fit_opts,
+          distribution = self$distribution,
+          greedy_exploration_starting_point = c(1,1),
+        )
+
+        self$model_list[[1,1]]$optimize()
+
         self$separated_inits <- vector("list", 4) # The first coordinate is Q1, the second is Q2
         dim(self$separated_inits) <- c(2,2)
         if (self$global_opts$verbosity >= 2) {
@@ -1823,25 +1842,8 @@ bisbmpop <- R6::R6Class(
 
         if (self$global_opts$verbosity >= 4) {
           cat("\nMatching finished.\n")
-          cat("Beginning to combine networks.")
+          cat("Beginning to combine networks.\n")
         }
-
-        if (self$global_opts$verbosity >= 4) {
-          cat("\nFitting full model Q=(1,1) for ", self$M)
-        }
-
-        self$model_list[[1, 1]] <- fitBipartiteSBMPop$new(
-          A = self$A,
-          Q = c(1, 1),
-          free_mixture_row = FALSE, # There can't be free mixture with 1 cluster
-          free_mixture_col = FALSE, # There can't be free mixture with 1 cluster
-          free_density = self$free_density,
-          fit_opts = self$fit_opts,
-          distribution = self$distribution,
-          greedy_exploration_starting_point = c(1,1),
-        )
-
-        self$model_list[[1,1]]$optimize()
 
         # Here we combine the networks to fit a
         # fitBipartite object on the M networks
@@ -1892,7 +1894,7 @@ bisbmpop <- R6::R6Class(
           greedy_exploration_starting_point = c(2,1)
         )
 
-        if (self$global_opts$verbosity >= 4) {
+        if (self$global_opts$verbosity >= 3) {
           cat("\nFitting the combined colBiSBMs.")
         }
         # Here we fit the models
@@ -1997,7 +1999,7 @@ bisbmpop <- R6::R6Class(
         if (self$global_opts$verbosity >= 2) {
           cat(
             "\n==== Starting pass number ", nb_pass + 1,
-            " for networks ", self$net_id, " ====\n"
+            " for networks ", self$net_id, " ===="
           )
         }
         current_pass_time <- Sys.time()
@@ -2033,7 +2035,7 @@ bisbmpop <- R6::R6Class(
 
       if (self$global_opts$verbosity >= 2) {
         cat(
-          "\n==== Finished the passes of moving windows in",
+          "==== Finished the passes of moving windows in",
           format(Sys.time() - start_time, digits = 3), "===="
         )
       }
@@ -2085,7 +2087,7 @@ bisbmpop <- R6::R6Class(
 
       }
 
-      if (self$global_opts$verbosity >= 4) {
+      if (self$global_opts$verbosity >= 3) {
         cat(
           "\nMoving window around (",
           toString(center), ") with a depth of ", depth
@@ -2115,7 +2117,7 @@ bisbmpop <- R6::R6Class(
       )
 
       # We perform the Forward Pass
-      if (self$global_opts$verbosity >= 4) {
+      if (self$global_opts$verbosity >= 3) {
         cat("\nBeginning the forward pass.")
       }
       # Forward pass, where we split
@@ -2287,8 +2289,8 @@ bisbmpop <- R6::R6Class(
 
         self$state_space_plot()
 
-      if (self$global_opts$verbosity >= 4) {
-        cat("\nEnd of the Forward pass.\n")
+      if (self$global_opts$verbosity >= 3) {
+        cat("\nEnd of the forward pass.\nBeginning the backward pass.")
       }
 
       # Backward pass, where we merge
@@ -2461,14 +2463,14 @@ bisbmpop <- R6::R6Class(
 
       self$state_space_plot()
 
-      if (self$global_opts$verbosity >= 4) {
-        cat("\nEnd of the Backward pass.\n")
+      if (self$global_opts$verbosity >= 3) {
+        cat("\nEnd of the backward pass.")
       }
 
       # After the two passes
       self$store_criteria_and_best_fit()
 
-      if (self$global_opts$verbosity >= 4) {
+      if (self$global_opts$verbosity >= 2) {
         cat(
           "\nAfter the moving window around (",
           toString(c(Q1_mode, Q2_mode)),
