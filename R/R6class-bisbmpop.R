@@ -448,9 +448,11 @@ bisbmpop <- R6::R6Class(
           },
           mc.cores = self$global_opts$nb_cores,
           mc.allow.recursive = TRUE,
+          mc.cleanup = TRUE,
+          mc.stdout = "output",
           mc.share.copy = FALSE, # Trying to increase speed
           mc.silent = TRUE,
-          mc.retry = -1, # To prevent big crash
+          #mc.retry = -1, # To prevent big crash
           mc.progress = FALSE
         )
       } 
@@ -978,9 +980,11 @@ bisbmpop <- R6::R6Class(
       },
         mc.cores = self$global_opts$nb_cores,
         mc.allow.recursive = TRUE,
+        mc.cleanup = TRUE,
+        mc.stdout = "output",
         mc.silent = TRUE,
         mc.share.copy = FALSE, # Trying to increase speed
-        mc.retry = -1, # To prevent big crash
+        #mc.retry = -1, # To prevent big crash
         mc.progress = FALSE
       )
       } else {
@@ -2530,8 +2534,8 @@ bisbmpop <- R6::R6Class(
 
     compute_sep_BiSBM_BICL = function() {
       # Computes the sepBiSBM ICL to compare with the model
-      # TODO See if I can parallelize
-      self$sep_BiSBM$models <- bettermc::mclapply(seq.int(self$M), function(m) {
+      # TODO See if I can parallelize bettermc::mc
+      self$sep_BiSBM$models <- lapply(seq.int(self$M), function(m) {
         sep_BiSBM <- bisbmpop$new(
           netlist = list(self$A[[m]]),
           distribution = self$distribution,
@@ -2541,18 +2545,21 @@ bisbmpop <- R6::R6Class(
           global_opts = list(
             verbosity = 0,
             plot_details = 0,
-            nb_cores = self$global_opts$nb_cores
-          )
+            nb_cores = self$global_opts$nb_cores,
+            parallelization_vector = self$global_opts$parallelization_vector
+          ),
+          fit_opts = self$fit_opts
         )
         sep_BiSBM$optimize()
         sep_BiSBM$best_fit
-      },
-        mc.cores = self$global_opts$nb_cores,
-        mc.allow.recursive = TRUE,
-        mc.silent = TRUE,
-        mc.retry = -1, # To prevent big crash
-        mc.progress = FALSE
-      )
+      })
+      # ,
+      #   mc.cores = self$global_opts$nb_cores,
+      #   mc.allow.recursive = TRUE,
+      #   mc.silent = TRUE,
+      #   mc.retry = -1, # To prevent big crash
+      #   mc.progress = FALSE
+      # )
       
       self$sep_BiSBM$BICL <- sapply(seq.int(self$M), function(m) {
         self$sep_BiSBM$models[[m]]$BICL  # We retrieve all the BICLs for
