@@ -332,6 +332,7 @@ estimate_colBiSBM <-
       Q2_max <- global_opts$Q2_max
     }
 
+    start_time <- Sys.time()
     # To warn the user about the verbosity and nb_cores
     if (global_opts$verbosity >= 3 && global_opts$nb_cores > 1) {
       cat(
@@ -456,6 +457,10 @@ estimate_colBiSBM <-
         bisbmpop$print_metrics()
       }
       bisbmpop$choose_joint_or_separated()
+      if (global_opts$verbosity >= 1) {
+        cat("\n==== Full computation performed in", 
+        format(Sys.time() - start_time, digits = 3), "====")
+      }
     }
     return(bisbmpop)
   }
