@@ -10,3 +10,6 @@
 ^README\.Rmd$
 ^references\.bib$
 ^dev$
+^simulation$
+^wip$
+last.dump.Rds$
