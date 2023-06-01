@@ -1401,7 +1401,19 @@ fitBipartiteSBMPop <- R6::R6Class(
       # The col clustering are reordered according to their marginal distribution
       prob2 <- as.vector(mean_pi %*% self$alpha)
       p2 <- order(prob2, decreasing = TRUE)
+      
+      # m independent
+      self$MAP$alpha <- matrix(self$MAP$alpha[p1, p2],
+          nrow = self$Q[1], ncol = self$Q[2]
+        )
+      self$Calpha <- matrix(self$Calpha[p1, p2],
+        nrow = self$Q[1], ncol = self$Q[2]
+      )
+      self$alpha <- matrix(self$alpha[p1, p2],
+        nrow = self$Q[1], ncol = self$Q[2]
+      )
 
+      # m dependent
       lapply(seq.int(self$M), function(m) {
         # Reordering the parameters
         self$Cpi[[1]][, m] <- self$Cpi[[1]][p1, m]
@@ -1413,13 +1425,6 @@ fitBipartiteSBMPop <- R6::R6Class(
         self$pi[[m]][[1]] <- self$pi[[m]][[1]][p1]
         self$pi[[m]][[2]] <- self$pi[[m]][[2]][p2]
 
-        self$Calpha <- matrix(self$Calpha[p1, p2],
-          nrow = self$Q[1], ncol = self$Q[2]
-        )
-        self$alpha <- matrix(self$alpha[p1, p2],
-          nrow = self$Q[1], ncol = self$Q[2]
-        )
-
         self$emqr[m, , ] <- self$emqr[m, p1, p2]
         self$nmqr[m, , ] <- self$nmqr[m, p1, p2]
         self$alpham[[m]] <- matrix(self$alpham[[m]][p1, p2],
@@ -1427,11 +1432,12 @@ fitBipartiteSBMPop <- R6::R6Class(
         )
         self$tau[[m]][[1]] <- self$tau[[m]][[1]][, p1]
         self$tau[[m]][[2]] <- self$tau[[m]][[2]][, p2]
+        # self$Z[[m]][[1]] <- self$Z[[m]][[1]][, p1, drop = FALSE]
+        # self$Z[[m]][[2]] <- self$Z[[m]][[2]][, p2, drop = FALSE]
 
         # MAP parameters
-        self$MAP$alpha <- matrix(self$MAP$alpha[p1, p2],
-          nrow = self$Q[1], ncol = self$Q[2]
-        )
+        # self$MAP$Z[[m]][[1]] <- self$MAP$Z[[m]][[1]][, p1, drop = FALSE]
+        # self$MAP$Z[[m]][[2]] <- self$MAP$Z[[m]][[2]][, p2, drop = FALSE]
         self$MAP$emqr[m, , ] <- self$MAP$emqr[m, p1, p2]
         self$MAP$nmqr[m, , ] <- self$MAP$nmqr[m, p1, p2]
         self$MAP$alpham[[m]] <- matrix(self$MAP$alpham[[m]][p1, p2],

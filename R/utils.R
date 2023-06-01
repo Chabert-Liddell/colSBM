@@ -535,6 +535,12 @@ reorder_parameters <- function(model) {
   prob2 <- as.vector(mean_pi %*% out_model$MAP$alpha)
   p2 <- order(prob2, decreasing = TRUE)
 
+  # m independent
+  out_model$MAP$alpha <- out_model$MAP$alpha[p1, p2]
+  out_model$Calpha <- out_model$Calpha[p1, p2]
+  out_model$alpha <- out_model$alpha[p1, p2]
+
+  # m dependent
   lapply(seq.int(out_model$M), function(m) {
     # Reordering the parameters
     out_model$Cpi[[1]][, m] <- out_model$Cpi[[1]][p1, m]
@@ -546,17 +552,19 @@ reorder_parameters <- function(model) {
     out_model$pi[[m]][[1]] <- out_model$pi[[m]][[1]][p1]
     out_model$pi[[m]][[2]] <- out_model$pi[[m]][[2]][p2]
 
-    out_model$Calpha <- out_model$Calpha[p1, p2]
-    out_model$alpha <- out_model$alpha[p1, p2]
-
     out_model$emqr[m, , ] <- out_model$emqr[m, p1, p2]
     out_model$nmqr[m, , ] <- out_model$nmqr[m, p1, p2]
     out_model$alpham[[m]] <- out_model$alpham[[m]][p1, p2]
     out_model$tau[[m]][[1]] <- out_model$tau[[m]][[1]][, p1]
     out_model$tau[[m]][[2]] <- out_model$tau[[m]][[2]][, p2]
+    # Work needed to relabel correctly!
+    # out_model$Z[[m]][[1]] <- out_model$Z[[m]][[1]][p1]
+    # out_model$Z[[m]][[2]] <- out_model$Z[[m]][[2]][p2]
 
     # MAP parameters
-    out_model$MAP$alpha <- out_model$MAP$alpha[p1, p2]
+    # Work needed to relabel correctly!
+    # out_model$MAP$Z[[m]][[1]] <- out_model$MAP$Z[[m]][[1]][p1]
+    # out_model$MAP$Z[[m]][[2]] <- out_model$MAP$Z[[m]][[2]][p2]
     out_model$MAP$emqr[m, , ] <- out_model$MAP$emqr[m, p1, p2]
     out_model$MAP$nmqr[m, , ] <- out_model$MAP$nmqr[m, p1, p2]
     out_model$MAP$alpham[[m]] <- out_model$MAP$alpham[[m]][p1, p2]
