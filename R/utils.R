@@ -57,20 +57,21 @@ generate_unipartite_collection <- function(n, pi, alpha, M) {
 #'
 #' @param nr the number of row nodes
 #' @param nc the number of col nodes
-#' @param pir a vector of probability to belong to the row clusters
-#' @param pic a vector of probability to belong to the columns clusters
+#' @param pi a vector of probability to belong to the row clusters
+#' @param rho a vector of probability to belong to the columns clusters
 #' @param alpha the matrix of connectivity between two clusters
 #'
 #' @return An incidence matrix
 #'
 #' @noMd
 #' @noRd
-generate_bipartite_network <- function(nr, nc, pir, pic, alpha) {
-  rowcluster_memberships <- rmultinom(nr, size = 1, prob = pir)
-  colcluster_memberships <- rmultinom(nc, size = 1, prob = pic)
-  node_node_interaction_prob <- t(rowcluster_memberships) %*%
+generate_bipartite_network <- function(nr, nc, pi, rho, alpha,
+  return_memberships = FALSE) {
+  rowblocks_memberships <- rmultinom(nr, size = 1, prob = pi)
+  colblocks_memberships <- rmultinom(nc, size = 1, prob = rho)
+  node_node_interaction_prob <- t(rowblocks_memberships) %*%
     alpha %*%
-    colcluster_memberships
+    colblocks_memberships
 
   incidence_matrix <- matrix(
     rbinom(length(node_node_interaction_prob),
@@ -78,26 +79,44 @@ generate_bipartite_network <- function(nr, nc, pir, pic, alpha) {
     ),
     nrow = nrow(node_node_interaction_prob)
   )
-  return(list(
-    incidence_matrix = incidence_matrix,
-    row_clustering = as.vector(c(seq.int(length(pir))) %*% rowcluster_memberships), # We reverse the one hot encoding
-    col_clustering = as.vector(c(seq.int(length(pic))) %*% colcluster_memberships) # We reverse the one hot encoding
-  ))
+  if (return_memberships) {
+    return(list(
+      incidence_matrix = incidence_matrix,
+      row_blockmemberships = as.vector(
+        c(seq.int(length(pi))) %*% rowblocks_memberships
+      ), # We reverse the one hot encoding
+      col_blockmemberships = as.vector(
+        c(seq.int(length(rho))) %*% colblocks_memberships
+      ) # We reverse the one hot encoding
+    ))
+  } else {
+    return(incidence_matrix)
+  }
 }
 
-#' Generate collection of bipartite
+#' Generate collection of bipartite networks
 #'
 #' @param nr the number of row nodes or a vector of the row nodes per network
 #' @param nc the number of col nodes or a vector of the row nodes per network
-#' @param pir a vector of probability to belong to the row clusters
-#' @param pic a vector of probability to belong to the columns clusters
+#' @param pi a vector of probability to belong to the row clusters
+#' @param rho a vector of probability to belong to the columns clusters
 #' @param alpha the matrix of connectivity between two clusters
 #' @param M the number of networks to generate
+#' @param model the colBiSBM model to use. Available: "iid", "pi", "rho",
+#' "pirho"
+#' @param return_memberships a boolean which choose whether the function returns
+#' a list containing the memberships and the incidence matrices or just the 
+#' incidence matrices. Defaults to FALSE, only the matrices are returned.
+#' 
+#' @details the model parameters if set to any other than iid will shuffle the
+#' provided pi and rho
 #'
-#' @return A list of M lists, which contains : $incidence_matrix, $row_clustering, $col_clustering
+#' @return A list of M lists, which contains : $incidence_matrix, $row_blockmemberships, $col_blockmemberships
 #'
 #' @export
-generate_bipartite_collection <- function(nr, nc, pir, pic, alpha, M, model = "iid") {
+generate_bipartite_collection <- function(nr, nc, pi, rho, alpha, M,
+model = "iid",
+return_memberships = FALSE) {
   out <- list()
 
   # Check if nr and nc are vectors
@@ -127,9 +146,10 @@ generate_bipartite_collection <- function(nr, nc, pir, pic, alpha, M, model = "i
       generate_bipartite_network(
         nr = nr[[m]],
         nc = nc[[m]],
-        pir = pir,
-        pic = pic,
-        alpha = alpha
+        pi = pi,
+        rho = rho,
+        alpha = alpha,
+        return_memberships = return_memberships
       )
     })
   },
@@ -138,9 +158,10 @@ generate_bipartite_collection <- function(nr, nc, pir, pic, alpha, M, model = "i
         generate_bipartite_network(
           nr = nr[[m]],
           nc = nc[[m]],
-          pir = sample(pir),
-          pic = pic,
-          alpha = alpha
+          pi = sample(pi),
+          rho = rho,
+          alpha = alpha,
+          return_memberships = return_memberships
         )
       })
     },
@@ -149,9 +170,10 @@ generate_bipartite_collection <- function(nr, nc, pir, pic, alpha, M, model = "i
         generate_bipartite_network(
           nr = nr[[m]],
           nc = nc[[m]],
-          pir = pir,
-          pic = sample(pic),
-          alpha = alpha
+          pi = pi,
+          rho = sample(rho),
+          alpha = alpha,
+          return_memberships = return_memberships
         )
       })
     },
@@ -160,9 +182,10 @@ generate_bipartite_collection <- function(nr, nc, pir, pic, alpha, M, model = "i
         generate_bipartite_network(
           nr = nr[[m]],
           nc = nc[[m]],
-          pir = sample(pir),
-          pic = sample(pic),
-          alpha = alpha
+          pi = sample(pi),
+          rho = sample(rho),
+          alpha = alpha,
+          return_memberships = return_memberships
         )
       })
     }
