@@ -15,6 +15,7 @@ clusterize_bipartite_networks(
   global_opts = list(),
   fit_opts = list(),
   fit_init = NULL,
+  silent_parallelization = FALSE,
   full_inference = FALSE
 )
 }
@@ -56,28 +57,27 @@ mesoscale structures
 }
 \details{
 The best partition could be extract with the function
-\code{extract_best_partition()}. The object of the list are fitBipartiteSBMPop
+\code{extract_best_bipartite_partition()}. The object of the list are fitBipartiteSBMPop
 object, so it is a model for a given number of blocks Q1, Q2.
 }
 \examples{
+alpha1 <- matrix(c(0.8,0.1,0.2,0.7), byrow = TRUE, nrow = 2)
+alpha2 <- matrix(c(0.8,0.5,0.5,0.2), byrow = TRUE, nrow = 2)
+first_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5,0.5), rho = c(0.5,0.5), alpha = alpha1, M = 2)
+second_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5,0.5), rho = c(0.5,0.5), alpha = alpha2, M = 2)
 
-#' # Trivial example with Gnp networks:
-Net <- lapply(list(.7, .7, .2, .2),
-              function(p) {
-               A <- matrix(0, 15, 15 )
-               A[lower.tri(A)][sample(15*14/2, size = round(p*15*14/2))] <- 1
-               A <- A + t(A)
-              })
-\dontrun{cl <- clusterized_networks(Net,
-                           colsbm_model = "iid",
-                           directed = FALSE,
-                           model = "bernoulli",
-                           nb_run = 1
-                           )}
+netlist <- append(first_collection, second_collection)
+
+\dontrun{
+cl_separated <- clusterize_bipartite_networks(
+  netlist = netlist,
+  colsbm_model = "iid",
+  global_opts = list(nb_cores = parallel::detectCores() - 1))
+}
 Perform the recursive clustering of the networks
 
 }
 \seealso{
-\code{\link[=extract_best_partition]{extract_best_partition()}}, \code{\link[=estimate_colSBM]{estimate_colSBM()}},
-\code{\link[colSBM]{fitSimpleSBMPop}}, \code{browseVignettes("colSBM")}
+\code{\link[=extract_best_bipartite_partition]{extract_best_bipartite_partition()}}, \code{\link[=estimate_colBiSBM]{estimate_colBiSBM()}},
+\code{\link[colSBM]{fitBipartiteSBMPop}}, \code{browseVignettes("colSBM")}
 }

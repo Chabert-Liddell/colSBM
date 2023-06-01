@@ -12,32 +12,29 @@ estimate_colBiSBM(
   nb_run = 3L,
   global_opts = list(),
   fit_opts = list(),
-  fit_init = NULL,
-  Z_init = NULL
+  Z_init = NULL,
+  silent_parallelization = FALSE
 )
 }
 \arguments{
 \item{netlist}{A list of matrices.}
 
 \item{colsbm_model}{Which colBiSBM to use, one of "iid", "pi", "rho",
-"pirho", "deltapi".}
+"pirho".}
 
 \item{net_id}{A vector of string, the name of the networks.}
 
 \item{distribution}{A string, the emission distribution, either "bernoulli"
-(the default) or "poisson"}
+(the default) or "poisson" (to be implemented)}
 
-\item{nb_run}{An integer, the number of run the algorithm do.}
+\item{nb_run}{An integer, the number of run the algorithm do. Default to 3.}
 
 \item{global_opts}{Global options for the outer algorithm and the output.
 See details.}
 
-\item{fit_opts}{Fit options for the VEM algorithm}
+\item{fit_opts}{Fit options for the VEM algorithm. See details}
 
-\item{fit_init}{Do not use!
-Optional fit init from where initializing the algorithm.}
-
-\item{Z_init}{A bi-dimensional list of size Q1_max x Q2_max containing
+\item{Z_init}{An optional bi-dimensional list of size Q1_max x Q2_max containing
 for each value a list of two vectors of clusters memberships. Default to
 NULL.}
 }
@@ -52,24 +49,27 @@ Estimate a colBiSBM on a collection of networks
 
 }
 \examples{
-# Trivial example with Gnp networks:
-Net <- lapply(
-  list(.7, .7, .2, .2),
-  function(p) {
-    A <- matrix(0, 15, 15)
-    A[lower.tri(A)][sample(15 * 14 / 2, size = round(p * 15 * 14 / 2))] <- 1
-    A <- A + t(A)
-  }
-)
+alpha1 <- matrix(c(0.8,0.1,0.2,0.7), byrow = TRUE, nrow = 2)
+alpha2 <- matrix(c(0.8,0.5,0.5,0.2), byrow = TRUE, nrow = 2)
+first_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5,0.5), rho = c(0.5,0.5), alpha = alpha1, M = 2)
+second_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5,0.5), rho = c(0.5,0.5), alpha = alpha2, M = 2)
+
+netlist <- append(first_collection, second_collection)
+
 \dontrun{
-cl <- estimate_colSBM(Net,
-  colsbm_model = "delta",
-  distribution = "bernoulli",
-  nb_run = 1
-)
+# A collection where joint modelisation makes sense
+cl_joint <- estimate_colBiSBM(
+  netlist = first_collection, 
+  colsbm_model = "iid", 
+  global_opts = list(nb_cores = parallel::detectCores() - 1))
+# A collection where joint modelisation doesn't make sense
+cl_separated <- estimate_colBiSBM(
+  netlist = netlist,
+  colsbm_model = "iid",
+  global_opts = list(nb_cores = parallel::detectCores() - 1))
 }
 }
 \seealso{
-\code{\link[=clusterize_networks]{clusterize_networks()}}, \code{\link[colSBM]{bisbmpop}},
+\code{\link[=clusterize_bipartite_networks]{clusterize_bipartite_networks()}}, \code{\link[colSBM]{bisbmpop}},
 \code{\link[colSBM]{fitBipartiteSBMPop}}, \code{browseVignettes("colSBM")}
 }
