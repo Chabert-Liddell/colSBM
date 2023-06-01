@@ -511,6 +511,9 @@ logit <- function(x) log(x / (1 - x))
 }
 
 reorder_parameters <- function(model) {
+  Z_label_switch <- function(Z, new_lab) {
+    Z <- new_lab[match(Z, unique(Z), nomatch = 0)]
+  }
   out_model <- model$clone()
   if (all(out_model$Q == c(1, 1))) {
     return(out_model)
@@ -558,7 +561,7 @@ reorder_parameters <- function(model) {
     out_model$tau[[m]][[1]] <- out_model$tau[[m]][[1]][, p1]
     out_model$tau[[m]][[2]] <- out_model$tau[[m]][[2]][, p2]
     # Work needed to relabel correctly!
-    # out_model$Z[[m]][[1]] <- out_model$Z[[m]][[1]][p1]
+    # out_model$Z[[m]][[1]] <- p1[match(out_model$Z[[m]][[1]], unique(out_model$Z[[m]][[1]]), nomatch = 0)]
     # out_model$Z[[m]][[2]] <- out_model$Z[[m]][[2]][p2]
 
     # MAP parameters
