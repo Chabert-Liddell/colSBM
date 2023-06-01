@@ -40,6 +40,8 @@ bisbmpop <- R6::R6Class(
                                       # right points of the square
     old_moving_window_coordinates = NULL, # A list containing the previous
                                           # coordinates of the moving window
+    joint_modelisation_preferred = NULL,  # A boolean to store the preferred 
+                                          # modelisation
 
 
 
@@ -2595,12 +2597,14 @@ bisbmpop <- R6::R6Class(
           cat("\ncolBiSBM BICL:", self$best_fit$BICL)
           if (sum(self$sep_BiSBM$BICL) > self$best_fit$BICL) {
             cat("\nSeparated modelisation preferred.\n")
+            self$joint_modelisation_preferred <- FALSE
           } else {
             cat(
               "\nJoint modelisation preferred. With Q = (",
               toString(self$best_fit$Q),
               ").\n"
             )
+            self$joint_modelisation_preferred <- TRUE
           }
         } else {
           cat("\n==== Best fits criterion for the network ====")
