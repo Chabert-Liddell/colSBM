@@ -614,7 +614,7 @@ clusterize_bipartite_networks <- function(netlist,
 #' @export
 #'
 #' @examples
-extract_bipartite_best_partition <- function(l) {
+extract_best_bipartite_partition <- function(l) {
   if (inherits(l, "fitBipartiteSBMPop")) {
     return(l)
   }
@@ -626,7 +626,7 @@ extract_bipartite_best_partition <- function(l) {
     return(l[[2]])
   }
   return(list(
-    extract_bipartite_best_partition(l[[2]]),
-    extract_bipartite_best_partition(l[[3]])
+    extract_best_bipartite_partition(l[[2]]),
+    extract_best_bipartite_partition(l[[3]])
   ))
 }
