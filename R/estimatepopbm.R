@@ -404,20 +404,19 @@ extract_best_partition <- function(l) {
 #' \code{\link[colSBM]{fitBipartiteSBMPop}}, `browseVignettes("colSBM")`
 #'
 #' @examples
+#' alpha1 <- matrix(c(0.8,0.1,0.2,0.7), byrow = TRUE, nrow = 2)
+#' alpha2 <- matrix(c(0.8,0.5,0.5,0.2), byrow = TRUE, nrow = 2)
+#' first_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5,0.5), rho = c(0.5,0.5), alpha = alpha1, M = 2)
+#' second_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5,0.5), rho = c(0.5,0.5), alpha = alpha2, M = 2)
 #'
-#' #' # Trivial example with Gnp networks:
-#' Net <- lapply(list(.7, .7, .2, .2),
-#'               function(p) {
-#'                A <- matrix(0, 15, 15 )
-#'                A[lower.tri(A)][sample(15*14/2, size = round(p*15*14/2))] <- 1
-#'                A <- A + t(A)
-#'               })
-#' \dontrun{cl <- clusterized_networks(Net,
-#'                            colsbm_model = "iid",
-#'                            directed = FALSE,
-#'                            model = "bernoulli",
-#'                            nb_run = 1
-#'                            )}
+#' netlist <- append(first_collection, second_collection)
+#'
+#' \dontrun{
+#' cl_separated <- clusterize_bipartite_networks(
+#'   netlist = netlist,
+#'   colsbm_model = "iid",
+#'   global_opts = list(nb_cores = parallel::detectCores() - 1))
+#' }
 clusterize_bipartite_networks <- function(netlist,
                           colsbm_model,
                           net_id = NULL,
@@ -608,7 +607,8 @@ clusterize_bipartite_networks <- function(netlist,
 #' Extract the best partition from the list of model given by the function
 #' `clusterize_bipartite_networks()`.
 #'
-#' @param l A list of model obtained from the function  `clusterize_networks()`
+#' @param l A list of model obtained from the function
+#' `clusterize_bipartite_networks()`
 #'
 #' @return A list of model giving the best partition.
 #' @export

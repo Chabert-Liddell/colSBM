@@ -251,7 +251,6 @@ estimate_colSBM <-
 #' \code{\link[colSBM]{fitBipartiteSBMPop}}, `browseVignettes("colSBM")`
 #'
 #' @examples
-#' # Trivial example with Gnp networks:
 #' alpha1 <- matrix(c(0.8,0.1,0.2,0.7), byrow = TRUE, nrow = 2)
 #' alpha2 <- matrix(c(0.8,0.5,0.5,0.2), byrow = TRUE, nrow = 2)
 #' first_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5,0.5), rho = c(0.5,0.5), alpha = alpha1, M = 2)
