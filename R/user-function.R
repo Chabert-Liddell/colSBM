@@ -179,28 +179,27 @@ estimate_colSBM <-
 #'
 #' @param netlist A list of matrices.
 #' @param colsbm_model Which colBiSBM to use, one of "iid", "pi", "rho",
-#' "pirho", "deltapi".
+#' "pirho".
 #' @param net_id A vector of string, the name of the networks.
 #' @param distribution A string, the emission distribution, either "bernoulli"
-#' (the default) or "poisson"
-#' @param nb_run An integer, the number of run the algorithm do.
+#' (the default) or "poisson" (to be implemented)
+#' @param nb_run An integer, the number of run the algorithm do. Default to 3.
 #' @param global_opts Global options for the outer algorithm and the output.
 #' See details.
-#' @param fit_opts Fit options for the VEM algorithm
-#' @param fit_init Do not use!
-#' Optional fit init from where initializing the algorithm.
-#' @param Z_init A bi-dimensional list of size Q1_max x Q2_max containing
+#' @param fit_opts Fit options for the VEM algorithm. See details
+#' @param Z_init An optional bi-dimensional list of size Q1_max x Q2_max containing
 #' for each value a list of two vectors of clusters memberships. Default to 
 #' NULL.
 #'
 #' @details The list of parameters \code{global_opts} essentially tunes the
-#' optimization process and the variational EM algorithm,
-#' with the following parameters
+#' exploration process.
 #'  \itemize{
 #'  \item{\code{nb_cores} }{integer for number of cores used for
 #'  parallelization. Default is 1}
 #'  \item{\code{verbosity} }{integer for verbosity (0, 1, 2, 3, 4). Default is 1.
-#'   0 will disable completely the output of the function.}
+#'   0 will disable completely the output of the function. \textit{Note:} you
+#'   can access the $joint_modelisation_preferred attribute to check which 
+#'   modelisation is preferred}
 #'  \item{\code{Q1_max} }{integer for the max size in row to explore. Default is
 #'  computed with the following formula:
 #' `floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2)`}
@@ -221,36 +220,56 @@ estimate_colSBM <-
 #'  means that : 
 #'  \itemize{
 #'  \item{1st: the \code{nb_run} models will be computed in parallel}
-#'  \item{2nd: the possible models during the state space exploration will be 
+#'  \item{2nd: the possible models during the state space exploration will be
 #'  computed in parallel.
 #'    }
 #'  }
-#'  The default is : c(TRUE, TRUE, FALSE) which gives best performance
+#'  The default is : c(TRUE, TRUE) which gives best performance
+#' }
+#' 
+#' The list of parameters \code{fit_opts} are used to tune the Variational
+#' Expectation Maximization algorithm.
+#' 
+#' \itemize{
+#'  \item{algo_ve}{a string to choose the algorithm to use for the variational 
+#'  estimation. Available: "fp"}
+#'  \item{verbosity}{an integer to choose the level of verbosity of the fit 
+#'  procedure. Defaults to 0. Available: 0,1}
+#'  \item{approx_pois}{a boolean which determines if an approximation is used
+#'  for the poisson distribution. Defaults to TRUE.}
+#'  \item{\code{minibatch}}{a boolean settings wether to use a "minibatch" like
+#' approach. If set to TRUE during the VEM the networks will be optimized in
+#' random orders. If set to FALSE they are optimized in the lexicographical
+#' order. Default to TRUE.}
 #' }
 #'
 #' @return A bisbmpop object listing a collection of models for the collection.
 #' of networks
 #' @export
 #'
-#' @seealso [colSBM::clusterize_networks()], \code{\link[colSBM]{bisbmpop}},
+#' @seealso [colSBM::clusterize_bipartite_networks()], \code{\link[colSBM]{bisbmpop}},
 #' \code{\link[colSBM]{fitBipartiteSBMPop}}, `browseVignettes("colSBM")`
 #'
 #' @examples
 #' # Trivial example with Gnp networks:
-#' Net <- lapply(
-#'   list(.7, .7, .2, .2),
-#'   function(p) {
-#'     A <- matrix(0, 15, 15)
-#'     A[lower.tri(A)][sample(15 * 14 / 2, size = round(p * 15 * 14 / 2))] <- 1
-#'     A <- A + t(A)
-#'   }
-#' )
+#' alpha1 <- matrix(c(0.8,0.1,0.2,0.7), byrow = TRUE, nrow = 2)
+#' alpha2 <- matrix(c(0.8,0.5,0.5,0.2), byrow = TRUE, nrow = 2)
+#' first_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5,0.5), rho = c(0.5,0.5), alpha = alpha1, M = 2)
+#' second_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5,0.5), rho = c(0.5,0.5), alpha = alpha2, M = 2)
+#' 
+#' netlist <- append(first_collection, second_collection)
+#' 
 #' \dontrun{
-#' cl <- estimate_colSBM(Net,
-#'   colsbm_model = "delta",
-#'   distribution = "bernoulli",
-#'   nb_run = 1
-#' )
+#' # A collection where joint modelisation makes sense
+#' cl_joint <- estimate_colBiSBM(
+#'   netlist = first_collection, 
+#'   colsbm_model = "iid", 
+#'   global_opts = list(nb_cores = parallel::detectCores() - 1))
+#' # A collection where joint modelisation doesn't make sense
+#' cl_separated <- estimate_colBiSBM(
+#'   netlist = netlist,
+#'   colsbm_model = "iid",
+#'   global_opts = list(nb_cores = parallel::detectCores() - 1))
 #' }
 estimate_colBiSBM <-
   function(netlist,
@@ -260,7 +279,6 @@ estimate_colBiSBM <-
           nb_run = 3L,
           global_opts = list(),
           fit_opts = list(),
-          fit_init = NULL,
           Z_init = NULL,
           silent_parallelization = FALSE) {
     switch(colsbm_model,
@@ -283,16 +301,6 @@ estimate_colBiSBM <-
         free_density <- FALSE
         free_mixture_row <- TRUE
         free_mixture_col <- TRUE
-      },
-      "delta" = {
-        free_density <- TRUE
-        free_mixture_row <- FALSE
-        free_mixture_col <- FALSE
-      },
-      "deltapi" = {
-        free_density <- TRUE
-        free_mixture_row <- TRUE
-        free_mixture_col <- FALSE
       },
       stop(
         "colsbm_model unknown.",
@@ -334,7 +342,9 @@ estimate_colBiSBM <-
 
     start_time <- Sys.time()
     # To warn the user about the verbosity and nb_cores
-    if (global_opts$verbosity >= 3 && global_opts$nb_cores > 1) {
+    if (global_opts$verbosity >= 3 &&
+      global_opts$nb_cores > 1 &&
+      !any(global_opts$parallelization_vector)) {
       cat(
         "\nDue to the parallelization, the message logs",
         "might be in confusing order.",
@@ -342,9 +352,6 @@ estimate_colBiSBM <-
       )
     }
 
-    if (!is.null(fit_init)) {
-      bisbmpop <- fit_init
-    } else {
       if (is.null(net_id)) {
         net_id <- seq_along(netlist)
       }
@@ -461,7 +468,7 @@ estimate_colBiSBM <-
         cat("\n==== Full computation performed in", 
         format(Sys.time() - start_time, digits = 3), "====")
       }
-    }
+
     return(bisbmpop)
   }
 
