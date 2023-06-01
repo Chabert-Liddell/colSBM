@@ -1342,26 +1342,13 @@ fitBipartiteSBMPop <- R6::R6Class(
       self$compute_effective_clustering()
 
       # Here the matching of the effective clustering is checked
-      if (!self$free_mixture_row | !self$free_mixture_col) {
+      if (!any(self$free_mixture_row, self$free_mixture_col)) {
         non_correct_clusterings <- sapply(seq.int(self$M), function(m) {
           self$effective_clustering_list[[m]][[1]] != self$Q[1] &&
             self$effective_clustering_list[[m]][[2]] != self$Q[2]
         })
         if (any(non_correct_clusterings)) {
-          warningString <- paste0(
-            "\n\nSome clusters were emptied by the VEM !",
-            "\nWanted clustering was: ", toString(self$Q),
-            "\nBut got:"
-          )
-          for (id in which(non_correct_clusterings)) {
-            warningString <- paste0(
-            warningString,
-            "\n\tNetwork ", self$net_id[[id]], " clustering: ",
-            toString(self$effective_clustering_list[[id]])
-            )
-          }
-          warning(warningString)
-          self$clustering_is_complete = FALSE
+          self$clustering_is_complete <- FALSE
         }
       }
 
@@ -1384,9 +1371,10 @@ fitBipartiteSBMPop <- R6::R6Class(
       )
       cat(
         "BICL = ", self$BICL,
-        "\n#Empty row blocks : ", sum(!self$Cpi[[1]]),
-        " -- #Empty columns blocks : ", sum(!self$Cpi[[2]]), " \n"
+        "\n#Empty row blocks on all networks: ", sum(!self$Cpi[[1]]),
+        " -- #Empty columns blocks on all networks: ", sum(!self$Cpi[[2]]), " \n"
       )
+      cat("Interesting attributes:\n", "$alpha, $pi, $BICL, $Q, $Z\n")
       cat("=====================================================================")
     },
 
