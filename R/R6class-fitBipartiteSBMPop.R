@@ -966,7 +966,7 @@ fitBipartiteSBMPop <- R6::R6Class(
             FUN = function(m) {
               # The .one_hot performs a one hot encoding of the spectral clustering performed
               # DONE : Adapt this step to handle two taus
-              biclustering <- bipartite_hierarchic_clustering(self$A[[m]], self$Q)
+              biclustering <- bipartite_hierarchic_clustering(self$nonNAs[[m]] * self$A[[m]], self$Q)
               row_clustering <- biclustering$row_clustering
               col_clustering <- biclustering$col_clustering
 
@@ -1022,7 +1022,7 @@ fitBipartiteSBMPop <- R6::R6Class(
             FUN = function(m) {
               # The .one_hot performs a one hot encoding of the spectral clustering performed
 
-              biclustering <- spectral_biclustering(self$A[[m]], self$Q)
+              biclustering <- spectral_biclustering(self$nonNAs[[m]] * self$A[[m]], self$Q)
               row_clustering <- biclustering$row_clustering
               col_clustering <- biclustering$col_clustering
 
