@@ -1,18 +1,19 @@
 require("ggplot2")
-require("tictoc")
-
 devtools::load_all("R/")
+source("wip/temporary_plot.R")
 
 # All results
 iid_clustering <- readRDS("simulation/data/dore_collection_clustering_nb_run1_iid_123networks_24-05-23-21:40:42.Rds")
 
-iid_best_partition <- extract_bipartite_best_partition(iid_clustering)
+iid_best_partition <- extract_best_bipartite_partition(iid_clustering)
+iid_unlist <- unlist(iid_best_partition)
 
 rho_clustering <- readRDS("simulation/data/dore_collection_clustering_nb_run1_rho_123networks_25-05-23-13:58:30.Rds")
-rho_best_partition <- extract_bipartite_best_partition(rho_clustering)
+rho_best_partition <- extract_best_bipartite_partition(rho_clustering)
 
 pi_clustering <- readRDS("simulation/data/dore_collection_clustering_nb_run1_pi_123networks_25-05-23-17:31:25.Rds")
-pi_best_partition <- extract_bipartite_best_partition(pi_clustering)
+pi_best_partition <- extract_best_bipartite_partition(pi_clustering)
 
 pirho_clustering <- readRDS("simulation/data/dore_collection_clustering_nb_run1_pirho_123networks_26-05-23-19:22:55.Rds")
-pirho_best_partition <- extract_bipartite_best_partition(pirho_clustering)
+pirho_best_partition <- extract_best_bipartite_partition(pirho_clustering)
+pirho_unlist <- unlist(pirho_best_partition)
