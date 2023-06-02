@@ -328,7 +328,6 @@ fitBipartiteSBMPop$set(
             ) +
             ggplot2::ylab("") +
             ggplot2::ylab(xl) +
-            ggplot2::xlab()
           ggplot2::theme_bw(base_size = 15)
           p_rho <- df_rho %>%
             #    rename() %>%
