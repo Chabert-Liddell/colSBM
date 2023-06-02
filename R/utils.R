@@ -511,8 +511,15 @@ logit <- function(x) log(x / (1 - x))
 }
 
 reorder_parameters <- function(model) {
-  Z_label_switch <- function(Z, new_lab) {
-    Z <- new_lab[match(Z, unique(Z), nomatch = 0)]
+  Z_label_switch <- function(Z, new_order) {
+    # Create a mapping of old labels to new labels
+    old_names <- names(Z)
+    label_map <- setNames(new_order, unique(Z))
+
+    # Use the mapping to replace labels in the vector
+    switched_labels <- label_map[Z]
+    names(switched_labels) <- old_names
+    return(switched_labels)
   }
   out_model <- model$clone()
   if (all(out_model$Q == c(1, 1))) {
@@ -539,42 +546,41 @@ reorder_parameters <- function(model) {
   p2 <- order(prob2, decreasing = TRUE)
 
   # m independent
-  out_model$MAP$alpha <- out_model$MAP$alpha[p1, p2]
-  out_model$Calpha <- out_model$Calpha[p1, p2]
-  out_model$alpha <- out_model$alpha[p1, p2]
+  out_model$MAP$alpha <- out_model$MAP$alpha[p1, p2, drop = FALSE]
+  out_model$Calpha <- out_model$Calpha[p1, p2, drop = FALSE]
+  out_model$alpha <- out_model$alpha[p1, p2, drop = FALSE]
 
   # m dependent
   lapply(seq.int(out_model$M), function(m) {
     # Reordering the parameters
-    out_model$Cpi[[1]][, m] <- out_model$Cpi[[1]][p1, m]
-    out_model$Cpi[[2]][, m] <- out_model$Cpi[[2]][p2, m]
+    out_model$Cpi[[1]][, m] <- out_model$Cpi[[1]][p1, m, drop = FALSE]
+    out_model$Cpi[[2]][, m] <- out_model$Cpi[[2]][p2, m, drop = FALSE]
 
-    out_model$pim[[m]][[1]] <- out_model$pim[[m]][[1]][p1]
-    out_model$pim[[m]][[2]] <- out_model$pim[[m]][[2]][p2]
+    out_model$pim[[m]][[1]] <- out_model$pim[[m]][[1]][p1, drop = FALSE]
+    out_model$pim[[m]][[2]] <- out_model$pim[[m]][[2]][p2, drop = FALSE]
 
-    out_model$pi[[m]][[1]] <- out_model$pi[[m]][[1]][p1]
-    out_model$pi[[m]][[2]] <- out_model$pi[[m]][[2]][p2]
+    out_model$pi[[m]][[1]] <- out_model$pi[[m]][[1]][p1, drop = FALSE]
+    out_model$pi[[m]][[2]] <- out_model$pi[[m]][[2]][p2, drop = FALSE]
 
-    out_model$emqr[m, , ] <- out_model$emqr[m, p1, p2]
-    out_model$nmqr[m, , ] <- out_model$nmqr[m, p1, p2]
-    out_model$alpham[[m]] <- out_model$alpham[[m]][p1, p2]
-    out_model$tau[[m]][[1]] <- out_model$tau[[m]][[1]][, p1]
-    out_model$tau[[m]][[2]] <- out_model$tau[[m]][[2]][, p2]
-    # Work needed to relabel correctly!
-    # out_model$Z[[m]][[1]] <- p1[match(out_model$Z[[m]][[1]], unique(out_model$Z[[m]][[1]]), nomatch = 0)]
-    # out_model$Z[[m]][[2]] <- out_model$Z[[m]][[2]][p2]
+    out_model$emqr[m, , ] <- out_model$emqr[m, p1, p2, drop = FALSE]
+    out_model$nmqr[m, , ] <- out_model$nmqr[m, p1, p2, drop = FALSE]
+    out_model$alpham[[m]] <- out_model$alpham[[m]][p1, p2, drop = FALSE]
+    out_model$tau[[m]][[1]] <- out_model$tau[[m]][[1]][, p1, drop = FALSE]
+    out_model$tau[[m]][[2]] <- out_model$tau[[m]][[2]][, p2, drop = FALSE]
+    out_model$Z[[m]][[1]] <- Z_label_switch(out_model$Z[[m]][[1]], p1)
+    out_model$Z[[m]][[2]] <- Z_label_switch(out_model$Z[[m]][[2]], p2)
 
     # MAP parameters
     # Work needed to relabel correctly!
-    # out_model$MAP$Z[[m]][[1]] <- out_model$MAP$Z[[m]][[1]][p1]
-    # out_model$MAP$Z[[m]][[2]] <- out_model$MAP$Z[[m]][[2]][p2]
-    out_model$MAP$emqr[m, , ] <- out_model$MAP$emqr[m, p1, p2]
-    out_model$MAP$nmqr[m, , ] <- out_model$MAP$nmqr[m, p1, p2]
-    out_model$MAP$alpham[[m]] <- out_model$MAP$alpham[[m]][p1, p2]
-    out_model$MAP$pim[[m]][[1]] <- out_model$MAP$pim[[m]][[1]][p1]
-    out_model$MAP$pim[[m]][[2]] <- out_model$MAP$pim[[m]][[2]][p2]
-    out_model$MAP$pi[[m]][[1]] <- out_model$MAP$pi[[m]][[1]][p1]
-    out_model$MAP$pi[[m]][[2]] <- out_model$MAP$pi[[m]][[2]][p2]
+    out_model$MAP$Z[[m]][[1]] <- Z_label_switch(out_model$MAP$Z[[m]][[1]],p1)
+    out_model$MAP$Z[[m]][[2]] <- Z_label_switch(out_model$MAP$Z[[m]][[2]],p2)
+    out_model$MAP$emqr[m, , ] <- out_model$MAP$emqr[m, p1, p2, drop = FALSE]
+    out_model$MAP$nmqr[m, , ] <- out_model$MAP$nmqr[m, p1, p2, drop = FALSE]
+    out_model$MAP$alpham[[m]] <- out_model$MAP$alpham[[m]][p1, p2, drop = FALSE]
+    out_model$MAP$pim[[m]][[1]] <- out_model$MAP$pim[[m]][[1]][p1, drop = FALSE]
+    out_model$MAP$pim[[m]][[2]] <- out_model$MAP$pim[[m]][[2]][p2, drop = FALSE]
+    out_model$MAP$pi[[m]][[1]] <- out_model$MAP$pi[[m]][[1]][p1, drop = FALSE]
+    out_model$MAP$pi[[m]][[2]] <- out_model$MAP$pi[[m]][[2]][p2, drop = FALSE]
   })
   return(out_model)
 }

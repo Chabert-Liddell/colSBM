@@ -1379,74 +1379,75 @@ fitBipartiteSBMPop <- R6::R6Class(
     },
 
     reorder_parameters = function() {
-      if (all(self$Q == c(1,1))) {
-        return()
+      Z_label_switch <- function(Z, new_order) {
+        # Create a mapping of old labels to new labels
+        old_names <- names(Z)
+        label_map <- setNames(new_order, unique(Z))
+
+        # Use the mapping to replace labels in the vector
+        switched_labels <- label_map[Z]
+        names(switched_labels) <- old_names
+        return(switched_labels)
+      }
+      if (all(self$Q == c(1, 1))) {
+        return(self)
       }
       mean_pi <- sapply(self$pi, function(pi) pi[[1]])
       if (self$Q[1] > 1) {
         mean_pi <- matrixStats::rowMeans2(mean_pi)
       } else {
-        mean_pi <- matrix(1,1,1)
+        mean_pi <- matrix(1, 1, 1)
       }
       mean_rho <- sapply(self$pi, function(pi) pi[[2]])
       if (self$Q[2] > 1) {
         mean_rho <- matrixStats::rowMeans2(mean_rho)
-      }else {
-        mean_rho <- matrix(1, 1,1)
+      } else {
+        mean_rho <- matrix(1, 1, 1)
       }
       # The row clustering are reordered according to their marginal distribution
-      prob1 <- as.vector(mean_rho %*% t(self$alpha))
+      prob1 <- as.vector(mean_rho %*% t(self$MAP$alpha))
       p1 <- order(prob1, decreasing = TRUE)
 
       # The col clustering are reordered according to their marginal distribution
-      prob2 <- as.vector(mean_pi %*% self$alpha)
+      prob2 <- as.vector(mean_pi %*% self$MAP$alpha)
       p2 <- order(prob2, decreasing = TRUE)
-      
+
       # m independent
-      self$MAP$alpha <- matrix(self$MAP$alpha[p1, p2],
-          nrow = self$Q[1], ncol = self$Q[2]
-        )
-      self$Calpha <- matrix(self$Calpha[p1, p2],
-        nrow = self$Q[1], ncol = self$Q[2]
-      )
-      self$alpha <- matrix(self$alpha[p1, p2],
-        nrow = self$Q[1], ncol = self$Q[2]
-      )
+      self$MAP$alpha <- self$MAP$alpha[p1, p2, drop = FALSE]
+      self$Calpha <- self$Calpha[p1, p2, drop = FALSE]
+      self$alpha <- self$alpha[p1, p2, drop = FALSE]
 
       # m dependent
       lapply(seq.int(self$M), function(m) {
         # Reordering the parameters
-        self$Cpi[[1]][, m] <- self$Cpi[[1]][p1, m]
-        self$Cpi[[2]][, m] <- self$Cpi[[2]][p2, m]
+        self$Cpi[[1]][, m] <- self$Cpi[[1]][p1, m, drop = FALSE]
+        self$Cpi[[2]][, m] <- self$Cpi[[2]][p2, m, drop = FALSE]
 
-        self$pim[[m]][[1]] <- self$pim[[m]][[1]][p1]
-        self$pim[[m]][[2]] <- self$pim[[m]][[2]][p2]
+        self$pim[[m]][[1]] <- self$pim[[m]][[1]][p1, drop = FALSE]
+        self$pim[[m]][[2]] <- self$pim[[m]][[2]][p2, drop = FALSE]
 
-        self$pi[[m]][[1]] <- self$pi[[m]][[1]][p1]
-        self$pi[[m]][[2]] <- self$pi[[m]][[2]][p2]
+        self$pi[[m]][[1]] <- self$pi[[m]][[1]][p1, drop = FALSE]
+        self$pi[[m]][[2]] <- self$pi[[m]][[2]][p2, drop = FALSE]
 
-        self$emqr[m, , ] <- self$emqr[m, p1, p2]
-        self$nmqr[m, , ] <- self$nmqr[m, p1, p2]
-        self$alpham[[m]] <- matrix(self$alpham[[m]][p1, p2],
-                  nrow = self$Q[1], ncol = self$Q[2]
-        )
-        self$tau[[m]][[1]] <- self$tau[[m]][[1]][, p1]
-        self$tau[[m]][[2]] <- self$tau[[m]][[2]][, p2]
-        # self$Z[[m]][[1]] <- self$Z[[m]][[1]][, p1, drop = FALSE]
-        # self$Z[[m]][[2]] <- self$Z[[m]][[2]][, p2, drop = FALSE]
+        self$emqr[m, , ] <- self$emqr[m, p1, p2, drop = FALSE]
+        self$nmqr[m, , ] <- self$nmqr[m, p1, p2, drop = FALSE]
+        self$alpham[[m]] <- self$alpham[[m]][p1, p2, drop = FALSE]
+        self$tau[[m]][[1]] <- self$tau[[m]][[1]][, p1, drop = FALSE]
+        self$tau[[m]][[2]] <- self$tau[[m]][[2]][, p2, drop = FALSE]
+        self$Z[[m]][[1]] <- Z_label_switch(self$Z[[m]][[1]], p1)
+        self$Z[[m]][[2]] <- Z_label_switch(self$Z[[m]][[2]], p2)
 
         # MAP parameters
-        # self$MAP$Z[[m]][[1]] <- self$MAP$Z[[m]][[1]][, p1, drop = FALSE]
-        # self$MAP$Z[[m]][[2]] <- self$MAP$Z[[m]][[2]][, p2, drop = FALSE]
-        self$MAP$emqr[m, , ] <- self$MAP$emqr[m, p1, p2]
-        self$MAP$nmqr[m, , ] <- self$MAP$nmqr[m, p1, p2]
-        self$MAP$alpham[[m]] <- matrix(self$MAP$alpham[[m]][p1, p2],
-          nrow = self$Q[1], ncol = self$Q[2]
-        )
-        self$MAP$pim[[m]][[1]] <- self$MAP$pim[[m]][[1]][p1]
-        self$MAP$pim[[m]][[2]] <- self$MAP$pim[[m]][[2]][p2]
-        self$MAP$pi[[m]][[1]] <- self$MAP$pi[[m]][[1]][p1]
-        self$MAP$pi[[m]][[2]] <- self$MAP$pi[[m]][[2]][p2]
+        # Work needed to relabel correctly!
+        self$MAP$Z[[m]][[1]] <- Z_label_switch(self$MAP$Z[[m]][[1]],p1)
+        self$MAP$Z[[m]][[2]] <- Z_label_switch(self$MAP$Z[[m]][[2]],p2)
+        self$MAP$emqr[m, , ] <- self$MAP$emqr[m, p1, p2, drop = FALSE]
+        self$MAP$nmqr[m, , ] <- self$MAP$nmqr[m, p1, p2, drop = FALSE]
+        self$MAP$alpham[[m]] <- self$MAP$alpham[[m]][p1, p2, drop = FALSE]
+        self$MAP$pim[[m]][[1]] <- self$MAP$pim[[m]][[1]][p1, drop = FALSE]
+        self$MAP$pim[[m]][[2]] <- self$MAP$pim[[m]][[2]][p2, drop = FALSE]
+        self$MAP$pi[[m]][[1]] <- self$MAP$pi[[m]][[1]][p1, drop = FALSE]
+        self$MAP$pi[[m]][[2]] <- self$MAP$pi[[m]][[2]][p2, drop = FALSE]
       })
     },
 
