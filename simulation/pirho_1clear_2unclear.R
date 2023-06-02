@@ -32,9 +32,9 @@ alpha <- matrix(
 )
 
 bipartite_collection <- list(
-    generate_bipartite_network(nr, nc, pir1, pic1, alpha),
-    generate_bipartite_network(nr / 2, nc / 2, pir2, pic2, alpha),
-    generate_bipartite_network(nr / 2, nc / 2, pir1, pic2, alpha)
+    generate_bipartite_network(nr, nc, pir1, pic1, alpha, return_memberships = T),
+    generate_bipartite_network(nr / 2, nc / 2, pir2, pic2, alpha, return_memberships = T),
+    generate_bipartite_network(nr / 2, nc / 2, pir1, pic2, alpha, return_memberships = T)
 )
 
 M <- length(bipartite_collection)
@@ -99,6 +99,7 @@ mybisbmpop3 <- estimate_colBiSBM(
         verbosity = 4,
         parallelization_vector = c(FALSE, FALSE, FALSE)
     )
-)}, prof_output = "./prof.out")
+)
+}, prof_output = "./prof.out")
 htmlwidgets::saveWidget(p, "profile_paral_pirho_unclear.html")
 toc()
