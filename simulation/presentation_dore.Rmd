@@ -1,24 +1,73 @@
-
+---
+title: "Présentation de l'application de colSBM sur Doré et al. 2020"
+output:
+    html_document:
+        toc: true
+        theme: united
+---
 
 ```{r require_libn, echo = FALSE, include=FALSE}
 require("ggplot2")
 require("dplyr")
+require("knitr")
 devtools::load_all("R/")
 source("wip/temporary_plot.R")
+```
+
+```{r pretty_matrix_print, echo = FALSE}
+# Define a generic method that transforms an object x in a LaTeX string
+as_latex <- function(x, ...) {
+    UseMethod("as_latex", x)
+}
+
+# Define a class latex for LaTeX expressions
+as_latex.character <- function(x) {
+    structure(
+        paste(x, collapse = " "),
+        class = c("latex", "character")
+    )
+}
+
+# A character string of class latex is rendered in display mode
+# Define a knit_print() method for the latex class
+knit_print.latex <- function(x, ...) {
+    knitr::asis_output(
+        paste0("$$", x, "$$")
+    )
+}
+
+# Now, define a method as_latex for matrix
+as_latex.matrix <- function(x, ...) {
+    as_latex(c(
+        "\\begin{bmatrix}",
+        paste(
+            t(x),
+            rep(c(rep("&", nrow(x) - 1), "\\\\"), ncol(x)),
+            collapse = ""
+        ),
+        "\\end{bmatrix}"
+    ))
+}
+
+# Indicate to knitr that matrix are rendered as latex
+knit_print.matrix <- function(x, ...) {
+    knitr::knit_print(as_latex(x))
+}
 ```
 
 ```{r load data, echo = FALSE, include = FALSE}
 # All results
 iid_clustering <- readRDS("simulation/data/dore_collection_clustering_nb_run1_iid_123networks_24-05-23-21:40:42.Rds")
-
 iid_best_partition <- extract_best_bipartite_partition(iid_clustering)
 iid_unlist <- unlist(iid_best_partition)
 
 rho_clustering <- readRDS("simulation/data/dore_collection_clustering_nb_run1_rho_123networks_25-05-23-13:58:30.Rds")
 rho_best_partition <- extract_best_bipartite_partition(rho_clustering)
+rho_unlist <- unlist(rho_best_partition)
 
 pi_clustering <- readRDS("simulation/data/dore_collection_clustering_nb_run1_pi_123networks_25-05-23-17:31:25.Rds")
 pi_best_partition <- extract_best_bipartite_partition(pi_clustering)
+pi_unlist <- unlist(pi_best_partition)
 
 pirho_clustering <- readRDS("simulation/data/dore_collection_clustering_nb_run1_pirho_123networks_26-05-23-19:22:55.Rds")
 pirho_best_partition <- extract_best_bipartite_partition(pirho_clustering)
@@ -26,8 +75,8 @@ pirho_unlist <- unlist(pirho_best_partition)
 ```
 
 ## Clustering avec le modèle iid
-Avec le modèle *iid* nous obtenons les 5 collections suivantes:
-```{r liste_nom, echo = FALSE, results="asis"}
+Avec le modèle *iid* nous obtenons les `r length(iid_unlist)` collections suivantes:
+```{r iid_liste_nom, echo = FALSE, results="asis"}
 iid_networks_list <- lapply(seq_along(iid_unlist), function(c) {
     length <- length(iid_unlist[[c]]$net_id)
     data.frame(collection_id = rep(c, length), net_id = iid_unlist[[c]]$net_id)
@@ -39,8 +88,103 @@ for(df_net in iid_networks_list) {
 
 Une fois le modèle de collection appliqué nous obtenons les structures suivantes:
 
-```{r meso-plot, echo = FALSE, fig.cap = 'Graphiques Méso'}
-for(col in iid_unlist) {
-    print(plot(col, type = "meso", mixture = TRUE))
+```{r iid_meso_plot, echo = FALSE, message=FALSE}
+for(idx in seq_along(iid_unlist)) {
+    cat(paste("\nPour la collection", idx, "du modèle *iid*\n"))
+    print(plot(iid_unlist[[idx]], type = "meso", mixture = TRUE))
+    print(iid_unlist[[idx]]$net_id)
+}
+```
+
+Et voici donc les valeurs numériques pour les $\alpha$ (paramètres de connectivité).
+
+```{r iid_alpha, echo = FALSE, results="asis"}
+for (idx in seq_along(iid_unlist)) {
+    cat(paste("\nPour la collection ", idx,":\n"))
+    cat(knitr::knit_print(iid_unlist[[idx]]$alpha))
+}
+```
+
+## Clustering avec le modèle pi
+Avec le modèle *pi* nous obtenons les `r length(pi_unlist)` collections suivantes:
+```{r pi_liste_nom, echo = FALSE, results="asis"}
+pi_networks_list <- lapply(seq_along(pi_unlist), function(c) {
+    length <- length(pi_unlist[[c]]$net_id)
+    data.frame(collection_id = rep(c, length), net_id = pi_unlist[[c]]$net_id)
+})
+for(df_net in pi_networks_list) {
+    print(knitr::kable(df_net))
+}
+```
+
+Une fois le modèle de collection appliqué nous obtenons les structures suivantes:
+
+```{r pi_meso_plot, echo = FALSE, message=FALSE}
+for(idx in seq_along(pi_unlist)) {
+    cat(paste("\nPour la collection", idx, "du modèle *pi*\n"))
+    print(plot(pi_unlist[[idx]], type = "meso", mixture = TRUE))
+    print(pi_unlist[[idx]]$net_id)
+}
+```
+
+Et voici donc les valeurs numériques pour les $\alpha$ (paramètres de connectivité).
+
+```{r pi_alpha, echo = FALSE, results="asis"}
+for (idx in seq_along(pi_unlist)) {
+    cat(paste("\nPour la collection ", idx,":\n"))
+    cat(knitr::knit_print(pi_unlist[[idx]]$alpha))
+}
+```
+
+## Clustering avec le modèle rho
+Avec le modèle *rho* nous obtenons les `r length(rho_unlist)` collections suivantes:
+```{r rho_liste_nom, echo = FALSE, results="asis"}
+
+print(knitr::kable(rho_unlist$net_id))
+```
+
+Une fois le modèle de collection appliqué nous obtenons les structures suivantes:
+
+```{r rho_meso_plot, echo = FALSE, message=FALSE}
+    cat(paste("\nPour la collection 1 du modèle *rho*\n"))
+    print(plot(rho_unlist, type = "meso", mixture = TRUE))
+    print(rho_unlist$net_id)
+```
+
+Et voici donc les valeurs numériques pour les $\alpha$ (paramètres de connectivité).
+
+```{r rho_alpha, echo = FALSE, results="asis"}
+cat(paste("\nPour la collection 1:\n"))
+cat(knitr::knit_print(rho_unlist$alpha))
+```
+
+## Clustering avec le modèle pirho
+Avec le modèle *pirho* nous obtenons les `r length(pirho_unlist)` collections suivantes:
+```{r pirho_liste_nom, echo = FALSE, results="asis"}
+pirho_networks_list <- lapply(seq_along(pirho_unlist), function(c) {
+    length <- length(pirho_unlist[[c]]$net_id)
+    data.frame(collection_id = rep(c, length), net_id = pirho_unlist[[c]]$net_id)
+})
+for(df_net in pirho_networks_list) {
+    print(knitr::kable(df_net))
+}
+```
+
+Une fois le modèle de collection appliqué nous obtenons les structures suivantes:
+
+```{r pirho_meso_plot, echo = FALSE, message=FALSE}
+for(idx in seq_along(pirho_unlist)) {
+    cat(paste("\nPour la collection", idx, "du modèle *pirho*\n"))
+    print(plot(pirho_unlist[[idx]], type = "meso", mixture = TRUE))
+    print(pirho_unlist[[idx]]$net_id)
+}
+```
+
+Et voici donc les valeurs numériques pour les $\alpha$ (paramètres de connectivité).
+
+```{r pirho_alpha, echo = FALSE, results="asis"}
+for (idx in seq_along(pirho_unlist)) {
+    cat(paste("\nPour la collection ", idx,":\n"))
+    cat(knitr::knit_print(pirho_unlist[[idx]]$alpha))
 }
 ```
