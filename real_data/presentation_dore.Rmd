@@ -57,19 +57,19 @@ knit_print.matrix <- function(x, ...) {
 
 ```{r load data, echo = FALSE, include = FALSE}
 # All results
-iid_clustering <- readRDS("simulation/data/dore_collection_clustering_nb_run1_iid_123networks_24-05-23-21:40:42.Rds")
+iid_clustering <- readRDS("real_data/data/dore_collection_clustering_nb_run1_iid_123networks_24-05-23-21:40:42.Rds")
 iid_best_partition <- extract_best_bipartite_partition(iid_clustering)
 iid_unlist <- unlist(iid_best_partition)
 
-rho_clustering <- readRDS("simulation/data/dore_collection_clustering_nb_run1_rho_123networks_25-05-23-13:58:30.Rds")
+rho_clustering <- readRDS("real_data/data/dore_collection_clustering_nb_run1_rho_123networks_25-05-23-13:58:30.Rds")
 rho_best_partition <- extract_best_bipartite_partition(rho_clustering)
 rho_unlist <- unlist(rho_best_partition)
 
-pi_clustering <- readRDS("simulation/data/dore_collection_clustering_nb_run1_pi_123networks_25-05-23-17:31:25.Rds")
+pi_clustering <- readRDS("real_data/data/dore_collection_clustering_nb_run1_pi_123networks_25-05-23-17:31:25.Rds")
 pi_best_partition <- extract_best_bipartite_partition(pi_clustering)
 pi_unlist <- unlist(pi_best_partition)
 
-pirho_clustering <- readRDS("simulation/data/dore_collection_clustering_nb_run1_pirho_123networks_26-05-23-19:22:55.Rds")
+pirho_clustering <- readRDS("real_data/data/dore_collection_clustering_nb_run1_pirho_123networks_26-05-23-19:22:55.Rds")
 pirho_best_partition <- extract_best_bipartite_partition(pirho_clustering)
 pirho_unlist <- unlist(pirho_best_partition)
 ```

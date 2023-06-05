@@ -5,8 +5,8 @@ require("tidyverse")
 devtools::load_all("R/")
 
 # Importation of data
-if (!file.exists("simulation/data/dore-matrices.Rds")) {
-    interaction_data <- read.table(file = "simulation/data/interaction-data.txt", sep = "\t", header = TRUE)
+if (!file.exists("real_data/data/dore-matrices.Rds")) {
+    interaction_data <- read.table(file = "real_data/data/interaction-data.txt", sep = "\t", header = TRUE)
 
     seq_ids_network_aggreg <- unique(interaction_data$id_network_aggreg)
     names_aggreg_networks <- sapply(
@@ -46,9 +46,9 @@ if (!file.exists("simulation/data/dore-matrices.Rds")) {
 
     names(incidence_matrices) <- names_aggreg_networks
 
-    saveRDS(incidence_matrices, file = "simulation/data/dore-matrices.Rds")
+    saveRDS(incidence_matrices, file = "real_data/data/dore-matrices.Rds")
 } else {
-    incidence_matrices <- readRDS(file = "simulation/data/dore-matrices.Rds")
+    incidence_matrices <- readRDS(file = "real_data/data/dore-matrices.Rds")
 }
 
 if (!exists("arg")) {
@@ -82,7 +82,7 @@ list_collection <- clusterize_bipartite_networks(
 toc()
 
 saveRDS(list_collection, file = paste0(
-    "simulation/data/",
+    "real_data/data/",
     "dore_collection_clustering_nb_run", nb_run,"_",model,"_",
     number_of_net, "networks_",
     format(Sys.time(), "%d-%m-%y-%X"),
