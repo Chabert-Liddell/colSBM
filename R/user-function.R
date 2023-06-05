@@ -462,6 +462,9 @@ estimate_colBiSBM <-
         )
         bisbmpop$print_metrics()
       }
+      if (global_opts$verbosity >= 2) {
+        cat("\n=== Fitting sepBiSBM ===\n")
+      }
       bisbmpop$choose_joint_or_separated()
       if (global_opts$verbosity >= 1) {
         cat("\n==== Full computation performed in", 
