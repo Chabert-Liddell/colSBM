@@ -1,4 +1,4 @@
-#' An R6 Class object, a collection of model for population of BiSBM netowrks
+#' An R6 Class object, a collection of model for population of BiSBM networks
 #'
 #' @export
 
@@ -13,16 +13,16 @@ bisbmpop <- R6::R6Class(
     distribution = NULL,
     net_id = NULL,
     model_list = NULL, # A list of size Q1max * Q2max containing the best models
-    discarded_model_list = NULL,# A list of size
-                                # Q1max * Q2max * (nb_models - 1) containing
-                                # the discarded models
+    discarded_model_list = NULL, # A list of size
+    # Q1max * Q2max * (nb_models - 1) containing
+    # the discarded models
     global_opts = NULL,
     fit_opts = NULL,
     separated_inits = NULL, # A nested list : Q1 init containing Q2 init
-                            # with each entry containing list of size M
-                            # storing the separated inits for the class
+    # with each entry containing list of size M
+    # storing the separated inits for the class
     exploration_order_list = NULL, # A list used to store the path taken
-                                  # in the state space
+    # in the state space
     Z_init = NULL,
     free_density = NULL,
     free_mixture_row = NULL,
@@ -36,12 +36,12 @@ bisbmpop <- R6::R6Class(
     logfactA = NULL,
     improved = NULL,
     moving_window_coordinates = NULL, # A list of size two containing the
-                                      # coordinates of the bottom left and top
-                                      # right points of the square
+    # coordinates of the bottom left and top
+    # right points of the square
     old_moving_window_coordinates = NULL, # A list containing the previous
-                                          # coordinates of the moving window
-    joint_modelisation_preferred = NULL,  # A boolean to store the preferred 
-                                          # modelisation
+    # coordinates of the moving window
+    joint_modelisation_preferred = NULL, # A boolean to store the preferred
+    # modelisation
 
 
 
@@ -69,16 +69,16 @@ bisbmpop <- R6::R6Class(
 
       # Computing the NA mask
       self$M <- length(self$A)
-        self$mask <- lapply(
-          seq_along(self$A),
-          function(m) {
-            mask <- matrix(0, nrow(self$A[[m]]), ncol(self$A[[m]]))
-            if (sum(is.na(self$A[[m]] > 0))) {
-              mask[is.na(self$A[[m]])] <- 1
-            }
-            mask
+      self$mask <- lapply(
+        seq_along(self$A),
+        function(m) {
+          mask <- matrix(0, nrow(self$A[[m]]), ncol(self$A[[m]]))
+          if (sum(is.na(self$A[[m]] > 0))) {
+            mask[is.na(self$A[[m]])] <- 1
           }
-        )
+          mask
+        }
+      )
 
       # Assigning network ids for printing
       if (is.null(net_id)) {
@@ -95,7 +95,7 @@ bisbmpop <- R6::R6Class(
         Z = NULL
       )
       self$distribution <- distribution
-      self$free_density <-  free_density
+      self$free_density <- free_density
       self$free_mixture_row <- free_mixture_row
       self$free_mixture_col <- free_mixture_col
       self$global_opts <- list(
@@ -111,7 +111,8 @@ bisbmpop <- R6::R6Class(
         verbosity = 0L,
         nb_cores = 1L,
         parallelization_vector = c(TRUE, TRUE),
-        compare_stored = TRUE)
+        compare_stored = TRUE
+      )
       self$global_opts <- utils::modifyList(self$global_opts, global_opts)
       self$vbound <- matrix(
         rep(-Inf, self$global_opts$Q1_max * self$global_opts$Q2_max),
@@ -159,14 +160,17 @@ bisbmpop <- R6::R6Class(
         self$logfactA <- vapply(
           seq_along(self$A),
           function(m) {
-            sum(lfactorial(self$A[[m]]) * (1-self$mask[[m]]), na.rm = TRUE)
+            sum(lfactorial(self$A[[m]]) * (1 - self$mask[[m]]), na.rm = TRUE)
           },
-          FUN.VALUE = .1)
+          FUN.VALUE = .1
+        )
       }
-      self$fit_opts <- list(approx_pois = FALSE,
-                            algo_ve = "fp",
-                            minibatch = TRUE,
-                            verbosity = 0)
+      self$fit_opts <- list(
+        approx_pois = FALSE,
+        algo_ve = "fp",
+        minibatch = TRUE,
+        verbosity = 0
+      )
       self$fit_opts <- utils::modifyList(self$fit_opts, fit_opts)
     },
 
@@ -177,7 +181,6 @@ bisbmpop <- R6::R6Class(
     #'                      column split or a row split. "row" or "col".
     #' @return best of the possible models tested
     split_clustering = function(origin_model, axis = "row") {
-
       # Initialize to prevent variable leaking
       row_clustering <- NULL
       col_clustering <- NULL
@@ -208,7 +211,7 @@ bisbmpop <- R6::R6Class(
             origin_model$MAP$Z[[m]][[2]]
           }
         )
-      } else if (axis == "col"){
+      } else if (axis == "col") {
         # If we are splitting on the columns
         col_clustering <- lapply(seq.int(self$M), function(m) {
           # We retrieve the clustering in column for
@@ -233,7 +236,7 @@ bisbmpop <- R6::R6Class(
         )
       }
       # Fitting the Q splits and selecting the next model
-      if (self$global_opts$parallelization_vector[2]) { 
+      if (self$global_opts$parallelization_vector[2]) {
         possible_models <- bettermc::mclapply(seq.int(possible_models_size),
           function(q) {
             # Once the row and col clustering are correctly split
@@ -249,63 +252,14 @@ bisbmpop <- R6::R6Class(
                 list(row_clustering[[m]], col_clustering[[m]][[q]])
               })
             }
-          if (self$global_opts$compare_stored) {
-            # Checking if the clustering has been encountered before
-            # in the model list
-            if (!is.null(self$model_list[[split_Q[1], split_Q[2]]])) {
-              stored_Z1 <- unlist(
-                lapply(
-                  seq_along(self$model_list[[split_Q[1], split_Q[2]]]$Z),
-                  function(m) self$model_list[[split_Q[1], split_Q[2]]]$Z[[m]][[1]]
-                )
-              )
-
-              q_th_Z1 <- unlist(
-                lapply(
-                  seq_along(q_th_Z_init),
-                  function(m) q_th_Z_init[[m]][[1]]
-                )
-              )
-
-              ARI_Z1 <- aricode::ARI(stored_Z1, q_th_Z1)
-
-              stored_Z2 <- unlist(
-                lapply(
-                  seq_along(self$model_list[[split_Q[1], split_Q[2]]]$Z),
-                  function(m) self$model_list[[split_Q[1], split_Q[2]]]$Z[[m]][[2]]
-                )
-              )
-
-              q_th_Z2 <- unlist(
-                lapply(
-                  seq_along(q_th_Z_init),
-                  function(m) q_th_Z_init[[m]][[2]]
-                )
-              )
-
-              ARI_Z2 <- aricode::ARI(stored_Z2, q_th_Z2)
-
-              #cat("\n1:", ARI_Z1, "| 2:", ARI_Z2)
-
-              # Using ARI to account for label switching
-              if (ARI_Z1 == 1 && ARI_Z2 == 1) {
-                if (self$global_opts$verbosity >= 4) {
-                  cat(
-                    "\nThe splitting memberships", q,
-                    "is identical to the model stored in (", 
-                    toString(split_Q), "). It will not be computed."
-                  )
-                }
-                return(self$model_list[[split_Q[1], split_Q[2]]])
-              }
-            }
-            # in the discarded model list
-            if (!is.null(self$discarded_model_list[[split_Q[1], split_Q[2]]])) {
-              for (discarded_model in self$discarded_model_list[[split_Q[1], split_Q[2]]]) {
+            if (self$global_opts$compare_stored) {
+              # Checking if the clustering has been encountered before
+              # in the model list
+              if (!is.null(self$model_list[[split_Q[1], split_Q[2]]])) {
                 stored_Z1 <- unlist(
                   lapply(
-                    seq_along(discarded_model$Z),
-                    function(m) discarded_model$Z[[m]][[1]]
+                    seq_along(self$model_list[[split_Q[1], split_Q[2]]]$Z),
+                    function(m) self$model_list[[split_Q[1], split_Q[2]]]$Z[[m]][[1]]
                   )
                 )
 
@@ -320,8 +274,8 @@ bisbmpop <- R6::R6Class(
 
                 stored_Z2 <- unlist(
                   lapply(
-                    seq_along(discarded_model$Z),
-                    function(m) discarded_model$Z[[m]][[2]]
+                    seq_along(self$model_list[[split_Q[1], split_Q[2]]]$Z),
+                    function(m) self$model_list[[split_Q[1], split_Q[2]]]$Z[[m]][[2]]
                   )
                 )
 
@@ -333,19 +287,68 @@ bisbmpop <- R6::R6Class(
                 )
 
                 ARI_Z2 <- aricode::ARI(stored_Z2, q_th_Z2)
+
+                # cat("\n1:", ARI_Z1, "| 2:", ARI_Z2)
+
+                # Using ARI to account for label switching
                 if (ARI_Z1 == 1 && ARI_Z2 == 1) {
                   if (self$global_opts$verbosity >= 4) {
                     cat(
                       "\nThe splitting memberships", q,
-                      "is identical to a discarded model stored in (",
+                      "is identical to the model stored in (",
                       toString(split_Q), "). It will not be computed."
                     )
                   }
-                  return(discarded_model)
+                  return(self$model_list[[split_Q[1], split_Q[2]]])
+                }
+              }
+              # in the discarded model list
+              if (!is.null(self$discarded_model_list[[split_Q[1], split_Q[2]]])) {
+                for (discarded_model in self$discarded_model_list[[split_Q[1], split_Q[2]]]) {
+                  stored_Z1 <- unlist(
+                    lapply(
+                      seq_along(discarded_model$Z),
+                      function(m) discarded_model$Z[[m]][[1]]
+                    )
+                  )
+
+                  q_th_Z1 <- unlist(
+                    lapply(
+                      seq_along(q_th_Z_init),
+                      function(m) q_th_Z_init[[m]][[1]]
+                    )
+                  )
+
+                  ARI_Z1 <- aricode::ARI(stored_Z1, q_th_Z1)
+
+                  stored_Z2 <- unlist(
+                    lapply(
+                      seq_along(discarded_model$Z),
+                      function(m) discarded_model$Z[[m]][[2]]
+                    )
+                  )
+
+                  q_th_Z2 <- unlist(
+                    lapply(
+                      seq_along(q_th_Z_init),
+                      function(m) q_th_Z_init[[m]][[2]]
+                    )
+                  )
+
+                  ARI_Z2 <- aricode::ARI(stored_Z2, q_th_Z2)
+                  if (ARI_Z1 == 1 && ARI_Z2 == 1) {
+                    if (self$global_opts$verbosity >= 4) {
+                      cat(
+                        "\nThe splitting memberships", q,
+                        "is identical to a discarded model stored in (",
+                        toString(split_Q), "). It will not be computed."
+                      )
+                    }
+                    return(discarded_model)
+                  }
                 }
               }
             }
-          }
 
             q_th_model <- fitBipartiteSBMPop$new(
               A = self$A,
@@ -423,8 +426,8 @@ bisbmpop <- R6::R6Class(
                     Cpi[[2]] <- matrix(TRUE, nrow = split_Q[2], ncol = q_th_model$M)
                   }
                   # Testing if the supports have been encountered before
-                  if (test_feat & all(previous_Cpi[[1]] == Cpi[[1]]) & all(previous_Cpi[[2]] == Cpi[[2]])) {
-                    # The supports are the same, the previous model has been 
+                  if (all(previous_Cpi[[1]] == Cpi[[1]]) & all(previous_Cpi[[2]] == Cpi[[2]])) {
+                    # The supports are the same, the previous model has been
                     # encountered
                     if (self$global_opts$verbosity >= 4) {
                       cat(
@@ -472,14 +475,13 @@ bisbmpop <- R6::R6Class(
           mc.cores = self$global_opts$nb_cores,
           mc.allow.recursive = TRUE,
           mc.cleanup = TRUE,
-          
           mc.share.copy = FALSE, # Trying to increase speed
-          #mc.retry = -1, # To prevent big crash
+          # mc.retry = -1, # To prevent big crash
           mc.progress = FALSE
         )
-      } 
+      }
       # Fitting the Q splits and selecting the next model
-      else { 
+      else {
         possible_models <- lapply(
           seq.int(possible_models_size),
           function(q) {
@@ -497,63 +499,14 @@ bisbmpop <- R6::R6Class(
               })
             }
 
-          if (self$global_opts$compare_stored) {
-            # Checking if the clustering has been encountered before
-            # in the model list
-            if (!is.null(self$model_list[[split_Q[1], split_Q[2]]])) {
-              stored_Z1 <- unlist(
-                lapply(
-                  seq_along(self$model_list[[split_Q[1], split_Q[2]]]$Z),
-                  function(m) self$model_list[[split_Q[1], split_Q[2]]]$Z[[m]][[1]]
-                )
-              )
-
-              q_th_Z1 <- unlist(
-                lapply(
-                  seq_along(q_th_Z_init),
-                  function(m) q_th_Z_init[[m]][[1]]
-                )
-              )
-
-              ARI_Z1 <- aricode::ARI(stored_Z1, q_th_Z1)
-
-              stored_Z2 <- unlist(
-                lapply(
-                  seq_along(self$model_list[[split_Q[1], split_Q[2]]]$Z),
-                  function(m) self$model_list[[split_Q[1], split_Q[2]]]$Z[[m]][[2]]
-                )
-              )
-
-              q_th_Z2 <- unlist(
-                lapply(
-                  seq_along(q_th_Z_init),
-                  function(m) q_th_Z_init[[m]][[2]]
-                )
-              )
-
-              ARI_Z2 <- aricode::ARI(stored_Z2, q_th_Z2)
-
-              # cat("\n1:", ARI_Z1, "| 2:", ARI_Z2)
-
-              # Using ARI to account for label switching
-              if (ARI_Z1 == 1 && ARI_Z2 == 1) {
-                if (self$global_opts$verbosity >= 4) {
-                  cat(
-                    "\nThe splitting memberships", q,
-                    "is identical to the model stored in (",
-                    toString(split_Q), "). It will not be computed."
-                  )
-                }
-                return(self$model_list[[split_Q[1], split_Q[2]]])
-              }
-            }
-            # in the discarded model list
-            if (!is.null(self$discarded_model_list[[split_Q[1], split_Q[2]]])) {
-              for (discarded_model in self$discarded_model_list[[split_Q[1], split_Q[2]]]) {
+            if (self$global_opts$compare_stored) {
+              # Checking if the clustering has been encountered before
+              # in the model list
+              if (!is.null(self$model_list[[split_Q[1], split_Q[2]]])) {
                 stored_Z1 <- unlist(
                   lapply(
-                    seq_along(discarded_model$Z),
-                    function(m) discarded_model$Z[[m]][[1]]
+                    seq_along(self$model_list[[split_Q[1], split_Q[2]]]$Z),
+                    function(m) self$model_list[[split_Q[1], split_Q[2]]]$Z[[m]][[1]]
                   )
                 )
 
@@ -568,8 +521,8 @@ bisbmpop <- R6::R6Class(
 
                 stored_Z2 <- unlist(
                   lapply(
-                    seq_along(discarded_model$Z),
-                    function(m) discarded_model$Z[[m]][[2]]
+                    seq_along(self$model_list[[split_Q[1], split_Q[2]]]$Z),
+                    function(m) self$model_list[[split_Q[1], split_Q[2]]]$Z[[m]][[2]]
                   )
                 )
 
@@ -581,19 +534,68 @@ bisbmpop <- R6::R6Class(
                 )
 
                 ARI_Z2 <- aricode::ARI(stored_Z2, q_th_Z2)
+
+                # cat("\n1:", ARI_Z1, "| 2:", ARI_Z2)
+
+                # Using ARI to account for label switching
                 if (ARI_Z1 == 1 && ARI_Z2 == 1) {
                   if (self$global_opts$verbosity >= 4) {
                     cat(
                       "\nThe splitting memberships", q,
-                      "is identical to a discarded model stored in (",
+                      "is identical to the model stored in (",
                       toString(split_Q), "). It will not be computed."
                     )
                   }
-                  return(discarded_model)
+                  return(self$model_list[[split_Q[1], split_Q[2]]])
+                }
+              }
+              # in the discarded model list
+              if (!is.null(self$discarded_model_list[[split_Q[1], split_Q[2]]])) {
+                for (discarded_model in self$discarded_model_list[[split_Q[1], split_Q[2]]]) {
+                  stored_Z1 <- unlist(
+                    lapply(
+                      seq_along(discarded_model$Z),
+                      function(m) discarded_model$Z[[m]][[1]]
+                    )
+                  )
+
+                  q_th_Z1 <- unlist(
+                    lapply(
+                      seq_along(q_th_Z_init),
+                      function(m) q_th_Z_init[[m]][[1]]
+                    )
+                  )
+
+                  ARI_Z1 <- aricode::ARI(stored_Z1, q_th_Z1)
+
+                  stored_Z2 <- unlist(
+                    lapply(
+                      seq_along(discarded_model$Z),
+                      function(m) discarded_model$Z[[m]][[2]]
+                    )
+                  )
+
+                  q_th_Z2 <- unlist(
+                    lapply(
+                      seq_along(q_th_Z_init),
+                      function(m) q_th_Z_init[[m]][[2]]
+                    )
+                  )
+
+                  ARI_Z2 <- aricode::ARI(stored_Z2, q_th_Z2)
+                  if (ARI_Z1 == 1 && ARI_Z2 == 1) {
+                    if (self$global_opts$verbosity >= 4) {
+                      cat(
+                        "\nThe splitting memberships", q,
+                        "is identical to a discarded model stored in (",
+                        toString(split_Q), "). It will not be computed."
+                      )
+                    }
+                    return(discarded_model)
+                  }
                 }
               }
             }
-          }
 
             q_th_model <- fitBipartiteSBMPop$new(
               A = self$A,
@@ -619,6 +621,11 @@ bisbmpop <- R6::R6Class(
             q_th_models <- list(q_th_model)
 
             if ((self$free_mixture_row | self$free_mixture_col) & self$M > 1) {
+              # Initializing a previously seen support
+              previous_Cpi <- list(
+                matrix(TRUE, nrow = q_th_model$Q[1], self$M),
+                matrix(TRUE, nrow = q_th_model$Q[2], self$M)
+              )
               # The levels of tolerance
               emptiness_levels <- seq(from = 0.01, to = 0.05, by = 0.01)
               models_with_different_emptiness_levels <- lapply(
@@ -663,7 +670,21 @@ bisbmpop <- R6::R6Class(
                     # All networks use all clusters
                     Cpi[[2]] <- matrix(TRUE, nrow = split_Q[2], ncol = q_th_model$M)
                   }
-
+                  # Testing if the supports have been encountered before
+                  if (all(previous_Cpi[[1]] == Cpi[[1]]) & all(previous_Cpi[[2]] == Cpi[[2]])) {
+                    # The supports are the same, the previous model has been
+                    # encountered
+                    if (self$global_opts$verbosity >= 4) {
+                      cat(
+                        "\n\t\tSkipping threshold, same supports: ",
+                        emptiness_levels[l],
+                        ". Threshold number ", l, "/", length(emptiness_levels)
+                      )
+                    }
+                    previous_Cpi <- Cpi
+                    return(q_th_model)
+                  }
+                  previous_Cpi <- Cpi
                   # With the supports computed we can now clone the fitBipartite
                   # and fit wrt the supports.
                   q_th_model_with_supports <- q_th_model$clone()
@@ -723,7 +744,6 @@ bisbmpop <- R6::R6Class(
     #' or "both" merge
     #' @return best of the possible models tested
     merge_clustering = function(origin_model, axis = "row") {
-
       # Initialize to prevent variable leaking
       row_clustering <- NULL
       col_clustering <- NULL
@@ -752,7 +772,6 @@ bisbmpop <- R6::R6Class(
             }
           )
         },
-
         col = {
           # If we are splitting on the columns
           col_clustering <- lapply(
@@ -772,91 +791,41 @@ bisbmpop <- R6::R6Class(
               origin_model$Z[[m]][[1]]
             }
           )
-
-
         },
-      both = {
-        # To perform both row and col merge
-      })
+        both = {
+          # To perform both row and col merge
+        }
+      )
 
       # Fitting the Q merges and selecting the next model
       if (self$global_opts$parallelization_vector[2]) {
-      possible_models <- bettermc::mclapply(seq.int(possible_models_size),
-      function(q) {
-        # Once the row and col clustering are correctly merged
-        # they are merged
-        switch(axis,
-          row = {
-            # If it's a row merge
-            q_th_Z_init <- lapply(seq.int(self$M), function(m) {
-              list(row_clustering[[m]][[q]], col_clustering[[m]])
-            })
-          },
-          col = {
-            # If it's a col merge
-            q_th_Z_init <- lapply(seq.int(self$M), function(m) {
-              list(row_clustering[[m]], col_clustering[[m]][[q]])
-            })
-          }
-        )
-
-        if (self$global_opts$compare_stored) {
-            # Checking if the clustering has been encountered before
-            # in the model list
-            if (!is.null(self$model_list[[merge_Q[1], merge_Q[2]]])) {
-              stored_Z1 <- unlist(
-                lapply(
-                  seq_along(self$model_list[[merge_Q[1], merge_Q[2]]]$Z),
-                  function(m) self$model_list[[merge_Q[1], merge_Q[2]]]$Z[[m]][[1]]
-                )
-              )
-
-              q_th_Z1 <- unlist(
-                lapply(
-                  seq_along(q_th_Z_init),
-                  function(m) q_th_Z_init[[m]][[1]]
-                )
-              )
-
-              ARI_Z1 <- aricode::ARI(stored_Z1, q_th_Z1)
-
-              stored_Z2 <- unlist(
-                lapply(
-                  seq_along(self$model_list[[merge_Q[1], merge_Q[2]]]$Z),
-                  function(m) self$model_list[[merge_Q[1], merge_Q[2]]]$Z[[m]][[2]]
-                )
-              )
-
-              q_th_Z2 <- unlist(
-                lapply(
-                  seq_along(q_th_Z_init),
-                  function(m) q_th_Z_init[[m]][[2]]
-                )
-              )
-
-              ARI_Z2 <- aricode::ARI(stored_Z2, q_th_Z2)
-
-              # cat("\n1:", ARI_Z1, "| 2:", ARI_Z2)
-
-              # Using ARI to account for label switching
-              if (ARI_Z1 == 1 && ARI_Z2 == 1) {
-                if (self$global_opts$verbosity >= 4) {
-                  cat(
-                    "\nThe merging memberships", q,
-                    "is identical to the model stored in (",
-                    toString(merge_Q), "). It will not be computed."
-                  )
-                }
-                return(self$model_list[[merge_Q[1], merge_Q[2]]])
+        possible_models <- bettermc::mclapply(seq.int(possible_models_size),
+          function(q) {
+            # Once the row and col clustering are correctly merged
+            # they are merged
+            switch(axis,
+              row = {
+                # If it's a row merge
+                q_th_Z_init <- lapply(seq.int(self$M), function(m) {
+                  list(row_clustering[[m]][[q]], col_clustering[[m]])
+                })
+              },
+              col = {
+                # If it's a col merge
+                q_th_Z_init <- lapply(seq.int(self$M), function(m) {
+                  list(row_clustering[[m]], col_clustering[[m]][[q]])
+                })
               }
-            }
-            # in the discarded model list
-            if (!is.null(self$discarded_model_list[[merge_Q[1], merge_Q[2]]])) {
-              for (discarded_model in self$discarded_model_list[[merge_Q[1], merge_Q[2]]]) {
+            )
+
+            if (self$global_opts$compare_stored) {
+              # Checking if the clustering has been encountered before
+              # in the model list
+              if (!is.null(self$model_list[[merge_Q[1], merge_Q[2]]])) {
                 stored_Z1 <- unlist(
                   lapply(
-                    seq_along(discarded_model$Z),
-                    function(m) discarded_model$Z[[m]][[1]]
+                    seq_along(self$model_list[[merge_Q[1], merge_Q[2]]]$Z),
+                    function(m) self$model_list[[merge_Q[1], merge_Q[2]]]$Z[[m]][[1]]
                   )
                 )
 
@@ -871,8 +840,8 @@ bisbmpop <- R6::R6Class(
 
                 stored_Z2 <- unlist(
                   lapply(
-                    seq_along(discarded_model$Z),
-                    function(m) discarded_model$Z[[m]][[2]]
+                    seq_along(self$model_list[[merge_Q[1], merge_Q[2]]]$Z),
+                    function(m) self$model_list[[merge_Q[1], merge_Q[2]]]$Z[[m]][[2]]
                   )
                 )
 
@@ -884,373 +853,442 @@ bisbmpop <- R6::R6Class(
                 )
 
                 ARI_Z2 <- aricode::ARI(stored_Z2, q_th_Z2)
+
+                # cat("\n1:", ARI_Z1, "| 2:", ARI_Z2)
+
+                # Using ARI to account for label switching
                 if (ARI_Z1 == 1 && ARI_Z2 == 1) {
                   if (self$global_opts$verbosity >= 4) {
                     cat(
                       "\nThe merging memberships", q,
-                      "is identical to a discarded model stored in (",
+                      "is identical to the model stored in (",
                       toString(merge_Q), "). It will not be computed."
                     )
                   }
-                  return(discarded_model)
+                  return(self$model_list[[merge_Q[1], merge_Q[2]]])
+                }
+              }
+              # in the discarded model list
+              if (!is.null(self$discarded_model_list[[merge_Q[1], merge_Q[2]]])) {
+                for (discarded_model in self$discarded_model_list[[merge_Q[1], merge_Q[2]]]) {
+                  stored_Z1 <- unlist(
+                    lapply(
+                      seq_along(discarded_model$Z),
+                      function(m) discarded_model$Z[[m]][[1]]
+                    )
+                  )
+
+                  q_th_Z1 <- unlist(
+                    lapply(
+                      seq_along(q_th_Z_init),
+                      function(m) q_th_Z_init[[m]][[1]]
+                    )
+                  )
+
+                  ARI_Z1 <- aricode::ARI(stored_Z1, q_th_Z1)
+
+                  stored_Z2 <- unlist(
+                    lapply(
+                      seq_along(discarded_model$Z),
+                      function(m) discarded_model$Z[[m]][[2]]
+                    )
+                  )
+
+                  q_th_Z2 <- unlist(
+                    lapply(
+                      seq_along(q_th_Z_init),
+                      function(m) q_th_Z_init[[m]][[2]]
+                    )
+                  )
+
+                  ARI_Z2 <- aricode::ARI(stored_Z2, q_th_Z2)
+                  if (ARI_Z1 == 1 && ARI_Z2 == 1) {
+                    if (self$global_opts$verbosity >= 4) {
+                      cat(
+                        "\nThe merging memberships", q,
+                        "is identical to a discarded model stored in (",
+                        toString(merge_Q), "). It will not be computed."
+                      )
+                    }
+                    return(discarded_model)
+                  }
                 }
               }
             }
-        }
 
-        q_th_model <- fitBipartiteSBMPop$new(
-          A = self$A,
-          Q = merge_Q,
-          free_mixture_row = self$free_mixture_row,
-          free_mixture_col = self$free_mixture_col,
-          free_density = self$free_density,
-          init_method = "given",
-          distribution = self$distribution,
-          Z = q_th_Z_init,
-          net_id = self$net_id,
-          fit_opts = self$fit_opts,
-        )
-        if (self$global_opts$verbosity >= 4) {
-          cat(
-            "\n\tFitting ", q, "/", possible_models_size,
-            "merge for", axis
-          )
-        }
-        q_th_model$optimize()
-
-        # For free_mixture
-        q_th_models <- list(q_th_model)
-
-        emptiness_levels <- NULL
-        if ((self$free_mixture_row | self$free_mixture_col) & self$M > 1) {
-          # Initializing a previously seen support
-          previous_Cpi <- list(
-            matrix(TRUE, nrow = q_th_model$Q[1], self$M),
-            matrix(TRUE, nrow = q_th_model$Q[2], self$M)
-          )
-          # The levels of tolerance
-          emptiness_levels <- seq(from = 0.05, to = 0.01, by = -0.01)
-
-          models_with_different_emptiness_levels <- lapply(
-            seq_along(emptiness_levels),
-            function(l) {
-              Cpi <- list()
-
-              # Compute the support for the rows
-              if (self$free_mixture_row) {
-                if (self$global_opts$verbosity >= 5) {
-                  cat(
-                    "\n\t\tFree mixture on the row, minimum pi threshold : ",
-                    emptiness_levels[l]
-                  )
-                }
-                Cpi[[1]] <- vapply(seq(q_th_model$M), function(m) {
-                  q_th_model$pi[[m]][[1]] > emptiness_levels[l]
-                },
-                FUN.VALUE = rep(TRUE, merge_Q[1])
-                )
-                dim(Cpi[[1]]) <- c(merge_Q[1], q_th_model$M)
-              } else {
-                # All networks use all clusters
-                Cpi[[1]] <- matrix(TRUE, nrow = merge_Q[1], ncol = q_th_model$M)
-              }
-
-              # Compute the support for the columns
-              if (self$free_mixture_col) {
-                if (self$global_opts$verbosity >= 5) {
-                  cat(
-                    "\n\t\tFree mixture on the columns, minimum rho threshold : ",
-                    emptiness_levels[l]
-                  )
-                }
-                Cpi[[2]] <- vapply(seq(q_th_model$M), function(m) {
-                  q_th_model$pi[[m]][[2]] > emptiness_levels[l]
-                },
-                FUN.VALUE = rep(TRUE, merge_Q[2])
-                )
-                dim(Cpi[[2]]) <- c(merge_Q[2], q_th_model$M)
-              } else {
-                # All networks use all clusters
-                Cpi[[2]] <- matrix(TRUE, nrow = merge_Q[2], ncol = q_th_model$M)
-              }
-              # Testing if the supports have been encountered before
-              if (test_feat & all(previous_Cpi[[1]] == Cpi[[1]]) & all(previous_Cpi[[2]] == Cpi[[2]])) {
-                # The supports are the same, the previous model has been
-                # encountered
-                if (self$global_opts$verbosity >= 4) {
-                  cat(
-                    "\n\t\tSkipping threshold, same supports: ",
-                    emptiness_levels[l],
-                    ". Threshold number ", l, "/", length(emptiness_levels)
-                  )
-                }
-                previous_Cpi <- Cpi
-                return(q_th_model)
-              }
-              previous_Cpi <- Cpi
-              # With the supports computed we can now clone the fitBipartite
-              # and fit wrt the supports.
-              q_th_model_with_supports <- q_th_model$clone()
-
-              # Adding the supports
-              q_th_model_with_supports$Cpi <- Cpi
-              q_th_model_with_supports$Calpha <-
-                tcrossprod(Cpi[[1]], Cpi[[2]]) > 0
-              q_th_model_with_supports$init_method <- "empty"
-              if (self$global_opts$verbosity >= 4) {
-                cat(
-                  "\n\t\tFitting with threshold : ",
-                  emptiness_levels[l],
-                  ". Threshold number ", l, "/", length(emptiness_levels)
-                )
-              }
-              q_th_model_with_supports$optimize()
-              q_th_model_with_supports
+            q_th_model <- fitBipartiteSBMPop$new(
+              A = self$A,
+              Q = merge_Q,
+              free_mixture_row = self$free_mixture_row,
+              free_mixture_col = self$free_mixture_col,
+              free_density = self$free_density,
+              init_method = "given",
+              distribution = self$distribution,
+              Z = q_th_Z_init,
+              net_id = self$net_id,
+              fit_opts = self$fit_opts,
+            )
+            if (self$global_opts$verbosity >= 4) {
+              cat(
+                "\n\tFitting ", q, "/", possible_models_size,
+                "merge for", axis
+              )
             }
-          )
+            q_th_model$optimize()
 
-          # Now the two lists are merged
-          q_th_models <- append(
-            q_th_models,
-            models_with_different_emptiness_levels
-          )
-        }
+            # For free_mixture
+            q_th_models <- list(q_th_model)
 
-        q_th_models # The list of models is returned (if no free_mixture it's a
-                    # one element list).
-      },
-        mc.cores = self$global_opts$nb_cores,
-        mc.allow.recursive = TRUE,
-        mc.cleanup = TRUE,
-        
-        mc.share.copy = FALSE, # Trying to increase speed
-        #mc.retry = -1, # To prevent big crash
-        mc.progress = FALSE
-      )
-      } else {
-      possible_models <- lapply(seq.int(possible_models_size),
-      function(q) {
-        # Once the row and col clustering are correctly merged
-        # they are merged
-        switch(axis,
-          row = {
-            # If it's a row merge
-            q_th_Z_init <- lapply(seq.int(self$M), function(m) {
-              list(row_clustering[[m]][[q]], col_clustering[[m]])
-            })
+            emptiness_levels <- NULL
+            if ((self$free_mixture_row | self$free_mixture_col) & self$M > 1) {
+              # Initializing a previously seen support
+              previous_Cpi <- list(
+                matrix(TRUE, nrow = q_th_model$Q[1], self$M),
+                matrix(TRUE, nrow = q_th_model$Q[2], self$M)
+              )
+              # The levels of tolerance
+              emptiness_levels <- seq(from = 0.05, to = 0.01, by = -0.01)
+
+              models_with_different_emptiness_levels <- lapply(
+                seq_along(emptiness_levels),
+                function(l) {
+                  Cpi <- list()
+
+                  # Compute the support for the rows
+                  if (self$free_mixture_row) {
+                    if (self$global_opts$verbosity >= 5) {
+                      cat(
+                        "\n\t\tFree mixture on the row, minimum pi threshold : ",
+                        emptiness_levels[l]
+                      )
+                    }
+                    Cpi[[1]] <- vapply(seq(q_th_model$M), function(m) {
+                      q_th_model$pi[[m]][[1]] > emptiness_levels[l]
+                    },
+                    FUN.VALUE = rep(TRUE, merge_Q[1])
+                    )
+                    dim(Cpi[[1]]) <- c(merge_Q[1], q_th_model$M)
+                  } else {
+                    # All networks use all clusters
+                    Cpi[[1]] <- matrix(TRUE, nrow = merge_Q[1], ncol = q_th_model$M)
+                  }
+
+                  # Compute the support for the columns
+                  if (self$free_mixture_col) {
+                    if (self$global_opts$verbosity >= 5) {
+                      cat(
+                        "\n\t\tFree mixture on the columns, minimum rho threshold : ",
+                        emptiness_levels[l]
+                      )
+                    }
+                    Cpi[[2]] <- vapply(seq(q_th_model$M), function(m) {
+                      q_th_model$pi[[m]][[2]] > emptiness_levels[l]
+                    },
+                    FUN.VALUE = rep(TRUE, merge_Q[2])
+                    )
+                    dim(Cpi[[2]]) <- c(merge_Q[2], q_th_model$M)
+                  } else {
+                    # All networks use all clusters
+                    Cpi[[2]] <- matrix(TRUE, nrow = merge_Q[2], ncol = q_th_model$M)
+                  }
+                  # Testing if the supports have been encountered before
+                  if (all(previous_Cpi[[1]] == Cpi[[1]]) & all(previous_Cpi[[2]] == Cpi[[2]])) {
+                    # The supports are the same, the previous model has been
+                    # encountered
+                    if (self$global_opts$verbosity >= 4) {
+                      cat(
+                        "\n\t\tSkipping threshold, same supports: ",
+                        emptiness_levels[l],
+                        ". Threshold number ", l, "/", length(emptiness_levels)
+                      )
+                    }
+                    previous_Cpi <- Cpi
+                    return(q_th_model)
+                  }
+                  previous_Cpi <- Cpi
+                  # With the supports computed we can now clone the fitBipartite
+                  # and fit wrt the supports.
+                  q_th_model_with_supports <- q_th_model$clone()
+
+                  # Adding the supports
+                  q_th_model_with_supports$Cpi <- Cpi
+                  q_th_model_with_supports$Calpha <-
+                    tcrossprod(Cpi[[1]], Cpi[[2]]) > 0
+                  q_th_model_with_supports$init_method <- "empty"
+                  if (self$global_opts$verbosity >= 4) {
+                    cat(
+                      "\n\t\tFitting with threshold : ",
+                      emptiness_levels[l],
+                      ". Threshold number ", l, "/", length(emptiness_levels)
+                    )
+                  }
+                  q_th_model_with_supports$optimize()
+                  q_th_model_with_supports
+                }
+              )
+
+              # Now the two lists are merged
+              q_th_models <- append(
+                q_th_models,
+                models_with_different_emptiness_levels
+              )
+            }
+
+            q_th_models # The list of models is returned (if no free_mixture it's a
+            # one element list).
           },
-          col = {
-            # If it's a col merge
-            q_th_Z_init <- lapply(seq.int(self$M), function(m) {
-              list(row_clustering[[m]], col_clustering[[m]][[q]])
-            })
+          mc.cores = self$global_opts$nb_cores,
+          mc.allow.recursive = TRUE,
+          mc.cleanup = TRUE,
+          mc.share.copy = FALSE, # Trying to increase speed
+          # mc.retry = -1, # To prevent big crash
+          mc.progress = FALSE
+        )
+      } else {
+        possible_models <- lapply(
+          seq.int(possible_models_size),
+          function(q) {
+            # Once the row and col clustering are correctly merged
+            # they are merged
+            switch(axis,
+              row = {
+                # If it's a row merge
+                q_th_Z_init <- lapply(seq.int(self$M), function(m) {
+                  list(row_clustering[[m]][[q]], col_clustering[[m]])
+                })
+              },
+              col = {
+                # If it's a col merge
+                q_th_Z_init <- lapply(seq.int(self$M), function(m) {
+                  list(row_clustering[[m]], col_clustering[[m]][[q]])
+                })
+              }
+            )
+
+            if (self$global_opts$compare_stored) {
+              # Checking if the clustering has been encountered before
+              # in the model list
+              if (!is.null(self$model_list[[merge_Q[1], merge_Q[2]]])) {
+                stored_Z1 <- unlist(
+                  lapply(
+                    seq_along(self$model_list[[merge_Q[1], merge_Q[2]]]$Z),
+                    function(m) self$model_list[[merge_Q[1], merge_Q[2]]]$Z[[m]][[1]]
+                  )
+                )
+
+                q_th_Z1 <- unlist(
+                  lapply(
+                    seq_along(q_th_Z_init),
+                    function(m) q_th_Z_init[[m]][[1]]
+                  )
+                )
+
+                ARI_Z1 <- aricode::ARI(stored_Z1, q_th_Z1)
+
+                stored_Z2 <- unlist(
+                  lapply(
+                    seq_along(self$model_list[[merge_Q[1], merge_Q[2]]]$Z),
+                    function(m) self$model_list[[merge_Q[1], merge_Q[2]]]$Z[[m]][[2]]
+                  )
+                )
+
+                q_th_Z2 <- unlist(
+                  lapply(
+                    seq_along(q_th_Z_init),
+                    function(m) q_th_Z_init[[m]][[2]]
+                  )
+                )
+
+                ARI_Z2 <- aricode::ARI(stored_Z2, q_th_Z2)
+
+                # cat("\n1:", ARI_Z1, "| 2:", ARI_Z2)
+
+                # Using ARI to account for label switching
+                if (ARI_Z1 == 1 && ARI_Z2 == 1) {
+                  if (self$global_opts$verbosity >= 4) {
+                    cat(
+                      "\nThe merging memberships", q,
+                      "is identical to the model stored in (",
+                      toString(merge_Q), "). It will not be computed."
+                    )
+                  }
+                  return(self$model_list[[merge_Q[1], merge_Q[2]]])
+                }
+              }
+              # in the discarded model list
+              if (!is.null(self$discarded_model_list[[merge_Q[1], merge_Q[2]]])) {
+                for (discarded_model in self$discarded_model_list[[merge_Q[1], merge_Q[2]]]) {
+                  stored_Z1 <- unlist(
+                    lapply(
+                      seq_along(discarded_model$Z),
+                      function(m) discarded_model$Z[[m]][[1]]
+                    )
+                  )
+
+                  q_th_Z1 <- unlist(
+                    lapply(
+                      seq_along(q_th_Z_init),
+                      function(m) q_th_Z_init[[m]][[1]]
+                    )
+                  )
+
+                  ARI_Z1 <- aricode::ARI(stored_Z1, q_th_Z1)
+
+                  stored_Z2 <- unlist(
+                    lapply(
+                      seq_along(discarded_model$Z),
+                      function(m) discarded_model$Z[[m]][[2]]
+                    )
+                  )
+
+                  q_th_Z2 <- unlist(
+                    lapply(
+                      seq_along(q_th_Z_init),
+                      function(m) q_th_Z_init[[m]][[2]]
+                    )
+                  )
+
+                  ARI_Z2 <- aricode::ARI(stored_Z2, q_th_Z2)
+                  if (ARI_Z1 == 1 && ARI_Z2 == 1) {
+                    if (self$global_opts$verbosity >= 4) {
+                      cat(
+                        "\nThe merging memberships", q,
+                        "is identical to a discarded model stored in (",
+                        toString(merge_Q), "). It will not be computed."
+                      )
+                    }
+                    return(discarded_model)
+                  }
+                }
+              }
+            }
+
+            q_th_model <- fitBipartiteSBMPop$new(
+              A = self$A,
+              Q = merge_Q,
+              free_mixture_row = self$free_mixture_row,
+              free_mixture_col = self$free_mixture_col,
+              free_density = self$free_density,
+              init_method = "given",
+              distribution = self$distribution,
+              Z = q_th_Z_init,
+              net_id = self$net_id,
+              fit_opts = self$fit_opts,
+            )
+            if (self$global_opts$verbosity >= 4) {
+              cat(
+                "\n\tFitting ", q, "/", possible_models_size,
+                "merge for", axis
+              )
+            }
+            q_th_model$optimize()
+
+            # For free_mixture
+            q_th_models <- list(q_th_model)
+
+            emptiness_levels <- NULL
+            if ((self$free_mixture_row | self$free_mixture_col) & self$M > 1) {
+              # Initializing a previously seen support
+              previous_Cpi <- list(
+                matrix(TRUE, nrow = q_th_model$Q[1], self$M),
+                matrix(TRUE, nrow = q_th_model$Q[2], self$M)
+              )
+              # The levels of tolerance
+              emptiness_levels <- seq(from = 0.01, to = 0.05, by = 0.01)
+              models_with_different_emptiness_levels <- lapply(
+                seq_along(emptiness_levels),
+                function(l) {
+                  Cpi <- list()
+
+                  # Compute the support for the rows
+                  if (self$free_mixture_row) {
+                    if (self$global_opts$verbosity >= 5) {
+                      cat(
+                        "\n\t\tFree mixture on the row, minimum pi threshold : ",
+                        emptiness_levels[l]
+                      )
+                    }
+                    Cpi[[1]] <- vapply(seq(q_th_model$M), function(m) {
+                      q_th_model$pi[[m]][[1]] > emptiness_levels[l]
+                    },
+                    FUN.VALUE = rep(TRUE, merge_Q[1])
+                    )
+                    dim(Cpi[[1]]) <- c(merge_Q[1], q_th_model$M)
+                  } else {
+                    # All networks use all clusters
+                    Cpi[[1]] <- matrix(TRUE, nrow = merge_Q[1], ncol = q_th_model$M)
+                  }
+
+                  # Compute the support for the columns
+                  if (self$free_mixture_col) {
+                    if (self$global_opts$verbosity >= 5) {
+                      cat(
+                        "\n\t\tFree mixture on the columns, minimum rho threshold : ",
+                        emptiness_levels[l]
+                      )
+                    }
+                    Cpi[[2]] <- vapply(seq(q_th_model$M), function(m) {
+                      q_th_model$pi[[m]][[2]] > emptiness_levels[l]
+                    },
+                    FUN.VALUE = rep(TRUE, merge_Q[2])
+                    )
+                    dim(Cpi[[2]]) <- c(merge_Q[2], q_th_model$M)
+                  } else {
+                    # All networks use all clusters
+                    Cpi[[2]] <- matrix(TRUE, nrow = merge_Q[2], ncol = q_th_model$M)
+                  }
+                  # Testing if the supports have been encountered before
+                  if (all(previous_Cpi[[1]] == Cpi[[1]]) & all(previous_Cpi[[2]] == Cpi[[2]])) {
+                    # The supports are the same, the previous model has been
+                    # encountered
+                    if (self$global_opts$verbosity >= 4) {
+                      cat(
+                        "\n\t\tSkipping threshold, same supports: ",
+                        emptiness_levels[l],
+                        ". Threshold number ", l, "/", length(emptiness_levels)
+                      )
+                    }
+                    previous_Cpi <- Cpi
+                    return(q_th_model)
+                  }
+                  previous_Cpi <- Cpi
+                  # With the supports computed we can now clone the fitBipartite
+                  # and fit wrt the supports.
+                  q_th_model_with_supports <- q_th_model$clone()
+
+                  # Adding the supports
+                  q_th_model_with_supports$Cpi <- Cpi
+                  q_th_model_with_supports$Calpha <-
+                    tcrossprod(Cpi[[1]], Cpi[[2]]) > 0
+                  q_th_model_with_supports$init_method <- "empty"
+                  if (self$global_opts$verbosity >= 4) {
+                    cat(
+                      "\n\t\tFitting with threshold : ",
+                      emptiness_levels[l],
+                      ". Threshold number ", l, "/", length(emptiness_levels)
+                    )
+                  }
+                  q_th_model_with_supports$optimize()
+                  q_th_model_with_supports
+                }
+              )
+
+
+              # Now the two lists are merged
+              q_th_models <- append(
+                q_th_models,
+                models_with_different_emptiness_levels
+              )
+            }
+
+            q_th_models # The list of models is returned (if no free_mixture it's a
+            # one element list).
           }
         )
-
-        if (self$global_opts$compare_stored) {
-          # Checking if the clustering has been encountered before
-          # in the model list
-          if (!is.null(self$model_list[[merge_Q[1], merge_Q[2]]])) {
-            stored_Z1 <- unlist(
-              lapply(
-                seq_along(self$model_list[[merge_Q[1], merge_Q[2]]]$Z),
-                function(m) self$model_list[[merge_Q[1], merge_Q[2]]]$Z[[m]][[1]]
-              )
-            )
-
-            q_th_Z1 <- unlist(
-              lapply(
-                seq_along(q_th_Z_init),
-                function(m) q_th_Z_init[[m]][[1]]
-              )
-            )
-
-            ARI_Z1 <- aricode::ARI(stored_Z1, q_th_Z1)
-
-            stored_Z2 <- unlist(
-              lapply(
-                seq_along(self$model_list[[merge_Q[1], merge_Q[2]]]$Z),
-                function(m) self$model_list[[merge_Q[1], merge_Q[2]]]$Z[[m]][[2]]
-              )
-            )
-
-            q_th_Z2 <- unlist(
-              lapply(
-                seq_along(q_th_Z_init),
-                function(m) q_th_Z_init[[m]][[2]]
-              )
-            )
-
-            ARI_Z2 <- aricode::ARI(stored_Z2, q_th_Z2)
-
-            # cat("\n1:", ARI_Z1, "| 2:", ARI_Z2)
-
-            # Using ARI to account for label switching
-            if (ARI_Z1 == 1 && ARI_Z2 == 1) {
-              if (self$global_opts$verbosity >= 4) {
-                cat(
-                  "\nThe merging memberships", q,
-                  "is identical to the model stored in (", 
-                  toString(merge_Q), "). It will not be computed."
-                )
-              }
-              return(self$model_list[[merge_Q[1], merge_Q[2]]])
-            }
-          }
-          # in the discarded model list
-          if (!is.null(self$discarded_model_list[[merge_Q[1], merge_Q[2]]])) {
-            for (discarded_model in self$discarded_model_list[[merge_Q[1], merge_Q[2]]]) {
-              stored_Z1 <- unlist(
-                lapply(
-                  seq_along(discarded_model$Z),
-                  function(m) discarded_model$Z[[m]][[1]]
-                )
-              )
-
-              q_th_Z1 <- unlist(
-                lapply(
-                  seq_along(q_th_Z_init),
-                  function(m) q_th_Z_init[[m]][[1]]
-                )
-              )
-
-              ARI_Z1 <- aricode::ARI(stored_Z1, q_th_Z1)
-
-              stored_Z2 <- unlist(
-                lapply(
-                  seq_along(discarded_model$Z),
-                  function(m) discarded_model$Z[[m]][[2]]
-                )
-              )
-
-              q_th_Z2 <- unlist(
-                lapply(
-                  seq_along(q_th_Z_init),
-                  function(m) q_th_Z_init[[m]][[2]]
-                )
-              )
-
-              ARI_Z2 <- aricode::ARI(stored_Z2, q_th_Z2)
-              if (ARI_Z1 == 1 && ARI_Z2 == 1) {
-                if (self$global_opts$verbosity >= 4){
-                cat(
-                  "\nThe merging memberships", q,
-                  "is identical to a discarded model stored in (",
-                  toString(merge_Q), "). It will not be computed."
-                )
-              }
-                return(discarded_model)
-              }
-            }
-          }
-        }
-
-        q_th_model <- fitBipartiteSBMPop$new(
-          A = self$A,
-          Q = merge_Q,
-          free_mixture_row = self$free_mixture_row,
-          free_mixture_col = self$free_mixture_col,
-          free_density = self$free_density,
-          init_method = "given",
-          distribution = self$distribution,
-          Z = q_th_Z_init,
-          net_id = self$net_id,
-          fit_opts = self$fit_opts,
-        )
-        if (self$global_opts$verbosity >= 4) {
-          cat(
-            "\n\tFitting ", q, "/", possible_models_size,
-            "merge for", axis
-          )
-        }
-        q_th_model$optimize()
-
-        # For free_mixture
-        q_th_models <- list(q_th_model)
-
-        emptiness_levels <- NULL
-        if ((self$free_mixture_row | self$free_mixture_col)& self$M > 1) {
-          # The levels of tolerance
-          emptiness_levels <- seq(from = 0.01, to = 0.05, by = 0.01)
-          models_with_different_emptiness_levels <- lapply(
-            seq_along(emptiness_levels),
-            function(l) {
-              Cpi <- list()
-
-              # Compute the support for the rows
-              if (self$free_mixture_row) {
-                if (self$global_opts$verbosity >= 5) {
-                  cat(
-                    "\n\t\tFree mixture on the row, minimum pi threshold : ",
-                    emptiness_levels[l]
-                  )
-                }
-                Cpi[[1]] <- vapply(seq(q_th_model$M), function(m) {
-                  q_th_model$pi[[m]][[1]] > emptiness_levels[l]
-                },
-                FUN.VALUE = rep(TRUE, merge_Q[1])
-                )
-                dim(Cpi[[1]]) <- c(merge_Q[1], q_th_model$M)
-              } else {
-                # All networks use all clusters
-                Cpi[[1]] <- matrix(TRUE, nrow = merge_Q[1], ncol = q_th_model$M)
-              }
-
-              # Compute the support for the columns
-              if (self$free_mixture_col) {
-                if (self$global_opts$verbosity >= 5) {
-                  cat(
-                    "\n\t\tFree mixture on the columns, minimum rho threshold : ",
-                    emptiness_levels[l]
-                  )
-                }
-                Cpi[[2]] <- vapply(seq(q_th_model$M), function(m) {
-                  q_th_model$pi[[m]][[2]] > emptiness_levels[l]
-                },
-                FUN.VALUE = rep(TRUE, merge_Q[2])
-                )
-                dim(Cpi[[2]]) <- c(merge_Q[2], q_th_model$M)
-              } else {
-                # All networks use all clusters
-                Cpi[[2]] <- matrix(TRUE, nrow = merge_Q[2], ncol = q_th_model$M)
-              }
-
-              # With the supports computed we can now clone the fitBipartite
-              # and fit wrt the supports.
-              q_th_model_with_supports <- q_th_model$clone()
-
-              # Adding the supports
-              q_th_model_with_supports$Cpi <- Cpi
-              q_th_model_with_supports$Calpha <-
-                tcrossprod(Cpi[[1]], Cpi[[2]]) > 0
-              q_th_model_with_supports$init_method <- "empty"
-              if (self$global_opts$verbosity >= 4) {
-                cat(
-                  "\n\t\tFitting with threshold : ",
-                  emptiness_levels[l],
-                  ". Threshold number ", l, "/", length(emptiness_levels)
-                )
-              }
-              q_th_model_with_supports$optimize()
-              q_th_model_with_supports
-            }
-          )
-
-
-          # Now the two lists are merged
-          q_th_models <- append(
-            q_th_models,
-            models_with_different_emptiness_levels
-          )
-        }
-
-        q_th_models # The list of models is returned (if no free_mixture it's a
-                    # one element list).
-      })
       }
 
       # If there is free_mixture it creates nestedness so we need to unlist
-      possible_models <- append(list(),unlist(possible_models))
+      possible_models <- append(list(), unlist(possible_models))
 
       # Now we fit all the models for the differents splits
       possible_models_BICLs <- lapply(
@@ -1273,13 +1311,12 @@ bisbmpop <- R6::R6Class(
     #' @details the function takes no parameters and print a plot
     #' of the current state of the model_list.
     #' @return nothing
-    state_space_plot = function(){
-      if (self$global_opts$plot_details >= 1 & 
-      !self$global_opts$parallelization_vector[1]) {
-
+    state_space_plot = function() {
+      if (self$global_opts$plot_details >= 1 &
+        !self$global_opts$parallelization_vector[1]) {
         # Creating an empty dataframe
 
-        data_state_space <- as.data.frame(matrix(ncol=6, nrow=0))
+        data_state_space <- as.data.frame(matrix(ncol = 6, nrow = 0))
         names(data_state_space) <- c("Q1", "Q2", "BICL", "isMaxBICL", "startingPoint", "clusteringComplete")
 
         for (i in seq.int(self$global_opts$Q1_max)) {
@@ -1293,7 +1330,7 @@ bisbmpop <- R6::R6Class(
                 self$model_list[[i, j]]$BICL,
                 FALSE,
                 as.character(toString(c(self$model_list[[i, j]]$greedy_exploration_starting_point[1], self$model_list[[i, j]]$greedy_exploration_starting_point[2]))),
-                self$model_list[[i,j]]$clustering_is_complete
+                self$model_list[[i, j]]$clustering_is_complete
               )
             }
           }
@@ -1346,72 +1383,73 @@ bisbmpop <- R6::R6Class(
           scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q2_max)) +
           scale_x_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q1_max))
 
-          if (!is.null(self$old_moving_window_coordinates)) {
-            # If there are previous moving windows coordinates
+        if (!is.null(self$old_moving_window_coordinates)) {
+          # If there are previous moving windows coordinates
 
-            for (index in seq.int(
-              from = ifelse(length(self$old_moving_window_coordinates) >= 3,
-                length(self$old_moving_window_coordinates) - 2,
-                1
-              ),
-              to = length(self$old_moving_window_coordinates))) {
-              coords <- self$old_moving_window_coordinates[[index]]
-              state_plot <- state_plot +
-                annotate("rect",
-                  xmin = coords[[1]][1],
-                  xmax = coords[[2]][1],
-                  ymin = coords[[1]][2],
-                  ymax = coords[[2]][2],
-                  color = "black",
-                  alpha = .2
-                )+
-                annotate("label",
-                  x = coords[[1]][1] + 0.25,
-                  y = coords[[1]][2] + 0.25,
-                  label = paste0(index)
-                )
-            }
-          }
-
-          if (!is.null(self$moving_window_coordinates)) {
-            # We add the moving window on top of the plot
-            coords <- self$moving_window_coordinates
-            # coords[[1]] <- coords[[1]] - 0.25
-            # coords[[2]] <- coords[[2]] + 0.25
+          for (index in seq.int(
+            from = ifelse(length(self$old_moving_window_coordinates) >= 3,
+              length(self$old_moving_window_coordinates) - 2,
+              1
+            ),
+            to = length(self$old_moving_window_coordinates)
+          )) {
+            coords <- self$old_moving_window_coordinates[[index]]
             state_plot <- state_plot +
               annotate("rect",
-                xmin = max(coords[[1]][1],1),
-                xmax = min(coords[[2]][1],self$Q1_max),
-                ymin = max(coords[[1]][2],1),
-                ymax = min(coords[[2]][2],self$Q2_max),
-                color = "red",
+                xmin = coords[[1]][1],
+                xmax = coords[[2]][1],
+                ymin = coords[[1]][2],
+                ymax = coords[[2]][2],
+                color = "black",
                 alpha = .2
+              ) +
+              annotate("label",
+                x = coords[[1]][1] + 0.25,
+                y = coords[[1]][2] + 0.25,
+                label = paste0(index)
               )
           }
+        }
 
-
+        if (!is.null(self$moving_window_coordinates)) {
+          # We add the moving window on top of the plot
+          coords <- self$moving_window_coordinates
+          # coords[[1]] <- coords[[1]] - 0.25
+          # coords[[2]] <- coords[[2]] + 0.25
           state_plot <- state_plot +
-            ggnewscale::new_scale_color() +
-            geom_point(aes(
-              x = Q1,
-              y = Q2,
-              size = BICL,
-              color = isMaxBICL,
-              alpha = BICL,
-            )) +
+            annotate("rect",
+              xmin = max(coords[[1]][1], 1),
+              xmax = min(coords[[2]][1], self$Q1_max),
+              ymin = max(coords[[1]][2], 1),
+              ymax = min(coords[[2]][2], self$Q2_max),
+              color = "red",
+              alpha = .2
+            )
+        }
+
+
+        state_plot <- state_plot +
+          ggnewscale::new_scale_color() +
+          geom_point(aes(
+            x = Q1,
+            y = Q2,
+            size = BICL,
+            color = isMaxBICL,
+            alpha = BICL,
+          )) +
           guides(color = guide_legend(title = "Is max value\nof BICL ?")) +
-            ggnewscale::new_scale_color() +
-            scale_colour_hue(l = 45, drop = FALSE) +
-            geom_point(aes(
-              x = Q1,
-              y = Q2,
-              color = clusteringComplete
-            )) +
-            guides(color = guide_legend(title = "Is the clustering complete ?"))
-          ggtitle("State space for ", toString(self$net_id))
+          ggnewscale::new_scale_color() +
+          scale_colour_hue(l = 45, drop = FALSE) +
+          geom_point(aes(
+            x = Q1,
+            y = Q2,
+            color = clusteringComplete
+          )) +
+          guides(color = guide_legend(title = "Is the clustering complete ?"))
+        ggtitle("State space for ", toString(self$net_id))
 
 
-      print(state_plot)
+        print(state_plot)
       }
     },
 
@@ -1426,7 +1464,7 @@ bisbmpop <- R6::R6Class(
     #' @return c(Q1_mode, Q2_mode) which indicates the Q1 and Q2
     #' for which the BICL was maximal
     greedy_exploration = function(starting_point, max_iter = 12,
-    max_step_without_improvement = 2) {
+                                  max_step_without_improvement = 2) {
       # Initialize
       current_Q1 <- starting_point[1]
       current_Q2 <- starting_point[2]
@@ -1448,8 +1486,8 @@ bisbmpop <- R6::R6Class(
 
       while (
         max_BICL_has_improved &&
-        step < max_iter
-        ) {
+          step < max_iter
+      ) {
         # The loop explores the space greedily
         if (self$global_opts$verbosity >= 4) {
           cat("\n----")
@@ -1569,7 +1607,7 @@ bisbmpop <- R6::R6Class(
         current_Q1 <- best_neighbor[1]
         current_Q2 <- best_neighbor[2]
 
-        if (self$model_list[[best_neighbor[1], best_neighbor[2]]]$BICL > max_BICL_value){
+        if (self$model_list[[best_neighbor[1], best_neighbor[2]]]$BICL > max_BICL_value) {
           # If the neighbor we found is best than
           # the previous mode we update and go for one more iteration
           max_BICL_value <- self$model_list[[best_neighbor[1], best_neighbor[2]]]$BICL
@@ -1598,8 +1636,8 @@ bisbmpop <- R6::R6Class(
 
         if (self$global_opts$verbosity >= 4) {
           cat(
-            "\nFor this round (", step+1, "/", max_iter,
-            "allowed total steps) the best neighbor is: ", 
+            "\nFor this round (", step + 1, "/", max_iter,
+            "allowed total steps) the best neighbor is: ",
             toString(best_neighbor), end_of_text
           )
         }
@@ -1615,9 +1653,9 @@ bisbmpop <- R6::R6Class(
     },
 
     #' Optimization from a given Z_init
-    #' 
+    #'
     #' The functions takes no parameters
-    #' 
+    #'
     #' @return nothing but stores the models in the model list
     optimize_from_zinit = function() {
       model_list <- vector(
@@ -1636,7 +1674,7 @@ bisbmpop <- R6::R6Class(
       #' @param Calpha (optional) the alpha support, if provided
       #'
       #' @return a fitBipartite fitted object
-      optimize_init <- function(q1, q2, Z, Cpi = NULL, Calpha= NULL) {
+      optimize_init <- function(q1, q2, Z, Cpi = NULL, Calpha = NULL) {
         fit <- fitBipartiteSBMPop$new(
           A = self$A,
           Q = c(q1, q2),
@@ -1651,8 +1689,8 @@ bisbmpop <- R6::R6Class(
           net_id = self$net_id,
           fit_opts = self$fit_opts,
         )
-        if (self$global_opts$verbosity >=4) {
-          cat("\nOptimizing from Z_init for", toString(c(q1,q2)))
+        if (self$global_opts$verbosity >= 4) {
+          cat("\nOptimizing from Z_init for", toString(c(q1, q2)))
         }
 
         fit$optimize()
@@ -1719,7 +1757,7 @@ bisbmpop <- R6::R6Class(
         }
         self$optimize_from_zinit()
       } else { # TODO I can choose to fit from Z_init AND THEN perform greedy
-               # exploration
+        # exploration
         # With no Z_init we perform a greedy exploration
 
         # Fitting the trivial 1,1
@@ -1735,13 +1773,13 @@ bisbmpop <- R6::R6Class(
           free_density = self$free_density,
           fit_opts = self$fit_opts,
           distribution = self$distribution,
-          greedy_exploration_starting_point = c(1,1),
+          greedy_exploration_starting_point = c(1, 1),
         )
 
-        self$model_list[[1,1]]$optimize()
+        self$model_list[[1, 1]]$optimize()
 
         self$separated_inits <- vector("list", 4) # The first coordinate is Q1, the second is Q2
-        dim(self$separated_inits) <- c(2,2)
+        dim(self$separated_inits) <- c(2, 2)
         if (self$global_opts$verbosity >= 2) {
           cat("\nFitting good initilization points.")
         }
@@ -1751,7 +1789,7 @@ bisbmpop <- R6::R6Class(
           cat("\nFitting ", self$M, " networks for Q = (", toString(c(1, 2)), ")\n")
         }
 
-        self$separated_inits[[1,2]] <- lapply(
+        self$separated_inits[[1, 2]] <- lapply(
           seq.int(self$M),
           function(m) {
             fitBipartiteSBMPop$new(
@@ -1765,21 +1803,23 @@ bisbmpop <- R6::R6Class(
               fit_opts = self$fit_opts
             )
           }
-            )
+        )
 
         # Fitting each model
         lapply(
           seq.int(self$M),
           function(m) {
-            self$separated_inits[[1,2]][[m]]$optimize()
+            self$separated_inits[[1, 2]][[m]]$optimize()
           }
         )
 
         if (self$global_opts$verbosity >= 4) {
-          sep_vbounds <- lapply(seq.int(self$M),
-          function(m){
-            max(self$separated_inits[[1,2]][[m]]$vbound)
-          })
+          sep_vbounds <- lapply(
+            seq.int(self$M),
+            function(m) {
+              max(self$separated_inits[[1, 2]][[m]]$vbound)
+            }
+          )
           cat(
             "Finished fitting ", self$M, " networks for Q = (", toString(c(1, 2)),
             ")\nSeparated Variational Bounds for the networks", toString(seq.int(self$M)),
@@ -1792,11 +1832,11 @@ bisbmpop <- R6::R6Class(
           cat("\nFitting ", self$M, " networks for Q = (", toString(c(2, 1)), ")\n")
         }
 
-        self$separated_inits[[2,1]] <- lapply(
+        self$separated_inits[[2, 1]] <- lapply(
           seq.int(self$M),
           function(m) {
             fitBipartiteSBMPop$new(
-              A = list(self$A[[m]]), 
+              A = list(self$A[[m]]),
               Q = c(2, 1),
               free_mixture_row = FALSE, # There can't be free mixture with 1 net
               free_mixture_col = FALSE, # There can't be free mixture with 1 net
@@ -1812,22 +1852,22 @@ bisbmpop <- R6::R6Class(
         lapply(
           seq.int(self$M),
           function(m) {
-            self$separated_inits[[2,1]][[m]]$optimize()
+            self$separated_inits[[2, 1]][[m]]$optimize()
           }
         )
-      if (self$global_opts$verbosity >= 4) {
-        sep_vbounds <- lapply(
-          seq.int(self$M),
-          function(m) {
-            max(self$separated_inits[[2,1]][[m]]$vbound)
-          }
-        )
-        cat(
-          "Finished fitting ", self$M, " networks for Q = (", toString(c(2, 1)),
-          ")\nSeparated Variational Bounds for the networks", toString(seq.int(self$M)),
-          ":\n", toString(sep_vbounds), "\n"
-        )
-      }
+        if (self$global_opts$verbosity >= 4) {
+          sep_vbounds <- lapply(
+            seq.int(self$M),
+            function(m) {
+              max(self$separated_inits[[2, 1]][[m]]$vbound)
+            }
+          )
+          cat(
+            "Finished fitting ", self$M, " networks for Q = (", toString(c(2, 1)),
+            ")\nSeparated Variational Bounds for the networks", toString(seq.int(self$M)),
+            ":\n", toString(sep_vbounds), "\n"
+          )
+        }
 
         # Here we match the clusters from the M fit objects
         # By using the order of the marginal laws
@@ -1836,7 +1876,7 @@ bisbmpop <- R6::R6Class(
         }
 
         for (m in seq.int(self$M)) {
-          current_m_init <- self$separated_inits[[1,2]][[m]]
+          current_m_init <- self$separated_inits[[1, 2]][[m]]
 
           # The clustering are one hot encoded because the permutations are
           # easier to perform
@@ -1867,8 +1907,8 @@ bisbmpop <- R6::R6Class(
           row_clustering <- .rev_one_hot(row_clustering)
           col_clustering <- .rev_one_hot(col_clustering)
 
-          self$separated_inits[[1,2]][[m]]$Z[[1]][[1]] <- row_clustering
-          self$separated_inits[[1,2]][[m]]$Z[[1]][[2]] <- col_clustering
+          self$separated_inits[[1, 2]][[m]]$Z[[1]][[1]] <- row_clustering
+          self$separated_inits[[1, 2]][[m]]$Z[[1]][[2]] <- col_clustering
 
           if (self$global_opts$verbosity >= 4) {
             cat(
@@ -1895,7 +1935,7 @@ bisbmpop <- R6::R6Class(
             # We add [[1]] after Z because we fitted
             # only one network with the objects stored
             # where the class is supposed to store more
-            self$separated_inits[[1,2]][[m]]$Z[[1]]
+            self$separated_inits[[1, 2]][[m]]$Z[[1]]
           }
         )
 
@@ -1906,11 +1946,11 @@ bisbmpop <- R6::R6Class(
             # We add [[1]] after Z because we fitted
             # only one network with the objects stored
             # where the class is supposed to store more
-            self$separated_inits[[2,1]][[m]]$Z[[1]]
+            self$separated_inits[[2, 1]][[m]]$Z[[1]]
           }
         )
 
-        self$separated_inits[[1,2]] <- fitBipartiteSBMPop$new(
+        self$separated_inits[[1, 2]] <- fitBipartiteSBMPop$new(
           A = self$A, Q = c(1, 2),
           free_mixture_row = FALSE, # There can't be free mixture with 1 cluster
           free_mixture_col = self$free_mixture_col,
@@ -1919,10 +1959,10 @@ bisbmpop <- R6::R6Class(
           init_method = "given",
           distribution = self$distribution,
           fit_opts = self$fit_opts,
-          greedy_exploration_starting_point = c(1,2)
+          greedy_exploration_starting_point = c(1, 2)
         )
 
-        self$separated_inits[[2,1]] <- fitBipartiteSBMPop$new(
+        self$separated_inits[[2, 1]] <- fitBipartiteSBMPop$new(
           A = self$A, Q = c(2, 1),
           free_mixture_row = self$free_mixture_row,
           free_mixture_col = FALSE, # There can't be free mixture with 1 cluster
@@ -1931,42 +1971,44 @@ bisbmpop <- R6::R6Class(
           init_method = "given",
           distribution = self$distribution,
           fit_opts = self$fit_opts,
-          greedy_exploration_starting_point = c(2,1)
+          greedy_exploration_starting_point = c(2, 1)
         )
 
         if (self$global_opts$verbosity >= 3) {
           cat("\nFitting the combined colBiSBMs.")
         }
         # Here we fit the models
-        lapply(seq.int(2),
-        function(index){
-          # The index used here are a little trick to allow the use
-          if (self$global_opts$verbosity >= 4){
-            cat(
-              "\nFitting the ", self$M, " networks for Q = (",
-              toString(c(index, 3 - index)), ")."
-            )
-          }
+        lapply(
+          seq.int(2),
+          function(index) {
+            # The index used here are a little trick to allow the use
+            if (self$global_opts$verbosity >= 4) {
+              cat(
+                "\nFitting the ", self$M, " networks for Q = (",
+                toString(c(index, 3 - index)), ")."
+              )
+            }
 
-          self$separated_inits[[index,3 - index]]$optimize()
-        })
+            self$separated_inits[[index, 3 - index]]$optimize()
+          }
+        )
 
         if (self$global_opts$verbosity >= 4) {
           cat("\nFinished fitting the colBiSBM.")
           cat("\nResults for the the points :")
-          for (index in c(1,2)){
+          for (index in c(1, 2)) {
             cat("\nQ = (", toString(c(index, 3 - index)), ") :")
             cat(
               "\n\tvbound:",
-              toString(self$separated_inits[[index,3 - index]]$vbound)
+              toString(self$separated_inits[[index, 3 - index]]$vbound)
             )
             cat(
               "\n\tICL:",
-              toString(self$separated_inits[[index,3 - index]]$ICL)
+              toString(self$separated_inits[[index, 3 - index]]$ICL)
             )
             cat(
               "\n\tBICL:",
-              toString(self$separated_inits[[index,3 - index]]$BICL)
+              toString(self$separated_inits[[index, 3 - index]]$BICL)
             )
           }
         }
@@ -1983,8 +2025,8 @@ bisbmpop <- R6::R6Class(
 
         # Greedy exploration from (1,2)
         mode_1_2 <- self$greedy_exploration(c(1, 2))
-        if (self$global_opts$verbosity >= 2){
-          cat("\nFrom (", toString(c(1,2)),") the mode is at: (", toString(mode_1_2),").")
+        if (self$global_opts$verbosity >= 2) {
+          cat("\nFrom (", toString(c(1, 2)), ") the mode is at: (", toString(mode_1_2), ").")
         }
 
         # Greedy exploration from (2,1)
@@ -2004,7 +2046,7 @@ bisbmpop <- R6::R6Class(
 
       self$store_criteria_and_best_fit()
 
-      if(self$global_opts$verbosity >= 2) {
+      if (self$global_opts$verbosity >= 2) {
         cat(
           "\n==== Finished Burn in",
           " for networks ", self$net_id, " in ",
@@ -2013,12 +2055,10 @@ bisbmpop <- R6::R6Class(
         )
       }
 
-      if(self$global_opts$verbosity >= 2) {
-      self$print_metrics()
-
+      if (self$global_opts$verbosity >= 2) {
+        self$print_metrics()
       }
     },
-
     optimize = function() {
       # The burn_in step computes models with a greedy approach
       self$burn_in()
@@ -2034,7 +2074,7 @@ bisbmpop <- R6::R6Class(
       }
       start_time <- Sys.time()
 
-      self$global_opts$nb_models <- ceiling(self$global_opts$nb_models/2)
+      self$global_opts$nb_models <- ceiling(self$global_opts$nb_models / 2)
       while (improved & nb_pass < self$global_opts$max_pass) {
         if (self$global_opts$verbosity >= 2) {
           cat(
@@ -2045,7 +2085,7 @@ bisbmpop <- R6::R6Class(
         current_pass_time <- Sys.time()
 
         # Storing the current important values
-        current_max_BICL <- self$model_list[[Q[1],Q[2]]]$BICL
+        current_max_BICL <- self$model_list[[Q[1], Q[2]]]$BICL
 
         # Perform another iteration of the moving window
         self$moving_window(Q, depth = self$global_opts$depth)
@@ -2068,7 +2108,7 @@ bisbmpop <- R6::R6Class(
           cat(
             "\n==== Finished pass number ", nb_pass,
             " for networks ", self$net_id, " in ",
-            format(Sys.time() - current_pass_time, digits = 3),"====\n"
+            format(Sys.time() - current_pass_time, digits = 3), "====\n"
           )
         }
       }
@@ -2084,7 +2124,6 @@ bisbmpop <- R6::R6Class(
         # Otherwise we're inside a choose procedure and store the BICL
         self$sep_BiSBM$BICL <- c(self$best_fit$BICL)
       }
-
     },
 
     #' The moving window application
@@ -2108,7 +2147,7 @@ bisbmpop <- R6::R6Class(
 
       # Checking if the window's bound is in domain
       if (!self$point_is_in_limits(c(Q1_mode - depth, Q2_mode - depth)) ||
-      !self$point_is_in_limits(c(Q1_mode + depth, Q2_mode + depth))) {
+        !self$point_is_in_limits(c(Q1_mode + depth, Q2_mode + depth))) {
         warning(paste0(
           "\nThe windows is (partially) out of domain !",
           "\nTrying to go from (", toString(c(Q1_mode - depth, Q2_mode - depth)),
@@ -2124,7 +2163,6 @@ bisbmpop <- R6::R6Class(
           ")",
           "\nThe window will work best on valid configurations"
         ))
-
       }
 
       if (self$global_opts$verbosity >= 3) {
@@ -2162,12 +2200,12 @@ bisbmpop <- R6::R6Class(
       }
       # Forward pass, where we split
 
-      for (current_Q1 in seq.int(from = Q1_mode -depth, to = Q1_mode + depth)) {
+      for (current_Q1 in seq.int(from = Q1_mode - depth, to = Q1_mode + depth)) {
         if (current_Q1 < 1 || current_Q1 > self$global_opts$Q1_max) {
           # Discard the value if it's out of bounds
           next
         }
-        for (current_Q2 in seq.int(from = Q2_mode-depth, to = Q2_mode + depth)){
+        for (current_Q2 in seq.int(from = Q2_mode - depth, to = Q2_mode + depth)) {
           if (current_Q2 < 1 || current_Q2 > self$global_opts$Q2_max) {
             # Discard the value if it's out of bounds
             next
@@ -2190,7 +2228,7 @@ bisbmpop <- R6::R6Class(
 
           # If the wanted model already exists in the model_list we store it as a possible model
           if (self$point_is_in_limits(current_model_Q) &&
-          !is.null(self$model_list[[current_model_Q[1], current_model_Q[2]]])) {
+            !is.null(self$model_list[[current_model_Q[1], current_model_Q[2]]])) {
             if (self$global_opts$verbosity >= 4) {
               cat("\nA model was already fitted here ! Storing it to compare")
             }
@@ -2200,13 +2238,13 @@ bisbmpop <- R6::R6Class(
                 wanted_model_different_splits_origin,
                 self$model_list[[current_model_Q[1], current_model_Q[2]]]
               )
-          }else if (self$point_is_in_limits(current_model_Q) &&
-          is.null(self$model_list[[current_model_Q[1], current_model_Q[2]]]) &&
-          self$global_opts$verbosity >= 4) {
+          } else if (self$point_is_in_limits(current_model_Q) &&
+            is.null(self$model_list[[current_model_Q[1], current_model_Q[2]]]) &&
+            self$global_opts$verbosity >= 4) {
             cat("\nNo model already fitted for the point")
           }
 
-          left_model_Q <- current_model_Q + c(-1,0)
+          left_model_Q <- current_model_Q + c(-1, 0)
 
           # Checking if the left neighbor exists
           if (self$point_is_in_limits(left_model_Q) &&
@@ -2231,14 +2269,14 @@ bisbmpop <- R6::R6Class(
           } else if (self$point_is_in_limits(left_model_Q) &&
             is.null(self$model_list[[left_model_Q[1], left_model_Q[2]]]) &&
             self$global_opts$verbosity >= 4) {
-              cat("\nNo left neighbor already fitted")
-            }
+            cat("\nNo left neighbor already fitted")
+          }
 
-          bottom_model_Q <- current_model_Q + c(0,-1)
+          bottom_model_Q <- current_model_Q + c(0, -1)
 
           # Checking if the bottom neighbor exists
-          if (self$point_is_in_limits(bottom_model_Q)&&
-          !is.null(self$model_list[[bottom_model_Q[1], bottom_model_Q[2]]])) {
+          if (self$point_is_in_limits(bottom_model_Q) &&
+            !is.null(self$model_list[[bottom_model_Q[1], bottom_model_Q[2]]])) {
             # If the bottom neighbor exist then we can split from it
             if (self$global_opts$verbosity >= 4) {
               cat(
@@ -2246,8 +2284,9 @@ bisbmpop <- R6::R6Class(
                 toString(current_model_Q),
                 ") exists. It is (",
                 toString(
-                  bottom_model_Q),
-                  ").\nFitting the possible column splits from it.\n"
+                  bottom_model_Q
+                ),
+                ").\nFitting the possible column splits from it.\n"
               )
             }
 
@@ -2258,8 +2297,8 @@ bisbmpop <- R6::R6Class(
               self$split_clustering(bottom_model, axis = "col")
             )
           } else if (self$point_is_in_limits(bottom_model_Q) &&
-          is.null(self$model_list[[bottom_model_Q[1], bottom_model_Q[2]]]) &&
-          self$global_opts$verbosity >= 4) {
+            is.null(self$model_list[[bottom_model_Q[1], bottom_model_Q[2]]]) &&
+            self$global_opts$verbosity >= 4) {
             cat("\nNo bottom neighbor already fitted")
           }
 
@@ -2320,14 +2359,14 @@ bisbmpop <- R6::R6Class(
 
           # Adding the other possible models to the discarded_model_list
           self$discarded_model_list[[current_model_Q[1], current_model_Q[2]]] <-
-          append(
-            self$discarded_model_list[[current_model_Q[1], current_model_Q[2]]],
-            wanted_model_different_splits_origin[-which.max(wanted_model_different_splits_origin_BICL)]
-          )
+            append(
+              self$discarded_model_list[[current_model_Q[1], current_model_Q[2]]],
+              wanted_model_different_splits_origin[-which.max(wanted_model_different_splits_origin_BICL)]
+            )
         }
-        }
+      }
 
-        self$state_space_plot()
+      self$state_space_plot()
 
       if (self$global_opts$verbosity >= 3) {
         cat("\nEnd of the forward pass.\nBeginning the backward pass.")
@@ -2369,17 +2408,17 @@ bisbmpop <- R6::R6Class(
             wanted_model_different_merges_origin <-
               append(
                 wanted_model_different_merges_origin,
-                self$model_list[[current_model_Q[1],current_model_Q[2]]]
+                self$model_list[[current_model_Q[1], current_model_Q[2]]]
               )
           } else if (self$point_is_in_limits(current_model_Q) &&
-            is.null(self$model_list[[current_model_Q[1], current_model_Q[2]]])&&
+            is.null(self$model_list[[current_model_Q[1], current_model_Q[2]]]) &&
             self$global_opts$verbosity >= 4) {
             cat("\nNo model already fitted for the point")
           }
 
           # Checking if the right neighbor exists
 
-          right_model_Q <- current_model_Q + c(1,0)
+          right_model_Q <- current_model_Q + c(1, 0)
 
           if (self$point_is_in_limits(right_model_Q) &&
             !is.null(self$model_list[[right_model_Q[1], right_model_Q[2]]])) {
@@ -2424,7 +2463,7 @@ bisbmpop <- R6::R6Class(
               )
             }
 
-            top_model <- self$model_list[[top_model_Q[1],top_model_Q[2]]]
+            top_model <- self$model_list[[top_model_Q[1], top_model_Q[2]]]
 
             wanted_model_different_merges_origin <- append(
               wanted_model_different_merges_origin,
@@ -2488,7 +2527,7 @@ bisbmpop <- R6::R6Class(
               ") is the Q = (",
               toString(
                 wanted_model_different_merges_origin[[which.max(wanted_model_different_merges_origin_BICL)]]$Q
-                ),
+              ),
               ") model."
             )
           }
@@ -2520,23 +2559,21 @@ bisbmpop <- R6::R6Class(
         )
       }
     },
-
     truncate_discarded_model_list = function() {
       for (q1 in seq.int(self$global_opts$Q1_max)) {
         for (q2 in seq.int(self$global_opts$Q2_max)) {
-          if (!is.null(self$discarded_model_list[[q1,q2]]) &&
-          length(self$discarded_model_list[[q1,q2]]) > self$global_opts$nb_models - 1) {
+          if (!is.null(self$discarded_model_list[[q1, q2]]) &&
+            length(self$discarded_model_list[[q1, q2]]) > self$global_opts$nb_models - 1) {
             models_BICL <-
               sapply(seq_along(self$discarded_model_list[[q1, q2]]), function(s) {
                 self$discarded_model_list[[q1, q2]][[s]]$BICL
               })
-            self$discarded_model_list[[q1,q2]] <-
-              self$discarded_model_list[[q1,q2]][order(models_BICL, decreasing = TRUE)][1:(self$global_opts$nb_models - 1)]
+            self$discarded_model_list[[q1, q2]] <-
+              self$discarded_model_list[[q1, q2]][order(models_BICL, decreasing = TRUE)][1:(self$global_opts$nb_models - 1)]
           }
         }
       }
     },
-
     point_is_in_limits = function(point) {
       Q1 <- point[[1]]
       Q2 <- point[[2]]
@@ -2545,7 +2582,6 @@ bisbmpop <- R6::R6Class(
         Q1 <= self$global_opts$Q1_max &&
         Q2 <= self$global_opts$Q2_max)
     },
-
     store_criteria_and_best_fit = function() {
       # Store the vbound, ICL and BICL into the appropriate lists
 
@@ -2568,10 +2604,9 @@ bisbmpop <- R6::R6Class(
       # Assign the best_fit
       self$best_fit <- self$model_list[[which.max(self$BICL)]]
     },
-
     compute_sep_BiSBM_BICL = function() {
       # Computes the sepBiSBM ICL to compare with the model
-      # TODO See if I can parallelize 
+      # TODO See if I can parallelize
       self$sep_BiSBM$models <- bettermc::mclapply(seq.int(self$M), function(m) {
         sep_BiSBM <- bisbmpop$new(
           netlist = list(self$A[[m]]),
@@ -2590,16 +2625,16 @@ bisbmpop <- R6::R6Class(
         sep_BiSBM$optimize()
         sep_BiSBM$best_fit
       },
-        mc.cores = self$global_opts$nb_cores,
-        mc.allow.recursive = TRUE,
-        mc.silent = TRUE,
-        mc.retry = -1, # To prevent big crash
-        mc.progress = FALSE
+      mc.cores = self$global_opts$nb_cores,
+      mc.allow.recursive = TRUE,
+      mc.silent = TRUE,
+      mc.retry = -1, # To prevent big crash
+      mc.progress = FALSE
       )
-      
+
       self$sep_BiSBM$BICL <- sapply(seq.int(self$M), function(m) {
-        self$sep_BiSBM$models[[m]]$BICL  # We retrieve all the BICLs for
-                                                  # separated models
+        self$sep_BiSBM$models[[m]]$BICL # We retrieve all the BICLs for
+        # separated models
       })
 
       self$sep_BiSBM$Z <- lapply(seq.int(self$M), function(m) {
@@ -2611,11 +2646,9 @@ bisbmpop <- R6::R6Class(
 
       if (self$global_opts$verbosity >= 2) {
         cat("\n==== Finished fitting ", self$M, "sepBiSBM ====")
-        cat("\n Total sepBiSBM BICL : ", sum(self$sep_BiSBM$BICL),"\n")
+        cat("\n Total sepBiSBM BICL : ", sum(self$sep_BiSBM$BICL), "\n")
       }
-
     },
-
     choose_joint_or_separated = function() {
       # Now compare to the sepBiSBM
       start_time <- Sys.time()
@@ -2626,7 +2659,7 @@ bisbmpop <- R6::R6Class(
       if (self$global_opts$verbosity >= 1) {
         if (self$M > 1) {
           cat(
-            "\n==== Best fits criterion for the", self$M, 
+            "\n==== Best fits criterion for the", self$M,
             "networks. Computed in",
             format(Sys.time() - start_time, digits = 3), "===="
           )
@@ -2650,7 +2683,6 @@ bisbmpop <- R6::R6Class(
         }
       }
     },
-
     print_metrics = function() {
       # Capturing the pretty print of matrices
       vbound_print <- paste0(capture.output(
