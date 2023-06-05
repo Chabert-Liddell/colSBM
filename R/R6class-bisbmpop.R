@@ -370,9 +370,16 @@ bisbmpop <- R6::R6Class(
             # For free_mixture
             q_th_models <- list(q_th_model)
 
+
             if ((self$free_mixture_row | self$free_mixture_col) & self$M > 1) {
+              # Initializing a previously seen support
+              previous_Cpi <- list(
+                matrix(TRUE, nrow = q_th_model$Q[1], self$M),
+                matrix(TRUE, nrow = q_th_model$Q[2], self$M)
+              )
+
               # The levels of tolerance
-              emptiness_levels <- seq(from = 0.01, to = 0.05, by = 0.01)
+              emptiness_levels <- seq(from = 0.05, to = 0.01, by = -0.01)
               models_with_different_emptiness_levels <- lapply(
                 seq_along(emptiness_levels),
                 function(l) {
@@ -415,7 +422,21 @@ bisbmpop <- R6::R6Class(
                     # All networks use all clusters
                     Cpi[[2]] <- matrix(TRUE, nrow = split_Q[2], ncol = q_th_model$M)
                   }
-
+                  # Testing if the supports have been encountered before
+                  if (test_feat & all(previous_Cpi[[1]] == Cpi[[1]]) & all(previous_Cpi[[2]] == Cpi[[2]])) {
+                    # The supports are the same, the previous model has been 
+                    # encountered
+                    if (self$global_opts$verbosity >= 4) {
+                      cat(
+                        "\n\t\tSkipping threshold, same supports: ",
+                        emptiness_levels[l],
+                        ". Threshold number ", l, "/", length(emptiness_levels)
+                      )
+                    }
+                    previous_Cpi <- Cpi
+                    return(q_th_model)
+                  }
+                  previous_Cpi <- Cpi
                   # With the supports computed we can now clone the fitBipartite
                   # and fit wrt the supports.
                   q_th_model_with_supports <- q_th_model$clone()
@@ -451,9 +472,8 @@ bisbmpop <- R6::R6Class(
           mc.cores = self$global_opts$nb_cores,
           mc.allow.recursive = TRUE,
           mc.cleanup = TRUE,
-          mc.stdout = "output",
+          
           mc.share.copy = FALSE, # Trying to increase speed
-          mc.silent = TRUE,
           #mc.retry = -1, # To prevent big crash
           mc.progress = FALSE
         )
@@ -903,8 +923,13 @@ bisbmpop <- R6::R6Class(
 
         emptiness_levels <- NULL
         if ((self$free_mixture_row | self$free_mixture_col) & self$M > 1) {
+          # Initializing a previously seen support
+          previous_Cpi <- list(
+            matrix(TRUE, nrow = q_th_model$Q[1], self$M),
+            matrix(TRUE, nrow = q_th_model$Q[2], self$M)
+          )
           # The levels of tolerance
-          emptiness_levels <- seq(from = 0.01, to = 0.05, by = 0.01)
+          emptiness_levels <- seq(from = 0.05, to = 0.01, by = -0.01)
 
           models_with_different_emptiness_levels <- lapply(
             seq_along(emptiness_levels),
@@ -948,7 +973,21 @@ bisbmpop <- R6::R6Class(
                 # All networks use all clusters
                 Cpi[[2]] <- matrix(TRUE, nrow = merge_Q[2], ncol = q_th_model$M)
               }
-
+              # Testing if the supports have been encountered before
+              if (test_feat & all(previous_Cpi[[1]] == Cpi[[1]]) & all(previous_Cpi[[2]] == Cpi[[2]])) {
+                # The supports are the same, the previous model has been
+                # encountered
+                if (self$global_opts$verbosity >= 4) {
+                  cat(
+                    "\n\t\tSkipping threshold, same supports: ",
+                    emptiness_levels[l],
+                    ". Threshold number ", l, "/", length(emptiness_levels)
+                  )
+                }
+                previous_Cpi <- Cpi
+                return(q_th_model)
+              }
+              previous_Cpi <- Cpi
               # With the supports computed we can now clone the fitBipartite
               # and fit wrt the supports.
               q_th_model_with_supports <- q_th_model$clone()
@@ -983,8 +1022,7 @@ bisbmpop <- R6::R6Class(
         mc.cores = self$global_opts$nb_cores,
         mc.allow.recursive = TRUE,
         mc.cleanup = TRUE,
-        mc.stdout = "output",
-        mc.silent = TRUE,
+        
         mc.share.copy = FALSE, # Trying to increase speed
         #mc.retry = -1, # To prevent big crash
         mc.progress = FALSE
@@ -1445,7 +1483,7 @@ bisbmpop <- R6::R6Class(
             if (self$global_opts$verbosity >= 4) {
               cat(
                 "\n(", toString(c(next_Q1, next_Q2)), ") is an INVALID neighbor for (",
-                toString(c(current_Q1, current_Q2)), ").\nSkipping to next."
+                toString(c(current_Q1, current_Q2)), ").\nSkipping to next.\n"
               )
             }
             next
@@ -1456,7 +1494,7 @@ bisbmpop <- R6::R6Class(
             cat(
               "\n(", toString(c(next_Q1, next_Q2)),
               ") is a VALID neighbor for (",
-              toString(c(current_Q1, current_Q2)), ")."
+              toString(c(current_Q1, current_Q2)), ").\n"
             )
           }
 
@@ -2180,7 +2218,7 @@ bisbmpop <- R6::R6Class(
                 toString(current_model_Q),
                 ") exists. It is (",
                 toString(left_model_Q),
-                ").\nFitting the possible row splits from it."
+                ").\nFitting the possible row splits from it.\n"
               )
             }
 
@@ -2209,7 +2247,7 @@ bisbmpop <- R6::R6Class(
                 ") exists. It is (",
                 toString(
                   bottom_model_Q),
-                  ").\nFitting the possible column splits from it."
+                  ").\nFitting the possible column splits from it.\n"
               )
             }
 
@@ -2352,7 +2390,7 @@ bisbmpop <- R6::R6Class(
                 toString(current_model_Q),
                 ") exists. It is (",
                 toString(right_model_Q),
-                ").\nFitting the possible row merges from it."
+                ").\nFitting the possible row merges from it.\n"
               )
             }
 
@@ -2382,7 +2420,7 @@ bisbmpop <- R6::R6Class(
                 toString(
                   top_model_Q
                 ),
-                ").\nFitting the possible column merges from it."
+                ").\nFitting the possible column merges from it.\n"
               )
             }
 
