@@ -24,7 +24,7 @@ particular, it allows to:
     networks in groups of networks with similar mesoscale structures.
 
 Mathematical details of the methods as well as simulation studies and
-applications can be find in Chabert-Liddell, Barbillon, and Donnet
+applications can be found in Chabert-Liddell, Barbillon, and Donnet
 (2022) .
 
 ## Installation

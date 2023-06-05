@@ -22,7 +22,7 @@ data("foodwebs")
 
 # Estimation with colSBM
 
-We load a list of 8 foodwebs. They are binary directed networks with different 
+We load a list of $8$ foodwebs. They are binary directed networks with different 
 number of species. First, we are going to model jointly the first $3$ networks,
 using the iid-colSBM model.
 
@@ -37,7 +37,7 @@ using the iid-colSBM model.
 #                    Q_max = 8L, 
 #                    plot_details = 1)
 
-set.seed(1234)
+set.seed(123)
 res_fw_iid <- estimate_colSBM(netlist = foodwebs[1:3], # A list of networks
                               colsbm_model = "iid", # The name of the model
                               directed = TRUE, # Foodwebs are directed networks
@@ -85,7 +85,7 @@ your goal is dyad prediction, then you should use `colsbm_model = "delta"`, inst
 `colsbm_model = "iid"`.
 
 ```{r}
-best_fit$pred_dyads[[3]][1:10, 1:5]
+best_fit$pred_dyads[[3]][1:10, 1:5] |> round(3)
 ```
 
 We can also plot the networks individually:
@@ -105,11 +105,11 @@ plot(res_fw_iid$best_fit, type = "meso", mixture = TRUE)
 
 # Clustering of networks
 
-Let simulate some directed networks with a lower triangular structure that looks 
+We simulate some directed networks with a lower triangular structure that looks 
 alike foodwebs.
 
 ```{r}
-set.seed(1234)
+set.seed(123)
 alpha <- matrix(c(.05, .01, .01, .01,
                   .3, .05, .01, .01,
                   .5, .4, .05, .01,
@@ -126,7 +126,7 @@ sim_net <-
 
 
 ```{r results=FALSE}
-set.seed(1234)
+set.seed(123)
 net_clust <- clusterize_networks(netlist = c(foodwebs[1:3], sim_net), # A list of networks
                               colsbm_model = "iid", # The name of the model
                               directed = TRUE, # Foodwebs are directed networks
@@ -154,7 +154,7 @@ plot(net_clust[[1]],
     ord = order(net_clust[[1]]$alpha %*% net_clust[[1]]$pi[[1]]))
 ```
 
-but then we can compare the mesoscale structures of the 2 groups:
+We can  also compare the mesoscale structures of the 2 groups:
 
 ```{r plot-part}
 plot(best_partition[[1]], type = "graphon",
