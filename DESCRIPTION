@@ -1,14 +1,14 @@
 Package: colSBM
 Title: Stochastic Block Model for Collection of Networks
 Version: 0.2.0
-Authors@R: 
+Authors@R:
     person(given = "Saint-Clair",
            family = "Chabert-Liddell",
            role = c("aut", "cre"),
            email = "academic@chabert-liddell.com",
            comment = c(ORCID = "0000-0001-5604-7308"))
-Description: Finds a common mesoscale structure in a collection of networks by 
-    using a Stochastic Block Model (SBM) extension for the joint modeling of 
+Description: Finds a common mesoscale structure in a collection of networks by
+    using a Stochastic Block Model (SBM) extension for the joint modeling of
     collection of networks. Provides a clustering of the nodes of each networks.
     Classifies networks in groups of networks with similar mesoscale structures.
 License: MIT + file LICENSE
@@ -16,25 +16,28 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
-Imports: 
+Imports:
     ape,
+    aricode,
     bettermc,
     cluster,
     dplyr,
+    ggnewscale,
     ggplot2,
     magrittr,
     patchwork,
     purrr,
+    R6,
     sbm,
     stats,
     tidyr,
     utils
-Suggests: 
+Suggests:
     knitr,
     covr,
     testthat (>= 3.0.0),
     rmarkdown
 Config/testthat/edition: 3
-Depends: 
+Depends:
     R (>= 2.10)
 VignetteBuilder: knitr
