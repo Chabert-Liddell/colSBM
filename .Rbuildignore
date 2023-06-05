@@ -13,3 +13,4 @@
 ^simulation$
 ^wip$
 last.dump.Rds$
+^\.pre-commit-config\.yaml$
