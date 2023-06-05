@@ -12,7 +12,7 @@
 spectral_clustering <- function(X, K){
   if (K == 1) return (rep(1L, nrow(X)))
   n <- nrow(X)
-  if (n < 3) return (rep(1L, n))
+  if (n < 3) return (rep(1, n))
   X[X == -1] <- NA
   isolated <- which(rowSums(X, na.rm = TRUE) == 0)
   connected <- setdiff(seq(n), isolated)
@@ -24,11 +24,20 @@ spectral_clustering <- function(X, K){
   X[is.na(X)] <- mean(X, na.rm=TRUE)
   Labs <- D_moins1_2 %*% X %*% D_moins1_2
   specabs <- eigen(Labs, symmetric = TRUE)
-  index <- rev(order(abs(specabs$values)))[1:K]
-  U <- specabs$vectors[,index]
-  U <- U / rowSums(U**2)**(1/2)
-  U[is.na(U)] <- 0
-  cl <- stats::kmeans(U, K, iter.max = 100, nstart=100)$cluster
+  if (K >= nrow(X)) {
+    message("Too many clusters for Spectral Clustering")
+    K_old <- K
+    K <- nrow(X) - 1
+    }
+  if (K >= 2) {
+    index <- rev(order(abs(specabs$values)))[1:K]
+    U <- specabs$vectors[,index]
+    U <- U / rowSums(U**2)**(1/2)
+    U[is.na(U)] <- 0
+    cl <- stats::kmeans(U, K, iter.max = 100, nstart=100)$cluster
+  } else {
+    cl <- rep(1, nrow(X))
+  }
   clustering <- rep(1, n)
   clustering[connected] <- cl
   clustering[isolated] <-   which.min(rowsum(rowSums(X, na.rm = TRUE),cl))

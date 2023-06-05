@@ -145,7 +145,11 @@ estimate_colSBM <-
         cat("Best model for Q = ", which.max(my_bmpop$BICL), "\n")
         if (! is.null(my_bmpop$ICL_sbm)) {
           icl_sbm <- vapply(seq(my_bmpop$M),
-                            function(m) max(my_bmpop$fit_sbm[[m]]$storedModels$ICL),
+                            function(m) {
+                              max(sapply(seq_along(my_bmpop$fit_sbm[[m]]$storedModels$indexModel),
+                                     function(q) {my_bmpop$fit_sbm[[m]]$setModel(q);
+                                       -0.5*my_bmpop$fit_sbm[[m]]$penalty + my_bmpop$fit_sbm[[m]]$loglik + my_bmpop$fit_sbm[[m]]$entropy}))
+                            },
                             FUN.VALUE = .1)
           if (max(my_bmpop$BICL) > sum(icl_sbm)) {
             cat("Joint modelisation preferred over separated one. BICL: " )
