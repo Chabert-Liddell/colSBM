@@ -33,8 +33,8 @@ alpha <- matrix(
 )
 
 bipartite_collection <- list(
-    generate_bipartite_network(nr, nc, pir1, pic1, alpha),
-    generate_bipartite_network(nr, nc, pir2, pic2, alpha)
+    generate_bipartite_network(nr, nc, pir1, pic1, alpha, return_memberships = TRUE),
+    generate_bipartite_network(nr, nc, pir2, pic2, alpha, return_memberships = TRUE)
 )
 
 M <- length(bipartite_collection)
