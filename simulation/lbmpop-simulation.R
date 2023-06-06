@@ -22,52 +22,54 @@ pic <- c(0.2, 0.8)
 Q <- c(length(pir), length(pic))
 
 alpha <- matrix(
-    c(
-        0.9, eps,
-        eps, 0.8
-    ), nrow = Q[1], ncol = Q[2], byrow = TRUE
+  c(
+    0.9, eps,
+    eps, 0.8
+  ),
+  nrow = Q[1], ncol = Q[2], byrow = TRUE
 )
 
-bipartite_collection <- generate_bipartite_collection(nr, nc, pir, pic, alpha, M)
+bipartite_collection <- generate_bipartite_collection(nr, nc, pir, pic, alpha, M, return_memberships = TRUE)
 
 # This is a list of the M incidence matrices
 bipartite_collection_incidence <- lapply(seq.int(M), function(m) {
-    bipartite_collection[[m]]$incidence_matrix
+  bipartite_collection[[m]]$incidence_matrix
 })
 
 
 ## Init given with exact membership
 
 Z <- lapply(seq.int(M), function(m) {
-    list(bipartite_collection[[m]]$row_clustering, bipartite_collection[[m]]$col_clustering)
+  list(bipartite_collection[[m]]$row_clustering, bipartite_collection[[m]]$col_clustering)
 })
 tic()
 mybisbmpop <- estimate_colBiSBM(
-    netlist = bipartite_collection_incidence, colsbm_model = "iid",
-    global_opts = list(
-        parallelization_vector = c(F,F),
-        nb_cores = 6, verbosity = 4
-    )
+  netlist = bipartite_collection_incidence, colsbm_model = "iid",
+  nb_run = 1,
+  global_opts = list(
+    parallelization_vector = c(F, F),
+    nb_cores = 6, verbosity = 4
+  )
 )
 toc()
 # choosed_bisbmpop <- estimate_colBiSBM(
-#     netlist = bipartite_collection_incidence, 
-#     colsbm_model = "iid", 
+#     netlist = bipartite_collection_incidence,
+#     colsbm_model = "iid",
 #     global_opts = list(nb_cores = 3)
 # )
 
 ari_sums <- sapply(
-    seq_along(mybisbmpop$best_fit$Z),
-    function(m) {
-        sum(c(
-            aricode::ARI(
-                Z[[m]][[1]],
-                mybisbmpop$best_fit$Z[[m]][[1]]
-            ),
-            aricode::ARI(
-                Z[[m]][[2]],
-                mybisbmpop$best_fit$Z[[m]][[2]]
-            )
-        ))
-    }
+  seq_along(mybisbmpop$best_fit$Z),
+  function(m) {
+    sum(c(
+      aricode::ARI(
+        Z[[m]][[1]],
+        mybisbmpop$best_fit$Z[[m]][[1]]
+      ),
+      aricode::ARI(
+        Z[[m]][[2]],
+        mybisbmpop$best_fit$Z[[m]][[2]]
+      )
+    ))
+  }
 )

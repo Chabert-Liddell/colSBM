@@ -35,13 +35,16 @@ bipartite_collection <- generate_bipartite_collection(nr, nc, pir, pic, alpha, M
 bipartite_collection_incidence <- lapply(seq.int(M), function(m) {
   bipartite_collection[[m]]$incidence_matrix
 })
-NAs_index <- sample(seq_len(length(bipartite_collection_incidence[[1]])), floor(0.1 * length(bipartite_collection_incidence[[1]])))
+NAs_index <- sample(seq_len(length(bipartite_collection_incidence[[1]])), floor(0.5 * length(bipartite_collection_incidence[[1]])))
 real_val_NAs <- bipartite_collection_incidence[[1]][NAs_index]
 bipartite_collection_incidence[[1]][NAs_index] <- NA
+NAs_coordinates <- which(is.na(bipartite_collection_incidence[[1]]), arr.ind = TRUE)
+x_NAs <- sort(unique(NAs_coordinates[, 1]))
+y_NAs <- sort(unique(NAs_coordinates[, 2]))
 ## Init given with exact membership
 
 Z <- lapply(seq.int(M), function(m) {
-  list(bipartite_collection[[m]]$row_clustering, bipartite_collection[[m]]$col_clustering)
+  list(bipartite_collection[[m]]$row_blockmemberships, bipartite_collection[[m]]$col_blockmemberships)
 })
 tic()
 mybisbmpop <- estimate_colBiSBM(
