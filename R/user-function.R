@@ -24,60 +24,67 @@
 #'
 #' @examples
 #' # Trivial example with Gnp networks:
-#' Net <- lapply(list(.7, .7, .2, .2),
-#'               function(p) {
-#'                 A <- matrix(0, 15, 15 )
-#'                A[lower.tri(A)][sample(15*14/2, size = round(p*15*14/2))] <- 1
-#'                 A <- A + t(A)
-#'               })
-#' \dontrun{cl <- estimate_colSBM(Net,
-#'                      colsbm_model = "delta",
-#'                      directed = FALSE,
-#'                      model = "bernoulli",
-#'                      nb_run = 1
-#'                      )}
+#' Net <- lapply(
+#'   list(.7, .7, .2, .2),
+#'   function(p) {
+#'     A <- matrix(0, 15, 15)
+#'     A[lower.tri(A)][sample(15 * 14 / 2, size = round(p * 15 * 14 / 2))] <- 1
+#'     A <- A + t(A)
+#'   }
+#' )
+#' \dontrun{
+#' cl <- estimate_colSBM(Net,
+#'   colsbm_model = "delta",
+#'   directed = FALSE,
+#'   model = "bernoulli",
+#'   nb_run = 1
+#' )
+#' }
 estimate_colSBM <-
-  function(    netlist,
-               colsbm_model,
-               net_id = NULL,
-               directed = NULL,
-               model = "bernoulli",
-               fit_sbm = NULL,
-               nb_run = 3L,
-               global_opts = list(),
-               fit_opts = list(),
-               fit_init = NULL) {
-    switch (colsbm_model,
-            "iid" = {
-              free_density <-  FALSE
-              free_mixture <-  FALSE
-            },
-            "pi" = {
-              free_density <-  FALSE
-              free_mixture <-  TRUE
-            },
-            "delta" = {
-              free_density <-  TRUE
-              free_mixture <-  FALSE
-            },
-            "deltapi" = {
-              free_density <-  TRUE
-              free_mixture <-  TRUE
-            },
-            stop("colsbm_model unknown. Must be one of iid, pi, delta or deltapi"))
+  function(netlist,
+           colsbm_model,
+           net_id = NULL,
+           directed = NULL,
+           model = "bernoulli",
+           fit_sbm = NULL,
+           nb_run = 3L,
+           global_opts = list(),
+           fit_opts = list(),
+           fit_init = NULL) {
+    switch(colsbm_model,
+      "iid" = {
+        free_density <- FALSE
+        free_mixture <- FALSE
+      },
+      "pi" = {
+        free_density <- FALSE
+        free_mixture <- TRUE
+      },
+      "delta" = {
+        free_density <- TRUE
+        free_mixture <- FALSE
+      },
+      "deltapi" = {
+        free_density <- TRUE
+        free_mixture <- TRUE
+      },
+      stop("colsbm_model unknown. Must be one of iid, pi, delta or deltapi")
+    )
 
     # go is used to temporarily store the default global_opts
-    go <- list(Q_min = 1L,
-                             Q_max = floor(log(sum(vapply(netlist, "nrow", .1))))+2,
-                             sbm_init = TRUE,
-                             spectral_init = TRUE,
-                             nb_init = 10L,
-                             nb_models = 5L,
-                             depth = 1L,
-                             plot_details = 1L,
-                             max_pass = 10L,
-                             verbosity = 0L,
-                             nb_cores = 1L)
+    go <- list(
+      Q_min = 1L,
+      Q_max = floor(log(sum(vapply(netlist, "nrow", .1)))) + 2,
+      sbm_init = TRUE,
+      spectral_init = TRUE,
+      nb_init = 10L,
+      nb_models = 5L,
+      depth = 1L,
+      plot_details = 1L,
+      max_pass = 10L,
+      verbosity = 0L,
+      nb_cores = 1L
+    )
     go <- utils::modifyList(go, global_opts)
     global_opts <- go
     if (is.null(global_opts$nb_cores)) {
@@ -85,17 +92,17 @@ estimate_colSBM <-
     }
     nb_cores <- global_opts$nb_cores
     if (is.null(global_opts$Q_max)) {
-      Q_max <- floor(log(sum(sapply(netlist, function(A) nrow(A))))+2)
+      Q_max <- floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2)
     } else {
       Q_max <- global_opts$Q_max
     }
-    if (! is.null(fit_init)) {
+    if (!is.null(fit_init)) {
       my_bmpop <- fit_init
     } else {
-      if(is.null(net_id)) {
+      if (is.null(net_id)) {
         net_id <- seq_along(netlist)
       }
-      if(is.null(fit_sbm) && global_opts$sbm_init) {
+      if (is.null(fit_sbm) && global_opts$sbm_init) {
         fit_sbm <-
           bettermc::mclapply(
             X = seq_along(netlist),
@@ -104,9 +111,12 @@ estimate_colSBM <-
               sbm::estimateSimpleSBM(
                 model = model,
                 netMat = netlist[[m]],
-                estimOptions = list(verbosity = 0,
-                                    plot = FALSE, nbCores = 1L,
-                                    exploreMin = Q_max))
+                estimOptions = list(
+                  verbosity = 0,
+                  plot = FALSE, nbCores = 1L,
+                  exploreMin = Q_max
+                )
+              )
             },
             mc.cores = nb_cores,
             mc.silent = TRUE
@@ -118,53 +128,66 @@ estimate_colSBM <-
         bettermc::mclapply(
           seq(nb_run),
           function(x) {
-            global_opts$nb_cores <- max(1L, floor(global_opts$nb_cores/nb_run))
-            tmp_fit <- bmpop$new(netlist = netlist,
-                                 net_id = net_id,
-                                 directed = directed,
-                                 model = model,
-                                 free_density = free_density,
-                                 free_mixture = free_mixture,
-                                 fit_sbm = fit_sbm,
-                                 global_opts = global_opts,
-                                 fit_opts = fit_opts)
+            global_opts$nb_cores <- max(1L, floor(global_opts$nb_cores / nb_run))
+            tmp_fit <- bmpop$new(
+              netlist = netlist,
+              net_id = net_id,
+              directed = directed,
+              model = model,
+              free_density = free_density,
+              free_mixture = free_mixture,
+              fit_sbm = fit_sbm,
+              global_opts = global_opts,
+              fit_opts = fit_opts
+            )
             tmp_fit$optimize()
             return(tmp_fit)
-          }, mc.progress = TRUE, mc.cores = min(nb_run,nb_cores),
+          },
+          mc.progress = TRUE, mc.cores = min(nb_run, nb_cores),
           mc.stdout = "output"
         )
       my_bmpop <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$BICL,
-                                             FUN.VALUE = .1))]]
+        FUN.VALUE = .1
+      ))]]
       # Aggregate all runs for all model sizes
       my_bmpop$model_list[[1]] <-
-        lapply(X = seq_along(my_bmpop$model_list[[1]]),
-               FUN = function(q) {
-                 tmp_fits[[which.max(vapply(
-                   tmp_fits,
-                   function(fit) fit$model_list[[1]][[q]][[1]]$BICL,
-                   FUN.VALUE = .1))]]$model_list[[1]][[q]]
-               }
+        lapply(
+          X = seq_along(my_bmpop$model_list[[1]]),
+          FUN = function(q) {
+            tmp_fits[[which.max(vapply(
+              tmp_fits,
+              function(fit) fit$model_list[[1]][[q]][[1]]$BICL,
+              FUN.VALUE = .1
+            ))]]$model_list[[1]][[q]]
+          }
         )
       my_bmpop$vbound <- vapply(my_bmpop$model_list[[1]],
-                             function (fit) rev(fit[[1]]$vbound)[1], FUN.VALUE = .1)
+        function(fit) rev(fit[[1]]$vbound)[1],
+        FUN.VALUE = .1
+      )
       my_bmpop$ICL <- vapply(my_bmpop$model_list[[1]],
-                             function (fit) fit[[1]]$ICL, FUN.VALUE = .1)
+        function(fit) fit[[1]]$ICL,
+        FUN.VALUE = .1
+      )
       my_bmpop$BICL <- vapply(my_bmpop$model_list[[1]],
-                                        function (fit) fit[[1]]$BICL, FUN.VALUE = .1)
-      if(my_bmpop$global_opts$verbosity >=1) {
+        function(fit) fit[[1]]$BICL,
+        FUN.VALUE = .1
+      )
+      if (my_bmpop$global_opts$verbosity >= 1) {
         cat("==== Optimization finished for networks ", my_bmpop$net_id, " ====\n")
         cat("vbound : ", round(my_bmpop$vbound), "\n")
         cat("ICL    : ", round(my_bmpop$ICL), "\n")
         cat("BICL   : ", round(my_bmpop$BICL), "\n")
         cat("Best model for Q = ", which.max(my_bmpop$BICL), "\n")
-        if (! is.null(my_bmpop$ICL_sbm)) {
+        if (!is.null(my_bmpop$ICL_sbm)) {
           icl_sbm <- vapply(seq(my_bmpop$M),
-                            function(m) max(my_bmpop$fit_sbm[[m]]$storedModels$ICL),
-                            FUN.VALUE = .1)
+            function(m) max(my_bmpop$fit_sbm[[m]]$storedModels$ICL),
+            FUN.VALUE = .1
+          )
           if (max(my_bmpop$BICL) > sum(icl_sbm)) {
-            cat("Joint modelisation preferred over separated one. BICL: " )
+            cat("Joint modelisation preferred over separated one. BICL: ")
           } else {
-            cat("Joint modelisation not preferred over separated one. BICL: " )
+            cat("Joint modelisation not preferred over separated one. BICL: ")
           }
           cat(max(my_bmpop$BICL), " vs ", sum(icl_sbm))
         }
@@ -188,7 +211,7 @@ estimate_colSBM <-
 #' See details.
 #' @param fit_opts Fit options for the VEM algorithm. See details
 #' @param Z_init An optional bi-dimensional list of size Q1_max x Q2_max containing
-#' for each value a list of two vectors of clusters memberships. Default to 
+#' for each value a list of two vectors of clusters memberships. Default to
 #' NULL.
 #'
 #' @details The list of parameters \code{global_opts} essentially tunes the
@@ -198,7 +221,7 @@ estimate_colSBM <-
 #'  parallelization. Default is 1}
 #'  \item{\code{verbosity} }{integer for verbosity (0, 1, 2, 3, 4). Default is 1.
 #'   0 will disable completely the output of the function. \textit{Note:} you
-#'   can access the $joint_modelisation_preferred attribute to check which 
+#'   can access the $joint_modelisation_preferred attribute to check which
 #'   modelisation is preferred}
 #'  \item{\code{Q1_max} }{integer for the max size in row to explore. Default is
 #'  computed with the following formula:
@@ -216,8 +239,8 @@ estimate_colSBM <-
 #'  \item{\code{max_pass} }{the maximum number of moving window passes that will be
 #'  executed. Default is 10.}
 #'  \item{\code{parallelization_vector}}{a boolean vector of size 2. Each
-#'  boolean specifies if the level should be parallelized. c(TRUE, TRUE) 
-#'  means that : 
+#'  boolean specifies if the level should be parallelized. c(TRUE, TRUE)
+#'  means that :
 #'  \itemize{
 #'  \item{1st: the \code{nb_run} models will be computed in parallel}
 #'  \item{2nd: the possible models during the state space exploration will be
@@ -226,14 +249,14 @@ estimate_colSBM <-
 #'  }
 #'  The default is : c(TRUE, TRUE) which gives best performance
 #' }
-#' 
+#'
 #' The list of parameters \code{fit_opts} are used to tune the Variational
 #' Expectation Maximization algorithm.
-#' 
+#'
 #' \itemize{
-#'  \item{algo_ve}{a string to choose the algorithm to use for the variational 
+#'  \item{algo_ve}{a string to choose the algorithm to use for the variational
 #'  estimation. Available: "fp"}
-#'  \item{verbosity}{an integer to choose the level of verbosity of the fit 
+#'  \item{verbosity}{an integer to choose the level of verbosity of the fit
 #'  procedure. Defaults to 0. Available: 0,1}
 #'  \item{approx_pois}{a boolean which determines if an approximation is used
 #'  for the poisson distribution. Defaults to TRUE.}
@@ -251,35 +274,37 @@ estimate_colSBM <-
 #' \code{\link[colSBM]{fitBipartiteSBMPop}}, `browseVignettes("colSBM")`
 #'
 #' @examples
-#' alpha1 <- matrix(c(0.8,0.1,0.2,0.7), byrow = TRUE, nrow = 2)
-#' alpha2 <- matrix(c(0.8,0.5,0.5,0.2), byrow = TRUE, nrow = 2)
-#' first_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5,0.5), rho = c(0.5,0.5), alpha = alpha1, M = 2)
-#' second_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5,0.5), rho = c(0.5,0.5), alpha = alpha2, M = 2)
-#' 
+#' alpha1 <- matrix(c(0.8, 0.1, 0.2, 0.7), byrow = TRUE, nrow = 2)
+#' alpha2 <- matrix(c(0.8, 0.5, 0.5, 0.2), byrow = TRUE, nrow = 2)
+#' first_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5, 0.5), rho = c(0.5, 0.5), alpha = alpha1, M = 2)
+#' second_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5, 0.5), rho = c(0.5, 0.5), alpha = alpha2, M = 2)
+#'
 #' netlist <- append(first_collection, second_collection)
-#' 
+#'
 #' \dontrun{
 #' # A collection where joint modelisation makes sense
 #' cl_joint <- estimate_colBiSBM(
-#'   netlist = first_collection, 
-#'   colsbm_model = "iid", 
-#'   global_opts = list(nb_cores = parallel::detectCores() - 1))
+#'   netlist = first_collection,
+#'   colsbm_model = "iid",
+#'   global_opts = list(nb_cores = parallel::detectCores() - 1)
+#' )
 #' # A collection where joint modelisation doesn't make sense
 #' cl_separated <- estimate_colBiSBM(
 #'   netlist = netlist,
 #'   colsbm_model = "iid",
-#'   global_opts = list(nb_cores = parallel::detectCores() - 1))
+#'   global_opts = list(nb_cores = parallel::detectCores() - 1)
+#' )
 #' }
 estimate_colBiSBM <-
   function(netlist,
-          colsbm_model,
-          net_id = NULL,
-          distribution = "bernoulli",
-          nb_run = 3L,
-          global_opts = list(),
-          fit_opts = list(),
-          Z_init = NULL,
-          silent_parallelization = FALSE) {
+           colsbm_model,
+           net_id = NULL,
+           distribution = "bernoulli",
+           nb_run = 3L,
+           global_opts = list(),
+           fit_opts = list(),
+           Z_init = NULL,
+           silent_parallelization = FALSE) {
     switch(colsbm_model,
       "iid" = {
         free_density <- FALSE
@@ -351,125 +376,128 @@ estimate_colBiSBM <-
       )
     }
 
-      if (is.null(net_id)) {
-        net_id <- seq_along(netlist)
-      }
-      # tmp_fits run nb_run times a full model selection procedure
-      # (the one from the research paper)
-      if (global_opts$parallelization_vector[1] && nb_run > 1) {
-        tmp_fits <-
-          bettermc::mclapply(
-            seq(nb_run),
-            function(x) {
-              tmp_fit <- bisbmpop$new(
-                netlist = netlist,
-                net_id = net_id,
-                distribution = distribution,
-                free_density = free_density,
-                free_mixture_row = free_mixture_row,
-                free_mixture_col = free_mixture_col,
-                global_opts = global_opts,
-                fit_opts = fit_opts,
-                Z_init = Z_init
-              )
-              tmp_fit$optimize()
-              return(tmp_fit)
-            },
-            mc.progress = !silent_parallelization,
-            mc.cores = min(nb_run, nb_cores),
-            mc.stdout = "output",
-            mc.retry = -1, # To prevent big crash
-            mc.silent = silent_parallelization
-          )
-      } else {
-        tmp_fits <-
-          lapply(
-            seq(nb_run),
-            function(x) {
-              tmp_fit <- bisbmpop$new(
-                netlist = netlist,
-                net_id = net_id,
-                distribution = distribution,
-                free_density = free_density,
-                free_mixture_row = free_mixture_row,
-                free_mixture_col = free_mixture_col,
-                global_opts = global_opts,
-                fit_opts = fit_opts,
-                Z_init = Z_init
-              )
-              tmp_fit$optimize()
-              return(tmp_fit)
-            }
-          )
-      }
-      # We choose the the bisbmpop to receive the best_fit in sense of the BICL
-      bisbmpop <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$BICL,
-        FUN.VALUE = .1
-      ))]]
+    if (is.null(net_id)) {
+      net_id <- seq_along(netlist)
+    }
+    # tmp_fits run nb_run times a full model selection procedure
+    # (the one from the research paper)
+    if (global_opts$parallelization_vector[1] && nb_run > 1) {
+      tmp_fits <-
+        bettermc::mclapply(
+          seq(nb_run),
+          function(x) {
+            tmp_fit <- bisbmpop$new(
+              netlist = netlist,
+              net_id = net_id,
+              distribution = distribution,
+              free_density = free_density,
+              free_mixture_row = free_mixture_row,
+              free_mixture_col = free_mixture_col,
+              global_opts = global_opts,
+              fit_opts = fit_opts,
+              Z_init = Z_init
+            )
+            tmp_fit$optimize()
+            return(tmp_fit)
+          },
+          mc.progress = !silent_parallelization,
+          mc.cores = min(nb_run, nb_cores),
+          mc.stdout = "output",
+          mc.retry = -1, # To prevent big crash
+          mc.silent = silent_parallelization
+        )
+    } else {
+      tmp_fits <-
+        lapply(
+          seq(nb_run),
+          function(x) {
+            tmp_fit <- bisbmpop$new(
+              netlist = netlist,
+              net_id = net_id,
+              distribution = distribution,
+              free_density = free_density,
+              free_mixture_row = free_mixture_row,
+              free_mixture_col = free_mixture_col,
+              global_opts = global_opts,
+              fit_opts = fit_opts,
+              Z_init = Z_init
+            )
+            tmp_fit$optimize()
+            return(tmp_fit)
+          }
+        )
+    }
+    # We choose the the bisbmpop to receive the best_fit in sense of the BICL
+    bisbmpop <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$BICL,
+      FUN.VALUE = .1
+    ))]]
 
-      # We perform the procedure only if nb_run > 1
-      if (nb_run > 1) {
-        if (global_opts$verbosity >= 1) {
-          cat("\nMerging the", nb_run, "models")
-        }
-        # For each Q1 and Q2, we compare all
-        for (q1 in global_opts$Q1_max) {
-          for (q2 in global_opts$Q2_max) {
-            if (!is.null(bisbmpop$model_list[[q1, q2]])) {
-              # All the models for the current q1 and q2 are stored
-              models_comparison <- # Note : this object is a list
-                c(bisbmpop$model_list[[q1, q2]], lapply(
-                  tmp_fits,
-                  function(fit) fit$model_list[[q1, q2]]
-                ))
-              # The best in the sense of the BICL is chosen
-              bisbmpop$model_list[[q1, q2]] <-
-                models_comparison[which.max(
-                  vapply(models_comparison, function(model) model$BICL,
-                    FUN.VALUE = .1
-                  )
-                )]
+    # We perform the procedure only if nb_run > 1
+    if (nb_run > 1) {
+      if (global_opts$verbosity >= 1) {
+        cat("\nMerging the", nb_run, "models")
+      }
+      # For each Q1 and Q2, we compare all
+      for (q1 in global_opts$Q1_max) {
+        for (q2 in global_opts$Q2_max) {
+          if (!is.null(bisbmpop$model_list[[q1, q2]])) {
+            # All the models for the current q1 and q2 are stored
+            models_comparison <- # Note : this object is a list
+              c(bisbmpop$model_list[[q1, q2]], lapply(
+                tmp_fits,
+                function(fit) fit$model_list[[q1, q2]]
+              ))
+            # The best in the sense of the BICL is chosen
+            bisbmpop$model_list[[q1, q2]] <-
+              models_comparison[which.max(
+                vapply(models_comparison, function(model) model$BICL,
+                  FUN.VALUE = .1
+                )
+              )]
 
-              # The same procedure is applied for the
-              discarded_models_comparison <-
-                c(bisbmpop$discarded_model_list[[q1, q2]], unlist(lapply(
-                  tmp_fits,
-                  function(fit) fit$discarded_model_list[[q1, q2]]
-                )))
-              bisbmpop$discarded_model_list[[q1, q2]] <-
-                discarded_models_comparison[order(
-                  vapply(discarded_models_comparison,
-                    function(model) model$BICL,
-                    FUN.VALUE = .1),
-                  decreasing = TRUE
-                )]
-            }
+            # The same procedure is applied for the
+            discarded_models_comparison <-
+              c(bisbmpop$discarded_model_list[[q1, q2]], unlist(lapply(
+                tmp_fits,
+                function(fit) fit$discarded_model_list[[q1, q2]]
+              )))
+            bisbmpop$discarded_model_list[[q1, q2]] <-
+              discarded_models_comparison[order(
+                vapply(discarded_models_comparison,
+                  function(model) model$BICL,
+                  FUN.VALUE = .1
+                ),
+                decreasing = TRUE
+              )]
           }
         }
+      }
 
-        # We now update the criteria and best fit
-        bisbmpop$store_criteria_and_best_fit()
-        # The discarded model list is truncated
-        bisbmpop$truncate_discarded_model_list()
-      }
-      rm(tmp_fits)
-      gc()
-      # At the end we show the results
-      if (global_opts$verbosity >= 1 & nb_run > 1) {
-        cat(
-          "\nAfter merging the", nb_run, "model runs,",
-          "the criteria are the following:\n"
-        )
-        bisbmpop$print_metrics()
-      }
-      if (global_opts$verbosity >= 2) {
-        cat("\n=== Fitting sepBiSBM ===\n")
-      }
-      bisbmpop$choose_joint_or_separated()
-      if (global_opts$verbosity >= 1) {
-        cat("\n==== Full computation performed in", 
-        format(Sys.time() - start_time, digits = 3), "====")
-      }
+      # We now update the criteria and best fit
+      bisbmpop$store_criteria_and_best_fit()
+      # The discarded model list is truncated
+      bisbmpop$truncate_discarded_model_list()
+    }
+    rm(tmp_fits)
+    gc()
+    # At the end we show the results
+    if (global_opts$verbosity >= 1 & nb_run > 1) {
+      cat(
+        "\nAfter merging the", nb_run, "model runs,",
+        "the criteria are the following:\n"
+      )
+      bisbmpop$print_metrics()
+    }
+    if (global_opts$verbosity >= 2) {
+      cat("\n==== Fitting sepBiSBM ====\n")
+    }
+    bisbmpop$choose_joint_or_separated()
+    if (global_opts$verbosity >= 1) {
+      cat(
+        "\n==== Full computation performed in",
+        format(Sys.time() - start_time, digits = 3), "===="
+      )
+    }
 
     return(bisbmpop)
   }
@@ -482,7 +510,7 @@ estimate_colBiSBM <-
 #' to fit
 #' @param depth the depth (how far from the center to explore) of the moving
 #' window. Default to 1.
-#' @param nb_pass the number of passes of moving window to perform. Default to 
+#' @param nb_pass the number of passes of moving window to perform. Default to
 #' 1.
 #'
 #' @return A bisbmpop object models for the collection of networks. Not the same
@@ -490,20 +518,19 @@ estimate_colBiSBM <-
 #' @export
 #'
 adjust_colBiSBM <- function(
-  fitted_bisbmpop,
-  Q,
-  depth = 1L,
-  nb_pass = 1L
-){
+    fitted_bisbmpop,
+    Q,
+    depth = 1L,
+    nb_pass = 1L) {
   # Sanity checks
   stopifnot(inherits(fitted_bisbmpop, "bisbmpop"))
   stopifnot(length(Q) == 2)
   # We clone the object and fit the desired point
   adjusted_bisbmpop <- fitted_bisbmpop$clone()
   for (pass in seq.int(nb_pass)) {
-    cat("\n=== Adjustment pass", pass,"/",nb_pass,"===")
+    cat("\n=== Adjustment pass", pass, "/", nb_pass, "===")
     adjusted_bisbmpop$moving_window(Q, depth = depth)
   }
-  adjusted_bisbmpop$adjusted_fit <- adjusted_bisbmpop$model_list[[Q[1],Q[2]]]
+  adjusted_bisbmpop$adjusted_fit <- adjusted_bisbmpop$model_list[[Q[1], Q[2]]]
   return(adjusted_bisbmpop)
 }
