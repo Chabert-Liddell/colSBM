@@ -579,6 +579,13 @@ clusterize_bipartite_networks <- function(netlist,
               toString(fit$net_id[cl == k]), "\n"
             )
           }
+
+          # Preparing the next sep_BiSBM to save time
+          filtered_sep_BiSBM <- vector("list")
+          filtered_sep_BiSBM$model <- fit$sep_BiSBM$model[cl == k]
+          filtered_sep_BiSBM$BICL <- fit$sep_BiSBM$BICL[cl == k]
+          filtered_sep_BiSBM$Z <- fit$sep_BiSBM$Z[cl == k]
+
           return(
             estimate_colBiSBM(
               netlist = fit$A[cl == k],
@@ -589,7 +596,8 @@ clusterize_bipartite_networks <- function(netlist,
               Z_init = Z_init, # TODO Change this parameter name, cause all Q
               global_opts = global_opts,
               fit_opts = fit_opts,
-              silent_parallelization = silent_parallelization
+              silent_parallelization = silent_parallelization,
+              sep_BiSBM = filtered_sep_BiSBM
             )
           )
         },
