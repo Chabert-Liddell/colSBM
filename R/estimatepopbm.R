@@ -1,5 +1,3 @@
-
-
 #' Partition of a collection of networks based on their common
 #' mesoscale structures
 #'
@@ -36,215 +34,254 @@
 #' @examples
 #'
 #' #' # Trivial example with Gnp networks:
-#' Net <- lapply(list(.7, .7, .2, .2),
-#'               function(p) {
-#'                A <- matrix(0, 15, 15 )
-#'                A[lower.tri(A)][sample(15*14/2, size = round(p*15*14/2))] <- 1
-#'                A <- A + t(A)
-#'               })
-#' \dontrun{cl <- clusterized_networks(Net,
-#'                            colsbm_model = "iid",
-#'                            directed = FALSE,
-#'                            model = "bernoulli",
-#'                            nb_run = 1
-#'                            )}
+#' Net <- lapply(
+#'   list(.7, .7, .2, .2),
+#'   function(p) {
+#'     A <- matrix(0, 15, 15)
+#'     A[lower.tri(A)][sample(15 * 14 / 2, size = round(p * 15 * 14 / 2))] <- 1
+#'     A <- A + t(A)
+#'   }
+#' )
+#' \dontrun{
+#' cl <- clusterized_networks(Net,
+#'   colsbm_model = "iid",
+#'   directed = FALSE,
+#'   model = "bernoulli",
+#'   nb_run = 1
+#' )
+#' }
 clusterize_networks <- function(netlist,
-                          colsbm_model,
-                          net_id = NULL,
-                          directed = NULL,
-                          model = "bernoulli",
-                          fit_sbm = NULL,
-                          nb_run = 3L,
-                          global_opts = list(),
-                          fit_opts = list(),
-                          fit_init = NULL,
-                          full_inference = FALSE) {
-
+                                colsbm_model,
+                                net_id = NULL,
+                                directed = NULL,
+                                model = "bernoulli",
+                                fit_sbm = NULL,
+                                nb_run = 3L,
+                                global_opts = list(),
+                                fit_opts = list(),
+                                fit_init = NULL,
+                                full_inference = FALSE) {
   ## Ajouter une sorte de smoothing par les clusters de reseaux
   ##
   ##
-  switch (colsbm_model,
-          "iid" = {
-            free_density <-  FALSE
-            free_mixture <-  FALSE
-          },
-          "pi" = {
-            free_density <-  FALSE
-            free_mixture <-  TRUE
-          },
-          "delta" = {
-            free_density <-  TRUE
-            free_mixture <-  FALSE
-          },
-          "deltapi" = {
-            free_density <-  TRUE
-            free_mixture <-  TRUE
-          },
-          stop("colsbm_model unknown. Must be one of iid, pi, delta or deltapi"))
+  switch(colsbm_model,
+    "iid" = {
+      free_density <- FALSE
+      free_mixture <- FALSE
+    },
+    "pi" = {
+      free_density <- FALSE
+      free_mixture <- TRUE
+    },
+    "delta" = {
+      free_density <- TRUE
+      free_mixture <- FALSE
+    },
+    "deltapi" = {
+      free_density <- TRUE
+      free_mixture <- TRUE
+    },
+    stop("colsbm_model unknown. Must be one of iid, pi, delta or deltapi")
+  )
 
   if (is.null(global_opts$nb_cores)) {
     global_opts$nb_cores <- 1L
   }
   nb_cores <- global_opts$nb_cores
   if (is.null(global_opts$Q_max)) {
-    Q_max <- floor(log(sum(sapply(netlist, function(A) nrow(A))))+2)
+    Q_max <- floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2)
   } else {
     Q_max <- global_opts$Q_max
   }
 
 
 
-  if (! is.null(fit_init)) {
+  if (!is.null(fit_init)) {
     my_bmpop <- fit_init
   } else {
-    if(is.null(net_id)) {
+    if (is.null(net_id)) {
       net_id <- seq_along(netlist)
     }
-      if(is.null(fit_sbm)) {
-        fit_sbm <-
-          bettermc::mclapply(
-            X = seq_along(netlist),
-            FUN = function(m) {
-              #     p(sprintf("m=%g", m))
-              sbm::estimateSimpleSBM(
-                model = model,
-                netMat = netlist[[m]],
-                estimOptions = list(verbosity = 0,
-                                    plot = FALSE, nbCores = 1L,
-                                    exploreMin = Q_max))
-            },
-            mc.cores = nb_cores,
-            mc.silent = TRUE
-          )
-      }
-      tmp_fits <-
+    if (is.null(fit_sbm)) {
+      fit_sbm <-
         bettermc::mclapply(
-          seq(nb_run),
-          function(x) {
-            global_opts$nb_cores <- max(1L, floor(global_opts$nb_cores/nb_run))
-            tmp_fit <- bmpop$new(netlist = netlist,
-                                 net_id = net_id,
-                                 directed = directed,
-                                 model = model,
-                                 free_density = free_density,
-                                 free_mixture = free_mixture,
-                                 fit_sbm = fit_sbm,
-                                 global_opts = global_opts,
-                                 fit_opts = fit_opts)
-            tmp_fit$optimize()
-            return(tmp_fit)
-          }, mc.progress = TRUE, mc.cores = min(nb_run,nb_cores)
+          X = seq_along(netlist),
+          FUN = function(m) {
+            #     p(sprintf("m=%g", m))
+            sbm::estimateSimpleSBM(
+              model = model,
+              netMat = netlist[[m]],
+              estimOptions = list(
+                verbosity = 0,
+                plot = FALSE, nbCores = 1L,
+                exploreMin = Q_max
+              )
+            )
+          },
+          mc.cores = nb_cores,
+          mc.silent = TRUE
         )
-      my_bmpop <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$BICL,
-                                             FUN.VALUE = .1))]]
-      my_bmpop$model_list[[1]] <-
-        lapply(X = seq_along(my_bmpop$model_list[[1]]),
-               FUN = function(q) {
-                 tmp_fits[[which.max(vapply(
-                   tmp_fits,
-                   function(fit) fit$model_list[[1]][[q]][[1]]$BICL,
-                                            FUN.VALUE = .1))]]$model_list[[1]][[q]]
-               }
-        )
-      my_bmpop$ICL <- vapply(my_bmpop$model_list[[1]],
-                             function (fit) fit[[1]]$ICL, FUN.VALUE = .1)
-      my_bmpop$BICL <- vapply(my_bmpop$model_list[[1]],
-                             function (fit) fit[[1]]$BICL, FUN.VALUE = .1)
-      rm(tmp_fits)
-      gc()
     }
+    tmp_fits <-
+      bettermc::mclapply(
+        seq(nb_run),
+        function(x) {
+          global_opts$nb_cores <- max(1L, floor(global_opts$nb_cores / nb_run))
+          tmp_fit <- bmpop$new(
+            netlist = netlist,
+            net_id = net_id,
+            directed = directed,
+            model = model,
+            free_density = free_density,
+            free_mixture = free_mixture,
+            fit_sbm = fit_sbm,
+            global_opts = global_opts,
+            fit_opts = fit_opts
+          )
+          tmp_fit$optimize()
+          return(tmp_fit)
+        },
+        mc.progress = TRUE, mc.cores = min(nb_run, nb_cores)
+      )
+    my_bmpop <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$BICL,
+      FUN.VALUE = .1
+    ))]]
+    my_bmpop$model_list[[1]] <-
+      lapply(
+        X = seq_along(my_bmpop$model_list[[1]]),
+        FUN = function(q) {
+          tmp_fits[[which.max(vapply(
+            tmp_fits,
+            function(fit) fit$model_list[[1]][[q]][[1]]$BICL,
+            FUN.VALUE = .1
+          ))]]$model_list[[1]][[q]]
+        }
+      )
+    my_bmpop$ICL <- vapply(my_bmpop$model_list[[1]],
+      function(fit) fit[[1]]$ICL,
+      FUN.VALUE = .1
+    )
+    my_bmpop$BICL <- vapply(my_bmpop$model_list[[1]],
+      function(fit) fit[[1]]$BICL,
+      FUN.VALUE = .1
+    )
+    rm(tmp_fits)
+    gc()
+  }
 
 
 
   # list_model_binary <- list(my_bmpop)
   # list_icl_binary <- list(my_bmpop$best_fit$ICL)
   recursive_clustering <- function(fit) {
-    if(fit$best_fit$M == 1) return(fit$best_fit)
+    if (fit$best_fit$M == 1) {
+      return(fit$best_fit)
+    }
     dist_bm <- diag(0, fit$best_fit$M)
     for (i in seq(nrow(dist_bm))) {
       for (j in seq(ncol(dist_bm))) {
-        if(free_mixture) {
-          fit_pi <- fit$best_fit$pi[c(i,j)]
+        if (free_mixture) {
+          fit_pi <- fit$best_fit$pi[c(i, j)]
         } else {
-          fit_pi <- fit$best_fit$pim[c(i,j)]
+          fit_pi <- fit$best_fit$pim[c(i, j)]
         }
-        dist_bm[i,j] <-
+        dist_bm[i, j] <-
           dist_bmpop_max(
             pi = fit_pi,
-            alpha = fit$best_fit$alpham[c(i,j)],
-            delta = fit$best_fit$delta[c(i,j)], weight = "max")
+            alpha = fit$best_fit$alpham[c(i, j)],
+            delta = fit$best_fit$delta[c(i, j)], weight = "max"
+          )
       }
     }
-  #    cl <- stats::cutree(stats::hclust(as.dist(dist_bm), method = "ward.D2"), 2)
-      if (fit$M >= 3) {
-        cl <- cluster::pam(x = sqrt(dist_bm), k = 2, diss = TRUE)$clustering
-      } else {
-        cl <- stats::cutree(stats::hclust(stats::as.dist(dist_bm), method = "ward.D2"), 2)
-      }
+    #    cl <- stats::cutree(stats::hclust(as.dist(dist_bm), method = "ward.D2"), 2)
+    if (fit$M >= 3) {
+      cl <- cluster::pam(x = sqrt(dist_bm), k = 2, diss = TRUE)$clustering
+    } else {
+      cl <- stats::cutree(stats::hclust(stats::as.dist(dist_bm), method = "ward.D2"), 2)
+    }
 
     fits <-
-      lapply(c(1,2),
-             function(k) {
-               Z_init <- lapply(seq_along(fit$model_list[[1]]),
-                                function(q) {
-                                  lapply(seq_along(fit$model_list[[1]][[q]]),
-                                         function(j) fit$model_list[[1]][[q]][[j]]$Z[cl == k])
-                                })
-               if (is.null(global_opts$nb_cores)) {
-                 global_opts$nb_cores <- 1L
-               } else {
-                 nb_cores <- global_opts$nb_cores
-               }
-               tmp_fits <-
-                 bettermc::mclapply(
-                   seq(min(sum(cl == k), nb_run)),
-                   function(x) {
-                     global_opts$nb_cores <- max(1L, floor(global_opts$nb_cores/nb_run))
-                     tmp_fit <- bmpop$new(fit$A[cl == k], fit$net_id[cl == k],
-                                      directed = directed,
-                                      model = model,
-                                      free_density = free_density,
-                                      free_mixture = free_mixture,
-                                      fit_sbm = fit$fit_sbm[cl==k],
-                                      Z_init = Z_init,
-                                      global_opts = global_opts,
-                                      fit_opts = fit_opts)
-                     # global_opts = list(nb_models = 10L,
-                     #                    nb_init = 100, verbosity = 1))
-                     tmp_fit$optimize()
-                     return(tmp_fit)
-                   }, mc.progress = TRUE, mc.cores = min(nb_run,nb_cores),
-                   mc.stdout = "output"
-                   )
-               res <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$BICL,
-                                         FUN.VALUE = .1))]]
-               res$model_list[[1]] <-
-                 lapply(X = seq_along(res$model_list[[1]]),
-                        FUN = function(q) {
-                          tmp_fits[[which.max(vapply(
-                            tmp_fits,
-                            function(fit) fit$model_list[[1]][[q]][[1]]$BICL,
-                            FUN.VALUE = .1))]]$model_list[[1]][[q]]
-                        }
-                 )
-               res$ICL <- vapply(res$model_list[[1]],
-                                      function (fit) fit[[1]]$ICL, FUN.VALUE = .1)
-               res$BICL <- vapply(res$model_list[[1]],
-                                      function (fit) fit[[1]]$BICL, FUN.VALUE = .1)
-               rm(tmp_fits)
-               gc()
-               return(res)
-             })
+      lapply(
+        c(1, 2),
+        function(k) {
+          Z_init <- lapply(
+            seq_along(fit$model_list[[1]]),
+            function(q) {
+              lapply(
+                seq_along(fit$model_list[[1]][[q]]),
+                function(j) fit$model_list[[1]][[q]][[j]]$Z[cl == k]
+              )
+            }
+          )
+          if (is.null(global_opts$nb_cores)) {
+            global_opts$nb_cores <- 1L
+          } else {
+            nb_cores <- global_opts$nb_cores
+          }
+          tmp_fits <-
+            bettermc::mclapply(
+              seq(min(sum(cl == k), nb_run)),
+              function(x) {
+                global_opts$nb_cores <- max(1L, floor(global_opts$nb_cores / nb_run))
+                tmp_fit <- bmpop$new(fit$A[cl == k], fit$net_id[cl == k],
+                  directed = directed,
+                  model = model,
+                  free_density = free_density,
+                  free_mixture = free_mixture,
+                  fit_sbm = fit$fit_sbm[cl == k],
+                  Z_init = Z_init,
+                  global_opts = global_opts,
+                  fit_opts = fit_opts
+                )
+                # global_opts = list(nb_models = 10L,
+                #                    nb_init = 100, verbosity = 1))
+                tmp_fit$optimize()
+                return(tmp_fit)
+              },
+              mc.progress = TRUE, mc.cores = min(nb_run, nb_cores),
+              mc.stdout = "output"
+            )
+          res <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$BICL,
+            FUN.VALUE = .1
+          ))]]
+          res$model_list[[1]] <-
+            lapply(
+              X = seq_along(res$model_list[[1]]),
+              FUN = function(q) {
+                tmp_fits[[which.max(vapply(
+                  tmp_fits,
+                  function(fit) fit$model_list[[1]][[q]][[1]]$BICL,
+                  FUN.VALUE = .1
+                ))]]$model_list[[1]][[q]]
+              }
+            )
+          res$ICL <- vapply(res$model_list[[1]],
+            function(fit) fit[[1]]$ICL,
+            FUN.VALUE = .1
+          )
+          res$BICL <- vapply(res$model_list[[1]],
+            function(fit) fit[[1]]$BICL,
+            FUN.VALUE = .1
+          )
+          rm(tmp_fits)
+          gc()
+          return(res)
+        }
+      )
     if (full_inference) {
-      return(list(fit$best_fit,
-                  recursive_clustering(fits[[1]]),
-                  recursive_clustering(fits[[2]])))
+      return(list(
+        fit$best_fit,
+        recursive_clustering(fits[[1]]),
+        recursive_clustering(fits[[2]])
+      ))
     } else {
       if (fits[[1]]$best_fit$BICL + fits[[2]]$best_fit$BICL >
-          fit$best_fit$BICL) {
-        return(list(fit$best_fit,
-                    recursive_clustering(fits[[1]]),
-                    recursive_clustering(fits[[2]])))
+        fit$best_fit$BICL) {
+        return(list(
+          fit$best_fit,
+          recursive_clustering(fits[[1]]),
+          recursive_clustering(fits[[2]])
+        ))
       } else {
         return(fit$best_fit)
       }
@@ -258,7 +295,7 @@ clusterize_networks <- function(netlist,
 
   invisible(list_model_binary)
 
-  #======================= Clustering par empty cluster
+  # ======================= Clustering par empty cluster
 
   # rk <- rev(rank(my_bmpop$BICL))
   # net_cl <- purrr::map(rk, ~my_bmpop$model_list[[1]][[.]][[1]]$net_clustering)
@@ -348,7 +385,6 @@ clusterize_networks <- function(netlist,
   # return(list(id_list = id_list,
   #             id = partial_id,
   #             fit = partial_fit))
-
 }
 
 
@@ -366,10 +402,16 @@ clusterize_networks <- function(netlist,
 #' @examples
 extract_best_partition <- function(l) {
   stopifnot(inherits(l[[1]], "fitSimpleSBMPop"))
-  if(length(l) == 1)  return(l[[1]])
-  if(length(l) == 2) return(l[[2]])
-  return(list(extract_best_partition(l[2]),
-              extract_best_partition(l[3])))
+  if (length(l) == 1) {
+    return(l[[1]])
+  }
+  if (length(l) == 2) {
+    return(l[[2]])
+  }
+  return(list(
+    extract_best_partition(l[2]),
+    extract_best_partition(l[3])
+  ))
 }
 
 
@@ -404,10 +446,10 @@ extract_best_partition <- function(l) {
 #' \code{\link[colSBM]{fitBipartiteSBMPop}}, `browseVignettes("colSBM")`
 #'
 #' @examples
-#' alpha1 <- matrix(c(0.8,0.1,0.2,0.7), byrow = TRUE, nrow = 2)
-#' alpha2 <- matrix(c(0.8,0.5,0.5,0.2), byrow = TRUE, nrow = 2)
-#' first_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5,0.5), rho = c(0.5,0.5), alpha = alpha1, M = 2)
-#' second_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5,0.5), rho = c(0.5,0.5), alpha = alpha2, M = 2)
+#' alpha1 <- matrix(c(0.8, 0.1, 0.2, 0.7), byrow = TRUE, nrow = 2)
+#' alpha2 <- matrix(c(0.8, 0.5, 0.5, 0.2), byrow = TRUE, nrow = 2)
+#' first_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5, 0.5), rho = c(0.5, 0.5), alpha = alpha1, M = 2)
+#' second_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5, 0.5), rho = c(0.5, 0.5), alpha = alpha2, M = 2)
 #'
 #' netlist <- append(first_collection, second_collection)
 #'
@@ -415,20 +457,20 @@ extract_best_partition <- function(l) {
 #' cl_separated <- clusterize_bipartite_networks(
 #'   netlist = netlist,
 #'   colsbm_model = "iid",
-#'   global_opts = list(nb_cores = parallel::detectCores() - 1))
+#'   global_opts = list(nb_cores = parallel::detectCores() - 1)
+#' )
 #' }
 clusterize_bipartite_networks <- function(netlist,
-                          colsbm_model,
-                          net_id = NULL,
-                          distribution = "bernoulli",
-                          fit_sbm = NULL,
-                          nb_run = 3L,
-                          global_opts = list(),
-                          fit_opts = list(),
-                          fit_init = NULL,
-                          silent_parallelization = FALSE,
-                          full_inference = FALSE) {
-
+                                          colsbm_model,
+                                          net_id = NULL,
+                                          distribution = "bernoulli",
+                                          fit_sbm = NULL,
+                                          nb_run = 3L,
+                                          global_opts = list(),
+                                          fit_opts = list(),
+                                          fit_init = NULL,
+                                          silent_parallelization = FALSE,
+                                          full_inference = FALSE) {
   if (global_opts$verbosity >= 1) {
     cat(paste0("\n=== Fitting the full (M = ", length(netlist), ") collection ===\n"))
   }
@@ -490,12 +532,13 @@ clusterize_bipartite_networks <- function(netlist,
         }
 
         # Computing the distance
-        dist_bm[i,j] <-
+        dist_bm[i, j] <-
           dist_bisbmpop_max(
             pi = fit_pi,
             rho = fit_rho,
-            alpha = fit$best_fit$alpham[c(i,j)],
-            delta = fit$best_fit$delta[c(i,j)], weight = "max")
+            alpha = fit$best_fit$alpham[c(i, j)],
+            delta = fit$best_fit$delta[c(i, j)], weight = "max"
+          )
       }
     }
 
@@ -504,28 +547,28 @@ clusterize_bipartite_networks <- function(netlist,
       # If there is more than 3 networks they are splitted using K-medioids
       cl <- cluster::pam(x = sqrt(dist_bm), k = 2, diss = TRUE)$clustering
     } else {
-      cl <- c(1,2)
+      cl <- c(1, 2)
     }
     # cl is a vector of size M, containing the networks clusters memberships
     fits <- # Contains two new collections
-      lapply(
+      bettermc::mclapply(
         c(1, 2), # Go over the two new clusters of networks (ie collections)
         function(k) {
           Z_init <- lapply(
             seq_along(fit$model_list),
             # Go over the Q1xQ2 models
             function(q) {
-                  if (!is.null(fit$model_list[[q]])) {
-                    return(fit$model_list[[q]]$Z[cl == k])
-                  } else {
-                    return(NULL)
-                  }
+              if (!is.null(fit$model_list[[q]])) {
+                return(fit$model_list[[q]]$Z[cl == k])
+              } else {
+                return(NULL)
+              }
             }
           )
           # Reshaping the Z_init to be bi-dimensional
           dim(Z_init) <- c(fit$global_opts$Q1_max, fit$global_opts$Q2_max)
           print(Z_init) # TODO Remove
-          
+
           # cl == k, is a bool vector with TRUE, if network m
           # is a member of cluster k
           # Here there are the min between sum(cl == k), ie the number of
@@ -549,27 +592,30 @@ clusterize_bipartite_networks <- function(netlist,
               silent_parallelization = silent_parallelization
             )
           )
-        }
+        },
+        mc.cores = global_opts$nb_cores,
+        mc.stdout = "output",
+        mc.retry = -1
       )
     # Fully recursive (like a top down HCA)
     if (full_inference) {
-        return(append(
-          list(fit$best_fit),
-          # New recursion over the 2 new fits
-          bettermc::mclapply(
-            c(1, 2),
-            function(s) {
-              recursive_clustering(fits[[s]])
-            },
-            mc.cores = global_opts$nb_cores,
-            mc.stdout = "output",
-            mc.retry = -1
-          )
-        ))
+      return(append(
+        list(fit$best_fit),
+        # New recursion over the 2 new fits
+        bettermc::mclapply(
+          c(1, 2),
+          function(s) {
+            recursive_clustering(fits[[s]])
+          },
+          mc.cores = global_opts$nb_cores,
+          mc.stdout = "output",
+          mc.retry = -1
+        )
+      ))
     } else {
       # Here the recursion stops once the BICL doesn't improve
       if (fits[[1]]$best_fit$BICL + fits[[2]]$best_fit$BICL >
-          fit$best_fit$BICL) {
+        fit$best_fit$BICL) {
         return(append(
           list(fit$best_fit),
           # New recursion over the 2 new fits
@@ -601,7 +647,6 @@ clusterize_bipartite_networks <- function(netlist,
     cat("\n=== Finished recursion ===\n")
   }
   invisible(list_model_binary)
-
 }
 
 #' Extract the best partition from the list of model given by the function
