@@ -5,6 +5,7 @@ inst/doc
 .vscode
 last.dump.rds
 
+real_data/presentation_dore_files/
 wip
 src/*.o
 src/*.so
