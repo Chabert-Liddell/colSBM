@@ -213,6 +213,9 @@ estimate_colSBM <-
 #' @param Z_init An optional bi-dimensional list of size Q1_max x Q2_max containing
 #' for each value a list of two vectors of clusters memberships. Default to
 #' NULL.
+#' @param sep_BiSBM a pre-fitted sep_BiSBM. Used to avoid end computations. The
+#' best way to obtain one is to extract from a fitted bisbmpop object. Defaults
+#' to NULL.
 #'
 #' @details The list of parameters \code{global_opts} essentially tunes the
 #' exploration process.
@@ -304,7 +307,8 @@ estimate_colBiSBM <-
            global_opts = list(),
            fit_opts = list(),
            Z_init = NULL,
-           silent_parallelization = FALSE) {
+           silent_parallelization = FALSE,
+           sep_BiSBM = NULL) {
     switch(colsbm_model,
       "iid" = {
         free_density <- FALSE
@@ -397,6 +401,7 @@ estimate_colBiSBM <-
               fit_opts = fit_opts,
               Z_init = Z_init
             )
+            tmp_fit$sep_BiSBM <- sep_BiSBM
             tmp_fit$optimize()
             return(tmp_fit)
           },
@@ -422,6 +427,7 @@ estimate_colBiSBM <-
               fit_opts = fit_opts,
               Z_init = Z_init
             )
+            tmp_fit$sep_BiSBM <- sep_BiSBM
             tmp_fit$optimize()
             return(tmp_fit)
           }
