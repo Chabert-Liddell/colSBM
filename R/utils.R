@@ -65,8 +65,9 @@ generate_unipartite_collection <- function(n, pi, alpha, M) {
 #'
 #' @noMd
 #' @noRd
-generate_bipartite_network <- function(nr, nc, pi, rho, alpha,
-  return_memberships = FALSE) {
+generate_bipartite_network <- function(
+    nr, nc, pi, rho, alpha,
+    return_memberships = FALSE) {
   rowblocks_memberships <- rmultinom(nr, size = 1, prob = pi)
   colblocks_memberships <- rmultinom(nc, size = 1, prob = rho)
   node_node_interaction_prob <- t(rowblocks_memberships) %*%
@@ -105,18 +106,19 @@ generate_bipartite_network <- function(nr, nc, pi, rho, alpha,
 #' @param model the colBiSBM model to use. Available: "iid", "pi", "rho",
 #' "pirho"
 #' @param return_memberships a boolean which choose whether the function returns
-#' a list containing the memberships and the incidence matrices or just the 
+#' a list containing the memberships and the incidence matrices or just the
 #' incidence matrices. Defaults to FALSE, only the matrices are returned.
-#' 
+#'
 #' @details the model parameters if set to any other than iid will shuffle the
 #' provided pi and rho
 #'
 #' @return A list of M lists, which contains : $incidence_matrix, $row_blockmemberships, $col_blockmemberships
 #'
 #' @export
-generate_bipartite_collection <- function(nr, nc, pi, rho, alpha, M,
-model = "iid",
-return_memberships = FALSE) {
+generate_bipartite_collection <- function(
+    nr, nc, pi, rho, alpha, M,
+    model = "iid",
+    return_memberships = FALSE) {
   out <- list()
 
   # Check if nr and nc are vectors
@@ -141,18 +143,19 @@ return_memberships = FALSE) {
     )
   }
 
-  switch(model, "iid" = {
-    out <- lapply(seq.int(M), function(m) {
-      generate_bipartite_network(
-        nr = nr[[m]],
-        nc = nc[[m]],
-        pi = pi,
-        rho = rho,
-        alpha = alpha,
-        return_memberships = return_memberships
-      )
-    })
-  },
+  switch(model,
+    "iid" = {
+      out <- lapply(seq.int(M), function(m) {
+        generate_bipartite_network(
+          nr = nr[[m]],
+          nc = nc[[m]],
+          pi = pi,
+          rho = rho,
+          alpha = alpha,
+          return_memberships = return_memberships
+        )
+      })
+    },
     "pi" = {
       out <- lapply(seq.int(M), function(m) {
         generate_bipartite_network(
@@ -360,7 +363,7 @@ split_clust <- function(X, Z, Q, is_bipartite = FALSE) {
             mean(X[Z == q, , drop = FALSE][C == 2, ]),
             mean(X[, Z == q, drop = FALSE][, C == 2])
           )
-        }else{
+        } else {
           p1 <- c(
             mean(X[Z == q, , drop = FALSE][C == 1, ])
           )
@@ -506,7 +509,7 @@ logit <- function(x) log(x / (1 - x))
   return(O)
 }
 
-.rev_one_hot <- function(X){
+.rev_one_hot <- function(X) {
   return(as.vector(max.col(X)))
 }
 
@@ -529,13 +532,13 @@ reorder_parameters <- function(model) {
   if (out_model$Q[1] > 1) {
     mean_pi <- matrixStats::rowMeans2(mean_pi)
   } else {
-    mean_pi <- matrix(1, 1, 1)
+    mean_pi <- 1
   }
   mean_rho <- sapply(out_model$pi, function(pi) pi[[2]])
   if (out_model$Q[2] > 1) {
     mean_rho <- matrixStats::rowMeans2(mean_rho)
   } else {
-    mean_rho <- matrix(1, 1, 1)
+    mean_rho <- 1
   }
   # The row clustering are reordered according to their marginal distribution
   prob1 <- as.vector(mean_rho %*% t(out_model$MAP$alpha))
@@ -564,7 +567,7 @@ reorder_parameters <- function(model) {
 
     out_model$emqr[m, , ] <- out_model$emqr[m, p1, p2, drop = FALSE]
     out_model$nmqr[m, , ] <- out_model$nmqr[m, p1, p2, drop = FALSE]
-    out_model$alpham[[m]] <- out_model$alpham[[m]][p1, p2, drop = FALSE]
+    out_model$alpham[[m]] <- matrix(out_model$alpham[[m]], out_model$Q[1], out_model$Q[2])[p1, p2, drop = FALSE]
     out_model$tau[[m]][[1]] <- out_model$tau[[m]][[1]][, p1, drop = FALSE]
     out_model$tau[[m]][[2]] <- out_model$tau[[m]][[2]][, p2, drop = FALSE]
     out_model$Z[[m]][[1]] <- Z_label_switch(out_model$Z[[m]][[1]], p1)
@@ -572,11 +575,11 @@ reorder_parameters <- function(model) {
 
     # MAP parameters
     # Work needed to relabel correctly!
-    out_model$MAP$Z[[m]][[1]] <- Z_label_switch(out_model$MAP$Z[[m]][[1]],p1)
-    out_model$MAP$Z[[m]][[2]] <- Z_label_switch(out_model$MAP$Z[[m]][[2]],p2)
+    out_model$MAP$Z[[m]][[1]] <- Z_label_switch(out_model$MAP$Z[[m]][[1]], p1)
+    out_model$MAP$Z[[m]][[2]] <- Z_label_switch(out_model$MAP$Z[[m]][[2]], p2)
     out_model$MAP$emqr[m, , ] <- out_model$MAP$emqr[m, p1, p2, drop = FALSE]
     out_model$MAP$nmqr[m, , ] <- out_model$MAP$nmqr[m, p1, p2, drop = FALSE]
-    out_model$MAP$alpham[[m]] <- out_model$MAP$alpham[[m]][p1, p2, drop = FALSE]
+    out_model$MAP$alpham[[m]] <- matrix(out_model$MAP$alpham[[m]], out_model$Q[1], out_model$Q[2])[p1, p2, drop = FALSE]
     out_model$MAP$pim[[m]][[1]] <- out_model$MAP$pim[[m]][[1]][p1, drop = FALSE]
     out_model$MAP$pim[[m]][[2]] <- out_model$MAP$pim[[m]][[2]][p2, drop = FALSE]
     out_model$MAP$pi[[m]][[1]] <- out_model$MAP$pi[[m]][[1]][p1, drop = FALSE]
