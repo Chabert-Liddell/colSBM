@@ -1,5 +1,3 @@
-
-
 #' Compute the dissimilarity between 2 mesoscale structures
 #'
 #' @param pi A list of two probability vectors
@@ -19,35 +17,32 @@
 #' @export
 #'
 #' @examples
-dist_bmpop_max <- function(pi, alpha, delta = c(1,1), weight = "max",
+dist_bmpop_max <- function(pi, alpha, delta = c(1, 1), weight = "max",
                            norm = "L2", directed) {
   if (missing(directed)) {
     directed <- isSymmetric.matrix(alpha[[1]]) & isSymmetric.matrix(alpha[[2]])
   }
-  if (! directed) {
+  if (!directed) {
     alpha[[1]][upper.tri(alpha[[1]])] <- 0
     alpha[[2]][upper.tri(alpha[[2]])] <- 0
   }
   if (missing(pi)) {
-    d <- switch(
-      norm,
-      "L1" = sum(abs(alpha[[1]]/delta[1] - alpha[[2]]/delta[2])),
-      "L2" = sum((alpha[[1]]/delta[1] - alpha[[2]]/delta[2])**2)
+    d <- switch(norm,
+      "L1" = sum(abs(alpha[[1]] / delta[1] - alpha[[2]] / delta[2])),
+      "L2" = sum((alpha[[1]] / delta[1] - alpha[[2]] / delta[2])**2)
     )
   } else {
-    w <- switch(
-      weight,
+    w <- switch(weight,
       "max" = pmax(pi[[1]], pi[[2]]),
-      "mean" = .5*(pi[[1]] + pi[[2]])
+      "mean" = .5 * (pi[[1]] + pi[[2]])
     )
-    d <- switch(
-      norm,
+    d <- switch(norm,
       "L1" = sum(w %*%
-                   (abs(alpha[[1]]/delta[1] - alpha[[2]]/delta[2])) %*%
-                   w),
+        (abs(alpha[[1]] / delta[1] - alpha[[2]] / delta[2])) %*%
+        w),
       "L2" = sum(w %*%
-                   ((alpha[[1]]/delta[1] - alpha[[2]]/delta[2])**2) %*%
-                   w)
+        ((alpha[[1]] / delta[1] - alpha[[2]] / delta[2])**2) %*%
+        w)
     )
   }
   d
@@ -105,8 +100,9 @@ dist_bmpop_max <- function(pi, alpha, delta = c(1,1), weight = "max",
 #' @export
 #'
 #' @examples
-dist_bisbmpop_max <- function(pi, 
-rho, alpha, delta = c(1, 1), weight = "max", norm = "L2") {
+dist_bisbmpop_max <- function(
+    pi,
+    rho, alpha, delta = c(1, 1), weight = "max", norm = "L2") {
   if (missing(pi) || missing(rho)) {
     distance <- switch(norm,
       "L1" = sum(abs(alpha[[1]] / delta[1] - alpha[[2]] / delta[2])),
@@ -122,12 +118,12 @@ rho, alpha, delta = c(1, 1), weight = "max", norm = "L2") {
       "mean" = .5 * (rho[[1]] + rho[[2]])
     )
     distance <- switch(norm,
-      "L1" = sum(w_pi %*%
+      "L1" = sum(as.vector(w_pi) %*%
         (abs(alpha[[1]] / delta[1] - alpha[[2]] / delta[2])) %*%
-        t(w_rho)),
-      "L2" = sum(w_pi %*%
+        as.vector(w_rho)),
+      "L2" = sum(as.vector(w_pi) %*%
         ((alpha[[1]] / delta[1] - alpha[[2]] / delta[2])**2) %*%
-        t(w_rho))
+        as.vector(w_rho))
     )
   }
   distance
