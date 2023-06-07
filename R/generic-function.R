@@ -278,11 +278,19 @@ fitBipartiteSBMPop$set(
   function(type = "graphon", oRow = NULL, oCol = NULL, mixture = FALSE, net_id = NULL, ...) {
     # The below order use mean over all networks to have a consistent display
     if (is.null(oRow)) {
-      mean_rho <- matrixStats::rowMeans2(sapply(self$pi, function(pi) pi[[2]]))
+      if (self$Q[2] == 1) {
+        mean_rho <- 1
+      } else {
+        mean_rho <- matrixStats::rowMeans2(sapply(self$pi, function(pi) pi[[2]]))
+      }
       oRow <- order(self$alpha %*% mean_rho, decreasing = TRUE)
     }
     if (is.null(oCol)) {
-      mean_pi <- matrixStats::rowMeans2(sapply(self$pi, function(pi) pi[[1]]))
+      if (self$Q[1] == 1) {
+        mean_pi <- 1
+      } else {
+        mean_pi <- matrixStats::rowMeans2(sapply(self$pi, function(pi) pi[[1]]))
+      }
       oCol <- order(mean_pi %*% self$alpha, decreasing = TRUE)
     }
     p <- switch(type,
@@ -332,11 +340,11 @@ fitBipartiteSBMPop$set(
         }
         df_pi <- purrr::map_dfc(
           seq_along(self$net_id),
-          function(m) setNames(data.frame(self$pim[[m]][[1]][oRow]), self$net_id[[m]])
+          function(m) setNames(data.frame(self$pim[[m]][[1]][oRow]), m)
         )
         df_rho <- purrr::map_dfc(
           seq_along(self$net_id),
-          function(m) setNames(data.frame(self$pim[[m]][[2]][oCol]), self$net_id[[m]])
+          function(m) setNames(data.frame(self$pim[[m]][[2]][oCol]), m)
         )
         # names(df_pi) <- self$net_id
         if (mixture) {
