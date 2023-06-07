@@ -88,6 +88,7 @@ if (identical(arg, character(0))) {
 print(number_of_net)
 print(model)
 print(nb_run)
+print(data_name)
 tic()
 list_collection <- clusterize_bipartite_networks(
   netlist = source_data[1:number_of_net],
