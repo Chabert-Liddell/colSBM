@@ -17,41 +17,156 @@ source("wip/temporary_plot.R")
 ```{r pretty_matrix_print, echo = FALSE}
 # Define a generic method that transforms an object x in a LaTeX string
 as_latex <- function(x, ...) {
-    UseMethod("as_latex", x)
+  UseMethod("as_latex", x)
 }
 
 # Define a class latex for LaTeX expressions
 as_latex.character <- function(x) {
-    structure(
-        paste(x, collapse = " "),
-        class = c("latex", "character")
-    )
+  structure(
+    paste(x, collapse = " "),
+    class = c("latex", "character")
+  )
 }
 
 # A character string of class latex is rendered in display mode
 # Define a knit_print() method for the latex class
 knit_print.latex <- function(x, ...) {
-    knitr::asis_output(
-        paste0("$$", x, "$$")
-    )
+  knitr::asis_output(
+    paste0("$$", x, "$$")
+  )
 }
 
 # Now, define a method as_latex for matrix
 as_latex.matrix <- function(x, ...) {
-    as_latex(c(
-        "\\begin{bmatrix}",
-        paste(
-            t(x),
-            rep(c(rep("&", nrow(x) - 1), "\\\\"), ncol(x)),
-            collapse = ""
-        ),
-        "\\end{bmatrix}"
-    ))
+  as_latex(c(
+    "\\begin{bmatrix}",
+    paste(
+      t(x),
+      rep(c(rep("&", nrow(x) - 1), "\\\\"), ncol(x)),
+      collapse = ""
+    ),
+    "\\end{bmatrix}"
+  ))
 }
 
 # Indicate to knitr that matrix are rendered as latex
 knit_print.matrix <- function(x, ...) {
-    knitr::knit_print(as_latex(x))
+  knitr::knit_print(as_latex(round(x, 2)))
+}
+```
+
+```{r taxonomy_functions, echo = FALSE}
+interaction_data <- read.table(file = "real_data/data/interaction-data.txt", sep = "\t", header = TRUE)
+
+insect_orders <- unique(interaction_data$insectorder)
+plant_family <- unique(interaction_data$plantfamily)
+### Matching taxonomy
+taxonomy_in_clusters <- function(unlisted_model) {
+  if (is.list(unlisted_model)) {
+    lapply(seq_len(length(unlisted_model)), function(col_idx) {
+      # Per collection
+      # Empty init
+      insect_count <- t(sapply(insect_orders, function(order) {
+        out_count <- rep(0, unlisted_model[[col_idx]]$Q[2])
+        out_count
+      }))
+
+      plant_count <- t(sapply(plant_family, function(order) {
+        out_count <- rep(0, unlisted_model[[col_idx]]$Q[1])
+        out_count
+      }))
+
+      for (m in seq.int(unlisted_model[[col_idx]]$M)) {
+        #### Insect
+        insect_names <- names(unlisted_model[[col_idx]]$Z[[1]][[2]])
+
+        insect_count <- insect_count + t(sapply(insect_orders, function(order) {
+          out_count <- rep(0, unlisted_model[[col_idx]]$Q[2])
+          names(out_count) <- seq.int(unlisted_model[[col_idx]]$Q[2])
+          insect_count <- table(unlisted_model[[col_idx]]$Z[[m]][[2]][grep(order, insect_names)])
+          out_count[names(insect_count)] <- insect_count
+          out_count
+        }))
+        #### Plants
+        plant_names <- names(unlisted_model[[col_idx]]$Z[[1]][[1]])
+
+        plant_count <- t(sapply(plant_family, function(order) {
+          out_count <- rep(0, unlisted_model[[col_idx]]$Q[1])
+          names(out_count) <- seq.int(unlisted_model[[col_idx]]$Q[1])
+          plant_count <- table(unlisted_model[[col_idx]]$Z[[m]][[1]][grep(order, plant_names)])
+          out_count[names(plant_count)] <- plant_count
+          out_count
+        }))
+      }
+      return(list(insects = insect_count, plants = plant_count))
+    })
+  } else {
+    # Per collection
+    # Empty init
+    insect_count <- t(sapply(insect_orders, function(order) {
+      out_count <- rep(0, unlisted_model$Q[2])
+      out_count
+    }))
+
+    plant_count <- t(sapply(plant_family, function(order) {
+      out_count <- rep(0, unlisted_model$Q[1])
+      out_count
+    }))
+
+    for (m in seq.int(unlisted_model$M)) {
+      #### Insect
+      insect_names <- names(unlisted_model$Z[[1]][[2]])
+
+      insect_count <- insect_count + t(sapply(insect_orders, function(order) {
+        out_count <- rep(0, unlisted_model$Q[2])
+        names(out_count) <- seq.int(unlisted_model$Q[2])
+        insect_count <- table(unlisted_model$Z[[m]][[2]][grep(order, insect_names)])
+        out_count[names(insect_count)] <- insect_count
+        out_count
+      }))
+      #### Plants
+      plant_names <- names(unlisted_model$Z[[1]][[1]])
+
+      plant_count <- t(sapply(plant_family, function(order) {
+        out_count <- rep(0, unlisted_model$Q[1])
+        names(out_count) <- seq.int(unlisted_model$Q[1])
+        plant_count <- table(unlisted_model$Z[[m]][[1]][grep(order, plant_names)])
+        out_count[names(plant_count)] <- plant_count
+        out_count
+      }))
+    }
+    return(list(list(insects = insect_count, plants = plant_count)))
+  }
+}
+
+taxonomy_remove_empty <- function(taxonomy_collections_list) {
+  lapply(taxonomy_collections_list, function(collection) {
+    list(
+      insects = collection$insects[which(rowSums(collection$insects != 0) > 0), ],
+      plants = collection$plants[which(rowSums(collection$plants != 0) > 0), ]
+    )
+  })
+}
+
+taxonomy_plot <- function(data, insects_or_plants, model, stack_or_fill) {
+  plots <- data %>%
+    ggplot(aes(x = block, y = nb_nodes, fill = taxo)) +
+    geom_bar(stat = "identity", position = stack_or_fill) +
+    labs(x = "Block", y = "Number of Nodes", fill = "Taxonomy") +
+    theme_minimal() +
+    scale_fill_manual(values = unname(palette.colors())) +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+    ggtitle(paste(
+      ifelse(insects_or_plants == "insects",
+        "Pollinators", "Plants"
+      ), "repartition (",
+      ifelse(stack_or_fill == "stack", "absolute", "proportion"),
+      ") in the", model, "clustering"
+    )) +
+    facet_wrap(~col_id, ncol = 3, scales = "free_x")
+
+  # Arrange the plots in a grid layout
+  return(gridExtra::grid.arrange(plots, newpage = TRUE))
 }
 ```
 
@@ -78,21 +193,21 @@ pirho_unlist <- unlist(pirho_best_partition)
 Avec le modèle *iid* nous obtenons les `r length(iid_unlist)` collections suivantes:
 ```{r iid_liste_nom, echo = FALSE, results="asis"}
 iid_networks_list <- lapply(seq_along(iid_unlist), function(c) {
-    length <- length(iid_unlist[[c]]$net_id)
-    data.frame(collection_id = rep(c, length), net_id = iid_unlist[[c]]$net_id)
+  length <- length(iid_unlist[[c]]$net_id)
+  data.frame(collection_id = rep(c, length), net_id = iid_unlist[[c]]$net_id)
 })
-for(df_net in iid_networks_list) {
-    print(knitr::kable(df_net))
+for (df_net in iid_networks_list) {
+  print(knitr::kable(df_net))
 }
 ```
 
 Une fois le modèle de collection appliqué nous obtenons les structures suivantes:
 
 ```{r iid_meso_plot, echo = FALSE, message=FALSE}
-for(idx in seq_along(iid_unlist)) {
-    cat(paste("\nPour la collection", idx, "du modèle *iid*\n"))
-    print(plot(iid_unlist[[idx]], type = "meso", mixture = TRUE))
-    print(iid_unlist[[idx]]$net_id)
+for (idx in seq_along(iid_unlist)) {
+  cat(paste("\nPour la collection", idx, "du modèle *iid*\n"))
+  print(plot(iid_unlist[[idx]], type = "meso", mixture = TRUE))
+  print(iid_unlist[[idx]]$net_id)
 }
 ```
 
@@ -100,30 +215,145 @@ Et voici donc les valeurs numériques pour les $\alpha$ (paramètres de connecti
 
 ```{r iid_alpha, echo = FALSE, results="asis"}
 for (idx in seq_along(iid_unlist)) {
-    cat(paste("\nPour la collection ", idx,":\n"))
-    cat(knitr::knit_print(iid_unlist[[idx]]$alpha))
+  cat(paste("\nPour la collection ", idx, ":\n"))
+  cat(knitr::knit_print(reorder_parameters(iid_unlist[[idx]])$alpha))
 }
+```
+
+### Répartition dans les clusters selon la taxonomie
+```{r iid_taxonomy, echo = FALSE}
+iid_taxonomy <- taxonomy_in_clusters(iid_unlist)
+
+## Insects
+# Prepare data for ggplot
+col_names <- c("taxo", "block", "nb_nodes", "col_id")
+iid_collection_taxo_insects <- data.frame(matrix(ncol = length(col_names), nrow = 0))
+colnames(iid_collection_taxo_insects) <- col_names
+
+for (col_id in seq_along(iid_taxonomy)) {
+  iid_taxo_df <- data.frame(iid_taxonomy[[col_id]]$insects)
+  colnames(iid_taxo_df) <- paste("#", seq.int(ncol(iid_taxonomy[[col_id]]$insects)), sep = "")
+  iid_taxo_df <- setNames(
+    iid_taxo_df %>%
+      tibble::rownames_to_column(var = "taxo") %>%
+      tidyr::pivot_longer(cols = 2:(ncol(iid_taxonomy[[col_id]]$insects) + 1)),
+    c("taxo", "block", "nb_nodes")
+  )
+
+  iid_taxo_df$col_id <- rep(col_id, nrow(iid_taxo_df))
+
+  iid_collection_taxo_insects <- rbind(iid_collection_taxo_insects, iid_taxo_df %>%
+    mutate(block = factor(block), taxo = factor(taxo), col_id = factor(col_id)))
+}
+
+# Find the 4 largest taxons
+aggregated_taxo_insects <- aggregate(iid_collection_taxo_insects$nb_nodes, by = list(taxo = iid_collection_taxo_insects$taxo), FUN = sum)
+taxos_in_other_insects <- as.character(aggregated_taxo_insects$taxo[-c(order(aggregated_taxo_insects$x, decreasing = TRUE)[1:6])])
+iid_collection_taxo_insects_with_other <- iid_collection_taxo_insects %>%
+  group_by(col_id, taxo, block) %>%
+  summarize(
+    nb_nodes = ifelse(as.character(taxo) %in% taxos_in_other_insects,
+      sum(nb_nodes[taxo %in% taxos_in_other_insects]), nb_nodes
+    ),
+    taxo = ifelse(as.character(taxo) %in% taxos_in_other_insects,
+      "Other", as.character(taxo)
+    )
+  )
+# Aggregating for each block
+other_nb_nodes_block_insects <- aggregate(iid_collection_taxo_insects_with_other[iid_collection_taxo_insects_with_other$taxo == "Other", ]$nb_nodes, by = list(block = iid_collection_taxo_insects_with_other[iid_collection_taxo_insects_with_other$taxo == "Other", ]$block, col_id = iid_collection_taxo_insects_with_other[iid_collection_taxo_insects_with_other$taxo == "Other", ]$col_id), FUN = sum) %>%
+  mutate(taxo = factor("Other"), nb_nodes = x, x = NULL)
+# Removing the different other and remerging with the aggregated
+iid_collection_taxo_insects_with_other <- rbind(iid_collection_taxo_insects_with_other[iid_collection_taxo_insects_with_other$taxo != "Other", ], other_nb_nodes_block_insects)
+
+## Plants
+# Prepare data for ggplot
+col_names <- c("taxo", "block", "nb_nodes", "col_id")
+iid_collection_taxo_plants <- data.frame(matrix(ncol = length(col_names), nrow = 0))
+colnames(iid_collection_taxo_plants) <- col_names
+
+for (col_id in seq_along(iid_taxonomy)) {
+  iid_taxo_df <- data.frame(iid_taxonomy[[col_id]]$plants)
+  colnames(iid_taxo_df) <- paste("#", seq.int(ncol(iid_taxonomy[[col_id]]$plants)), sep = "")
+  iid_taxo_df <- setNames(
+    iid_taxo_df %>%
+      tibble::rownames_to_column(var = "taxo") %>%
+      tidyr::pivot_longer(cols = 2:(ncol(iid_taxonomy[[col_id]]$plants) + 1)),
+    c("taxo", "block", "nb_nodes")
+  )
+
+  iid_taxo_df$col_id <- rep(col_id, nrow(iid_taxo_df))
+
+  iid_collection_taxo_plants <- rbind(iid_collection_taxo_plants, iid_taxo_df %>%
+    mutate(block = factor(block), taxo = factor(taxo), col_id = factor(col_id)))
+}
+
+# Find the largest taxons
+aggregated_taxo_plants <- aggregate(iid_collection_taxo_plants$nb_nodes, by = list(taxo = iid_collection_taxo_plants$taxo), FUN = sum)
+taxos_in_other_plants <- as.character(aggregated_taxo_plants$taxo[-c(order(aggregated_taxo_plants$x, decreasing = TRUE)[1:8])])
+iid_collection_taxo_plants_with_other <- iid_collection_taxo_plants %>%
+  group_by(col_id, taxo, block) %>%
+  summarize(
+    nb_nodes = ifelse(as.character(taxo) %in% taxos_in_other_plants,
+      sum(nb_nodes[taxo %in% taxos_in_other_plants]), nb_nodes
+    ),
+    taxo = ifelse(as.character(taxo) %in% taxos_in_other_plants,
+      "Other", as.character(taxo)
+    )
+  )
+
+# Aggregating for each block
+other_nb_nodes_block_plants <- aggregate(iid_collection_taxo_plants_with_other[iid_collection_taxo_plants_with_other$taxo == "Other", ]$nb_nodes, by = list(block = iid_collection_taxo_plants_with_other[iid_collection_taxo_plants_with_other$taxo == "Other", ]$block, col_id = iid_collection_taxo_plants_with_other[iid_collection_taxo_plants_with_other$taxo == "Other", ]$col_id), FUN = sum) %>%
+  mutate(taxo = factor("Other"), nb_nodes = x, x = NULL)
+# Removing the different other and remerging with the aggregated
+iid_collection_taxo_plants_with_other <- rbind(iid_collection_taxo_plants_with_other[iid_collection_taxo_plants_with_other$taxo != "Other", ], other_nb_nodes_block_plants)
+```
+
+```{r iid_plot_taxonomy_pollinators, echo = FALSE, message = FALSE,fig.cap = 'Pollinators repartition for the iid model regarding taxonomy'}
+# Pollinators
+taxonomy_plot(
+  data = iid_collection_taxo_insects_with_other,
+  insects_or_plants = "insects",
+  stack_or_fill = "stack", model = "iid"
+)
+taxonomy_plot(
+  data = iid_collection_taxo_insects_with_other,
+  insects_or_plants = "insects",
+  stack_or_fill = "fill", model = "iid"
+)
+```
+
+```{r iid_plot_taxonomy_plants, echo = FALSE, message = FALSE,fig.cap = 'Plants repartition for the iid model regarding taxonomy'}
+taxonomy_plot(
+  data = iid_collection_taxo_plants_with_other,
+  insects_or_plants = "plants",
+  stack_or_fill = "stack", model = "iid"
+)
+taxonomy_plot(
+  data = iid_collection_taxo_plants_with_other,
+  insects_or_plants = "plants",
+  stack_or_fill = "fill", model = "iid"
+)
 ```
 
 ## Clustering avec le modèle pi
 Avec le modèle *pi* nous obtenons les `r length(pi_unlist)` collections suivantes:
 ```{r pi_liste_nom, echo = FALSE, results="asis"}
 pi_networks_list <- lapply(seq_along(pi_unlist), function(c) {
-    length <- length(pi_unlist[[c]]$net_id)
-    data.frame(collection_id = rep(c, length), net_id = pi_unlist[[c]]$net_id)
+  length <- length(pi_unlist[[c]]$net_id)
+  data.frame(collection_id = rep(c, length), net_id = pi_unlist[[c]]$net_id)
 })
-for(df_net in pi_networks_list) {
-    print(knitr::kable(df_net))
+for (df_net in pi_networks_list) {
+  print(knitr::kable(df_net))
 }
 ```
 
 Une fois le modèle de collection appliqué nous obtenons les structures suivantes:
 
 ```{r pi_meso_plot, echo = FALSE, message=FALSE}
-for(idx in seq_along(pi_unlist)) {
-    cat(paste("\nPour la collection", idx, "du modèle *pi*\n"))
-    print(plot(pi_unlist[[idx]], type = "meso", mixture = TRUE))
-    print(pi_unlist[[idx]]$net_id)
+for (idx in seq_along(pi_unlist)) {
+  cat(paste("\nPour la collection", idx, "du modèle *pi*\n"))
+  print(plot(pi_unlist[[idx]], type = "meso", mixture = TRUE))
+  print(pi_unlist[[idx]]$net_id)
 }
 ```
 
@@ -131,52 +361,281 @@ Et voici donc les valeurs numériques pour les $\alpha$ (paramètres de connecti
 
 ```{r pi_alpha, echo = FALSE, results="asis"}
 for (idx in seq_along(pi_unlist)) {
-    cat(paste("\nPour la collection ", idx,":\n"))
-    cat(knitr::knit_print(pi_unlist[[idx]]$alpha))
+  cat(paste("\nPour la collection ", idx, ":\n"))
+  cat(knitr::knit_print(reorder_parameters(pi_unlist[[idx]])$alpha))
 }
+```
+
+### Répartition dans les clusters selon la taxonomie
+```{r pi_taxonomy, echo = FALSE}
+pi_taxonomy <- taxonomy_in_clusters(pi_unlist)
+
+## Insects
+# Prepare data for ggplot
+col_names <- c("taxo", "block", "nb_nodes", "col_id")
+pi_collection_taxo_insects <- data.frame(matrix(ncol = length(col_names), nrow = 0))
+colnames(pi_collection_taxo_insects) <- col_names
+
+for (col_id in seq_along(pi_taxonomy)) {
+  pi_taxo_df <- data.frame(pi_taxonomy[[col_id]]$insects)
+  colnames(pi_taxo_df) <- paste("#", seq.int(ncol(pi_taxonomy[[col_id]]$insects)), sep = "")
+  pi_taxo_df <- setNames(
+    pi_taxo_df %>%
+      tibble::rownames_to_column(var = "taxo") %>%
+      tidyr::pivot_longer(cols = 2:(ncol(pi_taxonomy[[col_id]]$insects) + 1)),
+    c("taxo", "block", "nb_nodes")
+  )
+
+  pi_taxo_df$col_id <- rep(col_id, nrow(pi_taxo_df))
+
+  pi_collection_taxo_insects <- rbind(pi_collection_taxo_insects, pi_taxo_df %>%
+    mutate(block = factor(block), taxo = factor(taxo), col_id = factor(col_id)))
+}
+
+# Find the 4 largest taxons
+aggregated_taxo_insects <- aggregate(pi_collection_taxo_insects$nb_nodes, by = list(taxo = pi_collection_taxo_insects$taxo), FUN = sum)
+taxos_in_other_insects <- as.character(aggregated_taxo_insects$taxo[-c(order(aggregated_taxo_insects$x, decreasing = TRUE)[1:6])])
+pi_collection_taxo_insects_with_other <- pi_collection_taxo_insects %>%
+  group_by(col_id, taxo, block) %>%
+  summarize(
+    nb_nodes = ifelse(as.character(taxo) %in% taxos_in_other_insects,
+      sum(nb_nodes[taxo %in% taxos_in_other_insects]), nb_nodes
+    ),
+    taxo = ifelse(as.character(taxo) %in% taxos_in_other_insects,
+      "Other", as.character(taxo)
+    )
+  )
+# Aggregating for each block
+other_nb_nodes_block_insects <- aggregate(pi_collection_taxo_insects_with_other[pi_collection_taxo_insects_with_other$taxo == "Other", ]$nb_nodes, by = list(block = pi_collection_taxo_insects_with_other[pi_collection_taxo_insects_with_other$taxo == "Other", ]$block, col_id = pi_collection_taxo_insects_with_other[pi_collection_taxo_insects_with_other$taxo == "Other", ]$col_id), FUN = sum) %>%
+  mutate(taxo = factor("Other"), nb_nodes = x, x = NULL)
+# Removing the different other and remerging with the aggregated
+pi_collection_taxo_insects_with_other <- rbind(pi_collection_taxo_insects_with_other[pi_collection_taxo_insects_with_other$taxo != "Other", ], other_nb_nodes_block_insects)
+
+## Plants
+# Prepare data for ggplot
+col_names <- c("taxo", "block", "nb_nodes", "col_id")
+pi_collection_taxo_plants <- data.frame(matrix(ncol = length(col_names), nrow = 0))
+colnames(pi_collection_taxo_plants) <- col_names
+
+for (col_id in seq_along(pi_taxonomy)) {
+  pi_taxo_df <- data.frame(pi_taxonomy[[col_id]]$plants)
+  colnames(pi_taxo_df) <- paste("#", seq.int(ncol(pi_taxonomy[[col_id]]$plants)), sep = "")
+  pi_taxo_df <- setNames(
+    pi_taxo_df %>%
+      tibble::rownames_to_column(var = "taxo") %>%
+      tidyr::pivot_longer(cols = 2:(ncol(pi_taxonomy[[col_id]]$plants) + 1)),
+    c("taxo", "block", "nb_nodes")
+  )
+
+  pi_taxo_df$col_id <- rep(col_id, nrow(pi_taxo_df))
+
+  pi_collection_taxo_plants <- rbind(pi_collection_taxo_plants, pi_taxo_df %>%
+    mutate(block = factor(block), taxo = factor(taxo), col_id = factor(col_id)))
+}
+
+# Find the largest taxons
+aggregated_taxo_plants <- aggregate(pi_collection_taxo_plants$nb_nodes, by = list(taxo = pi_collection_taxo_plants$taxo), FUN = sum)
+taxos_in_other_plants <- as.character(aggregated_taxo_plants$taxo[-c(order(aggregated_taxo_plants$x, decreasing = TRUE)[1:8])])
+pi_collection_taxo_plants_with_other <- pi_collection_taxo_plants %>%
+  group_by(col_id, taxo, block) %>%
+  summarize(
+    nb_nodes = ifelse(as.character(taxo) %in% taxos_in_other_plants,
+      sum(nb_nodes[taxo %in% taxos_in_other_plants]), nb_nodes
+    ),
+    taxo = ifelse(as.character(taxo) %in% taxos_in_other_plants,
+      "Other", as.character(taxo)
+    )
+  )
+
+# Aggregating for each block
+other_nb_nodes_block_plants <- aggregate(pi_collection_taxo_plants_with_other[pi_collection_taxo_plants_with_other$taxo == "Other", ]$nb_nodes, by = list(block = pi_collection_taxo_plants_with_other[pi_collection_taxo_plants_with_other$taxo == "Other", ]$block, col_id = pi_collection_taxo_plants_with_other[pi_collection_taxo_plants_with_other$taxo == "Other", ]$col_id), FUN = sum) %>%
+  mutate(taxo = factor("Other"), nb_nodes = x, x = NULL)
+# Removing the different other and remerging with the aggregated
+pi_collection_taxo_plants_with_other <- rbind(pi_collection_taxo_plants_with_other[pi_collection_taxo_plants_with_other$taxo != "Other", ], other_nb_nodes_block_plants)
+```
+
+```{r pi_plot_taxonomy_pollinators, echo = FALSE, message = FALSE,fig.cap = 'Pollinators repartition for the pi model regarding taxonomy'}
+# Pollinators
+taxonomy_plot(
+  data = pi_collection_taxo_insects_with_other,
+  insects_or_plants = "insects",
+  stack_or_fill = "stack", model = "pi"
+)
+taxonomy_plot(
+  data = pi_collection_taxo_insects_with_other,
+  insects_or_plants = "insects",
+  stack_or_fill = "fill", model = "pi"
+)
+```
+
+```{r pi_plot_taxonomy_plants, echo = FALSE, message = FALSE,fig.cap = 'Plants repartition for the pi model regarding taxonomy'}
+taxonomy_plot(
+  data = pi_collection_taxo_plants_with_other,
+  insects_or_plants = "plants",
+  stack_or_fill = "stack", model = "pi"
+)
+taxonomy_plot(
+  data = pi_collection_taxo_plants_with_other,
+  insects_or_plants = "plants",
+  stack_or_fill = "fill", model = "pi"
+)
 ```
 
 ## Clustering avec le modèle rho
 Avec le modèle *rho* nous obtenons les `r length(rho_unlist)` collections suivantes:
 ```{r rho_liste_nom, echo = FALSE, results="asis"}
-
 print(knitr::kable(rho_unlist$net_id))
 ```
 
 Une fois le modèle de collection appliqué nous obtenons les structures suivantes:
 
 ```{r rho_meso_plot, echo = FALSE, message=FALSE}
-    cat(paste("\nPour la collection 1 du modèle *rho*\n"))
-    print(plot(rho_unlist, type = "meso", mixture = TRUE))
-    print(rho_unlist$net_id)
+cat(paste("\nPour la collection 1 du modèle *rho*\n"))
+print(plot(rho_unlist, type = "meso", mixture = TRUE))
+print(rho_unlist$net_id)
 ```
 
 Et voici donc les valeurs numériques pour les $\alpha$ (paramètres de connectivité).
 
 ```{r rho_alpha, echo = FALSE, results="asis"}
 cat(paste("\nPour la collection 1:\n"))
-cat(knitr::knit_print(rho_unlist$alpha))
+cat(knitr::knit_print(reorder_parameters(rho_unlist)$alpha))
+```
+
+### Répartition dans les clusters selon la taxonomie
+```{r rho_taxonomy, echo = FALSE}
+rho_taxonomy <- taxonomy_in_clusters(rho_unlist)
+
+## Insects
+# Prepare data for ggplot
+col_names <- c("taxo", "block", "nb_nodes", "col_id")
+rho_collection_taxo_insects <- data.frame(matrix(ncol = length(col_names), nrow = 0))
+colnames(rho_collection_taxo_insects) <- col_names
+
+for (col_id in seq_along(rho_taxonomy)) {
+  rho_taxo_df <- data.frame(rho_taxonomy[[col_id]]$insects)
+  colnames(rho_taxo_df) <- paste("#", seq.int(ncol(rho_taxonomy[[col_id]]$insects)), sep = "")
+  rho_taxo_df <- setNames(
+    rho_taxo_df %>%
+      tibble::rownames_to_column(var = "taxo") %>%
+      tidyr::pivot_longer(cols = 2:(ncol(rho_taxonomy[[col_id]]$insects) + 1)),
+    c("taxo", "block", "nb_nodes")
+  )
+
+  rho_taxo_df$col_id <- rep(col_id, nrow(rho_taxo_df))
+
+  rho_collection_taxo_insects <- rbind(rho_collection_taxo_insects, rho_taxo_df %>%
+    mutate(block = factor(block), taxo = factor(taxo), col_id = factor(col_id)))
+}
+
+# Find the 4 largest taxons
+aggregated_taxo_insects <- aggregate(rho_collection_taxo_insects$nb_nodes, by = list(taxo = rho_collection_taxo_insects$taxo), FUN = sum)
+taxos_in_other_insects <- as.character(aggregated_taxo_insects$taxo[-c(order(aggregated_taxo_insects$x, decreasing = TRUE)[1:6])])
+rho_collection_taxo_insects_with_other <- rho_collection_taxo_insects %>%
+  group_by(col_id, taxo, block) %>%
+  summarize(
+    nb_nodes = ifelse(as.character(taxo) %in% taxos_in_other_insects,
+      sum(nb_nodes[taxo %in% taxos_in_other_insects]), nb_nodes
+    ),
+    taxo = ifelse(as.character(taxo) %in% taxos_in_other_insects,
+      "Other", as.character(taxo)
+    )
+  )
+# Aggregating for each block
+other_nb_nodes_block_insects <- aggregate(rho_collection_taxo_insects_with_other[rho_collection_taxo_insects_with_other$taxo == "Other", ]$nb_nodes, by = list(block = rho_collection_taxo_insects_with_other[rho_collection_taxo_insects_with_other$taxo == "Other", ]$block, col_id = rho_collection_taxo_insects_with_other[rho_collection_taxo_insects_with_other$taxo == "Other", ]$col_id), FUN = sum) %>%
+  mutate(taxo = factor("Other"), nb_nodes = x, x = NULL)
+# Removing the different other and remerging with the aggregated
+rho_collection_taxo_insects_with_other <- rbind(rho_collection_taxo_insects_with_other[rho_collection_taxo_insects_with_other$taxo != "Other", ], other_nb_nodes_block_insects)
+
+## Plants
+# Prepare data for ggplot
+col_names <- c("taxo", "block", "nb_nodes", "col_id")
+rho_collection_taxo_plants <- data.frame(matrix(ncol = length(col_names), nrow = 0))
+colnames(rho_collection_taxo_plants) <- col_names
+
+for (col_id in seq_along(rho_taxonomy)) {
+  rho_taxo_df <- data.frame(rho_taxonomy[[col_id]]$plants)
+  colnames(rho_taxo_df) <- paste("#", seq.int(ncol(rho_taxonomy[[col_id]]$plants)), sep = "")
+  rho_taxo_df <- setNames(
+    rho_taxo_df %>%
+      tibble::rownames_to_column(var = "taxo") %>%
+      tidyr::pivot_longer(cols = 2:(ncol(rho_taxonomy[[col_id]]$plants) + 1)),
+    c("taxo", "block", "nb_nodes")
+  )
+
+  rho_taxo_df$col_id <- rep(col_id, nrow(rho_taxo_df))
+
+  rho_collection_taxo_plants <- rbind(rho_collection_taxo_plants, rho_taxo_df %>%
+    mutate(block = factor(block), taxo = factor(taxo), col_id = factor(col_id)))
+}
+
+# Find the largest taxons
+aggregated_taxo_plants <- aggregate(rho_collection_taxo_plants$nb_nodes, by = list(taxo = rho_collection_taxo_plants$taxo), FUN = sum)
+taxos_in_other_plants <- as.character(aggregated_taxo_plants$taxo[-c(order(aggregated_taxo_plants$x, decreasing = TRUE)[1:8])])
+rho_collection_taxo_plants_with_other <- rho_collection_taxo_plants %>%
+  group_by(col_id, taxo, block) %>%
+  summarize(
+    nb_nodes = ifelse(as.character(taxo) %in% taxos_in_other_plants,
+      sum(nb_nodes[taxo %in% taxos_in_other_plants]), nb_nodes
+    ),
+    taxo = ifelse(as.character(taxo) %in% taxos_in_other_plants,
+      "Other", as.character(taxo)
+    )
+  )
+
+# Aggregating for each block
+other_nb_nodes_block_plants <- aggregate(rho_collection_taxo_plants_with_other[rho_collection_taxo_plants_with_other$taxo == "Other", ]$nb_nodes, by = list(block = rho_collection_taxo_plants_with_other[rho_collection_taxo_plants_with_other$taxo == "Other", ]$block, col_id = rho_collection_taxo_plants_with_other[rho_collection_taxo_plants_with_other$taxo == "Other", ]$col_id), FUN = sum) %>%
+  mutate(taxo = factor("Other"), nb_nodes = x, x = NULL)
+# Removing the different other and remerging with the aggregated
+rho_collection_taxo_plants_with_other <- rbind(rho_collection_taxo_plants_with_other[rho_collection_taxo_plants_with_other$taxo != "Other", ], other_nb_nodes_block_plants)
+```
+
+```{r rho_plot_taxonomy_pollinators, echo = FALSE, message = FALSE,fig.cap = 'Pollinators repartition for the rho model regarding taxonomy'}
+# Pollinators
+taxonomy_plot(
+  data = rho_collection_taxo_insects_with_other,
+  insects_or_plants = "insects",
+  stack_or_fill = "stack", model = "rho"
+)
+taxonomy_plot(
+  data = rho_collection_taxo_insects_with_other,
+  insects_or_plants = "insects",
+  stack_or_fill = "fill", model = "rho"
+)
+```
+
+```{r rho_plot_taxonomy_plants, echo = FALSE, message = FALSE,fig.cap = 'Plants repartition for the rho model regarding taxonomy'}
+taxonomy_plot(
+  data = rho_collection_taxo_plants_with_other,
+  insects_or_plants = "plants",
+  stack_or_fill = "stack", model = "rho"
+)
+taxonomy_plot(
+  data = rho_collection_taxo_plants_with_other,
+  insects_or_plants = "plants",
+  stack_or_fill = "fill", model = "rho"
+)
 ```
 
 ## Clustering avec le modèle pirho
 Avec le modèle *pirho* nous obtenons les `r length(pirho_unlist)` collections suivantes:
 ```{r pirho_liste_nom, echo = FALSE, results="asis"}
 pirho_networks_list <- lapply(seq_along(pirho_unlist), function(c) {
-    length <- length(pirho_unlist[[c]]$net_id)
-    data.frame(collection_id = rep(c, length), net_id = pirho_unlist[[c]]$net_id)
+  length <- length(pirho_unlist[[c]]$net_id)
+  data.frame(collection_id = rep(c, length), net_id = pirho_unlist[[c]]$net_id)
 })
-for(df_net in pirho_networks_list) {
-    print(knitr::kable(df_net))
+for (df_net in pirho_networks_list) {
+  print(knitr::kable(df_net))
 }
 ```
 
 Une fois le modèle de collection appliqué nous obtenons les structures suivantes:
 
 ```{r pirho_meso_plot, echo = FALSE, message=FALSE}
-for(idx in seq_along(pirho_unlist)) {
-    cat(paste("\nPour la collection", idx, "du modèle *pirho*\n"))
-    print(plot(pirho_unlist[[idx]], type = "meso", mixture = TRUE))
-    print(pirho_unlist[[idx]]$net_id)
+for (idx in seq_along(pirho_unlist)) {
+  cat(paste("\nPour la collection", idx, "du modèle *pirho*\n"))
+  print(plot(pirho_unlist[[idx]], type = "meso", mixture = TRUE))
+  print(pirho_unlist[[idx]]$net_id)
 }
 ```
 
@@ -184,7 +643,122 @@ Et voici donc les valeurs numériques pour les $\alpha$ (paramètres de connecti
 
 ```{r pirho_alpha, echo = FALSE, results="asis"}
 for (idx in seq_along(pirho_unlist)) {
-    cat(paste("\nPour la collection ", idx,":\n"))
-    cat(knitr::knit_print(pirho_unlist[[idx]]$alpha))
+  cat(paste("\nPour la collection ", idx, ":\n"))
+  cat(knitr::knit_print(reorder_parameters(pirho_unlist[[idx]])$alpha))
 }
+```
+
+### Répartition dans les clusters selon la taxonomie
+```{r pirho_taxonomy, echo = FALSE}
+pirho_taxonomy <- taxonomy_in_clusters(pirho_unlist)
+
+## Insects
+# Prepare data for ggplot
+col_names <- c("taxo", "block", "nb_nodes", "col_id")
+pirho_collection_taxo_insects <- data.frame(matrix(ncol = length(col_names), nrow = 0))
+colnames(pirho_collection_taxo_insects) <- col_names
+
+for (col_id in seq_along(pirho_taxonomy)) {
+  pirho_taxo_df <- data.frame(pirho_taxonomy[[col_id]]$insects)
+  colnames(pirho_taxo_df) <- paste("#", seq.int(ncol(pirho_taxonomy[[col_id]]$insects)), sep = "")
+  pirho_taxo_df <- setNames(
+    pirho_taxo_df %>%
+      tibble::rownames_to_column(var = "taxo") %>%
+      tidyr::pivot_longer(cols = 2:(ncol(pirho_taxonomy[[col_id]]$insects) + 1)),
+    c("taxo", "block", "nb_nodes")
+  )
+
+  pirho_taxo_df$col_id <- rep(col_id, nrow(pirho_taxo_df))
+
+  pirho_collection_taxo_insects <- rbind(pirho_collection_taxo_insects, pirho_taxo_df %>%
+    mutate(block = factor(block), taxo = factor(taxo), col_id = factor(col_id)))
+}
+
+# Find the 4 largest taxons
+aggregated_taxo_insects <- aggregate(pirho_collection_taxo_insects$nb_nodes, by = list(taxo = pirho_collection_taxo_insects$taxo), FUN = sum)
+taxos_in_other_insects <- as.character(aggregated_taxo_insects$taxo[-c(order(aggregated_taxo_insects$x, decreasing = TRUE)[1:6])])
+pirho_collection_taxo_insects_with_other <- pirho_collection_taxo_insects %>%
+  group_by(col_id, taxo, block) %>%
+  summarize(
+    nb_nodes = ifelse(as.character(taxo) %in% taxos_in_other_insects,
+      sum(nb_nodes[taxo %in% taxos_in_other_insects]), nb_nodes
+    ),
+    taxo = ifelse(as.character(taxo) %in% taxos_in_other_insects,
+      "Other", as.character(taxo)
+    )
+  )
+# Aggregating for each block
+other_nb_nodes_block_insects <- aggregate(pirho_collection_taxo_insects_with_other[pirho_collection_taxo_insects_with_other$taxo == "Other", ]$nb_nodes, by = list(block = pirho_collection_taxo_insects_with_other[pirho_collection_taxo_insects_with_other$taxo == "Other", ]$block, col_id = pirho_collection_taxo_insects_with_other[pirho_collection_taxo_insects_with_other$taxo == "Other", ]$col_id), FUN = sum) %>%
+  mutate(taxo = factor("Other"), nb_nodes = x, x = NULL)
+# Removing the different other and remerging with the aggregated
+pirho_collection_taxo_insects_with_other <- rbind(pirho_collection_taxo_insects_with_other[pirho_collection_taxo_insects_with_other$taxo != "Other", ], other_nb_nodes_block_insects)
+
+## Plants
+# Prepare data for ggplot
+col_names <- c("taxo", "block", "nb_nodes", "col_id")
+pirho_collection_taxo_plants <- data.frame(matrix(ncol = length(col_names), nrow = 0))
+colnames(pirho_collection_taxo_plants) <- col_names
+
+for (col_id in seq_along(pirho_taxonomy)) {
+  pirho_taxo_df <- data.frame(pirho_taxonomy[[col_id]]$plants)
+  colnames(pirho_taxo_df) <- paste("#", seq.int(ncol(pirho_taxonomy[[col_id]]$plants)), sep = "")
+  pirho_taxo_df <- setNames(
+    pirho_taxo_df %>%
+      tibble::rownames_to_column(var = "taxo") %>%
+      tidyr::pivot_longer(cols = 2:(ncol(pirho_taxonomy[[col_id]]$plants) + 1)),
+    c("taxo", "block", "nb_nodes")
+  )
+
+  pirho_taxo_df$col_id <- rep(col_id, nrow(pirho_taxo_df))
+
+  pirho_collection_taxo_plants <- rbind(pirho_collection_taxo_plants, pirho_taxo_df %>%
+    mutate(block = factor(block), taxo = factor(taxo), col_id = factor(col_id)))
+}
+
+# Find the largest taxons
+aggregated_taxo_plants <- aggregate(pirho_collection_taxo_plants$nb_nodes, by = list(taxo = pirho_collection_taxo_plants$taxo), FUN = sum)
+taxos_in_other_plants <- as.character(aggregated_taxo_plants$taxo[-c(order(aggregated_taxo_plants$x, decreasing = TRUE)[1:8])])
+pirho_collection_taxo_plants_with_other <- pirho_collection_taxo_plants %>%
+  group_by(col_id, taxo, block) %>%
+  summarize(
+    nb_nodes = ifelse(as.character(taxo) %in% taxos_in_other_plants,
+      sum(nb_nodes[taxo %in% taxos_in_other_plants]), nb_nodes
+    ),
+    taxo = ifelse(as.character(taxo) %in% taxos_in_other_plants,
+      "Other", as.character(taxo)
+    )
+  )
+
+# Aggregating for each block
+other_nb_nodes_block_plants <- aggregate(pirho_collection_taxo_plants_with_other[pirho_collection_taxo_plants_with_other$taxo == "Other", ]$nb_nodes, by = list(block = pirho_collection_taxo_plants_with_other[pirho_collection_taxo_plants_with_other$taxo == "Other", ]$block, col_id = pirho_collection_taxo_plants_with_other[pirho_collection_taxo_plants_with_other$taxo == "Other", ]$col_id), FUN = sum) %>%
+  mutate(taxo = factor("Other"), nb_nodes = x, x = NULL)
+# Removing the different other and remerging with the aggregated
+pirho_collection_taxo_plants_with_other <- rbind(pirho_collection_taxo_plants_with_other[pirho_collection_taxo_plants_with_other$taxo != "Other", ], other_nb_nodes_block_plants)
+```
+
+```{r pirho_plot_taxonomy_pollinators, echo = FALSE, message = FALSE,fig.cap = 'Pollinators repartition for the pirho model regarding taxonomy'}
+# Pollinators
+taxonomy_plot(
+  data = pirho_collection_taxo_insects_with_other,
+  insects_or_plants = "insects",
+  stack_or_fill = "stack", model = "pirho"
+)
+taxonomy_plot(
+  data = pirho_collection_taxo_insects_with_other,
+  insects_or_plants = "insects",
+  stack_or_fill = "fill", model = "pirho"
+)
+```
+
+```{r pirho_plot_taxonomy_plants, echo = FALSE, message = FALSE,fig.cap = 'Plants repartition for the pirho model regarding taxonomy'}
+taxonomy_plot(
+  data = pirho_collection_taxo_plants_with_other,
+  insects_or_plants = "plants",
+  stack_or_fill = "stack", model = "pirho"
+)
+taxonomy_plot(
+  data = pirho_collection_taxo_plants_with_other,
+  insects_or_plants = "plants",
+  stack_or_fill = "fill", model = "pirho"
+)
 ```
