@@ -28,14 +28,14 @@ if (!file.exists("real_data/data/dore-matrices.Rds")) {
         mutate(
           plantaggreg = paste(plantorder,
             plantfamily, plantgenus, plantspecies,
-            sep = "-"
+            sep = " "
           ),
           insectaggreg = paste(insectorder,
             insectfamily, insectgenus, insectspecies,
-            sep = "-"
+            sep = " "
           )
         )
-      current_interaction_data <- table(current_interaction_data$plantaggreg, current_interaction_data$insectaggreg)
+      current_interaction_data <- table(current_interaction_data$insectaggreg, current_interaction_data$plantaggreg)
 
       current_incidence_matrix <- matrix(current_interaction_data,
         ncol = ncol(current_interaction_data), dimnames = dimnames(current_interaction_data)
@@ -64,6 +64,7 @@ completed_networks_names <- sapply(
   }
 )
 
+uncompleted <- incidence_matrices[match(completed_networks_names, names(incidence_matrices))]
 point_2_completed <- setNames(readRDS("real_data/data/completed0.2.rds"), completed_networks_names)
 point_5_completed <- setNames(readRDS("real_data/data/completed0.5.rds"), completed_networks_names)
 random_completed <- setNames(readRDS("real_data/data/completedrandom.rds"), completed_networks_names)
