@@ -228,6 +228,7 @@ spectral_clustering <- function(X, K) {
   U <- specabs$vectors[, index]
   U <- U / rowSums(U**2)**(1 / 2)
   U[is.na(U)] <- 0
+  U[is.infinite(U)] <- 0
   cl <- stats::kmeans(U, K, iter.max = 100, nstart = 100)$cluster
   clustering <- rep(1, n)
   clustering[connected] <- cl
