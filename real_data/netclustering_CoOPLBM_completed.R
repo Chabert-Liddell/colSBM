@@ -74,11 +74,11 @@ if (!exists("arg")) {
 }
 
 if (identical(arg, character(0))) {
-  number_of_net <- length(point_2_completed)
-  model <- "pirho"
-  nb_run <- 3
-  source_data <- eval(as.name("point_2_completed"))
-  data_name <- "point_2_completed"
+  number_of_net <- length(uncompleted)
+  model <- "iid"
+  nb_run <- 1
+  source_data <- eval(as.name("uncompleted"))
+  data_name <- "uncompleted"
 } else {
   number_of_net <- as.numeric(arg[1])
   model <- arg[2]
