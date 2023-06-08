@@ -100,7 +100,7 @@ list_collection <- clusterize_bipartite_networks(
     nb_cores = parallel::detectCores() - 1, verbosity = 4,
     plot_details = 0
   ),
-  silent_parallelization = TRUE
+  silent_parallelization = FALSE
 )
 toc()
 
