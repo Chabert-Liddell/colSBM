@@ -1704,33 +1704,10 @@ bisbmpop <- R6::R6Class(
           if (!is.null(self$Z_init[[q1, q2]])) {
             model_list[[q1, q2]] <- optimize_init(
               q1, q2, self$Z_init[[q1, q2]]
-              # FIXME we dont provide Cpi nor Calpha, thus the fitted points
-              # will have iid-like fits.
-              # This will be overwritten when the moving window will perform
             )
           }
         }
       }
-      # FIXME This doesn't fill the model_list
-      # lapply(
-      #   seq.int(self$global_opts$Q1_max),
-      #   function(q1) {
-      #     lapply(
-      #       seq.int(self$global_opts$Q2_max),
-      #       function(q2) {
-      #         if (!is.null(self$Z_init[[q1, q2]])) {
-      #           model_list[[q1, q2]] <- optimize_init(
-      #             q1, q2, self$Z_init[[q1, q2]]
-      #             # FIXME we dont provide Cpi nor Calpha, thus the fitted points
-      #             # will have iid-like fits.
-      #             # This will be overwritten when the moving window will perform
-      #           )
-      #         }
-      #       }
-      #     )
-      #   }
-      # )
-      # model_list contains the fitted objects and we can set the self$
       self$model_list <- model_list
       dim(model_list) <- c(self$global_opts$Q1_max, self$global_opts$Q2_max)
       self$store_criteria_and_best_fit()
@@ -1756,7 +1733,7 @@ bisbmpop <- R6::R6Class(
           cat("\nA Z_init was provided, fitting the provided points.")
         }
         self$optimize_from_zinit()
-      } else { # TODO I can choose to fit from Z_init AND THEN perform greedy
+      } else {
         # exploration
         # With no Z_init we perform a greedy exploration
 
