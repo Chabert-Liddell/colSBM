@@ -19,9 +19,10 @@ RoxygenNote: 7.2.3
 Imports:
     ape,
     aricode,
-    bettermc,
     cluster,
     dplyr,
+    future,
+    future.apply,
     ggnewscale,
     ggplot2,
     magrittr,
@@ -34,6 +35,7 @@ Imports:
     utils
 Suggests:
     knitr,
+    bettermc,
     covr,
     testthat (>= 3.0.0),
     rmarkdown

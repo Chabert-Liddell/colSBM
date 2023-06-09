@@ -386,8 +386,9 @@ estimate_colBiSBM <-
     # tmp_fits run nb_run times a full model selection procedure
     # (the one from the research paper)
     if (global_opts$parallelization_vector[1] && nb_run > 1) {
+      p <- progressr::progressor(along = seq(nb_run))
       tmp_fits <-
-        bettermc::mclapply(
+        future.apply::future_lapply(
           seq(nb_run),
           function(x) {
             tmp_fit <- bisbmpop$new(
@@ -403,13 +404,15 @@ estimate_colBiSBM <-
             )
             tmp_fit$sep_BiSBM <- sep_BiSBM
             tmp_fit$optimize()
+            p()
             return(tmp_fit)
           },
-          mc.progress = !silent_parallelization,
-          mc.cores = min(nb_run, nb_cores),
-          mc.stdout = "output",
-          mc.retry = -1, # To prevent big crash
-          mc.silent = silent_parallelization
+          future.label = TRUE
+          # mc.progress = !silent_parallelization,
+          # mc.cores = min(nb_run, nb_cores),
+          # mc.stdout = "output",
+          # mc.retry = -1, # To prevent big crash
+          # mc.silent = silent_parallelization
         )
     } else {
       tmp_fits <-

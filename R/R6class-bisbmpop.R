@@ -237,7 +237,7 @@ bisbmpop <- R6::R6Class(
       }
       # Fitting the Q splits and selecting the next model
       if (self$global_opts$parallelization_vector[2]) {
-        possible_models <- bettermc::mclapply(seq.int(possible_models_size),
+        possible_models <- future.apply::future_lapply(seq.int(possible_models_size),
           function(q) {
             # Once the row and col clustering are correctly split
             # they are merged
@@ -472,12 +472,13 @@ bisbmpop <- R6::R6Class(
             q_th_models # The list of models is returned (if no free_mixture it's a
             # one element list).
           },
-          mc.cores = self$global_opts$nb_cores,
-          mc.allow.recursive = TRUE,
-          mc.cleanup = TRUE,
-          mc.share.copy = FALSE, # Trying to increase speed
-          # mc.retry = -1, # To prevent big crash
-          mc.progress = FALSE
+          future.label = TRUE
+          # mc.cores = self$global_opts$nb_cores,
+          # mc.allow.recursive = TRUE,
+          # mc.cleanup = TRUE,
+          # mc.share.copy = FALSE, # Trying to increase speed
+          # # mc.retry = -1, # To prevent big crash
+          # mc.progress = FALSE
         )
       }
       # Fitting the Q splits and selecting the next model
@@ -799,7 +800,7 @@ bisbmpop <- R6::R6Class(
 
       # Fitting the Q merges and selecting the next model
       if (self$global_opts$parallelization_vector[2]) {
-        possible_models <- bettermc::mclapply(seq.int(possible_models_size),
+        possible_models <- future.apply::future_lapply(seq.int(possible_models_size),
           function(q) {
             # Once the row and col clustering are correctly merged
             # they are merged
@@ -1037,12 +1038,13 @@ bisbmpop <- R6::R6Class(
             q_th_models # The list of models is returned (if no free_mixture it's a
             # one element list).
           },
-          mc.cores = self$global_opts$nb_cores,
-          mc.allow.recursive = TRUE,
-          mc.cleanup = TRUE,
-          mc.share.copy = FALSE, # Trying to increase speed
-          # mc.retry = -1, # To prevent big crash
-          mc.progress = FALSE
+          future.label = TRUE
+          # mc.cores = self$global_opts$nb_cores,
+          # mc.allow.recursive = TRUE,
+          # mc.cleanup = TRUE,
+          # mc.share.copy = FALSE, # Trying to increase speed
+          # # mc.retry = -1, # To prevent big crash
+          # mc.progress = FALSE
         )
       } else {
         possible_models <- lapply(
@@ -2584,7 +2586,7 @@ bisbmpop <- R6::R6Class(
     compute_sep_BiSBM_BICL = function() {
       # Computes the sepBiSBM ICL to compare with the model
       # TODO See if I can parallelize
-      self$sep_BiSBM$models <- bettermc::mclapply(seq.int(self$M), function(m) {
+      self$sep_BiSBM$models <- future.apply::future_lapply(seq.int(self$M), function(m) {
         sep_BiSBM <- bisbmpop$new(
           netlist = list(self$A[[m]]),
           distribution = self$distribution,
@@ -2602,11 +2604,12 @@ bisbmpop <- R6::R6Class(
         sep_BiSBM$optimize()
         sep_BiSBM$best_fit
       },
-      mc.cores = self$global_opts$nb_cores,
-      mc.allow.recursive = TRUE,
-      mc.silent = TRUE,
-      mc.retry = -1, # To prevent big crash
-      mc.progress = FALSE
+      future.label = TRUE
+      # mc.cores = self$global_opts$nb_cores,
+      # mc.allow.recursive = TRUE,
+      # mc.silent = TRUE,
+      # mc.retry = -1, # To prevent big crash
+      # mc.progress = FALSE
       )
 
       self$sep_BiSBM$BICL <- sapply(seq.int(self$M), function(m) {
