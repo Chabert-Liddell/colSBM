@@ -409,7 +409,7 @@ bisbmpop <- R6::R6Class(
 
                   # Compute the support for the columns
                   if (self$free_mixture_col) {
-                    if (self$global_opts$verbosity >= 5) {
+                    if (self$global_opts$verbosity >= 4) {
                       cat(
                         "\n\t\tFree mixture on the columns, minimum rho threshold : ",
                         emptiness_levels[l]
@@ -635,7 +635,7 @@ bisbmpop <- R6::R6Class(
 
                   # Compute the support for the rows
                   if (self$free_mixture_row) {
-                    if (self$global_opts$verbosity >= 5) {
+                    if (self$global_opts$verbosity >= 4) {
                       cat(
                         "\n\t\tFree mixture on the row, minimum pi threshold : ",
                         emptiness_levels[l]
@@ -654,7 +654,7 @@ bisbmpop <- R6::R6Class(
 
                   # Compute the support for the columns
                   if (self$free_mixture_col) {
-                    if (self$global_opts$verbosity >= 5) {
+                    if (self$global_opts$verbosity >= 4) {
                       cat(
                         "\n\t\tFree mixture on the columns, minimum rho threshold : ",
                         emptiness_levels[l]
@@ -956,7 +956,7 @@ bisbmpop <- R6::R6Class(
 
                   # Compute the support for the rows
                   if (self$free_mixture_row) {
-                    if (self$global_opts$verbosity >= 5) {
+                    if (self$global_opts$verbosity >= 4) {
                       cat(
                         "\n\t\tFree mixture on the row, minimum pi threshold : ",
                         emptiness_levels[l]
@@ -975,7 +975,7 @@ bisbmpop <- R6::R6Class(
 
                   # Compute the support for the columns
                   if (self$free_mixture_col) {
-                    if (self$global_opts$verbosity >= 5) {
+                    if (self$global_opts$verbosity >= 4) {
                       cat(
                         "\n\t\tFree mixture on the columns, minimum rho threshold : ",
                         emptiness_levels[l]
@@ -1202,7 +1202,7 @@ bisbmpop <- R6::R6Class(
 
                   # Compute the support for the rows
                   if (self$free_mixture_row) {
-                    if (self$global_opts$verbosity >= 5) {
+                    if (self$global_opts$verbosity >= 4) {
                       cat(
                         "\n\t\tFree mixture on the row, minimum pi threshold : ",
                         emptiness_levels[l]
@@ -1221,7 +1221,7 @@ bisbmpop <- R6::R6Class(
 
                   # Compute the support for the columns
                   if (self$free_mixture_col) {
-                    if (self$global_opts$verbosity >= 5) {
+                    if (self$global_opts$verbosity >= 4) {
                       cat(
                         "\n\t\tFree mixture on the columns, minimum rho threshold : ",
                         emptiness_levels[l]
