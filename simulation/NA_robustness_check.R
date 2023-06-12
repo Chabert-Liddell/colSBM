@@ -1,4 +1,6 @@
 devtools::load_all()
+require("sbm")
+require("pROC")
 
 set.seed(1234)
 
@@ -47,7 +49,7 @@ collections <- list(
 
 
 conditions <- expand.grid(
-  prop_NAs = seq(from = 0, to = 1, by = 0.05),
+  prop_NAs = seq(from = 0, to = 0.9, by = 0.1),
   model = c("iid", "pi", "rho", "pirho"),
   repetition = seq.int(3)
 )
@@ -91,10 +93,33 @@ result_dataframe <- do.call("rbind", bettermc::mclapply(seq_len(nrow(conditions)
   )
   stop_time <- Sys.time()
 
+  baseline_LBM <- estimate_colBiSBM(
+    netlist = bipartite_collection_incidence[[1]], colsbm_model = model,
+    global_opts = list(
+      nb_cores = parallel::detectCores() - 1, verbosity = 0
+    ), silent_parallelization = TRUE
+  )
+
+  # Predicted links
+  X_hat <- mybisbmpop$best_fit$tau[[1]][[1]] %*% mybisbmpop$best_fit$alpha %*% t(mybisbmpop$best_fit$tau[[1]][[2]])
+
+  # Compute ROC and AUC
+  auc <- auc(real_val_NAs, X_hat[NAs_index])
+
   # Computing ARI on the NAs
   return(data.frame(
     prop_NAs = prop_NAs,
+    model = model,
     repetition = conditions[current, ]$repetition,
+    auc = auc,
+    LBM_ari_row = aricode::ARI(
+      Z[[1]][[1]],
+      baseline_LBM$best_fit$Z[[1]][[1]]
+    ),
+    LBM_ari_col = aricode::ARI(
+      Z[[1]][[2]],
+      baseline_LBM$best_fit$Z[[1]][[2]]
+    ),
     NA_net_ari_row = aricode::ARI(
       Z[[1]][[1]],
       mybisbmpop$best_fit$Z[[1]][[1]]
@@ -105,7 +130,10 @@ result_dataframe <- do.call("rbind", bettermc::mclapply(seq_len(nrow(conditions)
     ),
     elapsed_secs = difftime(stop_time, start_time, units = "sec")
   ))
-}, mc.cores = parallel::detectCores() - 1))
+},
+mc.cores = parallel::detectCores() - 1,
+mc.progress = TRUE
+))
 
 saveRDS(
   result_dataframe,
