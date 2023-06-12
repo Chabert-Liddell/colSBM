@@ -87,7 +87,7 @@ result_dataframe <- do.call("rbind", bettermc::mclapply(seq_len(nrow(conditions)
     netlist = bipartite_collection_incidence, colsbm_model = model,
     global_opts = list(
       nb_cores = parallel::detectCores() - 1, verbosity = 0
-    )
+    ), silent_parallelization = TRUE
   )
   stop_time <- Sys.time()
 
