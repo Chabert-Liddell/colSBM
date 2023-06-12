@@ -335,7 +335,10 @@ estimate_colBiSBM <-
         " Must be one of iid, pi, rho, pirho, delta or deltapi"
       )
     )
-
+    # Check if a netlist is provided, try to cast it if not
+    if (!is.list(netlist)) {
+      netlist <- list(netlist)
+    }
     # go is used to temporarily store the default global_opts
     go <- list(
       Q1_min = 1L,
