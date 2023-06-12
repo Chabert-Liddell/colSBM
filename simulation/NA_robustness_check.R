@@ -106,7 +106,7 @@ result_dataframe <- do.call("rbind", bettermc::mclapply(seq_len(nrow(conditions)
   X_hat <- mybisbmpop$best_fit$tau[[1]][[1]] %*% mybisbmpop$best_fit$alpha %*% t(mybisbmpop$best_fit$tau[[1]][[2]])
 
   # Compute ROC and AUC
-  auc <- auc(real_val_NAs, X_hat[NAs_index])
+  auc <- auc(c(0, 1, real_val_NAs), c(0, 1, X_hat[NAs_index]))
 
   # Computing ARI on the NAs
   return(data.frame(
