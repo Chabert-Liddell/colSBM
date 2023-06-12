@@ -87,6 +87,7 @@ result_dataframe <- do.call("rbind", bettermc::mclapply(seq_len(nrow(conditions)
   start_time <- Sys.time()
   mybisbmpop <- estimate_colBiSBM(
     netlist = bipartite_collection_incidence, colsbm_model = model,
+    nb_run = 1,
     global_opts = list(
       nb_cores = parallel::detectCores() - 1, verbosity = 0
     ), silent_parallelization = TRUE
@@ -95,6 +96,7 @@ result_dataframe <- do.call("rbind", bettermc::mclapply(seq_len(nrow(conditions)
 
   baseline_LBM <- estimate_colBiSBM(
     netlist = bipartite_collection_incidence[[1]], colsbm_model = model,
+    nb_run = 1,
     global_opts = list(
       nb_cores = parallel::detectCores() - 1, verbosity = 0
     ), silent_parallelization = TRUE
