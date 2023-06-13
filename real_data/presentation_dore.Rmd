@@ -4,16 +4,25 @@ output:
     html_document:
         toc: true
         theme: united
+    pdf_document:
+      keep_tex: true
 ---
 
-```{r require_lib, echo = FALSE, include=FALSE}
+```{r, setup, include=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+options(knitr.table.format = function() {
+  if (knitr::is_latex_output()) "latex" else "pandoc"
+})
+```
+
+```{r require_lib, echo = FALSE, include=FALSE, warning=FALSE}
 require("tidyverse")
 require("knitr")
 devtools::load_all("R/")
 source("wip/temporary_plot.R")
 ```
 
-```{r pretty_matrix_print, echo = FALSE}
+```{r pretty_matrix_print, echo = FALSE, warning=FALSE}
 # Define a generic method that transforms an object x in a LaTeX string
 as_latex <- function(x, ...) {
   UseMethod("as_latex", x)
@@ -54,7 +63,41 @@ knit_print.matrix <- function(x, ...) {
 }
 ```
 
-```{r taxonomy_functions, echo = FALSE}
+```{r better_collection_extraction, echo = FALSE, warning=FALSE}
+extract_unlist_reorder <- function(clustering_data_path) {
+  clustering <- readRDS(clustering_data_path)
+  if (!is.list(clustering)) {
+    clustering <- list(clustering)
+  }
+  best_partition <- extract_best_bipartite_partition(clustering)
+  best_partition_unlist <- unlist(best_partition)
+  if (!is.list(best_partition_unlist)) {
+    best_partition_unlist <- list(best_partition_unlist)
+  }
+  size <- length(best_partition_unlist)
+  return(setNames(lapply(best_partition_unlist, function(collection) {
+    reorder_parameters(collection)
+  }), paste(rep("Collection", size), seq_len(size))))
+}
+
+meso_print <- function(unlisted_partition) {
+  for (idx in seq_along(unlisted_partition)) {
+    cat(paste("\n\n\n\nPour la collection", idx, "\n\n"))
+    print(plot(unlisted_partition[[idx]], type = "meso", mixture = TRUE))
+    cat("\n\n")
+    print(knitr::kable(unlisted_partition[[idx]]$net_id, col.names = "Networks"))
+  }
+}
+
+alpha_print <- function(unlisted_partition) {
+  for (idx in seq_along(unlisted_partition)) {
+    cat(paste("\nPour la collection ", idx, ":\n"))
+    cat(knitr::knit_print(unlisted_partition[[idx]]$alpha))
+  }
+}
+```
+
+```{r taxonomy_functions, echo = FALSE, warning=FALSE}
 interaction_data <- read.table(file = "real_data/data/interaction-data.txt", sep = "\t", header = TRUE)
 
 insect_orders <- unique(interaction_data$insectorder)
@@ -198,58 +241,33 @@ taxonomy_plot <- function(data, insects_or_plants, model, stack_or_fill) {
 }
 ```
 
-```{r load data, echo = FALSE, include = FALSE}
+```{r load data, echo = FALSE, include = FALSE, warning=FALSE}
 # All results
-iid_clustering <- readRDS("real_data/data/dore_collection_clustering_nb_run1_iid_123networks_24-05-23-21:40:42.Rds")
-iid_best_partition <- extract_best_bipartite_partition(iid_clustering)
-iid_unlist <- unlist(iid_best_partition)
+iid_unlist <- extract_unlist_reorder("real_data/data/dore_collection_clustering_nb_run1_iid_123networks_24-05-23-21:40:42.Rds")
 
-rho_clustering <- readRDS("real_data/data/dore_collection_clustering_nb_run1_rho_123networks_25-05-23-13:58:30.Rds")
-rho_best_partition <- extract_best_bipartite_partition(rho_clustering)
-rho_unlist <- unlist(rho_best_partition)
+rho_unlist <- extract_unlist_reorder("real_data/data/dore_collection_clustering_nb_run1_rho_123networks_25-05-23-13:58:30.Rds")
 
-pi_clustering <- readRDS("real_data/data/dore_collection_clustering_nb_run1_pi_123networks_25-05-23-17:31:25.Rds")
-pi_best_partition <- extract_best_bipartite_partition(pi_clustering)
-pi_unlist <- unlist(pi_best_partition)
+pi_unlist <- extract_unlist_reorder("real_data/data/dore_collection_clustering_nb_run1_pi_123networks_25-05-23-17:31:25.Rds")
 
-pirho_clustering <- readRDS("real_data/data/dore_collection_clustering_nb_run1_pirho_123networks_26-05-23-19:22:55.Rds")
-pirho_best_partition <- extract_best_bipartite_partition(pirho_clustering)
-pirho_unlist <- unlist(pirho_best_partition)
+pirho_unlist <- extract_unlist_reorder("real_data/data/dore_collection_clustering_nb_run1_pirho_123networks_26-05-23-19:22:55.Rds")
 ```
 
 ## Clustering avec le modèle iid
-Avec le modèle *iid* nous obtenons les `r length(iid_unlist)` collections suivantes:
-```{r iid_liste_nom, echo = FALSE, results="asis"}
-iid_networks_list <- lapply(seq_along(iid_unlist), function(c) {
-  length <- length(iid_unlist[[c]]$net_id)
-  data.frame(collection_id = rep(c, length), net_id = iid_unlist[[c]]$net_id)
-})
-for (df_net in iid_networks_list) {
-  print(knitr::kable(df_net))
-}
-```
+Avec le modèle *iid* nous obtenons les `r length(iid_unlist)` collections et
+les structures suivantes:
 
-Une fois le modèle de collection appliqué nous obtenons les structures suivantes:
-
-```{r iid_meso_plot, echo = FALSE, message=FALSE}
-for (idx in seq_along(iid_unlist)) {
-  cat(paste("\nPour la collection", idx, "du modèle *iid*\n"))
-  print(plot(iid_unlist[[idx]], type = "meso", mixture = TRUE))
-  print(iid_unlist[[idx]]$net_id)
-}
+```{r iid_meso_plot, echo = FALSE, message=FALSE, results="asis", fig.cap=paste(names(iid_unlist), rep("- iid",length(iid_unlist))), warning=FALSE}
+meso_print(iid_unlist)
 ```
 
 Et voici donc les valeurs numériques pour les $\alpha$ (paramètres de connectivité).
 
-```{r iid_alpha, echo = FALSE, results="asis"}
-for (idx in seq_along(iid_unlist)) {
-  cat(paste("\nPour la collection ", idx, ":\n"))
-  cat(knitr::knit_print(reorder_parameters(iid_unlist[[idx]])$alpha))
-}
+```{r iid_alpha, echo = FALSE, results="asis", warning=FALSE}
+alpha_print(iid_unlist)
 ```
 
 ### Répartition dans les clusters selon la taxonomie
-```{r iid_taxonomy, echo = FALSE}
+```{r iid_taxonomy, echo = FALSE, warning=FALSE}
 iid_taxonomy <- taxonomy_in_clusters(iid_unlist)
 
 iid_taxonomy_long <- map_dfr(iid_taxonomy,
@@ -265,7 +283,7 @@ iid_taxonomy_long <- map_dfr(iid_taxonomy,
 )
 ```
 
-```{r iid_plot_taxonomy_pollinators, echo = FALSE, message = FALSE,fig.cap = 'Pollinators repartition for the iid model regarding taxonomy'}
+```{r iid_plot_taxonomy_pollinators, echo = FALSE, message = FALSE,fig.cap = 'Pollinators repartition for the iid model regarding taxonomy', warning=FALSE}
 # Pollinators
 taxonomy_plot(
   data = iid_taxonomy_long,
@@ -279,7 +297,7 @@ taxonomy_plot(
 )
 ```
 
-```{r iid_plot_taxonomy_plants, echo = FALSE, message = FALSE,fig.cap = 'Plants repartition for the iid model regarding taxonomy'}
+```{r iid_plot_taxonomy_plants, echo = FALSE, message = FALSE,fig.cap = 'Plants repartition for the iid model regarding taxonomy', warning=FALSE}
 taxonomy_plot(
   data = iid_taxonomy_long,
   insects_or_plants = "plants",
@@ -293,38 +311,21 @@ taxonomy_plot(
 ```
 
 ## Clustering avec le modèle pi
-Avec le modèle *pi* nous obtenons les `r length(pi_unlist)` collections suivantes:
-```{r pi_liste_nom, echo = FALSE, results="asis"}
-pi_networks_list <- lapply(seq_along(pi_unlist), function(c) {
-  length <- length(pi_unlist[[c]]$net_id)
-  data.frame(collection_id = rep(c, length), net_id = pi_unlist[[c]]$net_id)
-})
-for (df_net in pi_networks_list) {
-  print(knitr::kable(df_net))
-}
-```
+Avec le modèle *pi* nous obtenons les `r length(pi_unlist)` collections et
+les structures suivantes:
 
-Une fois le modèle de collection appliqué nous obtenons les structures suivantes:
-
-```{r pi_meso_plot, echo = FALSE, message=FALSE}
-for (idx in seq_along(pi_unlist)) {
-  cat(paste("\nPour la collection", idx, "du modèle *pi*\n"))
-  print(plot(pi_unlist[[idx]], type = "meso", mixture = TRUE))
-  print(pi_unlist[[idx]]$net_id)
-}
+```{r pi_meso_plot, echo = FALSE, message=FALSE, fig.cap=paste(names(pi_unlist), rep("- pi",length(pi_unlist))), results="asis", warning=FALSE}
+meso_print(pi_unlist)
 ```
 
 Et voici donc les valeurs numériques pour les $\alpha$ (paramètres de connectivité).
 
-```{r pi_alpha, echo = FALSE, results="asis"}
-for (idx in seq_along(pi_unlist)) {
-  cat(paste("\nPour la collection ", idx, ":\n"))
-  cat(knitr::knit_print(reorder_parameters(pi_unlist[[idx]])$alpha))
-}
+```{r pi_alpha, echo = FALSE, results="asis", warning=FALSE}
+alpha_print(pi_unlist)
 ```
 
 ### Répartition dans les clusters selon la taxonomie
-```{r pi_taxonomy, echo = FALSE}
+```{r pi_taxonomy, echo = FALSE, warning=FALSE}
 pi_taxonomy <- taxonomy_in_clusters(pi_unlist)
 
 pi_taxonomy_long <- map_dfr(pi_taxonomy,
@@ -340,7 +341,7 @@ pi_taxonomy_long <- map_dfr(pi_taxonomy,
 )
 ```
 
-```{r pi_plot_taxonomy_pollinators, echo = FALSE, message = FALSE,fig.cap = 'Pollinators repartition for the pi model regarding taxonomy'}
+```{r pi_plot_taxonomy_pollinators, echo = FALSE, message = FALSE,fig.cap = 'Pollinators repartition for the pi model regarding taxonomy', warning=FALSE}
 # Pollinators
 taxonomy_plot(
   data = pi_taxonomy_long,
@@ -354,7 +355,7 @@ taxonomy_plot(
 )
 ```
 
-```{r pi_plot_taxonomy_plants, echo = FALSE, message = FALSE,fig.cap = 'Plants repartition for the pi model regarding taxonomy'}
+```{r pi_plot_taxonomy_plants, echo = FALSE, message = FALSE,fig.cap = 'Plants repartition for the pi model regarding taxonomy', warning=FALSE}
 taxonomy_plot(
   data = pi_taxonomy_long,
   insects_or_plants = "plants",
@@ -368,28 +369,21 @@ taxonomy_plot(
 ```
 
 ## Clustering avec le modèle rho
-Avec le modèle *rho* nous obtenons les `r length(rho_unlist)` collections suivantes:
-```{r rho_liste_nom, echo = FALSE, results="asis"}
-print(knitr::kable(rho_unlist$net_id))
-```
+Avec le modèle *rho* nous obtenons les `r length(rho_unlist)` collections et
+les structures suivantes:
 
-Une fois le modèle de collection appliqué nous obtenons les structures suivantes:
-
-```{r rho_meso_plot, echo = FALSE, message=FALSE}
-cat(paste("\nPour la collection 1 du modèle *rho*\n"))
-print(plot(rho_unlist, type = "meso", mixture = TRUE))
-print(rho_unlist$net_id)
+```{r rho_meso_plot, echo = FALSE, message=FALSE, fig.cap=paste(names(rho_unlist), rep("- rho",length(rho_unlist))), results="asis", warning=FALSE}
+meso_print(rho_unlist)
 ```
 
 Et voici donc les valeurs numériques pour les $\alpha$ (paramètres de connectivité).
 
-```{r rho_alpha, echo = FALSE, results="asis"}
-cat(paste("\nPour la collection 1:\n"))
-cat(knitr::knit_print(reorder_parameters(rho_unlist)$alpha))
+```{r rho_alpha, echo = FALSE, results="asis", warning=FALSE}
+alpha_print(rho_unlist)
 ```
 
 ### Répartition dans les clusters selon la taxonomie
-```{r rho_taxonomy, echo = FALSE}
+```{r rho_taxonomy, echo = FALSE, warning=FALSE}
 rho_taxonomy <- taxonomy_in_clusters(rho_unlist)
 
 rho_taxonomy_long <- map_dfr(rho_taxonomy,
@@ -405,7 +399,7 @@ rho_taxonomy_long <- map_dfr(rho_taxonomy,
 )
 ```
 
-```{r rho_plot_taxonomy_pollinators, echo = FALSE, message = FALSE,fig.cap = 'Pollinators repartition for the rho model regarding taxonomy'}
+```{r rho_plot_taxonomy_pollinators, echo = FALSE, message = FALSE,fig.cap = 'Pollinators repartition for the rho model regarding taxonomy', warning=FALSE}
 # Pollinators
 taxonomy_plot(
   data = rho_taxonomy_long,
@@ -419,7 +413,7 @@ taxonomy_plot(
 )
 ```
 
-```{r rho_plot_taxonomy_plants, echo = FALSE, message = FALSE,fig.cap = 'Plants repartition for the rho model regarding taxonomy'}
+```{r rho_plot_taxonomy_plants, echo = FALSE, message = FALSE,fig.cap = 'Plants repartition for the rho model regarding taxonomy', warning=FALSE}
 taxonomy_plot(
   data = rho_taxonomy_long,
   insects_or_plants = "plants",
@@ -433,38 +427,21 @@ taxonomy_plot(
 ```
 
 ## Clustering avec le modèle pirho
-Avec le modèle *pirho* nous obtenons les `r length(pirho_unlist)` collections suivantes:
-```{r pirho_liste_nom, echo = FALSE, results="asis"}
-pirho_networks_list <- lapply(seq_along(pirho_unlist), function(c) {
-  length <- length(pirho_unlist[[c]]$net_id)
-  data.frame(collection_id = rep(c, length), net_id = pirho_unlist[[c]]$net_id)
-})
-for (df_net in pirho_networks_list) {
-  print(knitr::kable(df_net))
-}
-```
+Avec le modèle *pirho* nous obtenons les `r length(pirho_unlist)` collections et
+les structures suivantes:
 
-Une fois le modèle de collection appliqué nous obtenons les structures suivantes:
-
-```{r pirho_meso_plot, echo = FALSE, message=FALSE}
-for (idx in seq_along(pirho_unlist)) {
-  cat(paste("\nPour la collection", idx, "du modèle *pirho*\n"))
-  print(plot(pirho_unlist[[idx]], type = "meso", mixture = TRUE))
-  print(pirho_unlist[[idx]]$net_id)
-}
+```{r pirho_meso_plot, echo = FALSE, message=FALSE, fig.cap=paste(names(pirho_unlist), rep("- pirho",length(pirho_unlist))), results="asis", warning=FALSE}
+meso_print(pirho_unlist)
 ```
 
 Et voici donc les valeurs numériques pour les $\alpha$ (paramètres de connectivité).
 
-```{r pirho_alpha, echo = FALSE, results="asis"}
-for (idx in seq_along(pirho_unlist)) {
-  cat(paste("\nPour la collection ", idx, ":\n"))
-  cat(knitr::knit_print(reorder_parameters(pirho_unlist[[idx]])$alpha))
-}
+```{r pirho_alpha, echo = FALSE, results="asis", warning=FALSE}
+alpha_print(pirho_unlist)
 ```
 
 ### Répartition dans les clusters selon la taxonomie
-```{r pirho_taxonomy, echo = FALSE}
+```{r pirho_taxonomy, echo = FALSE, warning=FALSE}
 pirho_taxonomy <- taxonomy_in_clusters(pirho_unlist)
 
 pirho_taxonomy_long <- map_dfr(pirho_taxonomy,
@@ -480,7 +457,7 @@ pirho_taxonomy_long <- map_dfr(pirho_taxonomy,
 )
 ```
 
-```{r pirho_plot_taxonomy_pollinators, echo = FALSE, message = FALSE,fig.cap = 'Pollinators repartition for the pirho model regarding taxonomy'}
+```{r pirho_plot_taxonomy_pollinators, echo = FALSE, message = FALSE, fig.cap = 'Pollinators repartition for the pirho model regarding taxonomy', warning=FALSE}
 # Pollinators
 taxonomy_plot(
   data = pirho_taxonomy_long,
@@ -494,7 +471,7 @@ taxonomy_plot(
 )
 ```
 
-```{r pirho_plot_taxonomy_plants, echo = FALSE, message = FALSE,fig.cap = 'Plants repartition for the pirho model regarding taxonomy'}
+```{r pirho_plot_taxonomy_plants, echo = FALSE, message = FALSE,fig.cap = 'Plants repartition for the pirho model regarding taxonomy', warning=FALSE}
 taxonomy_plot(
   data = pirho_taxonomy_long,
   insects_or_plants = "plants",
