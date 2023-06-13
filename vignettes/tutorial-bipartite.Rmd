@@ -1,0 +1,174 @@
+---
+title: "Tutorial on plant pollinisator data"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Tutorial on food webs}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(colSBM)
+library(patchwork)
+data("dorebipartite")
+```
+
+# Estimation with colSBM
+
+We load a list of 15 plant-pollinisator networks. They are binary undirected networks with different
+number of plant and pollinisator species. First, we are going to model jointly the first $3$ networks,
+using the iid-colBiSBM model.
+
+
+```{r results=FALSE}
+set.seed(1234)
+res_pp_iid <- estimate_colBiSBM(
+  netlist = dorebipartite[1:3], # A list of networks
+  colsbm_model = "pi", # The name of the model
+  net_id = names(dorebipartite)[1:3], # Name of the networks
+  nb_run = 1L, # Number of runs of the algorithm
+  global_opts = list(
+    verbosity = 1,
+    plot_detail = 0,
+    nb_cores = parallel::detectCores() - 1
+  )
+)
+```
+
+We can look at how the variational bound and the model selection criteria evolve with the number of clusters.
+Here, the BICL criterion selects Q = `r which.max(res_fw_iid$BICL)` blocks.
+
+```{r}
+plot(res_fw_iid)
+best_fit <- res_fw_iid$best_fit
+```
+
+# Results and analysis
+
+Here are some useful fields to analyze the results.
+
+```{r}
+best_fit
+```
+
+We can get:
+
+* the estimation of the model parameters
+
+```{r}
+best_fit$parameters
+```
+
+* The block memberships:
+
+```{r}
+best_fit$Z
+```
+
+
+* The prediction for each dyads in the networks, here for network number 3. If
+your goal is dyad prediction, then you should use `model = "delta"`, instead of
+`model = "iid"`.
+
+```{r}
+best_fit$pred_dyads[[3]][1:10, 1:5]
+```
+
+We can also plot the networks individually:
+
+```{r plot-block}
+plot(res_fw_iid$best_fit, type = "block", net_id = 1) +
+  plot(res_fw_iid$best_fit, type = "block", net_id = 2) +
+  plot(res_fw_iid$best_fit, type = "block", net_id = 3)
+```
+
+Or make different plots to exhibit the mesoscale structure:
+
+```{r}
+plot(res_fw_iid$best_fit, type = "graphon")
+plot(res_fw_iid$best_fit, type = "meso", mixture = TRUE)
+```
+
+# Clustering of networks
+
+Let simulate some directed networks with a lower triangular structure that looks
+alike foodwebs.
+
+```{r}
+set.seed(1234)
+alpha <- matrix(c(
+  .05, .01, .01, .01,
+  .3, .05, .01, .01,
+  .5, .4, .05, .01,
+  .1, .8, .1, .05
+), 4, 4, byrow = TRUE)
+pi <- c(.1, .2, .6, .1)
+sim_net <-
+  replicate(3,
+    {
+      X <-
+        sbm::sampleSimpleSBM(100,
+          blockProp = pi, connectParam = list(mean = alpha),
+          directed = TRUE
+        )
+      X$rNetwork
+      X$networkData
+    },
+    simplify = FALSE
+  )
+```
+
+
+```{r results=FALSE}
+set.seed(1234)
+net_clust <- clusterize_networks(
+  netlist = c(foodwebs[1:3], sim_net), # A list of networks
+  colsbm_model = "iid", # The name of the model
+  directed = TRUE, # Foodwebs are directed networks
+  net_id = c(names(foodwebs)[1:3], "sim1", "sim2", "sim3"), # Name of the networks
+  nb_run = 1L, # Nmber of runs of the algorithm
+  global_opts = list(
+    verbosity = 0,
+    plot_details = 0,
+    Q_max = 9
+  ) # Max number of clusters
+)
+```
+
+
+We obtain a list of 3 models.
+The first one is for the full collection, and the second and third one are for
+the 3 foodwebs and the three collected networks. Here is a plot of the mesoscale structure obtained from the group of simulated networks. We can extract the best partition:
+
+```{r}
+best_partition <- extract_best_partition(net_clust)
+```
+
+The plot of the mesoscale structure of the whole collection is the following:
+
+```{r}
+plot(net_clust[[1]],
+  ord = order(net_clust[[1]]$alpha %*% net_clust[[1]]$pi[[1]])
+)
+```
+
+but then we can compare the mesoscale structures of the 2 groups:
+
+```{r plot-part}
+plot(best_partition[[1]],
+  type = "graphon",
+  ord = order(best_partition[[1]]$alpha %*% best_partition[[1]]$pi[[1]])
+) +
+  plot(best_partition[[2]],
+    type = "graphon",
+    ord = order(best_partition[[2]]$alpha %*% best_partition[[2]]$pi[[1]])
+  ) +
+  plot_layout(guides = "collect") + plot_annotation(tag_levels = "1")
+```
