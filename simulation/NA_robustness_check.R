@@ -103,17 +103,20 @@ result_dataframe <- do.call("rbind", bettermc::mclapply(seq_len(nrow(conditions)
   )
 
   # Predicted links
+  X_hat_LBM <- baseline_LBM$best_fit$tau[[1]][[1]] %*% baseline_LBM$best_fit$alpha %*% t(baseline_LBM$best_fit$tau[[1]][[2]])
   X_hat <- mybisbmpop$best_fit$tau[[1]][[1]] %*% mybisbmpop$best_fit$alpha %*% t(mybisbmpop$best_fit$tau[[1]][[2]])
 
   # Compute ROC and AUC
-  auc <- auc(c(0, 1, real_val_NAs), c(0, 1, X_hat[NAs_index]))
+  auc_LBM <- auc(c(0, 1, real_val_NAs), c(0, 1, X_hat_LBM[NAs_index]))
+  auc_colBiSBM <- auc(c(0, 1, real_val_NAs), c(0, 1, X_hat[NAs_index]))
 
   # Computing ARI on the NAs
   return(data.frame(
     prop_NAs = prop_NAs,
     model = model,
     repetition = conditions[current, ]$repetition,
-    auc = auc,
+    auc_LBM = auc_LBM,
+    auc_colBiSBM = auc_colBiSBM,
     LBM_ari_row = aricode::ARI(
       Z[[1]][[1]],
       baseline_LBM$best_fit$Z[[1]][[1]]
