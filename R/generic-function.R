@@ -353,9 +353,10 @@ fitBipartiteSBMPop$set(
             #    rename() %>%
             dplyr::mutate(q = seq(self$Q[1])) %>%
             tidyr::pivot_longer(cols = -c(q)) %>%
+            mutate(Proportion = value) %>%
             ggplot2::ggplot(ggplot2::aes(
               fill = as.factor(q), y = name,
-              x = value
+              x = Proportion
             )) +
             ggplot2::geom_col() +
             ggplot2::coord_flip(expand = FALSE) +
@@ -363,6 +364,10 @@ fitBipartiteSBMPop$set(
               type = "qual", palette = "Paired",
               direction = -1
             ) +
+            ggplot2::guides(fill = ggplot2::guide_legend(
+              ncol = self$Q[1] %/% 3 + 1,
+              byrow = TRUE
+            )) +
             ggplot2::ylab("") +
             ggplot2::ylab(xl) +
             ggplot2::theme_bw(base_size = 15)
@@ -370,19 +375,40 @@ fitBipartiteSBMPop$set(
             #    rename() %>%
             dplyr::mutate(q = seq(self$Q[2])) %>%
             tidyr::pivot_longer(cols = -c(q)) %>%
-            ggplot2::ggplot(ggplot2::aes(fill = as.factor(q), y = name, x = value)) +
+            mutate(Proportion = value) %>%
+            ggplot2::ggplot(ggplot2::aes(
+              fill = as.factor(q), y = name,
+              x = Proportion
+            )) +
             ggplot2::geom_col() +
-            ggplot2::coord_flip(expand = FALSE) +
+            # ggplot2::coord_flip(expand = FALSE) +
             ggplot2::scale_fill_brewer("Column block",
               type = "qual", palette = "Set2",
               direction = -1
             ) +
+            ggplot2::guides(fill = ggplot2::guide_legend(
+              ncol = self$Q[2] %/% 3 + 1,
+              byrow = TRUE
+            )) +
             ggplot2::ylab("") +
             ggplot2::ylab(xl) +
             ggplot2::theme_bw(base_size = 15)
           # Merging the plots with patchwork
-          p_alpha <- (p_alpha | p_pi / p_rho) + patchwork::plot_layout(guides = "collect", widths = c(.65, .35)) +
-            patchwork::plot_annotation(title = NULL)
+          mixture_layout <- "
+                            ##CCCC
+                            ##CCCC
+                            RRAAAA
+                            RRAAAA
+                            RRAAAA
+                            "
+          p_alpha <- patchwork::wrap_plots(
+            R = p_pi, C = p_rho, A = p_alpha,
+            design = mixture_layout
+          ) +
+            patchwork::plot_layout(
+              guides = "collect",
+              design = mixture_layout
+            )
         }
         return(p_alpha)
       },
