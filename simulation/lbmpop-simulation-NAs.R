@@ -3,6 +3,7 @@ require("sbm", quietly = T)
 require("dplyr", quietly = T)
 require("tictoc", quietly = T)
 require("ggplot2", quietly = T)
+require("pROC", quietly = T)
 
 devtools:::load_all(path = "R/")
 
@@ -35,7 +36,7 @@ bipartite_collection <- generate_bipartite_collection(nr, nc, pir, pic, alpha, M
 bipartite_collection_incidence <- lapply(seq.int(M), function(m) {
   bipartite_collection[[m]]$incidence_matrix
 })
-NAs_index <- sample(seq_len(length(bipartite_collection_incidence[[1]])), floor(0.5 * length(bipartite_collection_incidence[[1]])))
+NAs_index <- sample(seq_len(length(bipartite_collection_incidence[[1]])), floor(0.9 * length(bipartite_collection_incidence[[1]])))
 real_val_NAs <- bipartite_collection_incidence[[1]][NAs_index]
 bipartite_collection_incidence[[1]][NAs_index] <- NA
 NAs_coordinates <- which(is.na(bipartite_collection_incidence[[1]]), arr.ind = TRUE)
@@ -55,24 +56,30 @@ mybisbmpop <- estimate_colBiSBM(
   )
 )
 toc()
-# choosed_bisbmpop <- estimate_colBiSBM(
-#     netlist = bipartite_collection_incidence,
-#     colsbm_model = "iid",
-#     global_opts = list(nb_cores = 3)
-# )
 
-ari_sums <- sapply(
-  seq_along(mybisbmpop$best_fit$Z),
-  function(m) {
-    sum(c(
-      aricode::ARI(
-        Z[[m]][[1]],
-        mybisbmpop$best_fit$Z[[m]][[1]]
-      ),
-      aricode::ARI(
-        Z[[m]][[2]],
-        mybisbmpop$best_fit$Z[[m]][[2]]
-      )
-    ))
-  }
+for (m in seq_along(mybisbmpop$best_fit$Z)) {
+  cat(
+    "\nnetwork", m, "row ARI:\n",
+    aricode::ARI(
+      Z[[m]][[1]],
+      mybisbmpop$best_fit$Z[[m]][[1]]
+    )
+  )
+  cat(
+    "\nnetwork", m, "col ARI:\n",
+    aricode::ARI(
+      Z[[m]][[2]],
+      mybisbmpop$best_fit$Z[[m]][[2]]
+    )
+  )
+}
+
+# Computing ARI on the NAs
+aricode::ARI(
+  Z[[1]][[1]][x_NAs],
+  mybisbmpop$best_fit$Z[[1]][[1]][x_NAs]
+)
+aricode::ARI(
+  Z[[1]][[2]][y_NAs],
+  mybisbmpop$best_fit$Z[[1]][[2]][y_NAs]
 )
