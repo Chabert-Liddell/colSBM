@@ -10,6 +10,8 @@ wip
 src/*.o
 src/*.so
 
+simulation/NA_robustness_analyse_files/*
+
 # Latex ignore
 ## Core latex/pdflatex auxiliary files:
 *.aux
