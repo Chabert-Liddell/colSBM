@@ -1,16 +1,20 @@
 ---
-title: "Analyse du clustering trouvé en utilisant les complétions CoOPLBM"
+title: "Netclustering analysis with the CoOPLBM completion"
+bibliography: references.bib
 output:
     html_document:
         toc: true
-        theme: united
+        theme: journal
+    pdf_document:
+        keep_tex: true
 ---
 
-```{r libraries, echo = FALSE}
+```{r libraries, echo = FALSE, include=FALSE}
 devtools::load_all()
+require(aricode)
 ```
 
-```{r fonction_pratiques, echo = FALSE}
+```{r useful_functions, echo = FALSE}
 extract_unlist <- function(data) {
   readRDS(data) |>
     extract_best_bipartite_partition() |>
@@ -38,31 +42,130 @@ extract_collection_clustering_id <- function(collection_list) {
   }
   out_dataframe
 }
+
+extract_full_models <- function(model_collections_list) {
+  return(do.call(
+    "rbind",
+    lapply(
+      seq_along(model_collections_list),
+      function(idx) {
+        model_name <- names(model_collections_list)[idx]
+        df <- extract_collection_clustering_id(model_collections_list[[idx]])
+        return(cbind(df, model = rep(model_name, length(df$netid))))
+      }
+    )
+  ))
+}
+
+reorder_match_netids <- function(dataframe, target) {
+  df <- dataframe[match(target, dataframe$netid), ]
+  return(df)
+}
+
+extract_full_reorder <- function(model_collections_list, target) {
+  unordered <- extract_full_models(model_collections_list)
+  return(do.call("rbind", lapply(
+    names(model_collections_list),
+    function(model_name) {
+      return(reorder_match_netids(unordered[which(unordered$model == model_name), ], target))
+    }
+  )))
+}
 ```
 
 ```{r data_importation, echo = FALSE}
 # Uncompleted
-uncompleted_iid <- extract_unlist("real_data/data/dore_uncompleted_collection_clustering_nb_run_1_iid_70_networks_08-06-23-16:31:17.Rds")
-uncompleted_pi <- extract_unlist("real_data/data/dore_uncompleted_collection_clustering_nb_run_1_pi_70_networks_08-06-23-16:52:16.Rds")
-uncompleted_rho <- extract_unlist("real_data/data/dore_uncompleted_collection_clustering_nb_run_1_rho_70_networks_08-06-23-16:49:58.Rds")
-uncompleted_pirho <- extract_unlist("real_data/data/dore_uncompleted_collection_clustering_nb_run_1_pirho_70_networks_08-06-23-16:41:33.Rds")
+uncompleted_model_list <- list(
+  "iid" = extract_unlist("real_data/data/dore_uncompleted_collection_clustering_nb_run_1_iid_70_networks_08-06-23-16:31:17.Rds"),
+  "pi" = extract_unlist("real_data/data/dore_uncompleted_collection_clustering_nb_run_1_pi_70_networks_08-06-23-16:52:16.Rds"),
+  "rho" = extract_unlist("real_data/data/dore_uncompleted_collection_clustering_nb_run_1_rho_70_networks_08-06-23-16:49:58.Rds"),
+  "pirho" = extract_unlist("real_data/data/dore_uncompleted_collection_clustering_nb_run_1_pirho_70_networks_08-06-23-16:41:33.Rds")
+)
+
+# Below we will need to have the netid in the same order so we choose to use the
+# uncompleted iid model order as reference
+netid_order <- extract_collection_clustering_id(uncompleted_model_list$iid)$netid
+model_order <- c("iid", "pi", "rho", "pirho")
+
+uncompleted_clusterings <- extract_full_reorder(uncompleted_model_list, netid_order)
 
 # 0.2 threshold
-point_2_iid <- extract_unlist("real_data/data/dore_point_2_completed_collection_clustering_nb_run_1_iid_70_networks_07-06-23-18:40:10.Rds")
-point_2_pi <- extract_unlist("real_data/data/dore_point_2_completed_collection_clustering_nb_run_1_pi_70_networks_07-06-23-19:22:19.Rds")
-point_2_rho <- extract_unlist("real_data/data/dore_point_2_completed_collection_clustering_nb_run_1_rho_70_networks_07-06-23-20:03:53.Rds")
-point_2_pirho <- extract_unlist("real_data/data/dore_point_2_completed_collection_clustering_nb_run_1_pirho_70_networks_07-06-23-21:09:12.Rds")
+point_2_model_list <- list(
+  "iid" = extract_unlist("real_data/data/dore_point_2_completed_collection_clustering_nb_run_1_iid_70_networks_07-06-23-18:40:10.Rds"),
+  "pi" = extract_unlist("real_data/data/dore_point_2_completed_collection_clustering_nb_run_1_pi_70_networks_07-06-23-19:22:19.Rds"),
+  "rho" = extract_unlist("real_data/data/dore_point_2_completed_collection_clustering_nb_run_1_rho_70_networks_07-06-23-20:03:53.Rds"),
+  "pirho" = extract_unlist("real_data/data/dore_point_2_completed_collection_clustering_nb_run_1_pirho_70_networks_07-06-23-21:09:12.Rds")
+)
+point_2_clusterings <- extract_full_reorder(point_2_model_list, netid_order)
 
 # 0.5 threshold
-point_5_iid <- extract_unlist("real_data/data/dore_point_5_completed_collection_clustering_nb_run_1_iid_70_networks_07-06-23-19:19:53.Rds")
-point_5_pi <- extract_unlist("real_data/data/dore_point_5_completed_collection_clustering_nb_run_1_pi_70_networks_07-06-23-21:31:20.Rds")
-point_5_rho <- extract_unlist("real_data/data/dore_point_5_completed_collection_clustering_nb_run_1_rho_70_networks_07-06-23-21:03:50.Rds")
-point_5_pirho <- extract_unlist("real_data/data/dore_point_5_completed_collection_clustering_nb_run_1_pirho_70_networks_07-06-23-21:13:10.Rds")
-
+point_5_model_list <- list(
+  "iid" = extract_unlist("real_data/data/dore_point_5_completed_collection_clustering_nb_run_1_iid_70_networks_07-06-23-19:19:53.Rds"),
+  "pi" = extract_unlist("real_data/data/dore_point_5_completed_collection_clustering_nb_run_1_pi_70_networks_07-06-23-21:31:20.Rds"),
+  "rho" = extract_unlist("real_data/data/dore_point_5_completed_collection_clustering_nb_run_1_rho_70_networks_07-06-23-21:03:50.Rds"),
+  "pirho" = extract_unlist("real_data/data/dore_point_5_completed_collection_clustering_nb_run_1_pirho_70_networks_07-06-23-21:13:10.Rds")
+)
+point_5_clusterings <- extract_full_reorder(point_5_model_list, netid_order)
 
 # Uniform re-sampled
-random_iid <- extract_unlist("real_data/data/dore_random_completed_collection_clustering_nb_run_1_iid_70_networks_07-06-23-21:44:14.Rds")
-random_pi <- extract_unlist("real_data/data/dore_random_completed_collection_clustering_nb_run_1_pi_70_networks_07-06-23-22:52:47.Rds")
-random_rho <- extract_unlist("real_data/data/dore_random_completed_collection_clustering_nb_run_1_rho_70_networks_08-06-23-18:16:04.Rds")
-random_pirho <- extract_unlist("real_data/data/dore_random_completed_collection_clustering_nb_run_1_pirho_70_networks_07-06-23-23:07:08.Rds")
+random_model_list <- list(
+  "iid" = extract_unlist("real_data/data/dore_random_completed_collection_clustering_nb_run_1_iid_70_networks_07-06-23-21:44:14.Rds"),
+  "pi" = extract_unlist("real_data/data/dore_random_completed_collection_clustering_nb_run_1_pi_70_networks_07-06-23-22:52:47.Rds"),
+  "rho" = extract_unlist("real_data/data/dore_random_completed_collection_clustering_nb_run_1_rho_70_networks_08-06-23-18:16:04.Rds"),
+  "pirho" = extract_unlist("real_data/data/dore_random_completed_collection_clustering_nb_run_1_pirho_70_networks_07-06-23-23:07:08.Rds")
+)
+random_clusterings <- extract_full_reorder(random_model_list, netid_order)
 ```
+
+# Context of this analysis
+
+After performing a netclustering on the raw data, we will see if the detect
+structure resulting in the clustering comes from the sampling effort. To test
+this we will use the CoOPLBM model by
+@anakokDisentanglingStructureEcological2022 to complete the data.
+
+The CoOPLBM model assumes that the observed incidence matrix $R$ is an
+element-wise product of an $M$ matrix following an LBM and an $N$ matrix which
+elements follow Poisson distributions independent on $M$.
+
+The model gives us the $\hat{M}$ matrix, which elements are:
+
+- 1 if the interaction was observed
+- a probability, that there should be an interaction but it wasn't observed
+
+This *completed matrix* can be used in different manners to be fed to the colSBM
+model.
+
+# Threshold based completions
+With the thresholds, the infered incidence matrix obtained by
+CoOPLBM is used to generate a completed incidence matrix by the following
+procedure :
+$$X_{ij} = \begin{cases}
+  1 & \text{if the value is over the threshold} \\
+  0 & \text{else} \\
+\end{cases}$$
+
+## 0.5 completed threshold
+
+Here, the completion threshold is set to $0.5$.
+
+First we will compute an ARI on the collection id given by the raw data and the
+completed matrix.
+
+```{r 0.5_ARI, echo = FALSE}
+ARI(uncompleted_clusterings[which(uncompleted_clusterings$model == "iid"), ]$collection_id, point_5_clusterings[which(point_5_clusterings$model == "iid"), ]$collection_id)
+```
+
+## 0.2 completed threshold
+
+The $0.2$ threshold adds a lot of interactions compared to raw matrix.
+
+### ARI of networks clustering: 0.5 threshold vs raw data
+
+# Sample based completions
+
+The $M$ matrix is used to sample a new $X$ matrix which elements are the
+realisation of Bernoulli distributions of probability $M_{i,j}$.
+$$\mathbb{P}(X_{i,j} = 1) = M_{i,j} $$
+
+# References

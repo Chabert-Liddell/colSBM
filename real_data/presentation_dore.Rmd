@@ -19,7 +19,7 @@ options(knitr.table.format = function() {
 require("tidyverse")
 require("knitr")
 devtools::load_all("R/")
-source("wip/temporary_plot.R")
+source("real_data/temporary_plot.R")
 ```
 
 ```{r pretty_matrix_print, echo = FALSE, warning=FALSE}
