@@ -6,7 +6,7 @@ set.seed(1234)
 
 eps <- 0.05
 
-m <- 3
+M <- 3
 
 # Defining parameters
 nr <- 100
@@ -24,25 +24,25 @@ max_repetition <- 10
 collections <- list(
   iid = generate_bipartite_collection(nr, nc,
     pir, pic,
-    alpha, m,
+    alpha, M,
     model = "iid",
     return_memberships = TRUE
   ),
   pi = generate_bipartite_collection(nr, nc,
     pir, pic,
-    alpha, m,
+    alpha, M,
     model = "pi",
     return_memberships = TRUE
   ),
   rho = generate_bipartite_collection(nr, nc,
     pir, pic,
-    alpha, m,
+    alpha, M,
     model = "rho",
     return_memberships = TRUE
   ),
   pirho = generate_bipartite_collection(nr, nc,
     pir, pic,
-    alpha, m,
+    alpha, M,
     model = "pirho",
     return_memberships = TRUE
   )
@@ -61,8 +61,8 @@ result_dataframe <- do.call("rbind", bettermc::mclapply(seq_len(nrow(conditions)
   model <- as.character(conditions[current, ]$model)
   bipartite_collection <- collections[[model]]
 
-  # This is a list of the m incidence matrices
-  bipartite_collection_incidence <- lapply(seq.int(m), function(m) {
+  # This is a list of the M incidence matrices
+  bipartite_collection_incidence <- lapply(seq.int(M), function(m) {
     bipartite_collection[[m]]$incidence_matrix
   })
 
@@ -78,7 +78,7 @@ result_dataframe <- do.call("rbind", bettermc::mclapply(seq_len(nrow(conditions)
     arr.ind = TRUE
   )
 
-  Z <- lapply(seq.int(m), function(m) {
+  Z <- lapply(seq.int(M), function(m) {
     list(
       bipartite_collection[[m]]$row_blockmemberships,
       bipartite_collection[[m]]$col_blockmemberships
@@ -146,6 +146,6 @@ saveRDS(
   paste0(
     "simulation/data/",
     "NA_robustness_results-alpha_", toString(alpha),
-    "-reps-", max_repetition, format(Sys.time(), "%d-%m-%y_%H-%m"), ".Rds"
+    "-reps-", max_repetition, "-", format(Sys.time(), "%d-%m-%y_%H-%M"), ".Rds"
   )
 )
