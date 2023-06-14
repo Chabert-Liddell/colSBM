@@ -1,11 +1,124 @@
 ---
-title: "Analyzing the "
-output: html_document
+title: "Analyzing the capacity of the colBiSBM to recover structure for missing data from other networks"
+output:
+    html_document:
+        toc: true
+        theme: united
+    pdf_document:
+        keep_tex: true
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r required_libs, echo = FALSE}
+require("ggplot2")
+require("tidyverse")
+```
+
 ```{r import_data, echo=FALSE}
+NA_robustness_raw <- readRDS("simulation/data/NA_robustness_results-13-06-23_16-07.Rds")
+NA_robustness_df <- NA_robustness_raw %>%
+  mutate(
+    auc_diff = auc_colBiSBM - auc_LBM,
+    ari_row_diff = NA_net_ari_row - LBM_ari_row,
+    ari_col_diff = NA_net_ari_col - LBM_ari_col
+  ) %>%
+  group_by(prop_NAs, model) %>%
+  summarise(
+    mean_auc_diff = mean(auc_diff),
+    sd_auc_diff = sd(auc_diff),
+    mean_ari_row_diff = mean(ari_row_diff),
+    sd_ari_row_diff = sd(ari_row_diff),
+    mean_ari_col_diff = mean(ari_col_diff),
+    sd_ari_col_diff = sd(ari_col_diff),
+    mean_LBM_ari_row = mean(LBM_ari_row),
+    sd_LBM_ari_row = sd(LBM_ari_row),
+    mean_LBM_ari_col = mean(LBM_ari_col),
+    sd_LBM_ari_col = sd(LBM_ari_col),
+    mean_NA_net_ari_row = mean(NA_net_ari_row),
+    sd_NA_net_ari_row = sd(NA_net_ari_row),
+    mean_NA_net_ari_col = mean(NA_net_ari_col),
+    sd_NA_net_ari_col = sd(NA_net_ari_col),
+    mean_elapsed_secs = mean(elapsed_secs),
+    sd_elapsed_secs = sd(elapsed_secs)
+  ) %>%
+  ungroup()
+```
+
+# Simulation context
+
+The idea is to benchmark the capacity of the models when NAs are in the data.
+
+To do this, whe choose the below structure:
+! PARAMETERS OF THE SIMULATION !
+
+And set some randomly chosen interactions to NA. The below plots will show the
+different quality indicators in function of proportion of NAs in the first of
+the 3 networks.
+
+# AUC in function of the proportion of NAs
+
+```{r auc_plots, echo = FALSE}
+auc_plot <- NA_robustness_df %>% ggplot() +
+  geom_line(aes(x = prop_NAs, y = mean_auc_diff, color = model)) +
+  geom_point(aes(x = prop_NAs, y = mean_auc_diff, color = model)) +
+  geom_ribbon(aes(ymin = mean_auc_diff - sd_auc_diff, ymax = mean_auc_diff + sd_auc_diff, x = prop_NAs, fill = model), alpha = 0.25) +
+  xlab("NA proportion") +
+  ylab("AUC difference (colBiSBM - LBM)") +
+  scale_x_continuous(breaks = seq(0, 0.9, 0.1))
+
+
+auc_plot
+```
+
+<!-- FAUX
+    At $0$, there is no NAs in the $1^{st}$ network so the information is completely
+retrieved.
+
+At $0.1$, the AUC is degraded and falls around 0.85 for the *iid, pi and rho*
+models. The *pirho* model seems to perform slightly better, but it's confidence interval
+intersects the others.
+
+For the next values, two "behaviours" can be observed :
+- the *iid* decreases and seems to stabilize until 0.8.
+- the *pi, rho and pirho* seem to remain stable until 0.7, from 0.8 they go down.
+But the *pirho* performs overall the best, staying around 0.86 and with $90\%$
+NAs in ther first network it gives an AUC of 0.83 !
+
+The *pi* and *rho* models perform the same (their confidence intervals overlap),
+and they give an AUC of around 0.83 between $20\%$ to $80\%$ of NAs. The *rho*
+ends at 0.8 AUC, where the *pi* ends at 0.76.
+
+The 4 models maintain an AUC over 0.75 for $90%$ -->
+
+# ARI in function of the proportion of NAs
+
+```{r ARI_row_plot, echo = FALSE, fig.cap="Difference of ARI for the row clusterings"}
+ari_row_plot <- NA_robustness_df %>% ggplot() +
+  ylim(-1, 1) +
+  geom_line(aes(x = prop_NAs, y = mean_ari_row_diff, color = model)) +
+  geom_point(aes(x = prop_NAs, y = mean_ari_row_diff, color = model)) +
+  geom_ribbon(aes(ymin = mean_ari_row_diff - sd_ari_row_diff, ymax = mean_ari_row_diff + sd_ari_row_diff, x = prop_NAs, fill = model), alpha = 0.25) +
+  xlab("NA proportion") +
+  ylab("ARI difference") +
+  ggtitle("ARI on the row clustering, difference (colBiSBM - LBM)") +
+  scale_x_continuous(breaks = seq(0, 0.9, 0.1))
+
+ari_row_plot
+```
+
+```{r ARI_col_plot, echo = FALSE, fig.cap="Difference of ARI for the columns clusterings"}
+ari_col_plot <- NA_robustness_df %>% ggplot() +
+  ylim(-1, 1) +
+  geom_line(aes(x = prop_NAs, y = mean_ari_col_diff, color = model)) +
+  geom_point(aes(x = prop_NAs, y = mean_ari_col_diff, color = model)) +
+  geom_ribbon(aes(ymin = mean_ari_col_diff - sd_ari_col_diff, ymax = mean_ari_col_diff + sd_ari_col_diff, x = prop_NAs, fill = model), alpha = 0.25) +
+  xlab("NA proportion") +
+  ylab("ARI difference") +
+  ggtitle("ARI on the column clustering, difference (colBiSBM - LBM)") +
+  scale_x_continuous(breaks = seq(0, 0.9, 0.1))
+
+ari_col_plot
 ```
