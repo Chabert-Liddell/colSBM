@@ -6,7 +6,7 @@ set.seed(1234)
 
 eps <- 0.05
 
-M <- 3
+m <- 3
 
 # Defining parameters
 nr <- 100
@@ -14,34 +14,35 @@ nc <- 150
 pir <- c(0.5, 0.3, 0.2)
 pic <- c(0.5, 0.3, 0.2)
 alpha <- matrix(c(
-  0.6, eps, eps,
-  eps, 0.4, eps,
-  eps, eps, 0.7
+  0.7, 0.4, 0.3,
+  0.4, 0.2, eps,
+  0.3, eps, eps
 ), byrow = TRUE, nrow = length(pir), ncol = length(pic))
+max_repetition <- 10
 
 # Collections
 collections <- list(
   iid = generate_bipartite_collection(nr, nc,
     pir, pic,
-    alpha, M,
+    alpha, m,
     model = "iid",
     return_memberships = TRUE
   ),
   pi = generate_bipartite_collection(nr, nc,
     pir, pic,
-    alpha, M,
+    alpha, m,
     model = "pi",
     return_memberships = TRUE
   ),
   rho = generate_bipartite_collection(nr, nc,
     pir, pic,
-    alpha, M,
+    alpha, m,
     model = "rho",
     return_memberships = TRUE
   ),
   pirho = generate_bipartite_collection(nr, nc,
     pir, pic,
-    alpha, M,
+    alpha, m,
     model = "pirho",
     return_memberships = TRUE
   )
@@ -51,7 +52,7 @@ collections <- list(
 conditions <- expand.grid(
   prop_NAs = seq(from = 0, to = 0.9, by = 0.1),
   model = c("iid", "pi", "rho", "pirho"),
-  repetition = seq.int(10)
+  repetition = seq.int(max_repetition)
 )
 
 result_dataframe <- do.call("rbind", bettermc::mclapply(seq_len(nrow(conditions)), function(current) {
@@ -60,8 +61,8 @@ result_dataframe <- do.call("rbind", bettermc::mclapply(seq_len(nrow(conditions)
   model <- as.character(conditions[current, ]$model)
   bipartite_collection <- collections[[model]]
 
-  # This is a list of the M incidence matrices
-  bipartite_collection_incidence <- lapply(seq.int(M), function(m) {
+  # This is a list of the m incidence matrices
+  bipartite_collection_incidence <- lapply(seq.int(m), function(m) {
     bipartite_collection[[m]]$incidence_matrix
   })
 
@@ -77,7 +78,7 @@ result_dataframe <- do.call("rbind", bettermc::mclapply(seq_len(nrow(conditions)
     arr.ind = TRUE
   )
 
-  Z <- lapply(seq.int(M), function(m) {
+  Z <- lapply(seq.int(m), function(m) {
     list(
       bipartite_collection[[m]]$row_blockmemberships,
       bipartite_collection[[m]]$col_blockmemberships
@@ -144,6 +145,7 @@ saveRDS(
   result_dataframe,
   paste0(
     "simulation/data/",
-    "NA_robustness_results-", format(Sys.time(), "%d-%m-%y_%H-%M"), ".Rds"
+    "NA_robustness_results-alpha_", toString(alpha),
+    "-reps-", max_repetition, format(Sys.time(), "%d-%m-%y_%H-%m"), ".Rds"
   )
 )

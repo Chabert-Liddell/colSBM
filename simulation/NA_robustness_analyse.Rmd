@@ -3,7 +3,7 @@ title: "Analyzing the capacity of the colBiSBM to recover structure for missing 
 output:
     html_document:
         toc: true
-        theme: united
+        theme: journal
     pdf_document:
         keep_tex: true
 ---
@@ -12,13 +12,13 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r required_libs, echo = FALSE}
+```{r required_libs, echo = FALSE, include=FALSE}
 require("ggplot2")
 require("tidyverse")
 ```
 
-```{r import_data, echo=FALSE}
-NA_robustness_raw <- readRDS("simulation/data/NA_robustness_results-13-06-23_16-07.Rds")
+```{r import_data, echo=FALSE, include=FALSE}
+NA_robustness_raw <- readRDS("simulation/data/NA_robustness_results-14-06-23_15-03.Rds")
 NA_robustness_df <- NA_robustness_raw %>%
   mutate(
     auc_diff = auc_colBiSBM - auc_LBM,
@@ -47,12 +47,54 @@ NA_robustness_df <- NA_robustness_raw %>%
   ungroup()
 ```
 
+```{r useful_function, echo = FALSE}
+write_matex2 <- function(x) {
+  if (!is.matrix(x)) {
+    x <- matrix(x)
+  }
+  begin <- "\\begin{bmatrix}"
+  end <- "\\end{bmatrix}"
+  X <-
+    apply(x, 1, function(x) {
+      paste(
+        paste(x, collapse = "&"),
+        "\\\\"
+      )
+    })
+  paste(c(begin, X, end), collapse = "")
+}
+```
+
 # Simulation context
 
 The idea is to benchmark the capacity of the models when NAs are in the data.
 
-To do this, whe choose the below structure:
-! PARAMETERS OF THE SIMULATION !
+To do this, we chose the below structure:
+
+```{r simulation_parameters, echo = FALSE}
+eps <- 0.05
+
+M <- 3
+
+# Defining parameters
+nr <- 100
+nc <- 150
+pir <- c(0.5, 0.3, 0.2)
+pic <- c(0.5, 0.3, 0.2)
+alpha <- matrix(c(
+  0.6, eps, eps,
+  eps, 0.4, eps,
+  eps, eps, 0.7
+), byrow = TRUE, nrow = length(pir), ncol = length(pic))
+```
+
+$$M = `r M`, n_r = `r nr`, n_c = `r nc` \\ \alpha = `r write_matex2(alpha)`
+    \\ \pi = `r write_matex2(pir)` \rho = `r write_matex2(pic)`$$
+
+With $M$ the number of networks, $n_r$ the number of nodes in row of the incidence
+matrix, $n_c$ the number of nodes in column, $\alpha$ the connectivity
+parameters between the row and column clusters. $\pi$ and $\rho$ are
+the proportion of nodes in the row and columns clusters.
 
 And set some randomly chosen interactions to NA. The below plots will show the
 different quality indicators in function of proportion of NAs in the first of

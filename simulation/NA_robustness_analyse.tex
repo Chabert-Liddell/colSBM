@@ -68,32 +68,12 @@ missing data from other networks}
 \maketitle
 
 \begin{verbatim}
-## Le chargement a nécessité le package : ggplot2
-\end{verbatim}
-
-\begin{verbatim}
-## Le chargement a nécessité le package : tidyverse
-\end{verbatim}
-
-\begin{verbatim}
-## -- Attaching core tidyverse packages ------------------------ tidyverse 2.0.0 --
-## v dplyr     1.1.2     v readr     2.1.4
-## v forcats   1.0.0     v stringr   1.5.0
-## v lubridate 1.9.2     v tibble    3.2.1
-## v purrr     1.0.1     v tidyr     1.3.0
-## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
-## x dplyr::filter() masks stats::filter()
-## x dplyr::lag()    masks stats::lag()
-## i Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
-\end{verbatim}
-
-\begin{verbatim}
 ## `summarise()` has grouped output by 'prop_NAs'. You can override using the
 ## `.groups` argument.
 \end{verbatim}
 
-\hypertarget{contexte-des-simulations}{%
-\section{Contexte des simulations}\label{contexte-des-simulations}}
+\hypertarget{simulation-context}{%
+\section{Simulation context}\label{simulation-context}}
 
 The idea is to benchmark the capacity of the models when NAs are in the
 data.
@@ -110,6 +90,10 @@ in the first of the 3 networks.
 NAs}\label{auc-in-function-of-the-proportion-of-nas}}
 
 \includegraphics{NA_robustness_analyse_files/figure-latex/auc_plots-1.pdf}
+
+\hypertarget{ari-in-function-of-the-proportion-of-nas}{%
+\section{ARI in function of the proportion of
+NAs}\label{ari-in-function-of-the-proportion-of-nas}}
 
 \begin{figure}
 \centering
