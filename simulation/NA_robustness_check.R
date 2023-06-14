@@ -51,7 +51,7 @@ collections <- list(
 conditions <- expand.grid(
   prop_NAs = seq(from = 0, to = 0.9, by = 0.1),
   model = c("iid", "pi", "rho", "pirho"),
-  repetition = seq.int(3)
+  repetition = seq.int(10)
 )
 
 result_dataframe <- do.call("rbind", bettermc::mclapply(seq_len(nrow(conditions)), function(current) {
