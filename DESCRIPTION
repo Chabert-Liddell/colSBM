@@ -25,6 +25,7 @@ Imports:
     ggnewscale,
     ggplot2,
     magrittr,
+    matrixStats,
     patchwork,
     purrr,
     R6,
