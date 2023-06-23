@@ -82,9 +82,9 @@ nc <- 150
 pir <- c(0.5, 0.3, 0.2)
 pic <- c(0.5, 0.3, 0.2)
 alpha <- matrix(c(
-  0.6, eps, eps,
-  eps, 0.4, eps,
-  eps, eps, 0.7
+  0.7, 0.4, 0.3,
+  0.4, 0.2, eps,
+  0.3, eps, eps
 ), byrow = TRUE, nrow = length(pir), ncol = length(pic))
 ```
 
@@ -104,9 +104,9 @@ the 3 networks.
 
 ```{r auc_plots, echo = FALSE}
 auc_plot <- NA_robustness_df %>% ggplot() +
+  geom_ribbon(aes(ymin = mean_auc_diff - sd_auc_diff, ymax = mean_auc_diff + sd_auc_diff, x = prop_NAs, fill = model), alpha = 0.1) +
   geom_line(aes(x = prop_NAs, y = mean_auc_diff, color = model)) +
   geom_point(aes(x = prop_NAs, y = mean_auc_diff, color = model)) +
-  geom_ribbon(aes(ymin = mean_auc_diff - sd_auc_diff, ymax = mean_auc_diff + sd_auc_diff, x = prop_NAs, fill = model), alpha = 0.25) +
   xlab("NA proportion") +
   ylab("AUC difference (colBiSBM - LBM)") +
   scale_x_continuous(breaks = seq(0, 0.9, 0.1))
@@ -115,6 +115,18 @@ auc_plot <- NA_robustness_df %>% ggplot() +
 auc_plot
 ```
 
+```{r auc_, echo = FALSE}
+auc_plot <- NA_robustness_df %>% ggplot() +
+  geom_ribbon(aes(ymin = mean_auc_diff - sd_auc_diff, ymax = mean_auc_diff + sd_auc_diff, x = prop_NAs, fill = model), alpha = 0.1) +
+  geom_line(aes(x = prop_NAs, y = mean_auc_diff, color = model)) +
+  geom_point(aes(x = prop_NAs, y = mean_auc_diff, color = model)) +
+  xlab("NA proportion") +
+  ylab("AUC difference (colBiSBM - LBM)") +
+  scale_x_continuous(breaks = seq(0, 0.9, 0.1))
+
+
+auc_plot
+```
 <!-- FAUX
     At $0$, there is no NAs in the $1^{st}$ network so the information is completely
 retrieved.
@@ -139,10 +151,10 @@ The 4 models maintain an AUC over 0.75 for $90%$ -->
 
 ```{r ARI_row_plot, echo = FALSE, fig.cap="Difference of ARI for the row clusterings"}
 ari_row_plot <- NA_robustness_df %>% ggplot() +
-  ylim(-1, 1) +
+  # ylim(-1, 1) +
+  geom_ribbon(aes(ymin = mean_ari_row_diff - sd_ari_row_diff, ymax = mean_ari_row_diff + sd_ari_row_diff, x = prop_NAs, fill = model), alpha = 0.25) +
   geom_line(aes(x = prop_NAs, y = mean_ari_row_diff, color = model)) +
   geom_point(aes(x = prop_NAs, y = mean_ari_row_diff, color = model)) +
-  geom_ribbon(aes(ymin = mean_ari_row_diff - sd_ari_row_diff, ymax = mean_ari_row_diff + sd_ari_row_diff, x = prop_NAs, fill = model), alpha = 0.25) +
   xlab("NA proportion") +
   ylab("ARI difference") +
   ggtitle("ARI on the row clustering, difference (colBiSBM - LBM)") +
@@ -153,10 +165,10 @@ ari_row_plot
 
 ```{r ARI_col_plot, echo = FALSE, fig.cap="Difference of ARI for the columns clusterings"}
 ari_col_plot <- NA_robustness_df %>% ggplot() +
-  ylim(-1, 1) +
+  # ylim(-1, 1) +
+  geom_ribbon(aes(ymin = mean_ari_col_diff - sd_ari_col_diff, ymax = mean_ari_col_diff + sd_ari_col_diff, x = prop_NAs, fill = model), alpha = 0.25) +
   geom_line(aes(x = prop_NAs, y = mean_ari_col_diff, color = model)) +
   geom_point(aes(x = prop_NAs, y = mean_ari_col_diff, color = model)) +
-  geom_ribbon(aes(ymin = mean_ari_col_diff - sd_ari_col_diff, ymax = mean_ari_col_diff + sd_ari_col_diff, x = prop_NAs, fill = model), alpha = 0.25) +
   xlab("NA proportion") +
   ylab("ARI difference") +
   ggtitle("ARI on the column clustering, difference (colBiSBM - LBM)") +

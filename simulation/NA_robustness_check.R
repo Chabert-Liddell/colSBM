@@ -22,25 +22,25 @@ max_repetition <- 10
 
 # Collections
 collections <- list(
-  iid = generate_bipartite_collection(nr, nc,
+  "iid" = generate_bipartite_collection(nr, nc,
     pir, pic,
     alpha, M,
     model = "iid",
     return_memberships = TRUE
   ),
-  pi = generate_bipartite_collection(nr, nc,
+  "pi" = generate_bipartite_collection(nr, nc,
     pir, pic,
     alpha, M,
     model = "pi",
     return_memberships = TRUE
   ),
-  rho = generate_bipartite_collection(nr, nc,
+  "rho" = generate_bipartite_collection(nr, nc,
     pir, pic,
     alpha, M,
     model = "rho",
     return_memberships = TRUE
   ),
-  pirho = generate_bipartite_collection(nr, nc,
+  "pirho" = generate_bipartite_collection(nr, nc,
     pir, pic,
     alpha, M,
     model = "pirho",
@@ -54,6 +54,8 @@ conditions <- expand.grid(
   model = c("iid", "pi", "rho", "pirho"),
   repetition = seq.int(max_repetition)
 )
+
+
 
 result_dataframe <- do.call("rbind", bettermc::mclapply(seq_len(nrow(conditions)), function(current) {
   # Looping over conditions
