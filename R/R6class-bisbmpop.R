@@ -1311,11 +1311,9 @@ bisbmpop <- R6::R6Class(
     #' @details the function takes no parameters and print a plot
     #' of the current state of the model_list.
     #' @return nothing
-    state_space_plot = function() {
-      if (self$global_opts$plot_details >= 1 &
-        !self$global_opts$parallelization_vector[1]) {
-        # Creating an empty dataframe
-
+    state_space_plot = function(plot_detail = self$global_opts$plot_detail) {
+      # Creating an empty dataframe
+      if (plot_detail > 0) {
         data_state_space <- as.data.frame(matrix(ncol = 6, nrow = 0))
         names(data_state_space) <- c("Q1", "Q2", "BICL", "isMaxBICL", "startingPoint", "clusteringComplete")
 
@@ -1335,15 +1333,6 @@ bisbmpop <- R6::R6Class(
             }
           }
         }
-
-        # data_state_space[nrow(data_state_space) + 1,] <- list(
-        #   0,
-        #   0,
-        #   -Inf,
-        #   FALSE,
-        #   "",
-        #   FALSE
-        # )
 
         # Here the max BICL is highlighted
         data_state_space[which.max(data_state_space$BICL), ]$isMaxBICL <- TRUE
@@ -1366,22 +1355,22 @@ bisbmpop <- R6::R6Class(
         }
 
         # Plotting
-        state_plot <- ggplot(data_state_space) +
-          geom_path(
+        state_plot <- ggplot2::ggplot(data_state_space) +
+          ggplot2::geom_path(
             data = exploration_path,
-            position = position_dodge2(width = 0.2),
-            aes(
+            position = ggplot2::position_dodge2(width = 0.2),
+            ggplot2::aes(
               x = Q1,
               y = Q2,
               color = startingPoint
             ),
             linewidth = 2,
-            arrow = arrow()
+            arrow = ggplot2::arrow()
           ) +
-          guides(color = guide_legend(title = "Path taken")) +
-          scale_color_discrete() +
-          scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q2_max)) +
-          scale_x_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q1_max))
+          ggplot2::guides(color = ggplot2::guide_legend(title = "Greedy exploration path")) +
+          ggplot2::scale_color_discrete() +
+          ggplot2::scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q2_max)) +
+          ggplot2::scale_x_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q1_max))
 
         if (!is.null(self$old_moving_window_coordinates)) {
           # If there are previous moving windows coordinates
@@ -1395,7 +1384,7 @@ bisbmpop <- R6::R6Class(
           )) {
             coords <- self$old_moving_window_coordinates[[index]]
             state_plot <- state_plot +
-              annotate("rect",
+              ggplot2::annotate("rect",
                 xmin = coords[[1]][1],
                 xmax = coords[[2]][1],
                 ymin = coords[[1]][2],
@@ -1403,7 +1392,7 @@ bisbmpop <- R6::R6Class(
                 color = "black",
                 alpha = .2
               ) +
-              annotate("label",
+              ggplot2::annotate("label",
                 x = coords[[1]][1] + 0.25,
                 y = coords[[1]][2] + 0.25,
                 label = paste0(index)
@@ -1417,7 +1406,7 @@ bisbmpop <- R6::R6Class(
           # coords[[1]] <- coords[[1]] - 0.25
           # coords[[2]] <- coords[[2]] + 0.25
           state_plot <- state_plot +
-            annotate("rect",
+            ggplot2::annotate("rect",
               xmin = max(coords[[1]][1], 1),
               xmax = min(coords[[2]][1], self$Q1_max),
               ymin = max(coords[[1]][2], 1),
@@ -1430,23 +1419,23 @@ bisbmpop <- R6::R6Class(
 
         state_plot <- state_plot +
           ggnewscale::new_scale_color() +
-          geom_point(aes(
+          ggplot2::geom_point(ggplot2::aes(
             x = Q1,
             y = Q2,
             size = BICL,
             color = isMaxBICL,
             alpha = BICL,
           )) +
-          guides(color = guide_legend(title = "Is max value\nof BICL ?")) +
+          ggplot2::guides(color = ggplot2::guide_legend(title = "Is max value\nof BICL ?")) +
           ggnewscale::new_scale_color() +
-          scale_colour_hue(l = 45, drop = FALSE) +
-          geom_point(aes(
+          ggplot2::scale_colour_hue(l = 45, drop = FALSE) +
+          ggplot2::geom_point(ggplot2::aes(
             x = Q1,
             y = Q2,
             color = clusteringComplete
           )) +
-          guides(color = guide_legend(title = "Is the clustering complete ?"))
-        ggtitle("State space for ", toString(self$net_id))
+          ggplot2::guides(color = ggplot2::guide_legend(title = "Is the clustering complete ?"))
+        ggplot2::ggtitle("State space for ", toString(self$net_id))
 
 
         print(state_plot)
@@ -2010,9 +1999,10 @@ bisbmpop <- R6::R6Class(
         mode_2_1 <- self$greedy_exploration(c(2, 1))
         if (self$global_opts$verbosity >= 2) {
           cat("\nFrom (", toString(c(2, 1)), ") the mode is at: (", toString(mode_2_1), ").")
-          # Plot the state of space and it's exploration
-          self$state_space_plot()
         }
+
+        # Plot the state of space and it's exploration
+        self$state_space_plot()
 
         # Finding the best of the two modes
         best_mode <- list(mode_1_2, mode_2_1)[[which.max(c(
@@ -2342,9 +2332,7 @@ bisbmpop <- R6::R6Class(
             )
         }
       }
-
       self$state_space_plot()
-
       if (self$global_opts$verbosity >= 3) {
         cat("\nEnd of the forward pass.\nBeginning the backward pass.")
       }
@@ -2516,9 +2504,7 @@ bisbmpop <- R6::R6Class(
           )
         }
       }
-
       self$state_space_plot()
-
       if (self$global_opts$verbosity >= 3) {
         cat("\nEnd of the backward pass.")
       }
@@ -2659,6 +2645,9 @@ bisbmpop <- R6::R6Class(
           cat("\nSep BiSBM total BICL: ", sum(self$sep_BiSBM$BICL))
         }
       }
+    },
+    plot = function() {
+      self$state_space_plot(plot_detail = 1)
     },
     print_metrics = function() {
       # Capturing the pretty print of matrices

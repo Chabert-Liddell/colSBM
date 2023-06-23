@@ -567,7 +567,6 @@ clusterize_bipartite_networks <- function(netlist,
           )
           # Reshaping the Z_init to be bi-dimensional
           dim(Z_init) <- c(fit$global_opts$Q1_max, fit$global_opts$Q2_max)
-          print(Z_init) # TODO Remove
 
           # cl == k, is a bool vector with TRUE, if network m
           # is a member of cluster k

@@ -59,7 +59,6 @@ fitBipartiteSBMPop <- R6::R6Class(
     Z = NULL, # The clusters memberships, a list of size M of two matrices : 1 for rows clusters memberships and 2 for columns clusters memberships
     MAP = NULL, # Maximum a posteriori
     MAP_parameters = NULL,
-    parameters = NULL,
     ICL = NULL,
     BICL = NULL,
     penalty_clustering = NULL,
@@ -736,7 +735,6 @@ fitBipartiteSBMPop <- R6::R6Class(
               t(self$nonNAs[[m]]) %*%
               self$tau[[m]][[1]] %*%
               (self$alpha * self$delta[m])
-            # See later the reason why lfactorial(k) isn't present
           }
           invisible(tau_new)
         }
@@ -1347,24 +1345,6 @@ fitBipartiteSBMPop <- R6::R6Class(
       }
       self$reorder_parameters()
     },
-    show = function(type = "Fitted Collection of Bipartite SBM") {
-      cat(type, "--", self$distribution, "variant for", self$M, "networks \n")
-      cat("=====================================================================\n")
-      cat("net_id = (", self$net_id, ")\n")
-      cat(
-        "Dimensions = (", toString(lapply(seq.int(self$M), function(m) {
-          c(self$n[[1]][[m]], self$n[[2]][[m]])
-        })), ") - (",
-        toString(self$Q), ") blocks.\n"
-      )
-      cat(
-        "BICL = ", self$BICL,
-        "\n#Empty row blocks on all networks: ", sum(!self$Cpi[[1]]),
-        " -- #Empty columns blocks on all networks: ", sum(!self$Cpi[[2]]), " \n"
-      )
-      cat("Interesting attributes:\n", "$alpha, $pi, $BICL, $Q, $Z\n")
-      cat("=====================================================================")
-    },
     reorder_parameters = function() {
       Z_label_switch <- function(Z, new_order) {
         # Create a mapping of old labels to new labels
@@ -1443,7 +1423,51 @@ fitBipartiteSBMPop <- R6::R6Class(
         self$MAP$pi[[m]][[2]] <- self$MAP$pi[[m]][[2]][p2, drop = FALSE]
       })
     },
+    show = function(type = "Fitted Collection of Bipartite SBM") {
+      cat(type, "--", self$distribution, "variant for", self$M, "networks \n")
+      cat("=====================================================================\n")
+      cat("net_id = (", self$net_id, ")\n")
+      cat(
+        "Dimensions = (", toString(lapply(seq.int(self$M), function(m) {
+          c(self$n[[1]][[m]], self$n[[2]][[m]])
+        })), ") - (",
+        toString(self$Q), ") blocks.\n"
+      )
+      cat(
+        "BICL = ", self$BICL,
+        "\n#Empty row blocks on all networks: ", sum(!self$Cpi[[1]]),
+        " -- #Empty columns blocks on all networks: ", sum(!self$Cpi[[2]]), " \n"
+      )
+      cat("* Useful fields \n")
+      cat("  $distribution, $nb_nodes, $nb_blocks, $support, $pred_blockmemberships \n")
+      cat("  $memberships, $parameters, $BICL, $vbound, $pred_dyads \n")
+      cat("=====================================================================")
+    },
     print = function() self$show()
   ),
-  active = list()
+  active = list(
+    nb_nodes = function(value) self$n,
+    nb_blocks = function(value) self$Q,
+    support = function(value) self$Cpi,
+    prob_memberships = function(value) self$tau,
+    parameters = function(value) {
+      list(
+        alpha = self$alpha,
+        pi = self$pi,
+        delta = self$delta
+      )
+    },
+    pred_dyads = function(value) {
+      lapply(
+        seq(self$M),
+        function(m) {
+          A_hat <- self$tau[[m]][[1]] %*% (self$delta[m] * self$alpha) %*% t(self$tau[[m]][[2]])
+          A_hat
+        }
+      )
+    },
+    memberships = function(value) {
+      self$Z
+    }
+  )
 )

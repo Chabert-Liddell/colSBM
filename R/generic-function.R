@@ -340,11 +340,11 @@ fitBipartiteSBMPop$set(
         }
         df_pi <- purrr::map_dfc(
           seq_along(self$net_id),
-          function(m) setNames(data.frame(self$pim[[m]][[1]][oRow]), m)
+          function(m) data.frame(self$pim[[m]][[1]][oRow])
         )
         df_rho <- purrr::map_dfc(
           seq_along(self$net_id),
-          function(m) setNames(data.frame(self$pim[[m]][[2]][oCol]), m)
+          function(m) data.frame(self$pim[[m]][[2]][oCol])
         )
         # names(df_pi) <- self$net_id
         if (mixture) {
@@ -353,7 +353,7 @@ fitBipartiteSBMPop$set(
             #    rename() %>%
             dplyr::mutate(q = seq(self$Q[1])) %>%
             tidyr::pivot_longer(cols = -c(q)) %>%
-            mutate(Proportion = value) %>%
+            dplyr::mutate(Proportion = value) %>%
             ggplot2::ggplot(ggplot2::aes(
               fill = as.factor(q), y = name,
               x = Proportion
@@ -375,7 +375,7 @@ fitBipartiteSBMPop$set(
             #    rename() %>%
             dplyr::mutate(q = seq(self$Q[2])) %>%
             tidyr::pivot_longer(cols = -c(q)) %>%
-            mutate(Proportion = value) %>%
+            dplyr::mutate(Proportion = value) %>%
             ggplot2::ggplot(ggplot2::aes(
               fill = as.factor(q), y = name,
               x = Proportion
