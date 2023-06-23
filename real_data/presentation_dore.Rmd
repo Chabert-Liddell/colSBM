@@ -265,6 +265,33 @@ Et voici donc les valeurs numériques pour les $\alpha$ (paramètres de connecti
 ```{r iid_alpha, echo = FALSE, results="asis", warning=FALSE}
 alpha_print(iid_unlist)
 ```
+### Comparaison avec des infos supplémentaires
+```{r supinfo, echo = FALSE}
+supinfo <- readxl::read_xlsx("real_data/data/supinfo.xlsx", sheet = 2)
+interaction_data <- read.table(file = "real_data/data/interaction-data.txt", sep = "\t", header = TRUE)
+
+seq_ids_network_aggreg <- unique(interaction_data$id_network_aggreg)
+incidence_matrices <- readRDS(file = "real_data/data/dore-matrices.Rds")
+names_aggreg_networks <- names(incidence_matrices)
+vectorClusteringNet <- numeric(nrow(supinfo))
+for (k in 1:length(iid_unlist)) {
+  idclust <- match(iid_unlist[[k]]$net_id, names_aggreg_networks)
+  supinfoclust <- match(seq_ids_network_aggreg[idclust], supinfo$Idweb)
+  vectorClusteringNet[supinfoclust] <- k
+}
+```
+
+```{r Annual_timespan_plot, echo = FALSE}
+ggplot(supinfo) +
+  aes(
+    y = Annual_time_span,
+    x = vectorClusteringNet, group = vectorClusteringNet, fill = as.factor(vectorClusteringNet)
+  ) +
+  xlab("Numéro de collection") +
+  ylab("Annual time span") +
+  guides(fill = guide_legend(title = "Numéro\nde collection")) +
+  geom_boxplot()
+```
 
 ### Répartition dans les clusters selon la taxonomie
 ```{r iid_taxonomy, echo = FALSE, warning=FALSE}
@@ -309,6 +336,21 @@ taxonomy_plot(
   stack_or_fill = "fill", model = "iid"
 )
 ```
+
+#### Tables
+```{r iid_taxo_tables, echo = FALSE}
+iid_taxonomy_long %>%
+  filter(Group == "insects") %>%
+  group_by(Taxon) %>%
+  mutate(row_id = row_number()) %>%
+  pivot_wider(names_from = c(Collection, Bloc), values_from = Nombre, names_glue = "Collection_{Collection}_Bloc_{Bloc}") %>%
+  ungroup() %>%
+  select(-row_id) %>%
+  group_by(Taxon) %>%
+  summarize(across(starts_with("Collection"), ~ na.omit(.)[1])) %>%
+  ungroup()
+```
+
 
 ## Clustering avec le modèle pi
 Avec le modèle *pi* nous obtenons les `r length(pi_unlist)` collections et
