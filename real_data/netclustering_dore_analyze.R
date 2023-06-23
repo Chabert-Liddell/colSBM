@@ -1,6 +1,5 @@
 require("ggplot2")
 devtools::load_all("R/")
-source("wip/temporary_plot.R")
 
 ## Preparing data for analysis
 interaction_data <- read.table(file = "real_data/data/interaction-data.txt", sep = "\t", header = TRUE)
