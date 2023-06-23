@@ -66,7 +66,7 @@ generate_unipartite_collection <- function(n, pi, alpha, M) {
 #' @noMd
 #' @noRd
 generate_bipartite_network <- function(
-    nr, nc, pi, rho, alpha,
+    nr, nc, pi, rho, alpha, distribution = "bernoulli",
     return_memberships = FALSE) {
   rowblocks_memberships <- rmultinom(nr, size = 1, prob = pi)
   colblocks_memberships <- rmultinom(nc, size = 1, prob = rho)
@@ -74,11 +74,28 @@ generate_bipartite_network <- function(
     alpha %*%
     colblocks_memberships
 
-  incidence_matrix <- matrix(
-    rbinom(length(node_node_interaction_prob),
-      size = 1, prob = node_node_interaction_prob
-    ),
-    nrow = nrow(node_node_interaction_prob)
+  # Defining the multi_rpois
+  multi_rpois <- function(lambda_vec) {
+    sapply(lambda_vec, function(lambda) {
+      rpois(1, lambda = lambda)
+    })
+  }
+
+  incidence_matrix <- switch(distribution,
+    "poisson" = {
+      matrix(
+        multi_rpois(node_node_interaction_prob),
+        nrow = nrow(node_node_interaction_prob)
+      )
+    },
+    {
+      matrix(
+        rbinom(length(node_node_interaction_prob),
+          size = 1, prob = node_node_interaction_prob
+        ),
+        nrow = nrow(node_node_interaction_prob)
+      )
+    }
   )
   if (return_memberships) {
     return(list(
@@ -118,6 +135,7 @@ generate_bipartite_network <- function(
 generate_bipartite_collection <- function(
     nr, nc, pi, rho, alpha, M,
     model = "iid",
+    distribution = "bernoulli",
     return_memberships = FALSE) {
   out <- list()
 
@@ -152,6 +170,7 @@ generate_bipartite_collection <- function(
           pi = pi,
           rho = rho,
           alpha = alpha,
+          distribution = distribution,
           return_memberships = return_memberships
         )
       })
@@ -164,6 +183,7 @@ generate_bipartite_collection <- function(
           pi = sample(pi),
           rho = rho,
           alpha = alpha,
+          distribution = distribution,
           return_memberships = return_memberships
         )
       })
@@ -176,6 +196,7 @@ generate_bipartite_collection <- function(
           pi = pi,
           rho = sample(rho),
           alpha = alpha,
+          distribution = distribution,
           return_memberships = return_memberships
         )
       })
@@ -188,6 +209,7 @@ generate_bipartite_collection <- function(
           pi = sample(pi),
           rho = sample(rho),
           alpha = alpha,
+          distribution = distribution,
           return_memberships = return_memberships
         )
       })
