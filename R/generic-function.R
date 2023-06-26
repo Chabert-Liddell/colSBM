@@ -295,14 +295,28 @@ fitBipartiteSBMPop$set(
     }
     p <- switch(type,
       graphon = {
+        if (self$Q[1] == 1) {
+          ymin <- rep(0, each = self$Q[2])
+          ymax <- rep(1, each = self$Q[2])
+        } else {
+          ymin <- rep(c(0, cumsum(self$pi[[net_id]][[1]][oRow][1:(self$Q[1] - 1)])), each = self$Q[2])
+          ymax <- rep(c(cumsum(self$pi[[net_id]][[1]][oRow])), each = self$Q[2])
+        }
+        if (self$Q[2] == 1) {
+          xmin <- rep(0, self$Q[1])
+          xmax <- rep(1, self$Q[1])
+        } else {
+          xmin <- rep(c(0, cumsum(self$pi[[net_id]][[2]][oCol][1:(self$Q[2] - 1)])), self$Q[1])
+          xmax <- rep(cumsum(self$pi[[net_id]][[2]][oCol]), self$Q[1])
+        }
         (self$alpha[oRow, oCol] * mean(self$delta)) %>%
           t() %>%
           reshape2::melt() %>%
           dplyr::mutate(
-            xmin = rep(c(0, cumsum(self$pi[[net_id]][[2]][oCol][1:(self$Q[2] - 1)])), self$Q[1]),
-            ymin = rep(c(0, cumsum(self$pi[[net_id]][[1]][oRow][1:(self$Q[1] - 1)])), each = self$Q[2]),
-            xmax = rep(cumsum(self$pi[[net_id]][[2]][oCol]), self$Q[1]),
-            ymax = rep(cumsum(self$pi[[net_id]][[1]][oRow]), each = self$Q[2])
+            xmin = xmin,
+            ymin = ymin,
+            xmax = xmax,
+            ymax = ymax
           ) %>%
           ggplot2::ggplot(ggplot2::aes(
             xmin = xmin, ymin = ymin,
@@ -319,7 +333,7 @@ fitBipartiteSBMPop$set(
           ggplot2::coord_equal(expand = FALSE)
       },
       meso = {
-        p_alpha <- self$alpha[oRow, oCol] %>%
+        p_alpha <- self$alpha[oRow, oCol, drop = FALSE] %>%
           t() %>%
           reshape2::melt() %>%
           ggplot2::ggplot(ggplot2::aes(x = Var1, y = Var2, fill = value)) +

@@ -23,16 +23,16 @@ data("dorebipartite")
 # Estimation with colSBM
 
 We load a list of 15 plant-pollinator networks. They are binary undirected networks with different
-number of plant and pollinator species. First, we are going to model jointly the first $3$ networks,
-using the pi-colBiSBM model.
+number of plant and pollinator species. First, we are going to model jointly the `r names(dorebipartite)[7:10]` networks,
+using the *iid-colBiSBM* model.
 
 
 ```{r results=FALSE, warning=FALSE}
 set.seed(1234)
-res_pp_pi <- estimate_colBiSBM(
-  netlist = dorebipartite[1:3], # A list of networks
-  colsbm_model = "pi", # The name of the model
-  net_id = names(dorebipartite)[1:3], # Name of the networks
+res_pp_iid <- estimate_colBiSBM(
+  netlist = dorebipartite[7:10], # A list of networks
+  colsbm_model = "iid", # The name of the model
+  net_id = names(dorebipartite)[7:10], # Name of the networks
   nb_run = 1L, # Number of runs of the algorithm
   global_opts = list(
     verbosity = 1,
@@ -43,12 +43,12 @@ res_pp_pi <- estimate_colBiSBM(
 ```
 
 We can look at how the variational bound and the model selection criteria evolve with the number of clusters.
-Here, the BICL criterion selects Q = `r res_pp_pi$best_fit$Q` blocks.
+Here, the BICL criterion selects Q = `r res_pp_iid$best_fit$Q` blocks.
 
 
 ```{r}
-plot(res_pp_pi)
-best_fit <- res_pp_pi$best_fit
+plot(res_pp_iid)
+best_fit <- res_pp_iid$best_fit
 ```
 
 # Results and analysis
@@ -83,16 +83,17 @@ best_fit$pred_dyads[[3]][1:10, 1:5]
 We can also plot the networks individually:
 
 ```{r plot-block}
-plot(res_pp_pi$best_fit, type = "block", net_id = 1) +
-  plot(res_pp_pi$best_fit, type = "block", net_id = 2) +
-  plot(res_pp_pi$best_fit, type = "block", net_id = 3)
+plot(res_pp_iid$best_fit, type = "block", net_id = 1) +
+  plot(res_pp_iid$best_fit, type = "block", net_id = 2) +
+  plot(res_pp_iid$best_fit, type = "block", net_id = 3) +
+  plot(res_pp_iid$best_fit, type = "block", net_id = 4)
 ```
 
 Or make different plots to exhibit the mesoscale structure:
 
 ```{r}
-plot(res_pp_pi$best_fit, type = "graphon")
-plot(res_pp_pi$best_fit, type = "meso", mixture = TRUE)
+plot(res_pp_iid$best_fit, type = "graphon")
+plot(res_pp_iid$best_fit, type = "meso", mixture = TRUE)
 ```
 
 # Clustering of networks
@@ -118,7 +119,7 @@ sim_net <-
     rho = rho,
     alpha = alpha,
     M = 3,
-    model = "pi"
+    model = "iid"
   )
 ```
 
@@ -126,10 +127,10 @@ sim_net <-
 ```{r results=FALSE}
 set.seed(1234)
 net_clust <- clusterize_bipartite_networks(
-  netlist = c(dorebipartite[2:3], sim_net), # A list of networks
-  colsbm_model = "pi", # The name of the model
-  net_id = c(names(dorebipartite)[2:3], "sim1", "sim2", "sim3"), # Name of the networks
-  nb_run = 1L, # Nmber of runs of the algorithm
+  netlist = c(dorebipartite[7:10], sim_net), # A list of networks
+  colsbm_model = "iid", # The name of the model
+  net_id = c(names(dorebipartite)[7:10], "sim1", "sim2", "sim3"), # Name of the networks
+  nb_run = 1L, # Number of runs of the algorithm
   global_opts = list(
     verbosity = 0,
     plot_details = 0,
@@ -141,11 +142,12 @@ net_clust <- clusterize_bipartite_networks(
 ```
 
 
-We obtain a list of 5 tested collections. The lists are nested and reflect the
+We obtain a list of `r length(unlist(best_partition))` tested collections. The lists are nested and reflect the
 sequential steps of clustering.
 The extraction of the best partition below reveals that our 3 simulated networks
-are considered as being part of the same collection and that the among the 3
-plant-pollinator there exists a difference leading to 3 collections.
+are considered as being part of the same collection and that the among the 4
+plant-pollinator networks there exists a difference leading to 2 collections that
+contains networks from the same authors.
 
 ```{r}
 best_partition <- extract_best_bipartite_partition(net_clust)
@@ -167,7 +169,7 @@ plot(best_partition[[1]][[1]],
     type = "graphon"
   ) +
   plot(best_partition[[2]],
-    type = "meso"
+    type = "graphon"
   ) +
   plot_layout(guides = "collect") + plot_annotation(tag_levels = "1")
 ```
