@@ -1,9 +1,10 @@
-fitSimpleSBMPop$set("public", "plot",
-#' Title
-#'
-#' @importFrom patchwork
-#' @importFrom reshape2
-#' @importFrom purrr
+fitSimpleSBMPop$set(
+  "public", "plot",
+  #' Title
+  #'
+  #' @importFrom patchwork
+  #' @importFrom reshape2
+  #' @importFrom purrr
   function(type = "graphon", ord = NULL, mixture = FALSE, net_id = NULL, ...) {
   if(is.null(ord)) ord <- order(diag(self$alpha), decreasing = TRUE)
   p <- switch(
@@ -125,8 +126,10 @@ fitSimpleSBMPop$set("public", "plot",
 plot.fitSimpleSBMPop <- function(x, type = "graphon",
                                  ord = NULL, mixture = FALSE, net_id = 1, ...) {
   stopifnot(inherits(x, "fitSimpleSBMPop"))
-  p <- x$plot(type = type, ord = ord, mixture = mixture,
-              net_id = net_id, ...)
+  p <- x$plot(
+    type = type, ord = ord, mixture = mixture,
+    net_id = net_id, ...
+  )
   p
 }
 
@@ -211,37 +214,41 @@ plot.bmpop <- function(x, type = "trace", ...) {
 bmpop$set(
   "public",
   "plot",
-#' Title
-#'
-#' @param type
-#' @param ...
-#'
-#' @importFrom tibble
-#' @importFrom ggplot2
-#' @importFrom tidyr
-#' @importFrom dplyr
+  #' Title
+  #'
+  #' @param type
+  #' @param ...
+  #'
+  #' @importFrom tibble
+  #' @importFrom ggplot2
+  #' @importFrom tidyr
+  #' @importFrom dplyr
   function(type = "trace", ...) {
-    tb <-           tibble::tibble(
+    tb <- tibble::tibble(
       Q = seq(length(self$BICL)),
       ICL = self$ICL,
       BICL = self$BICL,
-      vbound = self$vbound)
-  if (! is.null(self$ICL_sbm)) {
-    tb %>% dplyr::mutate(SBM = self$ICL_sbm)
-  }
+      vbound = self$vbound
+    )
+    if (!is.null(self$ICL_sbm)) {
+      tb %>% dplyr::mutate(SBM = self$ICL_sbm)
+    }
     tb %>%
       tidyr::pivot_longer(cols = -Q, names_to = "Criterion") %>%
-      ggplot2::ggplot(ggplot2::aes(x = Q, y = value,
-                                   linetype = Criterion, color = Criterion,
-                                   shape = Criterion)) +
-      ggplot2::annotate(geom = "rect",
-                        xmin = max(which.max(self$BICL) -
-                                     self$global_opts$depth, 1),
-                        xmax = min(which.max(self$BICL) +
-                                     self$global_opts$depth, length(self$BICL)),
-                        ymin = -Inf,
-                        ymax = Inf,
-                        fill = "gray90"
+      ggplot2::ggplot(ggplot2::aes(
+        x = Q, y = value,
+        linetype = Criterion, color = Criterion,
+        shape = Criterion
+      )) +
+      ggplot2::annotate(
+        geom = "rect",
+        xmin = max(which.max(self$BICL) -
+          self$global_opts$depth, 1),
+        xmax = min(which.max(self$BICL) +
+          self$global_opts$depth, length(self$BICL)),
+        ymin = -Inf,
+        ymax = Inf,
+        fill = "gray90"
       ) +
       ggplot2::geom_line() +
       ggplot2::geom_point(size = 3) +
@@ -249,3 +256,220 @@ bmpop$set(
       ggplot2::theme_bw()
   }
 )
+
+## Bipartite plots
+fitBipartiteSBMPop$set(
+  "public", "plot",
+  #' The function to plot the fitBipartite objects
+  #' @importFrom patchwork
+  #' @importFrom reshape2
+  #' @importFrom purrr
+  function(type = "graphon", oRow = NULL, oCol = NULL, mixture = FALSE, net_id = NULL, ...) {
+    # The below order use mean over all networks to have a consistent display
+    if (is.null(oRow)) {
+      if (self$Q[2] == 1) {
+        mean_rho <- 1
+      } else {
+        mean_rho <- matrixStats::rowMeans2(sapply(self$pi, function(pi) pi[[2]]))
+      }
+      oRow <- order(self$alpha %*% mean_rho, decreasing = TRUE)
+    }
+    if (is.null(oCol)) {
+      if (self$Q[1] == 1) {
+        mean_pi <- 1
+      } else {
+        mean_pi <- matrixStats::rowMeans2(sapply(self$pi, function(pi) pi[[1]]))
+      }
+      oCol <- order(mean_pi %*% self$alpha, decreasing = TRUE)
+    }
+    p <- switch(type,
+      graphon = {
+        if (self$Q[1] == 1) {
+          ymin <- rep(0, each = self$Q[2])
+          ymax <- rep(1, each = self$Q[2])
+        } else {
+          ymin <- rep(c(0, cumsum(self$pi[[net_id]][[1]][oRow][1:(self$Q[1] - 1)])), each = self$Q[2])
+          ymax <- rep(c(cumsum(self$pi[[net_id]][[1]][oRow])), each = self$Q[2])
+        }
+        if (self$Q[2] == 1) {
+          xmin <- rep(0, self$Q[1])
+          xmax <- rep(1, self$Q[1])
+        } else {
+          xmin <- rep(c(0, cumsum(self$pi[[net_id]][[2]][oCol][1:(self$Q[2] - 1)])), self$Q[1])
+          xmax <- rep(cumsum(self$pi[[net_id]][[2]][oCol]), self$Q[1])
+        }
+        (self$alpha[oRow, oCol] * mean(self$delta)) %>%
+          t() %>%
+          reshape2::melt() %>%
+          dplyr::mutate(
+            xmin = xmin,
+            ymin = ymin,
+            xmax = xmax,
+            ymax = ymax
+          ) %>%
+          ggplot2::ggplot(ggplot2::aes(
+            xmin = xmin, ymin = ymin,
+            xmax = xmax, ymax = ymax, fill = value
+          )) +
+          ggplot2::geom_rect() +
+          ggplot2::scale_fill_gradient2("alpha", low = "white", mid = "red", midpoint = 1) +
+          ggplot2::geom_hline(yintercept = cumsum(self$pi[[net_id]][[1]][oRow][1:(self$Q[1] - 1)]), size = .2) +
+          ggplot2::geom_vline(xintercept = cumsum(self$pi[[net_id]][[2]][oCol][1:(self$Q[2] - 1)]), size = .2) +
+          ggplot2::scale_y_reverse() +
+          ggplot2::theme_bw(base_size = 15, base_rect_size = 1, base_line_size = 1) +
+          ggplot2::xlab("Column Blocks") +
+          ggplot2::ylab("Row Blocks") +
+          ggplot2::coord_equal(expand = FALSE)
+      },
+      meso = {
+        p_alpha <- self$alpha[oRow, oCol, drop = FALSE] %>%
+          t() %>%
+          reshape2::melt() %>%
+          ggplot2::ggplot(ggplot2::aes(x = Var1, y = Var2, fill = value)) +
+          ggplot2::geom_tile() +
+          ggplot2::scale_fill_gradient2("alpha", low = "white", high = "red") +
+          ggplot2::geom_hline(yintercept = seq(self$Q[1]) + .5) +
+          ggplot2::geom_vline(xintercept = seq(self$Q[2]) + .5) +
+          ggplot2::scale_y_reverse() +
+          ggplot2::theme_bw(base_size = 15, base_rect_size = 1, base_line_size = 1) +
+          ggplot2::xlab("") +
+          ggplot2::ylab("") +
+          ggplot2::coord_fixed(expand = FALSE)
+        #  scale_y_reverse()
+        if (self$free_density) {
+          xl <- paste(round(self$delta, 1))
+        } else {
+          xl <- ""
+        }
+        df_pi <- purrr::map_dfc(
+          seq_along(self$net_id),
+          function(m) data.frame(self$pim[[m]][[1]][oRow])
+        )
+        df_rho <- purrr::map_dfc(
+          seq_along(self$net_id),
+          function(m) data.frame(self$pim[[m]][[2]][oCol])
+        )
+        # names(df_pi) <- self$net_id
+        if (mixture) {
+          p_pi <-
+            df_pi %>%
+            #    rename() %>%
+            dplyr::mutate(q = seq(self$Q[1])) %>%
+            tidyr::pivot_longer(cols = -c(q)) %>%
+            dplyr::mutate(Proportion = value) %>%
+            ggplot2::ggplot(ggplot2::aes(
+              fill = as.factor(q), y = name,
+              x = Proportion
+            )) +
+            ggplot2::geom_col() +
+            ggplot2::coord_flip(expand = FALSE) +
+            ggplot2::scale_fill_brewer("Row block",
+              type = "qual", palette = "Paired",
+              direction = -1
+            ) +
+            ggplot2::guides(fill = ggplot2::guide_legend(
+              ncol = self$Q[1] %/% 3 + 1,
+              byrow = TRUE
+            )) +
+            ggplot2::ylab("") +
+            ggplot2::ylab(xl) +
+            ggplot2::theme_bw(base_size = 15)
+          p_rho <- df_rho %>%
+            #    rename() %>%
+            dplyr::mutate(q = seq(self$Q[2])) %>%
+            tidyr::pivot_longer(cols = -c(q)) %>%
+            dplyr::mutate(Proportion = value) %>%
+            ggplot2::ggplot(ggplot2::aes(
+              fill = as.factor(q), y = name,
+              x = Proportion
+            )) +
+            ggplot2::geom_col() +
+            # ggplot2::coord_flip(expand = FALSE) +
+            ggplot2::scale_fill_brewer("Column block",
+              type = "qual", palette = "Set2",
+              direction = -1
+            ) +
+            ggplot2::guides(fill = ggplot2::guide_legend(
+              ncol = self$Q[2] %/% 3 + 1,
+              byrow = TRUE
+            )) +
+            ggplot2::ylab("") +
+            ggplot2::ylab(xl) +
+            ggplot2::theme_bw(base_size = 15)
+          # Merging the plots with patchwork
+          mixture_layout <- "
+                            ##CCCC
+                            ##CCCC
+                            RRAAAA
+                            RRAAAA
+                            RRAAAA
+                            "
+          p_alpha <- patchwork::wrap_plots(
+            R = p_pi, C = p_rho, A = p_alpha,
+            design = mixture_layout
+          ) +
+            patchwork::plot_layout(
+              guides = "collect",
+              design = mixture_layout
+            )
+        }
+        return(p_alpha)
+      },
+      "block" = {
+        as.matrix(self$A[[net_id]])[
+          order(self$Z[[net_id]][[1]]),
+          order(self$Z[[net_id]][[2]])
+        ] %>%
+          reshape2::melt() %>%
+          ggplot2::ggplot(ggplot2::aes(x = Var2, y = rev(Var1), fill = value)) +
+          ggplot2::geom_tile(show.legend = FALSE) +
+          ggplot2::geom_hline(
+            yintercept = cumsum(tabulate(self$Z[[net_id]][[1]])[self$Q[1]:2]) + .5,
+            col = "red", size = .5
+          ) +
+          ggplot2::geom_vline(
+            xintercept = cumsum(tabulate(self$Z[[net_id]][[2]])[1:(self$Q[2] - 1)]) + .5,
+            col = "red", size = .5
+          ) +
+          ggplot2::scale_fill_gradient(low = "white", high = "black", na.value = "transparent") +
+          ggplot2::ylab("") +
+          ggplot2::xlab(self$net_id[net_id]) +
+          ggplot2::scale_x_discrete(
+            breaks = ""
+          ) +
+          # ggplot2::scale_y_reverse() +
+          ggplot2::scale_y_discrete(
+            breaks = "",
+            guide = ggplot2::guide_axis(angle = 0)
+          ) +
+          ggplot2::coord_equal(expand = FALSE) +
+          ggplot2::theme_bw(base_size = 15) +
+          ggplot2::theme(axis.ticks = ggplot2::element_blank())
+      }
+    )
+    return(p)
+  }
+)
+
+
+#' Plot matrix summaries of the collection mesoscale structure
+#'
+#' @param x a fitBipartiteSBMPop object.
+#' @param type The type of the plot. Could be "graphon", "meso" or "block".
+#' @param ord A reordering of the blocks.
+#' @param mixture Should the block proportions of each network be plotted as
+#' well?
+#' @param net_id Use to plot only on network in "graphon" view.
+#' @param ... Further argument to be passed
+#' @return A plot, a ggplot2 object.
+#' @export
+#'
+#' @examples
+plot.fitBipartiteSBMPop <- function(x, type = "graphon", oRow = NULL, oCol = NULL, mixture = FALSE, net_id = 1, ...) {
+  stopifnot(inherits(x, "fitBipartiteSBMPop"))
+  p <- x$plot(
+    type = type, oRow = oRow, oCol = oCol, mixture = mixture,
+    net_id = net_id, ...
+  )
+  p
+}

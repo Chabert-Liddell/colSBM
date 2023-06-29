@@ -53,7 +53,7 @@ bmpop <- R6::R6Class(
           mask
         })
       if (is.null(directed)) {
-        self$directed = isSymmetric.matrix(netlist[[1]])
+        self$directed = ! isSymmetric.matrix(netlist[[1]])
       } else {
         self$directed = directed
       }
@@ -137,11 +137,19 @@ bmpop <- R6::R6Class(
 
 
     optimize_from_sbm = function(index, Q, nb_clusters) {
-      #browser()
+      # browser()
       # for (q in seq(self$global_opts$Q_min, self$global_opts$Q_max)) {
-      lapply(seq_along(self$A), function(m) self$fit_sbm[[m]]$setModel(index = Q))
-      Z_sbm <- lapply(seq_along(self$fit_sbm[index]),
-                      function(m) self$fit_sbm[index][[m]]$memberships)
+      lapply(seq_along(self$A), function(m) {
+        self$fit_sbm[[m]]$setModel(index = Q)
+      })
+      # The output clustering from SBM is stored
+      # for each of the M models in Z_sbm
+      Z_sbm <- lapply(
+        seq_along(self$fit_sbm[index]),
+        function(m) self$fit_sbm[index][[m]]$memberships
+      )
+      # The below prob is the intra-cluster connection probability of the alpha
+      # ie the diagonal of the alpha matrix
       prob <- lapply(seq_along(self$fit_sbm[index]),
                      function(m) diag(self$fit_sbm[index][[m]]$connectParam$mean))
       nb_init <- ifelse(Q == 1, 1, self$global_opts$nb_init)
@@ -150,6 +158,7 @@ bmpop <- R6::R6Class(
         seq(nb_init),
         function(it) {
           if(it == 1) {
+            # For the first init, we use the Z order given by the SBM
             mypopbm <- fitSimpleSBMPop$new(A = self$A[index],
                                            mask = self$mask[index],
                                            distribution = self$distribution,
@@ -167,7 +176,12 @@ bmpop <- R6::R6Class(
               Z_init <- lapply(
                 seq_along(Z_sbm),
                 function(m) {
+                  # ord contains Q probabilities and is
+                  # deterministically ranked from the lowest to the highest
+                  # intra-connection probability
                   ord <- order(prob[[m]])
+                  # This returns the cluster membership (Z) in this order
+                  # and this clustering is put in Z_init
                   ord[match(Z_sbm[[m]], unique(Z_sbm[[m]]))]
                 }
               )
@@ -181,12 +195,16 @@ bmpop <- R6::R6Class(
                                              Q = Q,
                                              Z = Z_init,
                                              logfactA = self$logfactA,
+                                             # Using the previous re-ordering of Z
+                                             # the init_method is "given"
                                              init_method = "given",
                                              fit_opts = self$fit_opts)
             } else {
               Z_init <- lapply(
                 seq_along(Z_sbm),
                 function(m) {
+                  # Here the order is ranked by the highest to the lowest prob
+                  # but using a sampling (introducing randomness)
                   ord <- sample(seq_along(prob[[m]]),
                                 size = length(prob[[m]]), prob = prob[[m]])
                   ord[match(Z_sbm[[m]], unique(Z_sbm[[m]]))]
@@ -667,10 +685,13 @@ bmpop <- R6::R6Class(
 #      future::plan("future::multisession", workers = self$global_opts$nb_cores)
     #  progressr::handlers(global = TRUE)
      # progressr::handlers("progress")
+
+      # The burn_in step computes models without performing split and merge
       self$burn_in()
       improved <- TRUE
       nb_pass <- 0
       Q <- 1
+
       self$global_opts$nb_models <- ceiling(self$global_opts$nb_models/2)
       while (improved & nb_pass < self$global_opts$max_pass) {
         if(self$global_opts$verbosity >=2) {
@@ -837,35 +858,55 @@ bmpop <- R6::R6Class(
     # },
     #
     choose_models = function(models, Q, index = seq(self$M), nb_clusters = 1L) {
-      # browser()
+      # The provided models are ordered by their BICL in a decreasing order
       ord_mod <- order(purrr::map_dbl(models, ~ .$BICL),#~max(.$map$ICL, .$BICL)),
                        decreasing = TRUE)
-      #      max_icl <- models[[ord_mod[1]]]$map$ICL
-      #      icl_improved <- max_icl > self$ICL[[Q]]
-      if ( length(self$model_list[[nb_clusters]]) >= Q) {
+
+      # If the model_list of the object contains at list Q entries
+      # it is appended to the models being processed
+      if (length(self$model_list[[nb_clusters]]) >= Q) {
         models <- c(self$model_list[[nb_clusters]][[Q]], models)
       }
+      # The models are ordered once again
       ord_mod <- order(purrr::map_dbl(models, ~.$BICL),
                        decreasing = TRUE)
-      # self$BICL[Q] <- models[ord_mod[1]][[1]]$BICL
+
+      # best_models is initialized with the first model of the ord_mod id list
+      # ie the one with max BICL
       best_models <- models[ord_mod[1]]
       for(id in ord_mod) {
+        # We process the models by their id given by the ord_mod
         if (length(best_models) >= self$global_opts$nb_models) {
+          # If we've added the wanted number of models to keep, we exit the loop
           break
         } else {
+          # ari is the vector of the model being processed
+          # versus all the previously selected best_models
           ari <- purrr::map_dbl(
+            # This run for each of the best_models
             seq_along(best_models),
             function(m) {
-              sum(purrr::map_dbl(seq_along(self$A),
-                                 ~ aricode::ARI(best_models[[m]]$Z[[.]],
-                                                models[[id]]$Z[[.]])))
+              # Here we sum all the ari for each of the networks clustering
+              sum(purrr::map_dbl(
+                seq_along(self$A),
+                ~ aricode::ARI(
+                  best_models[[m]]$Z[[.]],
+                  models[[id]]$Z[[.]]
+                )
+              ))
             }
           )
+          # If the model has all of his ari less than the number of networks
+          # ie the clustering isn't perfect (1 of ARI * M, would be perfect)
+          # then the model is  added to the list of best_models
           if (all(ari < best_models[[1]]$M)) {
             best_models <- c(best_models, models[[id]])
           }
         }
       }
+
+      # After having selected the best_models we plot their points
+      # x being Q the number of clusters and y being their BICL
       if (self$global_opts$plot_details >= 1) {
         points(purrr::map_dbl(unlist(best_models), "Q"),
                purrr::map_dbl(unlist(best_models), ~.$BICL))
@@ -887,6 +928,3 @@ bmpop <- R6::R6Class(
     print = function() self$show()
   )
 )
-
-
-
