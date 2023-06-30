@@ -16,16 +16,16 @@ M <- 3
 nr <- 100
 nc <- 250
 
-pir <- c(0.2, 0.3, 0.5)
-pic <- c(0.2, 0.3, 0.5)
+pic <- c(0.1, 0.2, 0.3, 0.4)
+pir <- c(0.1, 0.2, 0.7)
 
 Q <- c(length(pir), length(pic))
 
 alpha <- matrix(
   c(
-    1, 0, 0,
-    4, 100, 25,
-    0, 55, 0
+    1, 0, 0, 5,
+    4, 100, 25, 45,
+    0, 55, 0, 60
   ),
   nrow = Q[1], ncol = Q[2], byrow = TRUE
 )
@@ -37,6 +37,9 @@ bipartite_collection_incidence <- lapply(seq.int(M), function(m) {
   bipartite_collection[[m]]$incidence_matrix
 })
 
+bipartite_collection_incidence_binary <- lapply(seq_along(bipartite_collection_incidence), function(m) {
+  1 * (bipartite_collection_incidence[[m]] > 0)
+})
 
 ## Init given with exact membership
 
@@ -45,7 +48,7 @@ Z <- lapply(seq.int(M), function(m) {
 })
 tic()
 mybisbmpop <- estimate_colBiSBM(
-  netlist = bipartite_collection_incidence, colsbm_model = "iid",
+  netlist = bipartite_collection_incidence_binary, colsbm_model = "iid",
   nb_run = 3,
   distribution = "poisson",
   global_opts = list(
