@@ -46,12 +46,8 @@ fitSimpleSBMPop$set("public", "plot",
       } else {
         xl <-  ""
       }
-      # df <-     purrr::map_dfc(seq_along(self$net_id) ,
-      #                   function(m)  self$pim[[m]][ord])
-      df <-  purrr::list_cbind(
-        lapply(seq_along(self$net_id),
-               function(m)  tibble::tibble(self$pim[[m]][ord])),
-        name_repair =  "universal_quiet")
+      df <-     purrr::map_dfc(seq_along(self$net_id) ,
+                        function(m)  self$pim[[m]][ord])
       names(df) <- self$net_id
       if (mixture) {
         p_pi <-
@@ -65,33 +61,32 @@ fitSimpleSBMPop$set("public", "plot",
           ggplot2::scale_fill_brewer("Block", type = "qual", palette = "Paired",
                                      direction = -1) +
           ggplot2::ylab("") +
-          ggplot2::xlab(xl) +
-          ggplot2::theme_bw(base_size = 15) +
-          ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 70,
-                                                             vjust = 0.5))
-        p_alpha <- ( p_alpha | p_pi) +
-          patchwork::plot_layout(guides = 'collect', widths = c(.65,.35)) +
+          ggplot2::ylab(xl) +
+          ggplot2::theme_bw(base_size = 15)
+        p_alpha <- ( p_alpha | p_pi) + patchwork::plot_layout(guides = 'collect', widths = c(.65,.35)) +
           patchwork::plot_annotation(title = NULL)
       }
       return(p_alpha)
     },
-    "block" = {as.matrix(self$A[[net_id]])[order(self$Z[[net_id]]),
-                               order(self$Z[[net_id]])] %>%
+    "block" = {
+      Z <- factor(self$Z[[net_id]], levels = rev(ord))
+      as.matrix(self$A[[net_id]])[order(Z),
+                               order(Z)] %>% #t() %>%
       reshape2::melt() %>%
-      dplyr::mutate(con = self$alpha[self$Z[[net_id]], self$Z[[net_id]]][
-        order(ord[self$Z[[net_id]]]),
-        order(ord[self$Z[[net_id]]])] %>%
-                 reshape2::melt() %>%
-                 dplyr::pull(value)) %>%
-      ggplot2::ggplot(ggplot2::aes(x = Var2, y = Var1,
-                                   fill = value, alpha = value)) +
-      ggplot2::geom_tile(ggplot2::aes(alpha = con),
-                         fill = "red", size = 0, show.legend = FALSE) +
+        dplyr::mutate(con = self$alpha[self$Z[[net_id]], self$Z[[net_id]]][order(Z),
+                                             order(Z)] %>%# t() %>%#[self$Z[[net_id]], self$Z[[net_id]]][
+        #  order(Z),
+      #    order(Z)] %>%
+            reshape2::melt() %>%
+            dplyr::pull(value)) %>%
+      ggplot2::ggplot(ggplot2::aes(x = Var2, y = Var1, fill = value, alpha = value)) +
+        ggplot2::geom_tile(ggplot2::aes(alpha = con),
+                           fill = "red", size = 0, show.legend = FALSE) +
       ggplot2::geom_tile(show.legend = FALSE) +
-      ggplot2::geom_hline(yintercept = cumsum(tabulate(self$Z[[net_id]])[1:(self$Q-1)])+.5,
-                 col = "red", linewidth = .5) +
-        ggplot2::geom_vline(xintercept = cumsum(tabulate(self$Z[[net_id]])[(self$Q):2])+.5,
-                 col = "red", linewidth = .5) +
+      ggplot2::geom_hline(yintercept = cumsum(tabulate(Z)[1:(self$Q-1)])+.5,
+                 col = "red", size = .5) +
+        ggplot2::geom_vline(xintercept = cumsum(tabulate(Z)[(self$Q):2])+.5,
+                 col = "red", size = .5) +
         ggplot2::scale_fill_gradient(low = "white", high = "black") +
         ggplot2::ylab("") + ggplot2::xlab(self$net_id[net_id]) +
         ggplot2::scale_x_discrete(limits = rev,
