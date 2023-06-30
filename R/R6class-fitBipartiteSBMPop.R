@@ -1439,7 +1439,7 @@ fitBipartiteSBMPop <- R6::R6Class(
         " -- #Empty columns blocks on all networks: ", sum(!self$Cpi[[2]]), " \n"
       )
       cat("* Useful fields \n")
-      cat("  $distribution, $nb_nodes, $nb_blocks, $support, $pred_blockmemberships \n")
+      cat("  $distribution, $nb_nodes, $nb_blocks, $support, $prob_memberships \n")
       cat("  $memberships, $parameters, $BICL, $vbound, $pred_dyads \n")
       cat("=====================================================================")
     },
@@ -1453,8 +1453,8 @@ fitBipartiteSBMPop <- R6::R6Class(
     parameters = function(value) {
       list(
         alpha = self$alpha,
-        pi = self$pi,
-        delta = self$delta
+        pi = lapply(self$pi, function(list_pi_rho) list_pi_rho[[1]]),
+        rho = lapply(self$pi, function(list_pi_rho) list_pi_rho[[2]])
       )
     },
     pred_dyads = function(value) {

@@ -70,9 +70,14 @@ best_fit$parameters
 * The block memberships:
 
 ```{r}
-best_fit$pred_blockmemberships
+best_fit$memberships
 ```
 
+And their probabilities:
+
+```{r}
+best_fit$prob_memberships
+```
 
 * The prediction for each dyads in the networks, here for network number 3.
 
@@ -141,6 +146,9 @@ net_clust <- clusterize_bipartite_networks(
 )
 ```
 
+```{r}
+best_partition <- extract_best_bipartite_partition(net_clust)
+```
 
 We obtain a list of `r length(unlist(best_partition))` tested collections. The lists are nested and reflect the
 sequential steps of clustering.
@@ -149,9 +157,7 @@ are considered as being part of the same collection and that the among the 4
 plant-pollinator networks there exists a difference leading to 2 collections that
 contains networks from the same authors.
 
-```{r}
-best_partition <- extract_best_bipartite_partition(net_clust)
-```
+
 
 The plot of the mesoscale structure of the whole collection is the following:
 
@@ -159,7 +165,7 @@ The plot of the mesoscale structure of the whole collection is the following:
 plot(net_clust[[1]])
 ```
 
-but then we can compare the mesoscale structures of the 2 groups:
+but then we can compare the mesoscale structures of the 3 groups:
 
 ```{r plot-part}
 plot(best_partition[[1]][[1]],
