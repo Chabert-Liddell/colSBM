@@ -375,13 +375,10 @@ pre code {
 <li><a href="#context-of-this-analysis">Context of this analysis</a></li>
 <li><a href="#threshold-based-completions">Threshold based completions</a>
 <ul>
-<li><a href="#completed-threshold">0.5 completed threshold</a>
-<ul>
-<li><a href="#ari-of-networks-clustering-0.5-threshold-vs-raw-data">ARI of networks clustering: 0.5 threshold vs raw data</a></li>
-</ul></li>
+<li><a href="#completed-threshold">0.5 completed threshold</a></li>
+<li><a href="#completed-threshold-1">0.2 completed threshold</a></li>
 </ul></li>
 <li><a href="#sample-based-completions">Sample based completions</a></li>
-<li><a href="#references">References</a></li>
 </ul>
 </div>
 
@@ -389,7 +386,9 @@ pre code {
 <h1>Context of this analysis</h1>
 <p>After performing a netclustering on the raw data, we will see if the detect structure resulting in the clustering comes from the sampling effort. To test this we will use the CoOPLBM model by <span class="citation">Anakok et al. (2022)</span> to complete the data.</p>
 <p>The CoOPLBM model assumes that the observed incidence matrix <span class="math inline">\(R\)</span> is an element-wise product of an <span class="math inline">\(M\)</span> matrix following an LBM and an <span class="math inline">\(N\)</span> matrix which elements follow Poisson distributions independent on <span class="math inline">\(M\)</span>.</p>
-<p>The model gives us the <span class="math inline">\(\hat{M}\)</span> matrix, which elements are:</p>
+<p>The model gives us the <span class="math inline">\(\widehat{M}\)</span> matrix, the elements of which are:</p>
+<p><span class="math display">\[\widehat{M_{ij}} = \mathbb{P}(M_{ij} = 1)\]</span></p>
+<p>Note that if <span class="math inline">\(R_{ij} = 1\)</span> then <span class="math inline">\(\widehat{M_{ij}} = 1\)</span></p>
 <ul>
 <li>1 if the interaction was observed</li>
 <li>a probability, that there should be an interaction but it wasn’t observed</li>
@@ -405,22 +404,94 @@ pre code {
 <div id="completed-threshold" class="section level2">
 <h2>0.5 completed threshold</h2>
 <p>Here, the completion threshold is set to <span class="math inline">\(0.5\)</span>.</p>
-<div id="ari-of-networks-clustering-0.5-threshold-vs-raw-data" class="section level3">
-<h3>ARI of networks clustering: 0.5 threshold vs raw data</h3>
+<p>First we will compute an ARI on the collection id given by the raw data and the completed matrix.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">ARI with uncompleted data</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">iid</td>
+<td align="right">0.1142823</td>
+</tr>
+<tr class="even">
+<td align="left">pi</td>
+<td align="right">0.0263660</td>
+</tr>
+<tr class="odd">
+<td align="left">rho</td>
+<td align="right">0.0933340</td>
+</tr>
+<tr class="even">
+<td align="left">pirho</td>
+<td align="right">0.2158747</td>
+</tr>
+</tbody>
+</table>
 </div>
+<div id="completed-threshold-1" class="section level2">
+<h2>0.2 completed threshold</h2>
+<p>The <span class="math inline">\(0.2\)</span> threshold adds a lot of interactions compared to raw matrix.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">ARI with uncompleted data</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">iid</td>
+<td align="right">0.0429465</td>
+</tr>
+<tr class="even">
+<td align="left">pi</td>
+<td align="right">0.0330057</td>
+</tr>
+<tr class="odd">
+<td align="left">rho</td>
+<td align="right">0.0187305</td>
+</tr>
+<tr class="even">
+<td align="left">pirho</td>
+<td align="right">0.0357728</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div id="sample-based-completions" class="section level1">
 <h1>Sample based completions</h1>
 <p>The <span class="math inline">\(M\)</span> matrix is used to sample a new <span class="math inline">\(X\)</span> matrix which elements are the realisation of Bernoulli distributions of probability <span class="math inline">\(M_{i,j}\)</span>. <span class="math display">\[\mathbb{P}(X_{i,j} = 1) = M_{i,j} \]</span></p>
-</div>
-<div id="references" class="section level1 unnumbered">
-<h1 class="unnumbered">References</h1>
-<div id="refs" class="references hanging-indent">
-<div id="ref-anakokDisentanglingStructureEcological2022">
-<p>Anakok, Emre, Pierre Barbillon, Colin Fontaine, and Elisa Thebault. 2022. “Disentangling the Structure of Ecological Bipartite Networks from Observation Processes.” arXiv. <a href="http://arxiv.org/abs/2211.16364">http://arxiv.org/abs/2211.16364</a>.</p>
-</div>
-</div>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">ARI with uncompleted data</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">iid</td>
+<td align="right">0.0148172</td>
+</tr>
+<tr class="even">
+<td align="left">pi</td>
+<td align="right">0.0265793</td>
+</tr>
+<tr class="odd">
+<td align="left">rho</td>
+<td align="right">0.0051536</td>
+</tr>
+<tr class="even">
+<td align="left">pirho</td>
+<td align="right">0.0152299</td>
+</tr>
+</tbody>
+</table>
 </div>
 
 

@@ -1,6 +1,7 @@
 ---
 title: "Netclustering analysis with the CoOPLBM completion"
 bibliography: references.bib
+suppress-bibliography: true
 output:
     html_document:
         toc: true
@@ -130,7 +131,7 @@ elements follow Poisson distributions independent on $M$.
 
 The model gives us the $\widehat{M}$ matrix, the elements of which are:
 
-$$\widehat{M_{ij}} = \matchbb{P}(M_{ij} = 1)$$
+$$\widehat{M_{ij}} = \mathbb{P}(M_{ij} = 1)$$
 
 Note that if $R_{ij} = 1$ then $\widehat{M_{ij}} = 1$
 
@@ -150,21 +151,51 @@ $$X_{ij} = \begin{cases}
 \end{cases}$$
 
 ## 0.5 completed threshold
+```{r useful-functions, echo = FALSE, include=FALSE}
+ARI_netclustering_models <- function(
+    clustering_compare,
+    uncompleted_clustering = uncompleted_clustering,
+    models = c("iid", "pi", "rho", "pirho")) {
+  sapply(models, function(model) {
+    ARI(
+      uncompleted_clusterings[
+        which(uncompleted_clusterings$model == model),
+      ]$collection_id,
+      clustering_compare[
+        which(clustering_compare$model == model),
+      ]$collection_id
+    )
+  })
+}
+```
 
 Here, the completion threshold is set to $0.5$.
 
 First we will compute an ARI on the collection id given by the raw data and the
 completed matrix.
 
-```{r 0.5_ARI, echo = FALSE}
-ARI(uncompleted_clusterings[which(uncompleted_clusterings$model == "iid"), ]$collection_id, point_5_clusterings[which(point_5_clusterings$model == "iid"), ]$collection_id)
+```{r 0.5_ARI, echo = FALSE, results="asis"}
+knitr::kable(ARI_netclustering_models(point_5_clusterings),
+  col.names = c("ARI with uncompleted data")
+)
+```
+
+In the above table, one can see the network clustering obtained after applying
+CoOPLBM has not much in common with the clustering of the uncompleted data.
+
+### Number of sub-collections and details of each sub-collection
+```{r 0.5_partition_numbers, echo = FALSE}
 ```
 
 ## 0.2 completed threshold
 
 The $0.2$ threshold adds a lot of interactions compared to raw matrix.
 
-### ARI of networks clustering: 0.5 threshold vs raw data
+```{r 0.2_ARI, echo = FALSE, results="asis"}
+knitr::kable(ARI_netclustering_models(point_2_clusterings),
+  col.names = c("ARI with uncompleted data")
+)
+```
 
 # Sample based completions
 
@@ -172,4 +203,8 @@ The $M$ matrix is used to sample a new $X$ matrix which elements are the
 realisation of Bernoulli distributions of probability $M_{i,j}$.
 $$\mathbb{P}(X_{i,j} = 1) = M_{i,j} $$
 
-# References
+```{r random_ARI, echo = FALSE, results="asis"}
+knitr::kable(ARI_netclustering_models(random_clusterings),
+  col.names = c("ARI with uncompleted data")
+)
+```
