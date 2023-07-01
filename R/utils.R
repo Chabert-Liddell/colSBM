@@ -536,6 +536,9 @@ logit <- function(x) log(x / (1 - x))
   return(as.vector(max.col(X)))
 }
 
+#' Reorder colBiSBM parameters
+#'
+#' @export
 reorder_parameters <- function(model) {
   Z_label_switch <- function(Z, new_order) {
     # Create a mapping of old labels to new labels
