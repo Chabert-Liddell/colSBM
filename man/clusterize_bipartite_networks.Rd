@@ -61,10 +61,10 @@ The best partition could be extract with the function
 object, so it is a model for a given number of blocks Q1, Q2.
 }
 \examples{
-alpha1 <- matrix(c(0.8,0.1,0.2,0.7), byrow = TRUE, nrow = 2)
-alpha2 <- matrix(c(0.8,0.5,0.5,0.2), byrow = TRUE, nrow = 2)
-first_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5,0.5), rho = c(0.5,0.5), alpha = alpha1, M = 2)
-second_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5,0.5), rho = c(0.5,0.5), alpha = alpha2, M = 2)
+alpha1 <- matrix(c(0.8, 0.1, 0.2, 0.7), byrow = TRUE, nrow = 2)
+alpha2 <- matrix(c(0.8, 0.5, 0.5, 0.2), byrow = TRUE, nrow = 2)
+first_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5, 0.5), rho = c(0.5, 0.5), alpha = alpha1, M = 2)
+second_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5, 0.5), rho = c(0.5, 0.5), alpha = alpha2, M = 2)
 
 netlist <- append(first_collection, second_collection)
 
@@ -72,7 +72,8 @@ netlist <- append(first_collection, second_collection)
 cl_separated <- clusterize_bipartite_networks(
   netlist = netlist,
   colsbm_model = "iid",
-  global_opts = list(nb_cores = parallel::detectCores() - 1))
+  global_opts = list(nb_cores = parallel::detectCores() - 1)
+)
 }
 Perform the recursive clustering of the networks
 

@@ -13,7 +13,8 @@ estimate_colBiSBM(
   global_opts = list(),
   fit_opts = list(),
   Z_init = NULL,
-  silent_parallelization = FALSE
+  silent_parallelization = FALSE,
+  sep_BiSBM = NULL
 )
 }
 \arguments{
@@ -37,6 +38,10 @@ See details.}
 \item{Z_init}{An optional bi-dimensional list of size Q1_max x Q2_max containing
 for each value a list of two vectors of clusters memberships. Default to
 NULL.}
+
+\item{sep_BiSBM}{a pre-fitted sep_BiSBM. Used to avoid end computations. The
+best way to obtain one is to extract from a fitted bisbmpop object. Defaults
+to NULL.}
 }
 \value{
 A bisbmpop object listing a collection of models for the collection.
@@ -49,24 +54,26 @@ Estimate a colBiSBM on a collection of networks
 
 }
 \examples{
-alpha1 <- matrix(c(0.8,0.1,0.2,0.7), byrow = TRUE, nrow = 2)
-alpha2 <- matrix(c(0.8,0.5,0.5,0.2), byrow = TRUE, nrow = 2)
-first_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5,0.5), rho = c(0.5,0.5), alpha = alpha1, M = 2)
-second_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5,0.5), rho = c(0.5,0.5), alpha = alpha2, M = 2)
+alpha1 <- matrix(c(0.8, 0.1, 0.2, 0.7), byrow = TRUE, nrow = 2)
+alpha2 <- matrix(c(0.8, 0.5, 0.5, 0.2), byrow = TRUE, nrow = 2)
+first_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5, 0.5), rho = c(0.5, 0.5), alpha = alpha1, M = 2)
+second_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5, 0.5), rho = c(0.5, 0.5), alpha = alpha2, M = 2)
 
 netlist <- append(first_collection, second_collection)
 
 \dontrun{
 # A collection where joint modelisation makes sense
 cl_joint <- estimate_colBiSBM(
-  netlist = first_collection, 
-  colsbm_model = "iid", 
-  global_opts = list(nb_cores = parallel::detectCores() - 1))
+  netlist = first_collection,
+  colsbm_model = "iid",
+  global_opts = list(nb_cores = parallel::detectCores() - 1)
+)
 # A collection where joint modelisation doesn't make sense
 cl_separated <- estimate_colBiSBM(
   netlist = netlist,
   colsbm_model = "iid",
-  global_opts = list(nb_cores = parallel::detectCores() - 1))
+  global_opts = list(nb_cores = parallel::detectCores() - 1)
+)
 }
 }
 \seealso{

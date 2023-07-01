@@ -12,6 +12,7 @@ generate_bipartite_collection(
   alpha,
   M,
   model = "iid",
+  distribution = "bernoulli",
   return_memberships = FALSE
 )
 }

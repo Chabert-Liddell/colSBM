@@ -16,6 +16,7 @@ reference:
   - '`extract_best_bipartite_partition`'
   - '`generate_bipartite_collection`'
   - '`generate_unipartite_collection`'
+  - '`reorder_parameters`'
 - title: colSBM R6 class objects
   contents:
   - bmpop
