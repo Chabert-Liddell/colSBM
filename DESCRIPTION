@@ -21,7 +21,6 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Imports: 
     ape,
-    bettermc,
     cluster,
     dplyr,
     ggplot2,
@@ -38,6 +37,8 @@ Suggests:
     testthat (>= 3.0.0),
     rmarkdown,
     spelling
+Remotes:
+    gfkse/bettermc
 Config/testthat/edition: 3
 Depends: 
     R (>= 2.10)
