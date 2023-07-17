@@ -1,4 +1,4 @@
-colsbm <- colSBM::bmpop$new(netlist = foodwebs[1:2], directed = TRUE, model = "poisson")
+colsbm <- colSBM::bmpop$new(netlist = foodwebs[1:2], directed = TRUE, distribution = "poisson")
 test_that("lfactorial", {
   expect_equal(colsbm$logfactA[1], 0)
 })
@@ -22,7 +22,7 @@ test_that("clusterize_networks_iid", {
       cl <- clusterize_networks(Net,
                                 colsbm_model = "iid",
                                 directed = FALSE,
-                                model = "bernoulli",
+                                distribution = "bernoulli",
                                 nb_run = 1,
                                 fit_opts = list(Q_max = 2,
                                                 nb_init = 1,
@@ -46,7 +46,7 @@ test_that("estimate_colsbm_poisson_delta", {
       fit <- estimate_colSBM(Net,
                              colsbm_model = "delta",
                              directed = FALSE,
-                             model = "poisson",
+                             distribution = "poisson",
                              nb_run = 1,
                              fit_opts = list(Q_max = 2,
                                              nb_init = 1,

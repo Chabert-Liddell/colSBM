@@ -11,5 +11,10 @@ Finds a common mesoscale structure in a collection of networks by using a Stocha
 \author{
 \strong{Maintainer}: Saint-Clair Chabert-Liddell \email{academic@chabert-liddell.com} (\href{https://orcid.org/0000-0001-5604-7308}{ORCID})
 
+Authors:
+\itemize{
+  \item Louis Lacoste
+}
+
 }
 \keyword{internal}
