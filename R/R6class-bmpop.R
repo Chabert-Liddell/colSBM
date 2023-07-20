@@ -181,7 +181,12 @@ bmpop <- R6::R6Class(
               Z_init <- lapply(
                 seq_along(Z_sbm),
                 function(m) {
+                  # ord contains Q probabilities and is
+                  # deterministically ranked from the lowest to the highest
+                  # intra-connection probability
                   ord <- order(prob[[m]])
+                  # This returns the cluster membership (Z) in this order
+                  # and this clustering is put in Z_init
                   ord[match(Z_sbm[[m]], unique(Z_sbm[[m]]))]
                 }
               )
@@ -203,6 +208,8 @@ bmpop <- R6::R6Class(
               Z_init <- lapply(
                 seq_along(Z_sbm),
                 function(m) {
+                  # Here the order is ranked by the highest to the lowest prob
+                  # but using a sampling (introducing randomness)
                   ord <- sample(seq_along(prob[[m]]),
                     size = length(prob[[m]]), prob = prob[[m]]
                   )
@@ -919,9 +926,13 @@ bmpop <- R6::R6Class(
       best_models <- models[ord_mod[1]]
       for (id in ord_mod) {
         if (length(best_models) >= self$global_opts$nb_models) {
+          # If we've added the wanted number of models to keep, we exit the loop
           break
         } else {
+          # ari is the vector of the model being processed
+          # versus all the previously selected best_models
           ari <- purrr::map_dbl(
+            # This run for each of the best_models
             seq_along(best_models),
             function(m) {
               sum(purrr::map_dbl(
@@ -933,11 +944,17 @@ bmpop <- R6::R6Class(
               ))
             }
           )
+          # If the model has all of his ari less than the number of networks
+          # ie the clustering isn't perfect (1 of ARI * M, would be perfect)
+          # then the model is  added to the list of best_models
           if (all(ari < best_models[[1]]$M)) {
             best_models <- c(best_models, models[[id]])
           }
         }
       }
+
+      # After having selected the best_models we plot their points
+      # x being Q the number of clusters and y being their BICL
       if (self$global_opts$plot_details >= 1) {
         points(
           purrr::map_dbl(unlist(best_models), "Q"),

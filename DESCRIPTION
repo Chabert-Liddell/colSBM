@@ -21,14 +21,18 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Imports:
     ape,
+    aricode,
     bettermc,
     cluster,
     dplyr,
+    ggnewscale,
     ggplot2,
     gtools,
     magrittr,
+    matrixStats,
     patchwork,
     purrr,
+    R6,
     sbm,
     stats,
     tidyr,

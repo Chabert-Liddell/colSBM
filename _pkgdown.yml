@@ -9,6 +9,14 @@ reference:
   - '`estimate_colSBM`'
   - '`dist_bmpop_max`'
   - '`extract_best_partition`'
+  - '`adjust_colBiSBM`'
+  - '`clusterize_bipartite_networks`'
+  - '`dist_bisbmpop_max`'
+  - '`estimate_colBiSBM`'
+  - '`extract_best_bipartite_partition`'
+  - '`generate_bipartite_collection`'
+  - '`generate_unipartite_collection`'
+  - '`reorder_parameters`'
 - title: colSBM R6 class objects
   contents:
   - bmpop
@@ -17,6 +25,7 @@ reference:
   contents:
   - '`plot.fitSimpleSBMPop`'
   - '`plot.bmpop`'
+  - '`plot.fitBipartiteSBMPop`'
 - title: "Data"
   contents:
   - foodwebs

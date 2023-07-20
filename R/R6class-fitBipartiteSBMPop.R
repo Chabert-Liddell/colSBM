@@ -7,102 +7,155 @@ fitBipartiteSBMPop <- R6::R6Class(
   classname = "fitBipartiteSBMPop",
   # inherit = "bmpop",
   #
+  # TODO : fix the comments to adapt to bipartite
   public = list(
-    nr = NULL, # a vector of size M
-    nc = NULL, # a vector of size M
+    # For user function add helpful n[[m]]$row and n[[m]][[]]
+    n = NULL, # A list with two dimensions, each of size M for the rows and cols
     M = NULL, # Number of networks
-    A = NULL, # List of nr[m]xnc[m] Matrix
-    mask = NULL, # List of NA Matrices
+    A = NULL, # List of incidence Matrix of size n[[1]][m]xnc[m]
+    mask = NULL, # List of M masks, indicating NAs in the matrices.
+    # 1 for NA, 0 else
+    nonNAs = NULL, # List of M masks, indicating non NAs in the matrices.
+    # 1 - mask, so 0 for NA, 1 for non NA
     nb_inter = NULL, # A vector of length M the number of unique non NA entries
     directed = NULL, # Boolean for network direction, Constant
     Q = NULL, # Number of clusters, vectors of size2
-    tau = NULL, # List of size M variational parameters n[m]xQ matrices
+    tau = NULL, # List of size M of list of two variational parameters
+    # n[[1]][m]xQ matrices and n[[2]][m]xQ matrices
     alpha = NULL, # Matrix of size QxQ, connection parameters
     delta = NULL, # Vector of M,  density parameters with delta[1] = 1
     pi = NULL, # List of M vectors of size Q, the mixture parameters
+    pim = NULL, # List of M vectors of size Q, the mixture parameters in case
+    # of free_mixture
     e = NULL, # Vector of size M, the sum of unique entries
-    emqr = NULL, # List of M QxQ matrix, the sum of edges between q and r in m
-    nmqr = NULL, # list of M QxQ matrix, the number of entries between q and r in m
+    emqr = NULL, # List of M QxQ matrix, the sum of edges between q and r in m, ie the edges that are observed
+    nmqr = NULL, # list of M QxQ matrix, the number of entries between q and r in m, ie all the possible edges
     alpham = NULL, # list of M QxQ matrix, the classic sbm parameters
-    free_mixture = NULL, # A boolean
+    free_mixture_row = NULL, # A boolean indicating if there is a free mixture
+    # on the rows
+    free_mixture_col = NULL, # A boolean indicating if there is a free mixture
+    # on the columns
     free_density = NULL, # A boolean
     weight = NULL, # A vector of size M for weighted likelihood
-    model = NULL, # "poisson", "bernoulli"
-    mloss = Inf,
-    vloss = NULL,
-    vbound = NULL,
-    net_id = NULL,
-    df_mixture = NULL,
-    df_connect = NULL,
-    df_density = NULL,
-    logfactA = NULL,
+    distribution = NULL, # "poisson", "bernoulli"
+    mloss = Inf, # Loss on the M step of the VEM
+    vloss = NULL, # Loss on the VE step of the VEM
+    vbound = NULL, # The Variational bound
+    net_id = NULL, # The "ids" or names of the networks (if none given, they are set to their number in A list)
+    df_mixture = NULL, # The degrees of freedom for mixture parameters pi,used to compute penalty
+    df_connect = NULL, # The degrees of freedom for connection parameters alpha,used to compute penalty
+    df_density = NULL, # The degrees of freedom for density parameters delta,used to compute penalty
+    Cpi = NULL, # A list of matrices of size Qd x M containing TRUE (1)
+    # or FALSE (0) if the d-th dimension cluster is represented
+    # in the network m
+    Calpha = NULL,
+    logfactA = NULL, # used with the Poisson probability distribution
     #  algo_ve = NULL,
     #  minibatch = NULL,
-    init_method = NULL,
+    init_method = NULL, # The initialization method used for the first clustering
     #  verbosity = NULL,
-    penalty = NULL,
+    penalty = NULL, # The penalty computed based on the number of parameters
     # approx_pois = NULL,
-    Z = NULL,
-    map = NULL,
-    map_parameters = NULL,
-    parameters = NULL,
+    Z = NULL, # The clusters memberships, a list of size M of two matrices : 1 for rows clusters memberships and 2 for columns clusters memberships
+    MAP = NULL, # Maximum a posteriori
+    MAP_parameters = NULL,
     ICL = NULL,
+    BICL = NULL,
     penalty_clustering = NULL,
     ICL_clustering = NULL,
     net_clustering = NULL,
     counter_merge = 0,
     counter_split = 0,
     fit_opts = NULL,
+    step_counter = 0,
+    greedy_exploration_starting_point = NULL, # Stores the coordinates Q1 & Q2
+    # from the greedy exploration to
+    # keep track of the starting_point
+    effective_clustering_list = NULL, # A list of size M storing the number of
+    # the clusters that contains at least one
+    # point
+    clustering_is_complete = TRUE,
     initialize = function(A = NULL,
                           Q = NULL,
                           Z = NULL,
                           mask = NULL,
                           net_id = NULL,
-                          model = "bernoulli",
-                          free_mixture = TRUE,
+                          distribution = "bernoulli",
+                          free_mixture_row = TRUE,
+                          free_mixture_col = TRUE,
                           free_density = TRUE,
+                          Cpi = NULL,
+                          Calpha = NULL,
                           directed = NULL,
                           init_method = "spectral",
                           weight = NULL, # A vector of size M, the weight of each network
+                          greedy_exploration_starting_point = NULL,
                           fit_opts = list(
                             algo_ve = "fp",
                             approx_pois = TRUE,
                             minibatch = TRUE,
                             verbosity = 1
                           )) {
-      if (is.null(directed)) {
-        directed <- !isSymmetric.matrix(A[[1]])
-      }
-      self$directed <- directed
+      # if (is.null(directed)) {
+      # Bipartite networks have rectangular matrices so no symmetry
+      #   directed <- ! isSymmetric.matrix(A[[1]])
+      # }
+
+
+      # TODO : implement sanity checks
+
+      self$greedy_exploration_starting_point <- greedy_exploration_starting_point
+
       self$A <- A
       self$M <- length(A)
-      self$nr <- vapply(seq_along(A), function(m) nrow(A[[m]]), FUN.VALUE = .1)
-      self$nc <- vapply(seq_along(A), function(m) ncol(A[[m]]), FUN.VALUE = .1)
+      self$n <- vector("list", 2)
+      self$n[[1]] <- vapply(seq_along(A),
+        function(m) nrow(A[[m]]),
+        FUN.VALUE = .1
+      )
+      self$n[[2]] <- vapply(seq_along(A),
+        function(m) ncol(A[[m]]),
+        FUN.VALUE = .1
+      )
       self$e <- vapply(seq_along(A), function(m) sum(A[[m]], na.rm = TRUE),
         FUN.VALUE = .1
       )
+
+      # Getting or computing the NA mask
       if (!is.null(mask)) {
         self$mask <- mask
       } else {
         self$mask <- lapply(
           seq_along(self$A),
           function(m) {
-            mask <- matrix(1, nrow(self$A), ncol(self$A))
+            mask <- matrix(0, nrow(self$A[[m]]), ncol(self$A[[m]]))
             if (sum(is.na(self$A[[m]] > 0))) {
-              mask[is.na(self$A[[m]])] <- 0
+              mask[is.na(self$A[[m]])] <- 1
             }
             mask
           }
         )
       }
+
+      # Computing the non NA mask from the NA mask
+      self$nonNAs <- lapply(
+        seq_along(self$A),
+        function(m) {
+          nonNAs <- 1 - self$mask[[m]]
+          nonNAs
+        }
+      )
+
+      # Setting the net_id, if none is given, it's the position in the list that's used
       if (is.null(net_id)) {
         self$net_id <- seq(self$M)
       } else {
         self$net_id <- net_id
       }
+
       self$Q <- Q
-      self$model <- model
-      if (self$model == "poisson") {
+      self$distribution <- distribution
+      if (self$distribution == "poisson") {
         self$logfactA <- vapply(
           seq_along(self$A),
           function(m) {
@@ -111,55 +164,127 @@ fitBipartiteSBMPop <- R6::R6Class(
           FUN.VALUE = .1
         )
       }
+
+      # Replacing NAs by -1 in the incidence matrices
+      # To have no problems with the spectral clustering
       lapply(
         seq_along(self$A),
         function(m) self$A[[m]][is.na(self$A[[m]])] <- -1
       )
+
+      # Setting default fit options
       self$fit_opts <- list(
         algo_ve = "fp",
         approx_pois = TRUE,
         minibatch = TRUE,
         verbosity = 1
       )
-      self$fit_opts <- modifyList(self$fit_opts, fit_opts)
-      self$free_mixture <- free_mixture
+      # If the user provided custom fit options they are applied here
+      self$fit_opts <- utils::modifyList(self$fit_opts, fit_opts)
+
+      # Registering the colSBM model to fit
+      # iid : free_mixture = F, free_density = F
+      # pi colSBM : free_mixture = T, free_density = F
+      # delta colSBM : free_mixture = F, free_density = T
+      # pi-delta colSBM : free_mixture = T, free_density = T
+      self$free_mixture_row <- free_mixture_row
+      self$free_mixture_col <- free_mixture_col
       self$free_density <- free_density
-      self$weight <- weight
+
+      # Setting the needed matrices for free mixture models
+      if (is.null(Cpi[[1]]) | is.null(Cpi[[2]]) |
+        is.null(Calpha) | !self$free_mixture_row | !self$free_mixture_col) {
+        if (is.null(Cpi[[1]])) {
+          self$Cpi[[1]] <- matrix(TRUE, self$Q[1], self$M)
+        }
+        if (is.null(Cpi[[2]])) {
+          self$Cpi[[2]] <- matrix(TRUE, self$Q[2], self$M)
+        }
+        self$Calpha <- tcrossprod(self$Cpi[[1]], self$Cpi[[2]]) > 0
+      } else {
+        # Sanity checks
+        if (nrow(Cpi[[1]]) != self$Q[1] | ncol(Cpi[[1]]) != self$M) {
+          stop(
+            paste(
+              "Wrong dimensions for Cpi[[1]] ! Should be nrow = ",
+              self$Q[1],
+              ", ncol = ", self$M
+            )
+          )
+        }
+        if (nrow(Cpi[[2]]) != self$Q[2] | ncol(Cpi[[2]]) != self$M) {
+          stop(
+            paste(
+              "Wrong dimensions for Cpi[[2]] ! Should be nrow = ",
+              self$Q[2],
+              ", ncol = ", self$M
+            )
+          )
+        }
+        self$Cpi[[1]] <- matrix(Cpi[[1]],
+          nrow = nrow(Cpi[[1]]), ncol = ncol(Cpi[[1]])
+        )
+        self$Cpi[[2]] <- matrix(Cpi[[2]],
+          nrow = nrow(Cpi[[2]]), ncol = ncol(Cpi[[2]])
+        )
+
+        if (all(dim(Calpha) != self$Q)) {
+          warning(
+            "The provided Calpha has wrong dimensions ! Will recompute from Cpi"
+          )
+          Calpha <- tcrossprod(Cpi[[1]], Cpi[[2]])
+        }
+
+        self$Calpha <- Calpha
+      }
+
       self$pi <- vector("list", self$M)
+      self$pim <- vector("list", self$M)
       self$tau <- vector("list", self$M)
       self$alpham <- vector("list", self$M)
       self$vloss <- vector("list", self$M)
       self$emqr <- array(1, dim = c(self$M, self$Q[1], self$Q[2]))
       self$nmqr <- array(1, dim = c(self$M, self$Q[1], self$Q[2]))
-      self$map <- list()
-      self$map$emqr <- self$emqr
-      self$map$nmqr <- self$nmqr
-      self$map$pi <- self$pi
+
+      # Maximum a posteriori
+      self$MAP <- list()
+      self$MAP$emqr <- self$emqr
+      self$MAP$nmqr <- self$nmqr
+      self$MAP$pi <- self$pi
+      self$MAP$pim <- self$pim
+
+      # Degrees of freedom
+      # for iid
       self$df_mixture <- self$Q - 1
       self$df_density <- self$M - 1
       self$df_connect <- self$Q[1] * self$Q[2]
+
       self$Z <- if (is.null(Z)) {
         vector("list", self$M)
       } else {
         Z
       }
+
+      # Computing the density of the m networks
       self$delta <- rep(1, self$M)
       if (self$free_density) {
-        self$delta <- (self$e / (self$nr * self$nc)) /
-          (self$e[1] / ((self$nr[1] * self$nc[1])))
+        self$delta <- (self$e / (self$n[[1]] * self$n[[2]])) /
+          (self$e[1] / ((self$n[[1]][1] * self$n[[2]][1])))
       }
+
       self$alpha <- matrix(.5, Q[1], Q[2])
       self$init_method <- init_method
-      self$nb_inter <- self$dircoef *
-        vapply(seq(self$M), function(m) sum(self$mask[[m]]), FUN.VALUE = .1)
+      self$nb_inter <- vapply(seq(self$M), function(m) sum(self$nonNAs[[m]]), FUN.VALUE = .1)
       self$vbound <- vector("list", self$M)
     },
-    compute_map = function() {
+    compute_MAP = function() {
       self$Z <- lapply(
         self$tau,
         function(tau) {
           list(
+            # Retrieves the block membership for row
             row = apply(tau[[1]], 1, which.max),
+            # Retrieves the block membership for col
             col = apply(tau[[2]], 1, which.max)
           )
         }
@@ -169,59 +294,58 @@ fitBipartiteSBMPop <- R6::R6Class(
     objective = function() {
       sum(vapply(seq_along(self$A), function(m) vb(m)), FUN.VALUE = .1)
     },
-    vb_tau_alpha = function(m, map = FALSE) {
-      if (map) {
-        emqr <- self$map$emqr[m, , ]
-        nmqr <- self$map$nmqr[m, , ]
-        alpha <- self$map$alpha
-        delta <- self$map$delta[m]
+    vb_tau_alpha = function(m, MAP = FALSE) {
+      # Loading all the quantities useful for the computation
+
+      # matrix_mqr_to_use <- outer(self$Cpi[[1]][, m], self$Cpi[[2]][, m])
+      # OPTIM
+      matrix_mqr_to_use <- self$Cpi[[1]][, m] %*% t(self$Cpi[[2]][, m])
+      if (MAP) {
+        # If we are calculating the maximum a posteriori
+        emqr <- matrix_mqr_to_use * self$MAP$emqr[m, , ]
+        nmqr <- matrix_mqr_to_use * self$MAP$nmqr[m, , ]
+        alpha <- self$Calpha * self$MAP$alpha
+        delta <- self$MAP$delta[m]
       } else {
-        emqr <- self$emqr[m, , ]
-        nmqr <- self$nmqr[m, , ]
-        alpha <- self$alpha
+        emqr <- matrix_mqr_to_use * self$emqr[m, , ]
+        nmqr <- matrix_mqr_to_use * self$nmqr[m, , ]
+        alpha <- self$Calpha * self$alpha
         delta <- self$delta[m]
       }
-      switch(self$model,
+      switch(self$distribution,
         "bernoulli" = {
-          # tau_tmp <- self$tau[[m]]
-          # self$dircoef*sum(
-          #   self$M[[m]] *
-          #     (self$A[[m]] *
-          #        tcrossprod(tau_tmp %*% .logit(self$alpha*self$delta[m], eps=1e-6),
-          #                   tau_tmp) +
-          #        tcrossprod(tau_tmp %*% .log(1-self$alpha*self$delta[m], eps = 1e-6),
-          #                   tau_tmp)))
           sum(
-            .xlogy(emqr, alpha * delta, eps = 1e-12) +
-              .xlogy(nmqr - emqr, 1 - alpha * delta, eps = 1e-12)
+            self$Calpha * .xlogy(emqr, alpha * delta, eps = 1e-12) +
+              self$Calpha * .xlogy(nmqr - emqr, 1 - alpha * delta, eps = 1e-12)
           )
         },
         "poisson" = {
-          #          tau_tmp <- self$tau[[m]]
           sum(.xlogy(emqr, alpha * delta, eps = 1e-12) -
             nmqr * alpha * delta -
             self$logfactA[m])
-          # self$dircoef*sum(
-          #   self$M[[m]] * (self$A[[m]] *
-          #                    tcrossprod(tau_tmp %*% .log(self$alpha*self$delta[m], eps=1e-9),
-          #                               tau_tmp) -
-          #                    tcrossprod(tau_tmp %*% (self$alpha*self$delta[m]),
-          #                               tau_tmp)) -
-          #   lgamma(A[[m]]+1))
         }
       )
     },
-    vb_tau_pi = function(m, map = FALSE) {
-      if (!map) {
-        sum(self$tau[[m]][[1]] %*% log(self$pi[[m]][[1]])) +
-          sum(self$tau[[m]][[2]] %*% log(self$pi[[m]][[2]]))
+    vb_tau_pi = function(m, MAP = FALSE) {
+      if (!MAP) {
+        sum(self$tau[[m]][[1]][, which(self$Cpi[[1]][, m])] %*%
+          matrix(log(self$pi[[m]][[1]][which(self$Cpi[[1]][, m])]))) +
+          sum(self$tau[[m]][[2]][, which(self$Cpi[[2]][, m])] %*%
+            matrix(log(self$pi[[m]][[2]][which(self$Cpi[[2]][, m])])))
       } else {
-        sum(.xlogy(tabulate(self$Z[[m]][[1]], self$Q[1]), self$map$pi[[m]][[1]])) +
-          sum(.xlogy(tabulate(self$Z[[m]][[2]], self$Q[2]), self$map$pi[[m]][[2]]))
+        sum(.xlogy(
+          tabulate(self$Z[[m]][[1]], self$Q[1]),
+          self$MAP$pi[[m]][[1]]
+        )) +
+          sum(.xlogy(
+            tabulate(self$Z[[m]][[2]], self$Q[2]),
+            self$MAP$pi[[m]][[2]]
+          ))
       }
     },
     entropy_tau = function(m) {
-      -sum(.xlogx(self$tau[[m]][[1]])) - sum(.xlogx(self$tau[[m]][[2]]))
+      -sum(.xlogx(self$tau[[m]][[1]][, which(self$Cpi[[1]][, m])])) -
+        sum(.xlogx(self$tau[[m]][[2]][, which(self$Cpi[[2]][, m])]))
     },
     fn_vb_alpha_delta = function(par, emqr, nmqr) {
       alpha <- par[1:self$df_connect]
@@ -298,15 +422,15 @@ fitBipartiteSBMPop <- R6::R6Class(
       }
       cbind(jac_d, jac_a)
     },
-    update_alpha_delta = function(map = FALSE) {
+    update_alpha_delta = function(MAP = FALSE) {
       # browser()
       d <- self$delta
       a <- self$alpha
       a <- pmin(a * d[1], 1 - 1e-12)
       d <- d / d[1]
-      if (map) {
-        emqr <- self$map$emqr
-        nmqr <- self$map$nmqr
+      if (MAP) {
+        emqr <- self$MAP$emqr
+        nmqr <- self$MAP$nmqr
       } else {
         emqr <- self$emqr
         nmqr <- self$nmqr
@@ -338,9 +462,9 @@ fitBipartiteSBMPop <- R6::R6Class(
       )
       a <- matrix(hat$solution[1:self$df_connect], self$Q[1], self$Q[2])
       d <- c(1, hat$solution[1:(self$df_density) + self$df_connect])
-      if (map) {
-        self$map$alpha <- a
-        self$map$delta <- d
+      if (MAP) {
+        self$MAP$alpha <- a
+        self$MAP$delta <- d
       } else {
         self$alpha <- a
         self$delta <- d
@@ -354,120 +478,148 @@ fitBipartiteSBMPop <- R6::R6Class(
       ))
     },
     compute_penalty = function() {
-      df_connect <- self$df_connect
-      if (self$free_density) df_connect <- self$df_connect + self$df_density
-      self$penalty <- .5 * (df_connect * log(sum(self$nb_inter)) +
-        sum(self$df_mixture * log(self$n)))
-      invisible(self$penalty)
+      Cpi <- list()
+      if (self$free_mixture_row) {
+        Cpi[[1]] <- self$Cpi[[1]]
+        pi1_penalty <- sum((colSums(Cpi[[1]]) - 1) * log(self$n[[1]]))
+        log_p_Q1 <- -self$M * log(self$Q[1]) -
+          sum(log(choose(
+            rep(self$Q[1], self$M), colSums(Cpi[[1]])
+          )))
+        S1_penalty <- -2 * log_p_Q1
+      } else {
+        # To account for the possibility of the other free_mixture we store a
+        # temporary support full of TRUE
+        Cpi[[1]] <- matrix(TRUE, self$Q[1], self$M) # Cpi must be Q x M !
+        # If there is no free mixture on the cols
+        pi1_penalty <- (self$Q[1] - 1) * log(sum(self$n[[1]]))
+        S1_penalty <- 0
+      }
+
+      if (self$free_mixture_col) {
+        Cpi[[2]] <- self$Cpi[[2]]
+        pi2_penalty <- sum((colSums(Cpi[[2]]) - 1) * log(self$n[[2]]))
+        log_p_Q2 <- -self$M * log(self$Q[2]) - sum(log(choose(
+          rep(self$Q[2], self$M), colSums(Cpi[[2]])
+        )))
+        S2_penalty <- -2 * log_p_Q2
+      } else {
+        # If there is no free mixture on the cols
+        Cpi[[2]] <- matrix(TRUE, self$Q[2], self$M)
+        pi2_penalty <- (self$Q[2] - 1) * log(sum(self$n[[2]]))
+        S2_penalty <- 0
+      }
+
+      N_M <- sum(self$n[[1]] * self$n[[2]])
+
+      if (self$free_mixture_row || self$free_mixture_col) {
+        # If there is at least one free_mixture, the alpha penalty
+        # will be computed using supports
+        alpha_penalty <- sum(self$Calpha) * log(N_M)
+      } else {
+        # iid or delta
+        alpha_penalty <- self$Q[1] * self$Q[2] * log(N_M)
+      }
+      self$penalty <- 0.5 * (pi1_penalty + pi2_penalty +
+        alpha_penalty +
+        S1_penalty + S2_penalty)
+      if (self$penalty == -Inf | self$penalty == Inf) {
+        stop("Infinite penalty !")
+      }
+      return(self$penalty)
     },
-    compute_icl = function(map = FALSE) {
+    compute_icl = function(MAP = FALSE) {
       ICL <-
         sum(vapply(
           seq_along(self$A),
-          function(m) self$vb_tau_pi(m, map = map) + self$vb_tau_alpha(m, map = map),
+          function(m) self$vb_tau_pi(m, MAP = MAP) + self$vb_tau_alpha(m, MAP = MAP),
           FUN.VALUE = .1
         )) - self$compute_penalty()
-      if (map) {
-        self$map$ICL <- ICL
+      if (MAP) {
+        self$MAP$ICL <- ICL
       } else {
         self$ICL <- ICL
       }
       return(ICL)
     },
+    compute_BICL = function(MAP = TRUE) {
+      self$BICL <- self$compute_vbound() -
+        self$compute_penalty()
+      invisible(self$BICL)
+    },
+
     ################################################################################
     ## A modifier
-    compute_icl_clustering = function(map = TRUE) {
-      # browser()
-      Z_unique <- lapply(self$Z, function(Z) sort(unique(Z[[1]])))
-      uz <- unique(Z_unique)
-      self$net_clustering <- match(Z_unique, uz)
-      #   nb_netclusters <- max(self$net_clustering)
-      pen <- 0
-      for (g in seq_along(uz)) {
-        Q <- length(uz[[g]]) # + self$Q - length(unique(unlist(uz)))
-        M <- sum(self$net_clustering == g)
-        df_mixture <- Q - 1
-        df_connect <- Q * Q
-        if (self$free_density) df_connect <- df_connect + M - 1
-        pen <- pen + .5 * (df_connect * log(sum(self$nb_inter[self$net_clustering == g])) +
-          sum(df_mixture * log(self$n[self$net_clustering == g])))
-      }
-      self$penalty_clustering <- pen
-      self$ICL_clustering <-
-        sum(vapply(
-          seq_along(self$A),
-          function(m) self$vb_tau_pi(m, map = map) + self$vb_tau_alpha(m, map = map),
-          FUN.VALUE = .1
-        )) - pen
-      invisible(self$ICL_clustering)
-    },
-    compute_exact_icl = function() {
-      ## directed not implemented yet
-      df_mixture <- ifelse(self$free_mixture, (self$Q - 1), self$Q - 1)
-      df_connect <-
-        ifelse(self$directed, self$Q**2, self$Q * (self$Q + 1) / 2)
-      if (self$free_density) df_connect <- df_connect + self$M - 1
-      eqr <- colSums(self$emqr, 1)
-      nqr <- colSums(self$nmqr, 1)
-      if (!self$directed) {
-        diag(eqr) <- diag(eqr) / 2
-        diag(nqr) <- diag(nqr) / 2
-        exicl <- -df_mixture * lbeta(.5, .5) +
-          self$M * (lgamma(.5 * self$Q) - self$Q * lgamma(.5)) +
-          sum(lbeta(.5 + eqr, .5 + nqr - eqr)[lower.tri(eqr, diag = TRUE)]) +
-          Reduce(
-            sum,
-            lapply(
-              seq_along(self$A),
-              function(m) {
-                sum(lgamma(self$n[m] * self$pi[[m]] + .5)) -
-                  lgamma(sum(self$n[m] * self$pi[[m]] + .5))
-              }
-            )
-          )
-      } else {
-        exicl <- df_mixture * (1 / lbeta(.5, .5)) +
-          self$M * (lgamma(.5 * self$Q) - self$Q * lgamma(.5)) +
-          sum(lbeta(.5 + eqr, .5 + nqr - eqr)) +
-          Reduce(
-            sum,
-            lapply(
-              seq_along(self$A),
-              function(m) {
-                sum(lgamma(self$n[m] * self$pi[[m]] + .5)) -
-                  lgamma(sum(self$n[m] * self$pi[[m]] + .5))
-              }
-            )
-          )
-      }
-      return(exicl)
-    },
-    compute_exact_icl_iid = function() {
-      ## directed not implemented yet
-      df_mixture <- ifelse(self$free_mixture, self$M * (self$Q - 1), self$Q - 1)
-      emqr <- self$emqr
-      nmqr <- self$nmqr
-      for (m in seq_along(self$A)) {
-        diag(emqr[m, , ]) <- diag(emqr[m, , ]) / 2
-        diag(nmqr[m, , ]) <- diag(nmqr[m, , ]) / 2
-      }
-      Reduce(
-        sum,
-        lapply(
-          seq_along(self$A),
-          function(m) {
-            -df_mixture * lbeta(.5, .5) +
-              (lgamma(.5 * self$Q) - self$Q * lgamma(.5)) +
-              sum(lbeta(.5 + emqr[m, , ], .5 + nmqr[m, , ] - emqr[m, , ])[lower.tri(emqr[m, , ], diag = TRUE)]) +
-              sum(lgamma(self$n[m] * self$pi[[m]] + .5)) -
-              lgamma(sum(self$n[m] * self$pi[[m]] + .5))
-          }
-        )
-      )
-    },
+    # TODO Ask @Chabert-Liddell
+    # compute_exact_icl = function() {
+    #   # TODO : fix the computation
+    #   ## directed not implemented yet
+    #   df_mixture <- ifelse(self$free_mixture, (self$Q - 1), self$Q - 1)
+    #   df_connect <-
+    #     ifelse(self$directed, self$Q**2, self$Q * (self$Q + 1) / 2)
+    #   if (self$free_density) df_connect <- df_connect + self$M - 1
+    #   eqr <- colSums(self$emqr, 1)
+    #   nqr <- colSums(self$nmqr, 1)
+    #   if (!self$directed) {
+    #     diag(eqr) <- diag(eqr) / 2
+    #     diag(nqr) <- diag(nqr) / 2
+    #     exicl <- -df_mixture * lbeta(.5, .5) +
+    #       self$M * (lgamma(.5 * self$Q) - self$Q * lgamma(.5)) +
+    #       sum(lbeta(.5 + eqr, .5 + nqr - eqr)[lower.tri(eqr, diag = TRUE)]) +
+    #       Reduce(
+    #         sum,
+    #         lapply(
+    #           seq_along(self$A),
+    #           function(m) {
+    #             sum(lgamma(self$n[m] * self$pi[[m]] + .5)) -
+    #               lgamma(sum(self$n[m] * self$pi[[m]] + .5))
+    #           }
+    #         )
+    #       )
+    #   } else {
+    #     exicl <- df_mixture * (1 / lbeta(.5, .5)) +
+    #       self$M * (lgamma(.5 * self$Q) - self$Q * lgamma(.5)) +
+    #       sum(lbeta(.5 + eqr, .5 + nqr - eqr)) +
+    #       Reduce(
+    #         sum,
+    #         lapply(
+    #           seq_along(self$A),
+    #           function(m) {
+    #             sum(lgamma(self$n[m] * self$pi[[m]] + .5)) -
+    #               lgamma(sum(self$n[m] * self$pi[[m]] + .5))
+    #           }
+    #         )
+    #       )
+    #   }
+    #   return(exicl)
+    # },
+    # compute_exact_icl_iid = function() {
+    #   ## directed not implemented yet
+    #   df_mixture <- ifelse(self$free_mixture, self$M * (self$Q - 1), self$Q - 1)
+    #   emqr <- self$emqr
+    #   nmqr <- self$nmqr
+    #   for (m in seq_along(self$A)) {
+    #     diag(emqr[m, , ]) <- diag(emqr[m, , ]) / 2
+    #     diag(nmqr[m, , ]) <- diag(nmqr[m, , ]) / 2
+    #   }
+    #   Reduce(
+    #     sum,
+    #     lapply(
+    #       seq_along(self$A),
+    #       function(m) {
+    #         -df_mixture * lbeta(.5, .5) +
+    #           (lgamma(.5 * self$Q) - self$Q * lgamma(.5)) +
+    #           sum(lbeta(.5 + emqr[m, , ], .5 + nmqr[m, , ] - emqr[m, , ])[lower.tri(emqr[m, , ], diag = TRUE)]) +
+    #           sum(lgamma(self$n[m] * self$pi[[m]] + .5)) -
+    #           lgamma(sum(self$n[m] * self$pi[[m]] + .5))
+    #       }
+    #     )
+    #   )
+    # },
     ################################################################################
-    update_map_parameters = function() {
-      Z <- self$compute_map()
+
+    update_MAP_parameters = function() {
+      Z <- self$compute_MAP()
       ZR <- lapply(
         seq_along(Z),
         function(m) {
@@ -483,94 +635,142 @@ fitBipartiteSBMPop <- R6::R6Class(
       lapply(
         seq_along(Z),
         function(m) {
-          self$map$emqr[m, , ] <-
-            crossprod(ZR[[m]], (self$A[[m]] * self$mask[[m]]) %*% ZC[[m]])
+          self$MAP$emqr[m, , ] <-
+            crossprod(ZR[[m]], (self$A[[m]] * (self$nonNAs[[m]])) %*% ZC[[m]])
         }
       )
       lapply(
         seq_along(Z),
         function(m) {
-          self$map$nmqr[m, , ] <-
-            crossprod(ZR[[m]], self$mask[[m]] %*% ZC[[m]])
+          self$MAP$nmqr[m, , ] <-
+            crossprod(ZR[[m]], (self$nonNAs[[m]]) %*% ZC[[m]])
         }
       )
-      self$map$Z <- Z
-      self$map$alpha <- self$alpha
-      self$map$delta <- self$delta
-      self$m_step(map = TRUE)
+      self$MAP$Z <- Z
+      self$MAP$alpha <- self$alpha
+      self$MAP$delta <- self$delta
+      self$m_step(MAP = TRUE)
       if (!self$free_density) {
-        self$map$delta <- self$delta
+        self$MAP$delta <- self$delta
       }
-      lapply(seq.int(self$M), function(m) self$update_alpham(m, map = TRUE))
+      lapply(seq.int(self$M), function(m) self$update_alpham(m, MAP = TRUE))
       invisible(Z)
     },
-    fixed_point_tau = function(m, d, max_iter = 10, tol = 1e-3) {
+
+    # The fixed point algorithm to update the tau
+    fixed_point_tau = function(m, d, max_iter = 1, tol = 1e-3) {
+      # Just 1 step is necessary because tau1 depends only on tau2
       condition <- TRUE
       it <- 0
       # reup_counter <- 0
       self$vloss[[m]] <-
         c(self$vloss[[m]], self$vb_tau_alpha(m) + self$vb_tau_pi(m) +
           self$entropy_tau(m))
-      tau_old <- self$tau[[m]][[d]]
-      tau_new <- switch(self$model,
+      tau_new <- switch(self$distribution,
         "bernoulli" = {
           tau_new <-
             if (d == 1) {
+              # n[[1]] * Q1
               tau_new <-
-                t(matrix(log(self$pi[[m]][[d]]), self$Q[d], self$nr[m])) +
-                (self$mask[[m]] * self$A[[m]]) %*%
-                self$tau[[m]][[2]] %*%
-                t(.logit(self$delta[m] * self$alpha, eps = 1e-9)) +
-                self$mask[[m]] %*%
-                self$tau[[m]][[2]] %*%
-                t(.log(1 - self$alpha * self$delta[m], eps = 1e-9))
+                t(matrix(
+                  .xlogy(self$Cpi[[1]][, m],
+                    self$pi[[m]][[d]],
+                    eps = NULL
+                  ),
+                  self$Q[d], self$n[[1]][m]
+                )) +
+                ((self$nonNAs[[m]]) * self$A[[m]]) %*%
+                t(self$Cpi[[2]][, m] * t(self$tau[[m]][[2]])) %*%
+                t(.logit(self$Calpha * self$delta[m] * self$alpha,
+                  eps = 1e-9
+                )) +
+                (self$nonNAs[[m]]) %*%
+                t(self$Cpi[[2]][, m] * t(self$tau[[m]][[2]])) %*%
+                t(.log(1 - self$Calpha * self$alpha * self$delta[m],
+                  eps = 1e-9
+                ))
+              # In order to fix NaN appearing in the formula (log(Pi) when Pi
+              # = 0), the .xlogy function is used with eps = 1e-9
+              # POSSIBLE POINT OF FAILURE
             }
           if (d == 2) {
+            # n[[2]] * Q2
             tau_new <-
-              t(matrix(log(self$pi[[m]][[d]]), self$Q[d], self$nc[m])) +
-              (self$mask[[m]] * self$A[[m]]) %*%
-              self$tau[[m]][[1]] %*%
-              .logit(self$delta[m] * self$alpha, eps = 1e-9) +
-              self$mask[[m]] %*%
-              self$tau[[m]][[1]] %*%
-              .log(1 - self$alpha * self$delta[m], eps = 1e-9)
+              t(matrix(
+                .xlogy(self$Cpi[[2]][, m],
+                  self$pi[[m]][[d]],
+                  eps = NULL
+                ),
+                self$Q[d], self$n[[2]][m]
+              )) +
+              t((self$nonNAs[[m]]) * self$A[[m]]) %*%
+              t(self$Cpi[[1]][, m] * t(self$tau[[m]][[1]])) %*%
+              .logit(self$Calpha * self$delta[m] * self$alpha, eps = 1e-9) +
+              t(self$nonNAs[[m]]) %*%
+              t(self$Cpi[[1]][, m] * t(self$tau[[m]][[1]])) %*%
+              .log(1 - self$Calpha * self$alpha * self$delta[m], eps = 1e-9)
+            # In order to fix NaN appearing in the formula (log(Pi) when Pi
+            # = 0), the .xlogy function is used with eps = 1e-9
+            # POSSIBLE POINT OF FAILURE
           }
           invisible(tau_new)
         },
         "poisson" = {
           if (d == 1) {
             tau_new <-
-              t(matrix(log(self$pi[[m]][[d]]), self$Q[d], self$nr[m])) +
-              (self$mask[[m]] * self$A[[m]]) %*%
+              t(matrix(log(self$pi[[m]][[d]]), self$Q[d], self$n[[1]][m])) +
+              ((self$nonNAs[[m]]) * self$A[[m]]) %*%
               self$tau[[m]][[2]] %*%
               t(log(self$delta[m] * self$alpha)) -
-              self$mask[[m]] %*%
+              (self$nonNAs[[m]]) %*%
               self$tau[[m]][[2]] %*%
               t(self$alpha * self$delta[m])
           }
           if (d == 2) {
             tau_new <-
-              t(matrix(log(self$pi[[m]][[d]]), self$Q[d], self$nc[m])) +
-              (self$mask[[m]] * self$A[[m]]) %*%
+              t(matrix(log(self$pi[[m]][[d]]), self$Q[d], self$n[[2]][m])) +
+              t((self$nonNAs[[m]]) * self$A[[m]]) %*%
               self$tau[[m]][[1]] %*%
-              t(log(self$delta[m] * self$alpha)) -
-              self$mask[[m]] %*%
+              log(self$delta[m] * self$alpha) -
+              t(self$nonNAs[[m]]) %*%
               self$tau[[m]][[1]] %*%
-              t(self$alpha * self$delta[m])
+              (self$alpha * self$delta[m])
           }
           invisible(tau_new)
         }
       )
-      tau_new <- .softmax(tau_new)
-      tau_new[tau_new < 1e-9] <- 1e-9
-      tau_new[tau_new > 1 - 1e-9] <- 1 - 1e-9
+      # To force the invalid taus to be zero
+      # which(self$Cpi[[d]][,m]) returns a vector with the index of the support
+      # for the network m that are TRUE
+      # Select the tau for the individuals
+      tau_new[, which(!self$Cpi[[d]][, m])] <- 0
+
+      # tau_new[, which(self$Cpi[[d]][, m])] <- .softmax(
+      #   matrix(tau_new[, which(self$Cpi[[d]][, m])], nrow = ifelse(d == 1,
+      #     self$n[[1]][m], # This can be improved by using self$n[[d]][m] # TODO implement
+      #     self$n[[2]][m]
+      #   ), ncol = sum(self$Cpi[[d]][,m]))
+      # )
+      # tau_new[, which(self$Cpi[[d]][, m])][tau_new[, which(self$Cpi[[d]][, m])] < 1e-9] <- 1e-9
+      # tau_new[, which(self$Cpi[[d]][, m])][tau_new[, which(self$Cpi[[d]][, m])] > 1 - 1e-9] <- 1 - 1e-9
+      # OPTIM
+      tau_cols_to_use <- which(self$Cpi[[d]][, m])
+      tau_new[, tau_cols_to_use] <- .softmax(
+        matrix(tau_new[, tau_cols_to_use],
+          nrow = self$n[[d]][m],
+          ncol = sum(self$Cpi[[d]][, m])
+        )
+      )
+      tau_new[, tau_cols_to_use][tau_new[, tau_cols_to_use] < 1e-9] <- 1e-9
+      tau_new[, tau_cols_to_use][tau_new[, tau_cols_to_use] > 1 - 1e-9] <- 1 - 1e-9
+
       tau_new <- tau_new / rowSums(tau_new)
       self$tau[[m]][[d]] <- tau_new
       invisible(tau_new)
     },
-    fixed_point_alpha_delta = function(map = FALSE, max_iter = 50, tol = 1e-6) {
+    fixed_point_alpha_delta = function(MAP = FALSE, max_iter = 50, tol = 1e-6) {
       # switch(
-      #   self$model,
+      #   self$distribution,
       #   "poisson" = {
       condition <- TRUE
       d <- self$delta
@@ -578,9 +778,9 @@ fitBipartiteSBMPop <- R6::R6Class(
       d_old <- d
       a_old <- a
       it <- 0
-      if (map) {
-        emqr <- self$map$emqr
-        nmqr <- self$map$nmqr
+      if (MAP) {
+        emqr <- self$MAP$emqr
+        nmqr <- self$MAP$nmqr
       } else {
         emqr <- self$emqr
         nmqr <- self$nmqr
@@ -598,59 +798,154 @@ fitBipartiteSBMPop <- R6::R6Class(
         d_old <- d
         a_old <- a
       }
-      if (map) {
-        self$map$alpha <- a
-        self$map$delta <- d
+      if (MAP) {
+        self$MAP$alpha <- a
+        self$MAP$delta <- d
       } else {
         self$alpha <- a
         self$delta <- d
       }
     },
-    update_pi = function(m, map = FALSE) {
-      if (!map) {
-        pi1 <- .colMeans(self$tau[[m]][[1]], self$nr[m], self$Q[1])
-        pi2 <- .colMeans(self$tau[[m]][[2]], self$nr[m], self$Q[2])
-        self$pi[[m]] <- list(row = pi1, col = pi2)
+    update_pim = function(m, MAP = FALSE) {
+      # Here we compute the pi for each of the m networks
+      # So those are the "pim"
+      if (!MAP) {
+        # The pim are the mean of all the tau for each column, ie the mean tau per block
+        pim1 <- self$Cpi[[1]][, m] * matrix(.colMeans(
+          self$tau[[m]][[1]],
+          self$n[[1]][m], self$Q[1]
+        ), nrow = 1)
+        pim2 <- self$Cpi[[2]][, m] * matrix(.colMeans(
+          self$tau[[m]][[2]],
+          self$n[[2]][m], self$Q[2]
+        ), nrow = 1)
+        self$pim[[m]] <- list(pim1, pim2)
       } else {
-        pi1 <- tabulate(self$Z[[m]][[1]], self$Q[1]) / self$nr[m]
-        pi2 <- tabulate(self$Z[[m]][[2]], self$Q[2]) / self$nc[m]
-        self$map$pi[[m]] <- list(row = pi1, col = pi2)
+        # The MAP Pi are obtained by counting the number of nodes in each block and dividing by the total (n[[1]] or n[[2]])
+        pim1 <- tabulate(self$Z[[m]][[1]], self$Q[1]) / self$n[[1]][m]
+        pim2 <- tabulate(self$Z[[m]][[2]], self$Q[2]) / self$n[[2]][m]
+        self$MAP$pim[[m]] <- list(pim1, pim2)
+      }
+    },
+    update_pi = function(MAP = FALSE) {
+      # The function is m subscripted but it might not need it to work
+      for (m in seq.int(self$M)) {
+        self$update_pim(m, MAP)
+      }
+      if (!MAP) {
+        if (self$free_mixture_row | self$free_mixture_col) {
+          # TODO : Can remove  the outer OR if and else to use the below
+          # If free_mixture the pi are the pim
+          if (self$free_mixture_row) {
+            for (m in seq.int(self$M)) {
+              self$pi[[m]][[1]] <- self$pim[[m]][[1]]
+            }
+          } else {
+            # No free_mixture on row so averaging on pi[[m]][[1]]
+            pi1 <- matrix(self$n[[1]] * vapply(seq(self$M), function(m) {
+              self$pim[[m]][[1]]
+            }, FUN.VALUE = rep(.1, self$Q[1])), ncol = self$M, nrow = self$Q[1])
+            pi1 <- matrix(rowSums(pi1) / sum(pi1), nrow = 1)
+            for (m in seq.int(self$M)) {
+              self$pi[[m]][[1]] <- pi1
+            }
+          }
+
+          if (self$free_mixture_col) {
+            for (m in seq.int(self$M)) {
+              self$pi[[m]][[2]] <- self$pim[[m]][[2]]
+            }
+          } else {
+            # No free_mixture on col so averaging on pi[[m]][[2]]
+            pi2 <- matrix(self$n[[2]] * vapply(seq(self$M), function(m) {
+              self$pim[[m]][[2]]
+            }, FUN.VALUE = rep(.1, self$Q[2])), ncol = self$M, nrow = self$Q[2])
+            pi2 <- matrix(rowSums(pi2) / sum(pi2), nrow = 1)
+            for (m in seq.int(self$M)) {
+              self$pi[[m]][[2]] <- pi2
+            }
+          }
+        } else {
+          # Otherwise we need to ponder based on the size for
+          # Rows
+          pi1 <- matrix(self$n[[1]] * vapply(seq(self$M), function(m) {
+            self$pim[[m]][[1]]
+          }, FUN.VALUE = rep(.1, self$Q[1])), ncol = self$M, nrow = self$Q[1])
+          pi1 <- matrix(rowSums(pi1) / sum(pi1), nrow = 1)
+          # Need matrix() because there is a dot product in the vb_tau_pi
+
+          # And columns
+          pi2 <- matrix(self$n[[2]] * vapply(seq(self$M), function(m) {
+            self$pim[[m]][[2]]
+          }, FUN.VALUE = rep(.1, self$Q[2])), ncol = self$M, nrow = self$Q[2])
+          pi2 <- matrix(rowSums(pi2) / sum(pi2), nrow = 1)
+          # Need matrix() because there is a dot product in the vb_tau_pi
+
+          self$pi <- lapply(seq.int(self$M), function(m) list(pi1, pi2))
+        }
+      } else {
+        if (self$free_mixture_row | self$free_mixture_col) {
+          # If free_mixture the pi are the pim
+          self$MAP$pi <- self$MAP$pim
+        } else {
+          # Otherwise we need to ponder based on the size for
+          # Rows
+          pi1 <- matrix(self$n[[1]] * vapply(seq(self$M), function(m) {
+            self$MAP$pim[[m]][[1]]
+          }, FUN.VALUE = rep(.1, self$Q[1])), ncol = self$M, nrow = self$Q[1])
+
+          pi1 <- rowSums(pi1) / sum(pi1)
+
+          # And columns
+          pi2 <- matrix(self$n[[2]] * vapply(seq(self$M), function(m) {
+            self$MAP$pim[[m]][[2]]
+          }, FUN.VALUE = rep(.1, self$Q[2])), ncol = self$M, nrow = self$Q[2])
+
+          pi2 <- rowSums(pi2) / sum(pi2)
+
+          self$MAP$pi <- lapply(seq.int(self$M), function(m) list(pi1, pi2))
+        }
       }
       invisible(pi)
     },
-    update_alpham = function(m, map = FALSE) {
-      if (!map) {
+    update_alpham = function(m, MAP = FALSE) {
+      if (!MAP) {
         alpham <- self$emqr[m, , ] / self$nmqr[m, , ]
         alpham[is.nan(alpham)] <- 0
+        alpham <- matrix(alpham, self$Q[1], self$Q[2])
         self$alpham[[m]] <- alpham
       } else {
-        alpham <- self$map$emqr[m, , ] / self$map$nmqr[m, , ]
+        alpham <- self$MAP$emqr[m, , ] / self$MAP$nmqr[m, , ]
         alpham[is.nan(alpham)] <- 0
-        self$map$alpham[[m]] <- alpham
+        alpham <- matrix(alpham, self$Q[1], self$Q[2])
+        self$MAP$alpham[[m]] <- alpham
       }
       invisible(alpham)
     },
-    update_alpha = function(map = FALSE) {
-      if (!map) {
-        alpha <- colSums(self$emqr, dims = 1) / colSums(self$nmqr, dims = 1)
+    update_alpha = function(MAP = FALSE) {
+      # For iid and pi-colSBM
+      if (!MAP) {
+        alpha <- self$Calpha * colSums(self$emqr, dims = 1) / colSums(self$nmqr, dims = 1)
         alpha[is.nan(alpha)] <- 0
         self$alpha <- alpha
       } else {
-        alpha <- colSums(self$map$emqr, dims = 1) / colSums(self$map$nmqr, dims = 1)
+        alpha <- self$Calpha * colSums(self$MAP$emqr, dims = 1) / colSums(self$MAP$nmqr, dims = 1)
         alpha[is.nan(alpha)] <- 0
-        self$map$alpha <- alpha
+        self$MAP$alpha <- alpha
       }
       invisible(alpha)
     },
     init_clust = function() {
       self$tau <-
         switch(self$init_method,
+          # TODO later : adapt init_clust "random" to bipartite
           "random" = lapply(
             X = seq_along(self$A),
             FUN = function(m) {
-              tau_tmp <- gtools::rdirichlet(self$n[m], rep(1, self$Q))
-              self$emqr[m, , ] <- .tquadform(tau_tmp, self$A[[m]] * self$mask[[m]])
-              self$nmqr[m, , ] <- .tquadform(tau_tmp, self$mask[[m]])
+              tau_1 <- gtools::rdirichlet(self$n[[1]][m], rep(1, self$Q[[1]]))
+              tau_2 <- gtools::rdirichlet(self$n[[2]][m], rep(1, self$Q[[2]]))
+              self$emqr[m, , ] <- .tquadform(tau_tmp, self$A[[m]] * (self$nonNAs[[m]]))
+              self$nmqr[m, , ] <- .tquadform(tau_tmp, (self$nonNAs[[m]]))
               a <- self$emqr[m, , ] / self$nmqr[m, , ]
               prob <- self$Q * diag(a) #+ rowSums(a)
               p <- sample.int(self$Q, prob = prob)
@@ -660,89 +955,291 @@ fitBipartiteSBMPop <- R6::R6Class(
               tau_tmp
             }
           ),
+          "hca" = lapply(
+            X = seq_along(self$A),
+            FUN = function(m) {
+              # The .one_hot performs a one hot encoding of the spectral clustering performed
+              # DONE : Adapt this step to handle two taus
+              biclustering <- bipartite_hierarchic_clustering(self$nonNAs[[m]] * self$A[[m]], self$Q)
+              row_clustering <- biclustering$row_clustering
+              col_clustering <- biclustering$col_clustering
+
+              # Tau for the rows
+              tau_1 <- .one_hot(row_clustering, self$Q[[1]])
+              tau_1[tau_1 < 1e-6] <- 1e-6
+              tau_1[tau_1 > 1 - 1e-6] <- 1 - 1e-6
+              tau_1 <- tau_1 / .rowSums(tau_1, self$n[[1]][m], self$Q[[1]])
+
+              # Tau for the columns
+              tau_2 <- .one_hot(col_clustering, self$Q[[2]])
+              tau_2[tau_2 < 1e-6] <- 1e-6
+              tau_2[tau_2 > 1 - 1e-6] <- 1 - 1e-6
+              tau_2 <- tau_2 / .rowSums(tau_2, self$n[[2]][m], self$Q[[2]])
+
+              self$emqr[m, , ] <- t(tau_1) %*% (self$A[[m]] * (self$nonNAs[[m]])) %*% tau_2
+              self$nmqr[m, , ] <- t(tau_1) %*% (self$nonNAs[[m]]) %*% tau_2
+
+              # Permuter avec un ordre favorisant plus fortement
+              # les plus gros clusters mais de manière stochastique
+              # colSums sur les tau1 et tau2 pour obtenir les pi1 et pi2
+              a <- self$emqr[m, , ] / self$nmqr[m, , ] # ? estimate of the alpha
+              pi1 <- .colSums(tau_1, self$n[[1]][m], self$Q[[1]]) / sum(tau_1)
+              pi2 <- .colSums(tau_2, self$n[[2]][m], self$Q[[2]]) / sum(tau_2)
+
+              prob1 <- as.vector(pi2 %*% t(a))
+              prob2 <- as.vector(pi1 %*% a)
+              # p1 and p2 contain the clustering ordered using the highest probabilities first
+
+              p1 <- order(prob1)
+              p2 <- order(prob2)
+
+              # Tau, emqr and nmqr are reordered accordingly
+              if (ncol(tau_1) != 1) {
+                tau_1 <- tau_1[, p1]
+                self$emqr[m, , ] <- self$emqr[m, p1, ]
+                self$nmqr[m, , ] <- self$nmqr[m, p1, ]
+              }
+              if (ncol(tau_2) != 1) {
+                tau_2 <- tau_2[, p2]
+                self$emqr[m, , ] <- self$emqr[m, , p2]
+                self$nmqr[m, , ] <- self$nmqr[m, , p2]
+              }
+
+              # The output is tau[[m]][[1]] for tau_1 and tau[[m]][[2]] for tau_2
+              list(tau_1, tau_2)
+            }
+          ),
+          # DONE : adapt "spectral" clustering to bipartite with two clustering on the rows and columns
           "spectral" = lapply(
             X = seq_along(self$A),
             FUN = function(m) {
-              tau_tmp <- .one_hot(spectral_clustering(self$A[[m]], self$Q), self$Q)
-              tau_tmp[tau_tmp < 1e-6] <- 1e-6
-              tau_tmp[tau_tmp > 1 - 1e-6] <- 1 - 1e-6
-              tau_tmp <- tau_tmp / .rowSums(tau_tmp, self$n[m], self$Q)
-              self$emqr[m, , ] <- .tquadform(tau_tmp, self$A[[m]] * self$mask[[m]])
-              self$nmqr[m, , ] <- .tquadform(tau_tmp, self$mask[[m]])
-              a <- self$emqr[m, , ] / self$nmqr[m, , ]
-              prob <- self$Q * diag(a) # + rowSums(a)
-              p <- sample.int(self$Q, prob = prob)
-              tau_tmp <- tau_tmp[, p]
-              self$emqr[m, , ] <- self$emqr[m, p, p]
-              self$nmqr[m, , ] <- self$nmqr[m, p, p]
-              tau_tmp
+              # The .one_hot performs a one hot encoding of the spectral clustering performed
+
+              biclustering <- spectral_biclustering(self$nonNAs[[m]] * self$A[[m]], self$Q)
+              row_clustering <- biclustering$row_clustering
+              col_clustering <- biclustering$col_clustering
+
+              # Tau for the rows
+              tau_1 <- .one_hot(row_clustering, self$Q[[1]])
+              tau_1[tau_1 < 1e-6] <- 1e-6
+              tau_1[tau_1 > 1 - 1e-6] <- 1 - 1e-6
+              tau_1 <- tau_1 / .rowSums(tau_1, self$n[[1]][m], self$Q[[1]])
+
+              # Tau for the columns
+              tau_2 <- .one_hot(col_clustering, self$Q[[2]])
+              tau_2[tau_2 < 1e-6] <- 1e-6
+              tau_2[tau_2 > 1 - 1e-6] <- 1 - 1e-6
+              tau_2 <- tau_2 / .rowSums(tau_2, self$n[[2]][m], self$Q[[2]])
+
+              self$emqr[m, , ] <- t(tau_1) %*% (self$A[[m]] * (self$nonNAs[[m]])) %*% tau_2
+              self$nmqr[m, , ] <- t(tau_1) %*% (self$nonNAs[[m]]) %*% tau_2
+
+              # Permuter avec un ordre favorisant plus fortement
+              # les plus gros clusters mais de manière stochastique
+              # colSums sur les tau1 et tau2 pour obtenir les pi1 et pi2
+              a <- self$emqr[m, , ] / self$nmqr[m, , ] # ? estimate of the alpha
+              pi1 <- .colSums(tau_1, self$n[[1]][m], self$Q[[1]]) / sum(tau_1)
+              pi2 <- .colSums(tau_2, self$n[[2]][m], self$Q[[2]]) / sum(tau_2)
+
+              prob1 <- as.vector(pi2 %*% t(a))
+              prob2 <- as.vector(pi1 %*% a)
+              # p1 and p2 contain the clustering ordered using the highest probabilities first
+              # But it is still sampled and random according to the probabilities
+              # p1 <- sample.int(self$Q[[1]], prob = prob1)
+              # p2 <- sample.int(self$Q[[2]], prob = prob2)
+
+              if (ncol(tau_1) != 1) {
+                p1 <- order(prob1)
+              }
+
+              if (ncol(tau_2)) {
+                p2 <- order(prob2)
+              }
+
+              # Tau, emqr and nmqr are reordered accordingly
+              if (ncol(tau_1) != 1) {
+                tau_1 <- tau_1[, p1]
+                self$emqr[m, , ] <- self$emqr[m, p1, ]
+                self$nmqr[m, , ] <- self$nmqr[m, p1, ]
+              }
+              if (ncol(tau_2) != 1) {
+                tau_2 <- tau_2[, p2]
+                self$emqr[m, , ] <- self$emqr[m, , p2]
+                self$nmqr[m, , ] <- self$nmqr[m, , p2]
+              }
+
+              list(tau_1, tau_2)
+            }
+          ),
+          "empty" = lapply(
+            seq_along(self$Z),
+            function(m) {
+              tau_1 <- matrix(self$tau[[m]][[1]],
+                nrow = self$n[[1]][m],
+                ncol = self$Q[1]
+              )
+              tau_1[, which(!self$Cpi[[1]][, m])] <- 0
+              tau_1[, which(self$Cpi[[1]][, m])] <-
+                .threshold(matrix(tau_1[, which(self$Cpi[[1]][, m])],
+                  nrow = self$n[[1]][m]
+                ))
+
+              tau_2 <- matrix(self$tau[[m]][[2]],
+                nrow = self$n[[2]][m],
+                ncol = self$Q[2]
+              )
+              tau_2[, which(!self$Cpi[[2]][, m])] <- 0
+              tau_2[, which(self$Cpi[[2]][, m])] <-
+                .threshold(matrix(tau_2[, which(self$Cpi[[2]][, m])],
+                  nrow = self$n[[2]][m]
+                ))
+
+              self$emqr[m, , ] <- t(tau_1) %*%
+                (self$A[[m]] * (self$nonNAs[[m]])) %*% tau_2
+              self$nmqr[m, , ] <- t(tau_1) %*% (self$nonNAs[[m]]) %*% tau_2
+              list(tau_1, tau_2)
             }
           ),
           "given" = lapply(
             X = seq_along(self$Z),
             FUN = function(m) {
-              if (is.matrix(self$Z[[m]])) {
-                tau_tmp <- self$Z[[m]]
+              if (is.matrix(self$Z[[m]][[1]]) &&
+                is.matrix(self$Z[[m]][[2]]) &&
+                all(dim(self$Z[[m]][[1]]) == c(self$n[[1]][m], self$Q[1])) &&
+                all(dim(self$Z[[m]][[2]]) == c(self$n[[2]][m], self$Q[2]))) {
+                # If Z was already provided as a list of two matrices
+                tau_1 <- self$Z[[m]][[1]]
+                tau_2 <- self$Z[[m]][[2]]
               } else {
-                tau_tmp <- .one_hot(self$Z[[m]], self$Q)
-                tau_tmp[tau_tmp < 1e-6] <- 1e-6
-                tau_tmp[tau_tmp > 1 - 1e-6] <- 1 - 1e-6
-                tau_tmp <- tau_tmp / .rowSums(tau_tmp, self$n[m], self$Q)
-                self$emqr[m, , ] <- .tquadform(tau_tmp, self$A[[m]] * self$mask[[m]])
-                self$nmqr[m, , ] <- .tquadform(tau_tmp, self$mask[[m]])
-                # a <- self$emqr[m,,]/self$nmqr[m,,]
-                # prob <- self$Q*diag(a) #+ rowSums(a)
-                # p <- sample(self$Q, prob = prob)
-                # tau_tmp <- tau_tmp[,p]
-                # self$emqr[m,,] <- self$emqr[m,p,p]
-                # self$nmqr[m,,] <- self$nmqr[m,p,p]
-                tau_tmp
+                # Tau for the rows
+                tau_1 <- .one_hot(self$Z[[m]][[1]], self$Q[[1]])
+                tau_1[tau_1 < 1e-6] <- 1e-6
+                tau_1[tau_1 > 1 - 1e-6] <- 1 - 1e-6
+                tau_1 <- tau_1 / .rowSums(tau_1, self$n[[1]][m], self$Q[[1]])
+
+                # Tau for the columns
+                tau_2 <- .one_hot(self$Z[[m]][[2]], self$Q[[2]])
+                tau_2[tau_2 < 1e-6] <- 1e-6
+                tau_2[tau_2 > 1 - 1e-6] <- 1 - 1e-6
+                tau_2 <- tau_2 / .rowSums(tau_2, self$n[[2]][m], self$Q[[2]])
+
+                # update_mqr(m)
+                self$emqr[m, , ] <- t(tau_1) %*% (self$A[[m]] * (self$nonNAs[[m]])) %*% tau_2
+                self$nmqr[m, , ] <- t(tau_1) %*% (self$nonNAs[[m]]) %*% tau_2
               }
-              tau_tmp
+              return(list(tau_1, tau_2))
             }
           )
+          # TODO add a "given_tau" init method
         )
       lapply(seq(self$M), function(m) self$update_alpham(m))
-      if (self$model == "bernoulli" & self$free_density &
+      if (self$distribution == "bernoulli" & self$free_density &
         !self$fit_opts$approx_pois) {
         self$fixed_point_alpha_delta()
       }
     },
-    make_permutation = function() {
-
-    },
-    m_step = function(map = FALSE, max_iter = 100, tol = 1e-3, ...) {
+    m_step = function(MAP = FALSE, max_iter = 2, tol = 1e-3, ...) {
       # browser()
-      lapply(seq_along(self$pi), function(m) self$update_pi(m, map = map))
+      # lapply(seq_along(self$pi), function(m) self$update_pi(m, MAP = MAP))
+      self$update_pi(MAP = MAP)
       if (self$free_density == FALSE) {
-        self$update_alpha(map = map)
+        # deltas are all equals to 1
+        self$update_alpha(MAP = MAP)
       } else {
-        switch(self$model,
-          "poisson" = self$fixed_point_alpha_delta(map = map),
+        switch(self$distribution,
+          "poisson" = self$fixed_point_alpha_delta(MAP = MAP),
           "bernoulli" =
             ifelse(self$fit_opts$approx_pois,
-              self$fixed_point_alpha_delta(map = map),
-              self$update_alpha_delta(map = map)
+              self$fixed_point_alpha_delta(MAP = MAP),
+              self$update_alpha_delta(MAP = MAP)
             )
         )
       }
     },
-    ve_step = function(m, max_iter = 20, tol = 1e-3, ...) {
+    ve_step = function(m, max_iter = 2, tol = 1e-3, ...) {
       # Place holder for gradient ascent or other optimization methods
     },
     update_mqr = function(m) {
-      tau_tmp <- self$tau[[m]]
-      self$emqr[m, , ] <- .tquadform(tau_tmp, self$A[[m]] * self$mask[[m]])
-      self$nmqr[m, , ] <- .tquadform(tau_tmp, self$mask[[m]])
+      # Compute the "mqr" quantities
+      # emqr : the observed edges
+      # nmqr : all the possible edges
+
+      tau_m_1 <- self$tau[[m]][[1]]
+      tau_m_2 <- self$tau[[m]][[2]]
+
+      self$emqr[m, , ] <- t(tau_m_1) %*%
+        (self$A[[m]] * (self$nonNAs[[m]])) %*% tau_m_2
+      self$nmqr[m, , ] <- t(tau_m_1) %*% (self$nonNAs[[m]]) %*% tau_m_2
     },
-    optimize = function(max_step = 100, tol = 1e-3, ...) {
-      if (self$Q == 1) {
-        self$tau <- lapply(seq(self$M), function(m) matrix(1, self$n[m], 1))
-        self$Z <- lapply(seq(self$M), function(m) rep(1, self$n[m]))
-        self$pi <- lapply(seq(self$M), function(m) 1)
-        lapply(seq(self$M), function(m) self$update_mqr(m))
+    make_permutation = function() {
+      # TODO : ask @Chabert-Liddell or @demiperimetre to see if such permutation are useful at the end
+      if (self$free_mixture_row | !self$free_mixture_col) {
+        # Use pim
+        pi1 <- lapply(seq.int(self$M), function(m) {
+          self$pim[[m]][[1]]
+        })
+        pi2 <- lapply(seq.int(self$M), function(m) {
+          self$pim[[m]][[2]]
+        })
+      } else {
+        # Use pi
+        pi1 <- lapply(seq.int(self$M), function(m) {
+          self$pi[[m]][[1]]
+        })
+        pi2 <- lapply(seq.int(self$M), function(m) {
+          self$pi[[m]][[2]]
+        })
+      }
+
+      # Compute the marginal laws
+      prob_row <- pi2 %*% t(self$alpha)
+      prob_col <- pi1 %*% self$alpha
+
+      # Find the order
+      row_order <- order(prob_row, decreasing = TRUE)
+      col_order <- order(col_row, decreasing = TRUE)
+
+      # Tau, emqr and nmqr, alpha & pi are reordered accordingly
+      if (ncol(tau_1) != 1) {
+        next
+      }
+      if (ncol(tau_2) != 1) {
+        next
+      }
+    },
+    compute_effective_clustering = function() {
+      self$effective_clustering_list <- lapply(seq.int(self$M), function(m) {
+        list(
+          length(unique(self$MAP$Z[[m]][[1]])),
+          length(unique(self$MAP$Z[[m]][[2]]))
+        )
+      })
+    },
+    optimize = function(max_step = 20, tol = 1e-3, ...) {
+      if (all(self$Q == c(1, 1))) {
+        # DONE urgently : handle the case where Q1 == 1 && Q2 != 1 || Q1 != 1 && Q2 == 1
+        # DONE Two dimensions for tau, Z and pi
+        self$tau <- lapply(
+          seq(self$M),
+          function(m) list(matrix(1, self$n[[1]][m], 1), matrix(1, self$n[[2]][m], 1))
+        )
+        self$Z <- lapply(
+          seq(self$M),
+          function(m) list(rep(1, self$n[[1]][m]), rep(1, self$n[[2]][m]))
+        )
+        self$pi <- lapply(
+          seq(self$M),
+          function(m) list(matrix(1), matrix(1))
+        )
+        lapply(
+          seq(self$M),
+          function(m) self$update_mqr(m)
+        )
         if (self$free_density) {
-          self$alpha <- matrix(sum(self$emqr[1, , ]) / sum(self$nmqr[1, , ]), 1, 1)
+          # TODO later : implement the free density
+          self$alpha <- matrix(
+            sum(self$emqr[1, , ]) / sum(self$nmqr[1, , ]), 1, 1
+          )
           self$delta <- vapply(
             seq(self$M),
             function(m) {
@@ -756,9 +1253,13 @@ fitBipartiteSBMPop <- R6::R6Class(
         }
         self$alpham <- lapply(
           seq(self$M),
-          function(m) matrix(sum(self$emqr[m, , ]) / sum(self$nmqr[m, , ]), 1, 1)
+          function(m) {
+            matrix(
+              sum(self$emqr[m, , ]) / sum(self$nmqr[m, , ]), 1, 1
+            )
+          }
         )
-        self$map <- list(
+        self$MAP <- list(
           Z = self$tau,
           pi = self$pi,
           alpha = self$alpha,
@@ -768,7 +1269,7 @@ fitBipartiteSBMPop <- R6::R6Class(
           nmqr = self$nmqr
         )
       } else {
-        #  browser()
+        # If there is more than one cluster
         self$init_clust()
         # lapply(seq(self$M), function(m) self$update_mqr(m))
         self$m_step(...)
@@ -777,38 +1278,33 @@ fitBipartiteSBMPop <- R6::R6Class(
         self$vbound <- vb
         step_condition <- TRUE
         while (step_condition) {
-          if (!self$fit_opts$minibatch) {
-            lapply(
-              seq(self$M),
-              function(m) {
-                switch(self$fit_opts$algo_ve,
-                  "fp" = self$fixed_point_tau(m),
-                  self$ve_step(m, ...)
-                )
-                self$update_mqr(m)
-              }
-            )
-            self$m_step(...)
-          } else {
-            seq_m <- sample.int(self$M)
-            lapply(
-              seq(self$M),
-              function(m) {
-                switch(self$fit_opts$algo_ve,
-                  "fp" = self$fixed_point_tau(seq_m[m]),
-                  self$ve_step(seq_m[m], ...)
-                )
-                self$update_mqr(seq_m[m])
-                self$m_step(...)
-              }
-            )
-          }
+          seq_m_minibatch <- sample.int(self$M)
+          lapply(
+            # Minibatch or not
+            ifelse(self$fit_opts$minibatch, seq_m_minibatch, seq(self$M)),
+            function(m) {
+              switch(self$fit_opts$algo_ve,
+                "fp" = {
+                  self$fixed_point_tau(m, d = 1)
+                  self$update_mqr(m)
+                  self$m_step(...)
+
+                  self$fixed_point_tau(m, d = 2)
+                  self$update_mqr(m)
+                  self$m_step(...)
+                },
+                # If we're not using the previous methods default to gradient ascent
+                self$ve_step(m, ...)
+              )
+            }
+          )
+
           vb <- self$compute_vbound()
           self$vbound <- c(self$vbound, vb)
           step <- step + 1
           step_condition <- step < max_step &
-            self$vbound[length(self$vbound)] -
-              self$vbound[length(self$vbound) - 1] > tol
+            (self$vbound[length(self$vbound)] -
+              self$vbound[length(self$vbound) - 1] > tol)
           if (step %% 5 == 0) {
             if (self$fit_opts$verbosity >= 1) {
               print(paste0(step, ": ", vb))
@@ -816,18 +1312,162 @@ fitBipartiteSBMPop <- R6::R6Class(
             }
           }
         }
-        self$compute_map()
+
+        # Here we stock the number of steps needed to converge
+        self$step_counter <- step
+
+        self$compute_MAP()
         lapply(seq(self$M), function(m) self$update_alpham(m))
         # self$compute_parameters()
         self$compute_icl()
-        self$update_map_parameters()
+        self$update_MAP_parameters()
       }
       self$compute_icl()
-      self$compute_icl(map = TRUE)
-      self$compute_icl_clustering()
-    }
+      self$compute_icl(MAP = TRUE)
+
+      # After all the effective clustering is computed
+      self$compute_effective_clustering()
+
+      # Here the matching of the effective clustering is checked
+      if (!any(self$free_mixture_row, self$free_mixture_col)) {
+        non_correct_clusterings <- sapply(seq.int(self$M), function(m) {
+          self$effective_clustering_list[[m]][[1]] != self$Q[1] &&
+            self$effective_clustering_list[[m]][[2]] != self$Q[2]
+        })
+        if (any(non_correct_clusterings)) {
+          self$clustering_is_complete <- FALSE
+        }
+      }
+
+      self$compute_BICL()
+      if (self$BICL == Inf | self$BICL == -Inf) {
+        stop("Infinite BICL !")
+      }
+      self$reorder_parameters()
+    },
+    reorder_parameters = function() {
+      Z_label_switch <- function(Z, new_order) {
+        # Create a mapping of old labels to new labels
+        old_names <- names(Z)
+        label_map <- setNames(new_order, unique(Z))
+
+        # Use the mapping to replace labels in the vector
+        switched_labels <- label_map[Z]
+        names(switched_labels) <- old_names
+        return(switched_labels)
+      }
+      if (all(self$Q == c(1, 1))) {
+        return(self)
+      }
+      mean_pi <- sapply(self$pi, function(pi) pi[[1]])
+      if (self$Q[1] > 1) {
+        mean_pi <- matrixStats::rowMeans2(mean_pi)
+      } else {
+        mean_pi <- matrix(1, 1, 1)
+      }
+      mean_rho <- sapply(self$pi, function(pi) pi[[2]])
+      if (self$Q[2] > 1) {
+        mean_rho <- matrixStats::rowMeans2(mean_rho)
+      } else {
+        mean_rho <- matrix(1, 1, 1)
+      }
+      # The row clustering are reordered according to their marginal distribution
+      prob1 <- as.vector(mean_rho %*% t(self$MAP$alpha))
+      p1 <- order(prob1, decreasing = TRUE)
+
+      # The col clustering are reordered according to their marginal distribution
+      prob2 <- as.vector(mean_pi %*% self$MAP$alpha)
+      p2 <- order(prob2, decreasing = TRUE)
+
+      # m independent
+      self$MAP$alpha <- self$MAP$alpha[p1, p2, drop = FALSE]
+      self$Calpha <- self$Calpha[p1, p2, drop = FALSE]
+      self$alpha <- self$alpha[p1, p2, drop = FALSE]
+
+      # m dependent
+      lapply(seq.int(self$M), function(m) {
+        # Reordering the parameters
+        self$Cpi[[1]][, m] <- self$Cpi[[1]][p1, m, drop = FALSE]
+        self$Cpi[[2]][, m] <- self$Cpi[[2]][p2, m, drop = FALSE]
+
+        self$pim[[m]][[1]] <- self$pim[[m]][[1]][p1, drop = FALSE]
+        self$pim[[m]][[2]] <- self$pim[[m]][[2]][p2, drop = FALSE]
+
+        self$pi[[m]][[1]] <- self$pi[[m]][[1]][p1, drop = FALSE]
+        self$pi[[m]][[2]] <- self$pi[[m]][[2]][p2, drop = FALSE]
+
+        self$emqr[m, , ] <- self$emqr[m, p1, p2, drop = FALSE]
+        self$nmqr[m, , ] <- self$nmqr[m, p1, p2, drop = FALSE]
+        self$alpham[[m]] <- matrix(
+          self$alpham[[m]][p1, p2, drop = FALSE],
+          self$Q[1], self$Q[2]
+        )
+        self$tau[[m]][[1]] <- self$tau[[m]][[1]][, p1, drop = FALSE]
+        self$tau[[m]][[2]] <- self$tau[[m]][[2]][, p2, drop = FALSE]
+        self$Z[[m]][[1]] <- Z_label_switch(self$Z[[m]][[1]], p1)
+        self$Z[[m]][[2]] <- Z_label_switch(self$Z[[m]][[2]], p2)
+
+        # MAP parameters
+        # Work needed to relabel correctly!
+        self$MAP$Z[[m]][[1]] <- Z_label_switch(self$MAP$Z[[m]][[1]], p1)
+        self$MAP$Z[[m]][[2]] <- Z_label_switch(self$MAP$Z[[m]][[2]], p2)
+        self$MAP$emqr[m, , ] <- self$MAP$emqr[m, p1, p2, drop = FALSE]
+        self$MAP$nmqr[m, , ] <- self$MAP$nmqr[m, p1, p2, drop = FALSE]
+        self$MAP$alpham[[m]] <- matrix(
+          self$MAP$alpham[[m]][p1, p2, drop = FALSE],
+          self$Q[1], self$Q[2]
+        )
+        self$MAP$pim[[m]][[1]] <- self$MAP$pim[[m]][[1]][p1, drop = FALSE]
+        self$MAP$pim[[m]][[2]] <- self$MAP$pim[[m]][[2]][p2, drop = FALSE]
+        self$MAP$pi[[m]][[1]] <- self$MAP$pi[[m]][[1]][p1, drop = FALSE]
+        self$MAP$pi[[m]][[2]] <- self$MAP$pi[[m]][[2]][p2, drop = FALSE]
+      })
+    },
+    show = function(type = "Fitted Collection of Bipartite SBM") {
+      cat(type, "--", self$distribution, "variant for", self$M, "networks \n")
+      cat("=====================================================================\n")
+      cat("net_id = (", self$net_id, ")\n")
+      cat(
+        "Dimensions = (", toString(lapply(seq.int(self$M), function(m) {
+          c(self$n[[1]][[m]], self$n[[2]][[m]])
+        })), ") - (",
+        toString(self$Q), ") blocks.\n"
+      )
+      cat(
+        "BICL = ", self$BICL,
+        "\n#Empty row blocks on all networks: ", sum(!self$Cpi[[1]]),
+        " -- #Empty columns blocks on all networks: ", sum(!self$Cpi[[2]]), " \n"
+      )
+      cat("* Useful fields \n")
+      cat("  $distribution, $nb_nodes, $nb_blocks, $support, $prob_memberships \n")
+      cat("  $memberships, $parameters, $BICL, $vbound, $pred_dyads \n")
+      cat("=====================================================================")
+    },
+    print = function() self$show()
   ),
   active = list(
-    dircoef = function() ifelse(self$directed, 1, .5)
+    nb_nodes = function(value) self$n,
+    nb_blocks = function(value) self$Q,
+    support = function(value) self$Cpi,
+    prob_memberships = function(value) self$tau,
+    parameters = function(value) {
+      list(
+        alpha = self$alpha,
+        pi = lapply(self$pi, function(list_pi_rho) list_pi_rho[[1]]),
+        rho = lapply(self$pi, function(list_pi_rho) list_pi_rho[[2]])
+      )
+    },
+    pred_dyads = function(value) {
+      lapply(
+        seq(self$M),
+        function(m) {
+          A_hat <- self$tau[[m]][[1]] %*% (self$delta[m] * self$alpha) %*% t(self$tau[[m]][[2]])
+          A_hat
+        }
+      )
+    },
+    memberships = function(value) {
+      self$Z
+    }
   )
 )

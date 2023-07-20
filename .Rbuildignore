@@ -2,10 +2,15 @@
 ^README\.Rmd$
 ^\.Rproj\.user$
 ^\.github$
+^\.pre-commit-config\.yaml$
 ^_pkgdown\.yml$
 ^codecov\.yml$
+^codecov\.yml$
+^colSBM\.Rproj$
 ^colSBM\.Rproj$
 ^data-raw$
+^data-raw$
+^dev$
 ^dev$
 ^docs$
 ^pkgdown$
