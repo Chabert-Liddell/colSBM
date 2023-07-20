@@ -2,14 +2,14 @@
 * Improved generic `plot()` functions
 
 # colSBM 0.2.1
-* BREAKING CHANGE: emission distribution arguments are now named "distribution" 
+* BREAKING CHANGE: emission distribution arguments are now named "distribution"
 instead of "model"
 * Fixed an error in `extract_best_partition()`
 * Fixed a bug when using "spectal_init" as a `global_opts` arguement
 
 # colSBM 0.2.0
 
-* Added sparse matrix with the `Matrix` package leading to less intensive 
+* Added sparse matrix with the `Matrix` package leading to less intensive
   memory usage
 * Added `extract_best_partition()` function
 * Improved documentation, references and vignette

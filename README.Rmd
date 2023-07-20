@@ -23,17 +23,17 @@ knitr::opts_chunk$set(
 [![](https://img.shields.io/badge/doi-10.48550/arXiv.2206.00560-yellow.svg)](https://doi.org/10.48550/arXiv.2206.00560)
 <!-- badges: end -->
 
-colSBM is an R package which implements methods for clustering and inferring the 
+colSBM is an R package which implements methods for clustering and inferring the
 mesoscale structure for collection of networks. In particular, it allows to:
 
-* Find a common mesoscale structure in a collection of networks by 
-using a Stochastic Block Model (SBM) extension for the joint modeling of 
-collection of networks. 
+* Find a common mesoscale structure in a collection of networks by
+using a Stochastic Block Model (SBM) extension for the joint modeling of
+collection of networks.
 
 * Provide a clustering of the nodes of each networks.
 Classifies networks in groups of networks with similar mesoscale structures.
 
-Mathematical details of the methods as well as simulation studies and 
+Mathematical details of the methods as well as simulation studies and
 applications can be find in @collection .
 
 ## Installation
