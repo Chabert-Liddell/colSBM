@@ -110,7 +110,8 @@ bmpop <- R6::R6Class(
       if (is.null(self$fit_sbm)) {
         #  p <- progressr::progressor(along = self$A)
         self$fit_sbm <-
-          bettermc::mclapply(
+          colsbm_lapply(
+#          bettermc::mclapply(
             X = seq_along(self$A),
             FUN = function(m) {
               #     p(sprintf("m=%g", m))
@@ -336,7 +337,8 @@ bmpop <- R6::R6Class(
         if (self$global_opts$verbosity >= 2) {
           cat("Starting initialization from spectral clustering.\n")
         }
-        bettermc::mclapply(
+        colsbm_lapply(
+#        bettermc::mclapply(
           X = seq(self$global_opts$Q_min, self$global_opts$Q_max),
           FUN = function(Q) {
             models <- self$optimize_spectral(
@@ -349,7 +351,9 @@ bmpop <- R6::R6Class(
             self$ICL[Q] <- best_models[[1]]$map$ICL
             self$BICL[Q] <- best_models[[1]]$BICL
             rm(models)
-          }, mc.cores = self$global_opts$nb_cores, mc.share.copy = FALSE
+          },
+          mc.cores = self$global_opts$nb_cores#,
+          #mc.share.copy = FALSE
         )
         # voir pour l'init spectral.
       }
@@ -438,7 +442,9 @@ bmpop <- R6::R6Class(
             each = max(Q, 10)
           )[1:length(list_Zinit)]
         )
-        list_popbm <- bettermc::mclapply(
+        list_popbm <-
+          colsbm_lapply(
+#          bettermc::mclapply(
           seq_along(fold),
           function(x) {
             lapply(
@@ -505,7 +511,8 @@ bmpop <- R6::R6Class(
               }
             )
           },
-          mc.cores = self$global_opts$nb_cores, mc.share.copy = FALSE # , future.globals = list(
+          mc.cores = self$global_opts$nb_cores
+          #, mc.share.copy = FALSE # , future.globals = list(
           #  model_list = model_list)#,
           #            future.options = list(seed = TRUE)#, mc.cores = 6
         )
@@ -589,7 +596,8 @@ bmpop <- R6::R6Class(
           seq_along(list_Zinit),
           rep(1:ceiling(length(list_Zinit) / max(Q, 10)), each = max(Q, 10))[1:length(list_Zinit)]
         )
-        list_popbm <- bettermc::mclapply(
+        list_popbm <-
+          colsbm_lapply(#bettermc::mclapply(
           seq_along(fold),
           function(x) {
             models <- lapply(
@@ -684,7 +692,8 @@ bmpop <- R6::R6Class(
             }
             return(best_models)
           },
-          mc.cores = self$global_opts$nb_cores, mc.share.copy = FALSE # , future.globals = list(
+          mc.cores = self$global_opts$nb_cores
+          #, mc.share.copy = FALSE # , future.globals = list(
           #  model_list = model_list)#,
           #            future.options = list(seed = TRUE)#, mc.cores = 6
         )

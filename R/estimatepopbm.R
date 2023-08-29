@@ -84,6 +84,8 @@ clusterize_networks <- function(netlist,
     stop("colsbm_model unknown. Must be one of iid, pi, delta or deltapi")
   )
 
+
+
   if (is.null(global_opts$nb_cores)) {
     global_opts$nb_cores <- 1L
   }
@@ -94,7 +96,9 @@ clusterize_networks <- function(netlist,
     Q_max <- global_opts$Q_max
   }
 
-
+  if (is.null(global_opts$backend)) {
+    global_opts$backend <- "parallel"
+  }
 
   if (!is.null(fit_init)) {
     my_bmpop <- fit_init
@@ -104,7 +108,7 @@ clusterize_networks <- function(netlist,
     }
     if (is.null(fit_sbm)) {
       fit_sbm <-
-        bettermc::mclapply(
+        colsbm_lapply(
           X = seq_along(netlist),
           FUN = function(m) {
             #     p(sprintf("m=%g", m))
@@ -118,12 +122,13 @@ clusterize_networks <- function(netlist,
               )
             )
           },
+          backend = global_opts$backend,
           mc.cores = nb_cores,
           mc.silent = TRUE
         )
     }
     tmp_fits <-
-      bettermc::mclapply(
+      colsbm_lapply(
         seq(nb_run),
         function(x) {
           global_opts$nb_cores <- max(1L, floor(global_opts$nb_cores / nb_run))
@@ -141,7 +146,9 @@ clusterize_networks <- function(netlist,
           tmp_fit$optimize()
           return(tmp_fit)
         },
-        mc.progress = TRUE, mc.cores = min(nb_run, nb_cores)
+        backend = global_opts$backend,
+        nb_cores = min(nb_run, nb_cores),
+        mc.progress = TRUE#, mc.cores = min(nb_run, nb_cores)
       )
     my_bmpop <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$BICL,
       FUN.VALUE = .1

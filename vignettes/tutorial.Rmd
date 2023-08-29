@@ -157,11 +157,13 @@ net_clust <- clusterize_networks(
   directed = TRUE, # Foodwebs are directed networks
   net_id = c(names(foodwebs)[1:3], "sim1", "sim2", "sim3"), # Name of the networks
   nb_run = 3L, # Nmber of runs of the algorithm
-  global_opts = list(
-    verbosity = 0,
-    plot_details = 0,
-    Q_max = 9, backend = "future"
-  ) # Max number of clusters
+  global_opts = # List of options 
+    list(
+    verbosity = 0, # Verbosity level of the algorithm
+    plot_details = 0, # Monitoring plot of the algorithm
+    Q_max = 9, # Max number of clusters
+    backend = "parallel" # Backend for parallel computing
+  ) 
 )  
 ```
 

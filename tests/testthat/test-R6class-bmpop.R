@@ -26,6 +26,7 @@ test_that("clusterize_networks_iid", {
         directed = FALSE,
         distribution = "bernoulli",
         nb_run = 1,
+        global_opts = list(nb_cores = 1),
         fit_opts = list(
           Q_max = 2,
           nb_init = 1,
@@ -55,6 +56,7 @@ test_that("estimate_colsbm_poisson_delta", {
         directed = FALSE,
         distribution = "poisson",
         nb_run = 1,
+        global_opts = list(nb_cores = 1),
         fit_opts = list(
           Q_max = 2,
           nb_init = 1,

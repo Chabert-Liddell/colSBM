@@ -1,8 +1,8 @@
 ---
-title: "Tutorial on plant pollinisator data"
+title: "Tutorial on plant pollinitor data"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Tutorial on food webs}
+  %\VignetteIndexEntry{Tutorial on plant pollinitor data}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

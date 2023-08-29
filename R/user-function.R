@@ -70,6 +70,9 @@ estimate_colSBM <-
       },
       stop("colsbm_model unknown. Must be one of iid, pi, delta or deltapi")
     )
+    if (is.null(global_opts$backend)) {
+      global_opts$backend <- 'parallel'
+    }
     if (is.null(global_opts$nb_cores)) {
       global_opts$nb_cores <- 1L
     }
@@ -87,7 +90,8 @@ estimate_colSBM <-
       }
       if (is.null(fit_sbm)) {
         fit_sbm <-
-          bettermc::mclapply(
+          colsbm_lapply(
+          #bettermc::mclapply(
             X = seq_along(netlist),
             FUN = function(m) {
               #     p(sprintf("m=%g", m))
@@ -101,6 +105,7 @@ estimate_colSBM <-
                 )
               )
             },
+            backend = global_opts$backend,
             mc.cores = nb_cores,
             mc.silent = TRUE
           )
@@ -108,7 +113,8 @@ estimate_colSBM <-
       # tmp_fits run nb_run times a full model selection procedure
       # (the one from the research paper)
       tmp_fits <-
-        bettermc::mclapply(
+        colsbm_lapply(
+#        bettermc::mclapply(
           seq(nb_run),
           function(x) {
             global_opts$nb_cores <- max(1L, floor(global_opts$nb_cores / nb_run))
@@ -126,8 +132,11 @@ estimate_colSBM <-
             tmp_fit$optimize()
             return(tmp_fit)
           },
-          mc.progress = TRUE, mc.cores = min(nb_run, nb_cores),
-          mc.stdout = "output"
+          backend = global_opts$backend,
+          mc.cores = min(nb_run,nb_cores),
+          mc.silent = TRUE
+#          mc.progress = TRUE, mc.cores = min(nb_run, nb_cores),
+#          mc.stdout = "output"
         )
       my_bmpop <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$BICL,
         FUN.VALUE = .1
@@ -382,7 +391,8 @@ estimate_colBiSBM <-
     # (the one from the research paper)
     if (global_opts$parallelization_vector[1] && nb_run > 1) {
       tmp_fits <-
-        bettermc::mclapply(
+        colsbm_lapply(
+#        bettermc::mclapply(
           seq(nb_run),
           function(x) {
             tmp_fit <- bisbmpop$new(
@@ -400,11 +410,14 @@ estimate_colBiSBM <-
             tmp_fit$optimize()
             return(tmp_fit)
           },
-          mc.progress = !silent_parallelization,
-          mc.cores = min(nb_run, nb_cores),
-          mc.stdout = "output",
-          mc.retry = -1, # To prevent big crash
-          mc.silent = silent_parallelization
+          backend = global_opts$backend,
+          mc.cores = min(nb_run,nb_cores),
+          mc.silent = TRUE
+#          mc.progress = !silent_parallelization,
+#          mc.cores = min(nb_run, nb_cores),
+#          mc.stdout = "output",
+#          mc.retry = -1, # To prevent big crash
+#          mc.silent = silent_parallelization
         )
     } else {
       tmp_fits <-

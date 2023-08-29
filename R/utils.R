@@ -5,7 +5,7 @@
 #' @param alpha the matrix of connectivity between two clusters
 #'
 #' @return An adjacency matrix
-#'
+
 #' @noMd
 #' @noRd
 generate_unipartite_network <- function(n, pi, alpha) {
@@ -631,3 +631,5 @@ reorder_parameters <- function(model) {
   })
   return(out_model)
 }
+
+

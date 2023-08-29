@@ -12,8 +12,10 @@ Authors@R:
            role = c("aut")))
 Description: Finds a common mesoscale structure in a collection of networks by
     using a Stochastic Block Model (SBM) extension for the joint modeling of
-    collection of networks. Provides a clustering of the nodes of each networks.
-    Classifies networks in groups of networks with similar mesoscale structures.
+    collection of networks as described in <arXiv:2206.00560>. 
+    Provides a clustering of the nodes of each networks.
+    Classifies networks in sub-collections of networks with similar 
+    mesoscale structures.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -30,6 +32,7 @@ Imports:
     gtools,
     magrittr,
     matrixStats,
+    parallel,
     patchwork,
     purrr,
     R6,
@@ -40,6 +43,7 @@ Imports:
 Suggests:
     knitr,
     covr,
+    future.apply,
     testthat (>= 3.0.0),
     rmarkdown,
     spelling
