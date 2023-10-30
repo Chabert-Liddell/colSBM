@@ -252,7 +252,7 @@ estimate_colSBM <-
 #'    }
 #'  }
 #'  The default is : c(TRUE, TRUE) which gives best performance
-#' }
+#' }}
 #'
 #' The list of parameters \code{fit_opts} are used to tune the Variational
 #' Expectation Maximization algorithm.
