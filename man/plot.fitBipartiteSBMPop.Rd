@@ -34,3 +34,6 @@ A plot, a ggplot2 object.
 \description{
 Plot matrix summaries of the collection mesoscale structure
 }
+\examples{
+plot(my_bisbm_pop)
+}

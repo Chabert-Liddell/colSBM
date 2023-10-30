@@ -2,9 +2,9 @@ fitSimpleSBMPop$set(
   "public", "plot",
   #' Title
   #'
-  #' @importFrom patchwork
-  #' @importFrom reshape2
-  #' @importFrom purrr
+  #' @importFrom patchwork plot_layout plot_annotation wrap_plots
+  #' @importFrom reshape2 melt
+  #' @importFrom purrr map_dfc
   function(type = "graphon", ord = NULL, mixture = FALSE, net_id = NULL, ...) {
     if (is.null(ord)) ord <- order(diag(self$alpha), decreasing = TRUE)
     p <- switch(type,
@@ -146,7 +146,7 @@ fitSimpleSBMPop$set(
 #' @return A plot, a ggplot2 object.
 #' @export
 #'
-#' @examples
+#' @examples plot(my_sbm_pop)
 plot.fitSimpleSBMPop <- function(x, type = "graphon",
                                  ord = NULL, mixture = FALSE, net_id = 1, ...) {
   stopifnot(inherits(x, "fitSimpleSBMPop"))
@@ -240,13 +240,12 @@ bmpop$set(
   "plot",
   #' Title
   #'
-  #' @param type
+  #' @param type the type of the plot
   #' @param ...
   #'
-  #' @importFrom tibble
-  #' @importFrom ggplot2
-  #' @importFrom tidyr
-  #' @importFrom dplyr
+  #' @importFrom tibble tibble
+  #' @importFrom tidyr pivot_longer
+  #' @importFrom dplyr mutate pull
   function(type = "trace", ...) {
     tb <- tibble::tibble(
       Q = seq(length(self$BICL)),
@@ -285,9 +284,10 @@ bmpop$set(
 fitBipartiteSBMPop$set(
   "public", "plot",
   #' The function to plot the fitBipartite objects
-  #' @importFrom patchwork
-  #' @importFrom reshape2
-  #' @importFrom purrr
+  #'
+  #' @importFrom patchwork plot_layout plot_annotation wrap_plots
+  #' @importFrom reshape2 melt
+  #' @importFrom purrr map_dfc
   function(type = "graphon", oRow = NULL, oCol = NULL, mixture = FALSE, net_id = NULL, ...) {
     # The below order use mean over all networks to have a consistent display
     if (is.null(oRow)) {
@@ -488,7 +488,7 @@ fitBipartiteSBMPop$set(
 #' @return A plot, a ggplot2 object.
 #' @export
 #'
-#' @examples
+#' @examples plot(my_bisbm_pop)
 plot.fitBipartiteSBMPop <- function(x, type = "graphon", oRow = NULL, oCol = NULL, mixture = FALSE, net_id = 1, ...) {
   stopifnot(inherits(x, "fitBipartiteSBMPop"))
   p <- x$plot(
