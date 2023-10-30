@@ -8,11 +8,12 @@
 #' @param nb_cores Number of parallel cores for parallel or bettermc
 #' @param ...
 #'
-#' @return
+#' @return A list on which the FUN was applied with specified backend and
+#' parameters
 #' @noRd
 #' @noMd
 #'
-#' @examples
+#' @examples colsbm_lapply(X)
 colsbm_lapply <- function(X, FUN, backend = "parallel",
                           nb_cores = parallel::detectCores(), ...) {
   if (! backend %in% c("future", "parallel", "bettermc")) {
