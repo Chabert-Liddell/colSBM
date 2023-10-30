@@ -226,7 +226,7 @@ clusterize_networks <- function(netlist,
             nb_cores <- global_opts$nb_cores
           }
           tmp_fits <-
-            bettermc::mclapply(
+            colsbm_lapply(
               seq(min(sum(cl == k), nb_run)),
               function(x) {
                 global_opts$nb_cores <- max(1L, floor(global_opts$nb_cores / nb_run))
@@ -245,8 +245,10 @@ clusterize_networks <- function(netlist,
                 tmp_fit$optimize()
                 return(tmp_fit)
               },
-              mc.progress = TRUE, mc.cores = min(nb_run, nb_cores),
-              mc.stdout = "output"
+              mc.cores = min(nb_run, nb_cores),
+              backend = global_opts$backend
+              # mc.progress = TRUE, 
+              # mc.stdout = "output"
             )
           res <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$BICL,
             FUN.VALUE = .1
@@ -558,7 +560,7 @@ clusterize_bipartite_networks <- function(netlist,
     }
     # cl is a vector of size M, containing the networks clusters memberships
     fits <- # Contains two new collections
-      bettermc::mclapply(
+      colsbm_lapply(
         c(1, 2), # Go over the two new clusters of networks (ie collections)
         function(k) {
           Z_init <- lapply(
@@ -608,22 +610,24 @@ clusterize_bipartite_networks <- function(netlist,
           )
         },
         mc.cores = global_opts$nb_cores,
-        mc.stdout = "output",
-        mc.retry = -1
+        backend = global_opts$backend
+        # mc.stdout = "output",
+        # mc.retry = -1
       )
     # Fully recursive (like a top down HCA)
     if (full_inference) {
       return(append(
         list(fit$best_fit),
         # New recursion over the 2 new fits
-        bettermc::mclapply(
+        colsbm_lapply(
           c(1, 2),
           function(s) {
             recursive_clustering(fits[[s]])
           },
           mc.cores = global_opts$nb_cores,
-          mc.stdout = "output",
-          mc.retry = -1
+          backend = global_opts$backend
+          # mc.stdout = "output",
+          # mc.retry = -1
         )
       ))
     } else {
@@ -633,14 +637,15 @@ clusterize_bipartite_networks <- function(netlist,
         return(append(
           list(fit$best_fit),
           # New recursion over the 2 new fits
-          bettermc::mclapply(
+          colsbm_lapply(
             c(1, 2),
             function(s) {
               recursive_clustering(fits[[s]])
             },
             mc.cores = global_opts$nb_cores,
-            mc.stdout = "output",
-            mc.retry = -1
+            backend = global_opts$backend
+            # mc.stdout = "output",
+            # mc.retry = -1
           )
         ))
       } else {

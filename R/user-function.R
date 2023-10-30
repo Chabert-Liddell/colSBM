@@ -348,6 +348,7 @@ estimate_colBiSBM <-
       Q2_max = floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2),
       nb_init = 10L,
       nb_models = 5L,
+      backend = "parallel",
       depth = 1L,
       plot_details = 1L,
       max_pass = 10L,
@@ -361,6 +362,9 @@ estimate_colBiSBM <-
       global_opts$nb_cores <- 1L
     }
     nb_cores <- global_opts$nb_cores
+    if (is.null(global_opts$backend)) {
+      global_opts$backend <- "parallel"
+    }
     if (is.null(global_opts$Q1_max)) {
       Q1_max <- floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2)
     } else {
