@@ -110,6 +110,7 @@ bisbmpop <- R6::R6Class(
         max_pass = 10L,
         verbosity = 0L,
         nb_cores = 1L,
+        backend = "parallel",
         parallelization_vector = c(TRUE, TRUE),
         compare_stored = TRUE
       )
@@ -472,7 +473,7 @@ bisbmpop <- R6::R6Class(
             q_th_models # The list of models is returned (if no free_mixture it's a
             # one element list).
           },
-          mc.cores = self$global_opts$nb_cores,
+          nb_cores = self$global_opts$nb_cores,
           backend = self$global_opts$backend
           # mc.allow.recursive = TRUE,
           # mc.cleanup = TRUE,
@@ -1038,7 +1039,7 @@ bisbmpop <- R6::R6Class(
             q_th_models # The list of models is returned (if no free_mixture it's a
             # one element list).
           },
-          mc.cores = self$global_opts$nb_cores,
+          nb_cores = self$global_opts$nb_cores,
           backend = self$global_opts$backend
           # mc.allow.recursive = TRUE,
           # mc.cleanup = TRUE,
@@ -1312,6 +1313,8 @@ bisbmpop <- R6::R6Class(
     #'
     #' @details the function takes no parameters and print a plot
     #' of the current state of the model_list.
+    #' 
+    #' @importFrom ggnewscale new_scale_color
     #' @return nothing
     state_space_plot = function(plot_detail = self$global_opts$plot_detail) {
       # Creating an empty dataframe
@@ -2591,7 +2594,7 @@ bisbmpop <- R6::R6Class(
         sep_BiSBM$optimize()
         sep_BiSBM$best_fit
       },
-      mc.cores = self$global_opts$nb_cores,
+      nb_cores = self$global_opts$nb_cores,
       mc.silent = TRUE,
       backend = self$global_opts$backend
       # mc.allow.recursive = TRUE,

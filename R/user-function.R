@@ -106,7 +106,7 @@ estimate_colSBM <-
               )
             },
             backend = global_opts$backend,
-            mc.cores = nb_cores,
+            nb_cores = nb_cores,
             mc.silent = TRUE
           )
       }
@@ -133,10 +133,7 @@ estimate_colSBM <-
             return(tmp_fit)
           },
           backend = global_opts$backend,
-          mc.cores = min(nb_run,nb_cores),
-          mc.silent = TRUE
-#          mc.progress = TRUE, mc.cores = min(nb_run, nb_cores),
-#          mc.stdout = "output"
+          nb_cores = min(nb_run,nb_cores),
         )
       my_bmpop <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$BICL,
         FUN.VALUE = .1
@@ -415,10 +412,9 @@ estimate_colBiSBM <-
             return(tmp_fit)
           },
           backend = global_opts$backend,
-          mc.cores = min(nb_run,nb_cores),
-          mc.silent = TRUE
+          nb_cores = min(nb_run,nb_cores),
 #          mc.progress = !silent_parallelization,
-#          mc.cores = min(nb_run, nb_cores),
+#          nb_cores = min(nb_run, nb_cores),
 #          mc.stdout = "output",
 #          mc.retry = -1, # To prevent big crash
 #          mc.silent = silent_parallelization

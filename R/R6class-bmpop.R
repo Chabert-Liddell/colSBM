@@ -125,7 +125,7 @@ bmpop <- R6::R6Class(
                 )
               )
             },
-            mc.cores = self$global_opts$nb_cores,
+            nb_cores = self$global_opts$nb_cores,
             mc.share.copy = FALSE,
             mc.silent = TRUE
           )
@@ -352,7 +352,7 @@ bmpop <- R6::R6Class(
             self$BICL[Q] <- best_models[[1]]$BICL
             rm(models)
           },
-          mc.cores = self$global_opts$nb_cores#,
+          nb_cores = self$global_opts$nb_cores#,
           #mc.share.copy = FALSE
         )
         # voir pour l'init spectral.
@@ -511,10 +511,7 @@ bmpop <- R6::R6Class(
               }
             )
           },
-          mc.cores = self$global_opts$nb_cores
-          #, mc.share.copy = FALSE # , future.globals = list(
-          #  model_list = model_list)#,
-          #            future.options = list(seed = TRUE)#, mc.cores = 6
+          nb_cores = self$global_opts$nb_cores
         )
         list_popbm <- unlist(list_popbm)
         if (purrr::is_empty(list_popbm) & old_icl[Q] < old_icl[Q - 1]) { # a verifier et ou ou
@@ -692,10 +689,7 @@ bmpop <- R6::R6Class(
             }
             return(best_models)
           },
-          mc.cores = self$global_opts$nb_cores
-          #, mc.share.copy = FALSE # , future.globals = list(
-          #  model_list = model_list)#,
-          #            future.options = list(seed = TRUE)#, mc.cores = 6
+          nb_cores = self$global_opts$nb_cores
         )
         list_popbm <- unlist(list_popbm)
         if (purrr::is_empty(list_popbm)) {

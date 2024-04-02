@@ -123,7 +123,7 @@ clusterize_networks <- function(netlist,
             )
           },
           backend = global_opts$backend,
-          mc.cores = nb_cores,
+          nb_cores = nb_cores,
           mc.silent = TRUE
         )
     }
@@ -148,7 +148,7 @@ clusterize_networks <- function(netlist,
         },
         backend = global_opts$backend,
         nb_cores = min(nb_run, nb_cores),
-        mc.progress = TRUE#, mc.cores = min(nb_run, nb_cores)
+        mc.progress = TRUE#, nb_cores = min(nb_run, nb_cores)
       )
     my_bmpop <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$BICL,
       FUN.VALUE = .1
@@ -245,10 +245,8 @@ clusterize_networks <- function(netlist,
                 tmp_fit$optimize()
                 return(tmp_fit)
               },
-              mc.cores = min(nb_run, nb_cores),
+              nb_cores = min(nb_run, nb_cores),
               backend = global_opts$backend
-              # mc.progress = TRUE, 
-              # mc.stdout = "output"
             )
           res <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$BICL,
             FUN.VALUE = .1
@@ -609,7 +607,7 @@ clusterize_bipartite_networks <- function(netlist,
             )
           )
         },
-        mc.cores = global_opts$nb_cores,
+        nb_cores = global_opts$nb_cores,
         backend = global_opts$backend
         # mc.stdout = "output",
         # mc.retry = -1
@@ -624,10 +622,8 @@ clusterize_bipartite_networks <- function(netlist,
           function(s) {
             recursive_clustering(fits[[s]])
           },
-          mc.cores = global_opts$nb_cores,
+          nb_cores = global_opts$nb_cores,
           backend = global_opts$backend
-          # mc.stdout = "output",
-          # mc.retry = -1
         )
       ))
     } else {
@@ -642,10 +638,8 @@ clusterize_bipartite_networks <- function(netlist,
             function(s) {
               recursive_clustering(fits[[s]])
             },
-            mc.cores = global_opts$nb_cores,
+            nb_cores = global_opts$nb_cores,
             backend = global_opts$backend
-            # mc.stdout = "output",
-            # mc.retry = -1
           )
         ))
       } else {

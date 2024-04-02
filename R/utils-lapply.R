@@ -1,4 +1,3 @@
-
 #' Function to use parallel computing with user-specified or OS-specific
 #' parallel backend
 #'
@@ -15,11 +14,11 @@
 #'
 #' @examples colsbm_lapply(X)
 colsbm_lapply <- function(X, FUN, backend = "parallel",
-                          nb_cores = parallel::detectCores(), ...) {
-  if (! backend %in% c("future", "parallel", "bettermc")) {
-    stop("Invalid backend. Choose 'parallel', 'future' or 'bettermc'.")
+                          nb_cores = parallel::detectCores() - 1, ...) {
+  if (!(backend %in% c("future", "parallel", "bettermc", "no_mc"))) {
+    stop("Invalid backend. Choose 'parallel', 'future', 'bettermc' or 'no_mc'.")
   }
-  if (backend == 'future') {
+  if (backend == "future") {
     if (!isNamespaceLoaded("future_apply")) {
       stop("The 'future.apply' package must be loaded and configured with a plan
            outside this function.")
@@ -27,7 +26,7 @@ colsbm_lapply <- function(X, FUN, backend = "parallel",
     result <- future.apply::future_lapply(X, FUN, ...)
   }
 
-  if (backend == 'parallel') {
+  if (backend == "parallel") {
     if (!isNamespaceLoaded("parallel")) {
       stop("The 'parallel' package must be loaded to use this backend.")
     }
@@ -35,16 +34,21 @@ colsbm_lapply <- function(X, FUN, backend = "parallel",
       cl <- parallel::makeCluster(nb_cores)
       result <- parallel::parLapply(cl, X, FUN, ...)
       parallel::stopCluster(cl)
-    } else
-      {
+    } else {
       result <- parallel::mclapply(X, FUN, mc.cores = nb_cores)
     }
+    return(result)
   }
 
-  if (backend == 'bettermc')
-      if (!isNamespaceLoaded("bettermc")) {
-        stop("The 'bettermc' package must be loaded to use this backend.")
-      }
-      result <- bettermc::mclapply(X, FUN, mc.cores = nb_cores)
-  return(result)
+  if (backend == "bettermc") {
+    if (!isNamespaceLoaded("bettermc")) {
+      stop("The 'bettermc' package must be loaded to use this backend.")
+    }
+    result <- bettermc::mclapply(X, FUN, mc.cores = nb_cores)
+    return(result)
+  }
+  if (backend == "no_mc") {
+    result <- lapply(X, FUN)
+    return(result)
+  }
 }
