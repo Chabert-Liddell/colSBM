@@ -367,11 +367,12 @@ fitBipartiteSBMPop$set(
         }
         df_pi <- purrr::map_dfc(
           seq_along(self$net_id),
-          function(m) data.frame(self$pim[[m]][[1]][oRow])
+          function(m) setNames(data.frame(self$pim[[m]][[1]][oRow]), self$net_id[m])
         )
         df_rho <- purrr::map_dfc(
           seq_along(self$net_id),
-          function(m) data.frame(self$pim[[m]][[2]][oCol])
+          function(m) setNames(data.frame(self$pim[[m]][[2]][oCol]), 
+            self$net_id[m])
         )
         # names(df_pi) <- self$net_id
         if (mixture) {
@@ -397,7 +398,11 @@ fitBipartiteSBMPop$set(
             )) +
             ggplot2::ylab("") +
             ggplot2::ylab(xl) +
-            ggplot2::theme_bw(base_size = 15)
+            ggplot2::theme(axis.text.x = ggplot2::element_text(
+              angle = 90, vjust = .5,
+              hjust = 1
+            ))
+          ggplot2::theme_bw(base_size = 15)
           p_rho <- df_rho %>%
             #    rename() %>%
             dplyr::mutate(q = seq(self$Q[2])) %>%
