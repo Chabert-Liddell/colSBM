@@ -19,11 +19,12 @@ colsbm_lapply <- function(X, FUN, backend = "parallel",
     stop("Invalid backend. Choose 'parallel', 'future', 'bettermc' or 'no_mc'.")
   }
   if (backend == "future") {
-    if (!isNamespaceLoaded("future_apply")) {
+    if (!isNamespaceLoaded("future.apply")) {
       stop("The 'future.apply' package must be loaded and configured with a plan
            outside this function.")
     }
     result <- future.apply::future_lapply(X, FUN, ...)
+    return(result)
   }
 
   if (backend == "parallel") {
