@@ -19,7 +19,11 @@ iid_alpha <- matrix(
 )
 
 iid_bipartite_collection <-
-    colSBM::generate_bipartite_collection(iid_nr, iid_nc, iid_pir, iid_pic, iid_alpha, iid_M)
+    colSBM::generate_bipartite_collection(
+        iid_nr, iid_nc, iid_pir, iid_pic,
+        iid_alpha, iid_M,
+        return_memberships = TRUE
+    )
 
 # This is a list of the M incidence matrices
 iid_bipartite_collection_incidence <- lapply(seq.int(iid_M), function(m) {
@@ -28,15 +32,18 @@ iid_bipartite_collection_incidence <- lapply(seq.int(iid_M), function(m) {
 
 iid_Z <- lapply(seq.int(iid_M), function(m) {
     list(
-        iid_bipartite_collection[[m]]$row_clustering,
-        iid_bipartite_collection[[m]]$col_clustering
+        row = iid_bipartite_collection[[m]][[2]], #$row_blockmemberships,
+        col = iid_bipartite_collection[[m]][[3]]#$col_blockmemberships
     )
 })
 
 iid_choosed_bisbmpop <- colSBM::estimate_colBiSBM(
     netlist = iid_bipartite_collection_incidence,
     colsbm_model = "iid",
-    global_opts = list(nb_cores = parallel::detectCores() - 1, plot_details = 0)
+    global_opts = list(
+        nb_cores = parallel::detectCores() - 1, backend = "parallel",
+        plot_details = 0, verbosity = 0
+    )
 )
 
 iid_ari_sums <- sapply(
@@ -60,8 +67,8 @@ test_that("iid model returns correct object", {
 })
 
 test_that("iid model returns correct values on simulation", {
-    expect_equal(iid_ari_sums, rep(2,iid_M))
+    expect_equal(iid_ari_sums, rep(2, iid_M))
     expect_equal(iid_choosed_bisbmpop$best_fit$Q, iid_Q)
-    expect_equal(round(iid_choosed_bisbmpop$best_fit$BICL,2), iid_expected_BICL)
-    #TODO fix permutation of alpha : expect_equal(round(iid_choosed_bisbmpop$best_fit$alpha, 2), iid_alpha)
+    expect_equal(round(iid_choosed_bisbmpop$best_fit$BICL, 2), iid_expected_BICL)
+    # TODO fix permutation of alpha : expect_equal(round(iid_choosed_bisbmpop$best_fit$alpha, 2), iid_alpha)
 })

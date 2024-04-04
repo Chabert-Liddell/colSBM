@@ -1,6 +1,3 @@
-if (!require("testthat")) install.packages("testthat")
-library("testthat")
-source("R/utils.R")
 # Testing the generate_bipartite_collection
 set.seed(1234)
 
@@ -22,7 +19,7 @@ M <- 5
 nr <- 120
 nc <- 240
 
-firstCol <- generate_bipartite_collection(nr, nc, pir, pic, alpha, M)
+firstCol <- colSBM::generate_bipartite_collection(nr, nc, pir, pic, alpha, M)
 
 test_that("nc and nr are extended to match M", {
     expect_equal(length(firstCol), M)
@@ -34,7 +31,7 @@ test_that("nc and nr are extended to match M", {
 nr <- c(5, 10, 20, 40, 80)
 nc <- 2 * nr
 
-increasingCol <- generate_bipartite_collection(nr, nc, pir, pic, alpha, M)
+increasingCol <- colSBM::generate_bipartite_collection(nr, nc, pir, pic, alpha, M)
 
 test_that("Generate bipartite collection with vectors for nc and nr", {
     expect_equal(length(increasingCol), M)
