@@ -478,6 +478,74 @@ clusterize_bipartite_networks <- function(netlist,
                                           fit_init = NULL,
                                           silent_parallelization = FALSE,
                                           full_inference = FALSE) {
+  # Adding default global_opts
+    switch(colsbm_model,
+      "iid" = {
+        free_density <- FALSE
+        free_mixture_row <- FALSE
+        free_mixture_col <- FALSE
+      },
+      "pi" = {
+        free_density <- FALSE
+        free_mixture_row <- TRUE
+        free_mixture_col <- FALSE
+      },
+      "rho" = {
+        free_density <- FALSE
+        free_mixture_row <- FALSE
+        free_mixture_col <- TRUE
+      },
+      "pirho" = {
+        free_density <- FALSE
+        free_mixture_row <- TRUE
+        free_mixture_col <- TRUE
+      },
+      stop(
+        "colsbm_model unknown.",
+        " Must be one of iid, pi, rho, pirho, delta or deltapi"
+      )
+    )
+    # Check if a netlist is provided, try to cast it if not
+    if (!is.list(netlist)) {
+      netlist <- list(netlist)
+    }
+    # go is used to temporarily store the default global_opts
+    go <- list(
+      Q1_min = 1L,
+      Q2_min = 1L,
+      Q1_max = floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2),
+      Q2_max = floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2),
+      nb_init = 10L,
+      nb_models = 5L,
+      backend = "parallel",
+      depth = 1L,
+      plot_details = 1L,
+      max_pass = 10L,
+      verbosity = 1L,
+      nb_cores = 1L,
+      parallelization_vector = c(TRUE, TRUE)
+    )
+    go <- utils::modifyList(go, global_opts)
+    global_opts <- go
+    if (is.null(global_opts$nb_cores)) {
+      global_opts$nb_cores <- 1L
+    }
+    nb_cores <- global_opts$nb_cores
+    if (is.null(global_opts$backend)) {
+      global_opts$backend <- "parallel"
+    }
+    if (is.null(global_opts$Q1_max)) {
+      Q1_max <- floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2)
+    } else {
+      Q1_max <- global_opts$Q1_max
+    }
+    if (is.null(global_opts$Q2_max)) {
+      Q2_max <- floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2)
+    } else {
+      Q2_max <- global_opts$Q2_max
+    }  
+
+
   if (global_opts$verbosity >= 1) {
     cat(paste0("\n=== Fitting the full (M = ", length(netlist), ") collection ===\n"))
   }
