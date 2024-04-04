@@ -18,7 +18,8 @@ if (parallel_is_installed) {
         {
             expect_equal(colsbm_lapply(
                 X = seq(1, M), function(i) i,
-                backend = "parallel"
+                backend = "parallel",
+                nb_cores = 2L
             ), expected_out_list)
         }
     )
@@ -41,7 +42,8 @@ if (future_is_installed) {
             expect_equal(
                 colsbm_lapply(
                     X = seq(1, M), function(i) i,
-                    backend = "future"
+                    backend = "future",
+                    nb_cores = 2L
                 ), expected_out_list
             )
         }
@@ -58,7 +60,8 @@ if (bettermc_is_installed) {
             expect_equal(
                 colsbm_lapply(
                     X = seq(1, M), function(i) i,
-                    backend = "bettermc"
+                    backend = "bettermc",
+                    nb_cores = 2L
                 ), expected_out_list
             )
         }
