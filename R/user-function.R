@@ -71,7 +71,7 @@ estimate_colSBM <-
       stop("colsbm_model unknown. Must be one of iid, pi, delta or deltapi")
     )
     if (is.null(global_opts$backend)) {
-      global_opts$backend <- 'parallel'
+      global_opts$backend <- "parallel"
     }
     if (is.null(global_opts$nb_cores)) {
       global_opts$nb_cores <- 1L
@@ -91,7 +91,7 @@ estimate_colSBM <-
       if (is.null(fit_sbm)) {
         fit_sbm <-
           colsbm_lapply(
-          #bettermc::mclapply(
+            # bettermc::mclapply(
             X = seq_along(netlist),
             FUN = function(m) {
               #     p(sprintf("m=%g", m))
@@ -114,7 +114,7 @@ estimate_colSBM <-
       # (the one from the research paper)
       tmp_fits <-
         colsbm_lapply(
-#        bettermc::mclapply(
+          #        bettermc::mclapply(
           seq(nb_run),
           function(x) {
             global_opts$nb_cores <- max(1L, floor(global_opts$nb_cores / nb_run))
@@ -133,7 +133,7 @@ estimate_colSBM <-
             return(tmp_fit)
           },
           backend = global_opts$backend,
-          nb_cores = min(nb_run,nb_cores),
+          nb_cores = min(nb_run, nb_cores),
         )
       my_bmpop <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$BICL,
         FUN.VALUE = .1
@@ -393,7 +393,7 @@ estimate_colBiSBM <-
     if (global_opts$parallelization_vector[1] && nb_run > 1) {
       tmp_fits <-
         colsbm_lapply(
-#        bettermc::mclapply(
+          #        bettermc::mclapply(
           seq(nb_run),
           function(x) {
             tmp_fit <- bisbmpop$new(
@@ -412,12 +412,7 @@ estimate_colBiSBM <-
             return(tmp_fit)
           },
           backend = global_opts$backend,
-          nb_cores = min(nb_run,nb_cores),
-#          mc.progress = !silent_parallelization,
-#          nb_cores = min(nb_run, nb_cores),
-#          mc.stdout = "output",
-#          mc.retry = -1, # To prevent big crash
-#          mc.silent = silent_parallelization
+          nb_cores = min(nb_run, nb_cores)
         )
     } else {
       tmp_fits <-

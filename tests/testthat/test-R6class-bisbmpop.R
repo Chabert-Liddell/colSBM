@@ -41,7 +41,7 @@ iid_choosed_bisbmpop <- colSBM::estimate_colBiSBM(
     netlist = iid_bipartite_collection_incidence,
     colsbm_model = "iid",
     global_opts = list(
-        nb_cores = parallel::detectCores() - 1, backend = "parallel",
+        nb_cores = 2, backend = "parallel",
         plot_details = 0, verbosity = 0
     )
 )
