@@ -19,14 +19,16 @@
 
 \item{type}{The type of the plot. Could be "graphon", "meso" or "block".}
 
+\item{oRow}{A reordering of the row blocks.}
+
+\item{oCol}{A reordering of the column blocks.}
+
 \item{mixture}{Should the block proportions of each network be plotted as
 well?}
 
 \item{net_id}{Use to plot only on network in "graphon" view.}
 
 \item{...}{Further argument to be passed}
-
-\item{ord}{A reordering of the blocks.}
 }
 \value{
 A plot, a ggplot2 object.
@@ -35,5 +37,17 @@ A plot, a ggplot2 object.
 Plot matrix summaries of the collection mesoscale structure
 }
 \examples{
-plot(my_bisbm_pop)
+alpha1 <- matrix(c(0.8, 0.1, 0.2, 0.7), byrow = TRUE, nrow = 2)
+
+first_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5, 0.5), rho = c(0.5, 0.5), alpha = alpha1, M = 2)
+
+\dontrun{
+# A collection where joint modelisation makes sense
+cl_joint <- estimate_colBiSBM(
+  netlist = first_collection,
+  colsbm_model = "iid",
+  global_opts = list(nb_cores = parallel::detectCores() - 1)
+)
+plot(cl_joint)
+}
 }

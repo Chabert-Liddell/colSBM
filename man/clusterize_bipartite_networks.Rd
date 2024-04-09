@@ -10,12 +10,10 @@ clusterize_bipartite_networks(
   colsbm_model,
   net_id = NULL,
   distribution = "bernoulli",
-  fit_sbm = NULL,
   nb_run = 3L,
   global_opts = list(),
   fit_opts = list(),
   fit_init = NULL,
-  silent_parallelization = FALSE,
   full_inference = FALSE
 )
 }
@@ -43,9 +41,6 @@ Optional fit init from where initializing the algorithm.}
 groups of networks does not improve the BICL criterion. If "TRUE", then
 continue to split groups until a trivial classification of one network per
 group.}
-
-\item{fit}{is a bisbmpop object, ie an instance of the colBiSBM model
-fitted}
 }
 \value{
 A list of models for the recursive partition of
@@ -63,8 +58,12 @@ object, so it is a model for a given number of blocks Q1, Q2.
 \examples{
 alpha1 <- matrix(c(0.8, 0.1, 0.2, 0.7), byrow = TRUE, nrow = 2)
 alpha2 <- matrix(c(0.8, 0.5, 0.5, 0.2), byrow = TRUE, nrow = 2)
-first_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5, 0.5), rho = c(0.5, 0.5), alpha = alpha1, M = 2)
-second_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5, 0.5), rho = c(0.5, 0.5), alpha = alpha2, M = 2)
+first_collection <- generate_bipartite_collection(nr = 50, nc = 25,
+     pi = c(0.5, 0.5), rho = c(0.5, 0.5),
+     alpha = alpha1, M = 2)
+second_collection <- generate_bipartite_collection(nr = 50, nc = 25,
+     pi = c(0.5, 0.5), rho = c(0.5, 0.5), 
+     alpha = alpha2, M = 2)
 
 netlist <- append(first_collection, second_collection)
 
@@ -75,8 +74,6 @@ cl_separated <- clusterize_bipartite_networks(
   global_opts = list(nb_cores = parallel::detectCores() - 1)
 )
 }
-Perform the recursive clustering of the networks
-
 }
 \seealso{
 \code{\link[=extract_best_bipartite_partition]{extract_best_bipartite_partition()}}, \code{\link[=estimate_colBiSBM]{estimate_colBiSBM()}},

@@ -12,7 +12,9 @@
 #' @noRd
 #' @noMd
 #'
-#' @examples colsbm_lapply(X)
+#' @examples 
+#' X <- seq(1,5)
+#' colsbm_lapply(X, backend = "parallel", nb_cores = 2L)
 colsbm_lapply <- function(X, FUN, backend = "parallel",
                           nb_cores = parallel::detectCores() - 1, ...) {
   if (!(backend %in% c("future", "parallel", "bettermc", "no_mc"))) {

@@ -15,3 +15,5 @@
 ^docs$
 ^pkgdown$
 ^references\.bib$
+^\.vscode$
+^tests/testthat\.R$

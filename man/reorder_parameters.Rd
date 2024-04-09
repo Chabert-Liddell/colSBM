@@ -6,6 +6,9 @@
 \usage{
 reorder_parameters(model)
 }
+\arguments{
+\item{model}{a fitBipartiteSBMPop object on which the reordering is performed}
+}
 \description{
 Reorder colBiSBM parameters
 }

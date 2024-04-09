@@ -1,7 +1,7 @@
 #' An R6 Class object, a fitted population of netowrks sbm
 #' once $optimize() is done
 #'
-#' @export
+#' @import R6
 
 fitSimpleSBMPop <- R6::R6Class(
   classname = "fitSimpleSBMPop",
@@ -790,6 +790,10 @@ fitSimpleSBMPop <- R6::R6Class(
       }
       invisible(alpha)
     },
+
+    #' Initialize clusters
+    #' 
+    #' @importFrom gtools rdirichlet
     init_clust = function() {
       self$tau <-
         switch(self$init_method,

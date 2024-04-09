@@ -1,7 +1,8 @@
 fitSimpleSBMPop$set(
   "public", "plot",
-  #' Title
+  #' Plot method
   #'
+  #' @import ggplot2
   #' @importFrom patchwork plot_layout plot_annotation wrap_plots
   #' @importFrom reshape2 melt
   #' @importFrom purrr map_dfc
@@ -146,7 +147,26 @@ fitSimpleSBMPop$set(
 #' @return A plot, a ggplot2 object.
 #' @export
 #'
-#' @examples plot(my_sbm_pop)
+#' @examples 
+#' # Trivial example with Gnp networks:
+#' Net <- lapply(
+#'   list(.7, .7, .2, .2),
+#'   function(p) {
+#'     A <- matrix(0, 15, 15)
+#'     A[lower.tri(A)][sample(15 * 14 / 2, size = round(p * 15 * 14 / 2))] <- 1
+#'     A <- A + t(A)
+#'   }
+#' )
+#' \dontrun{
+#' cl <- estimate_colSBM(Net,
+#'   colsbm_model = "delta",
+#'   directed = FALSE,
+#'   distribution = "bernoulli",
+#'   nb_run = 1
+#' )
+#' plot(cl)
+#' }
+
 plot.fitSimpleSBMPop <- function(x, type = "graphon",
                                  ord = NULL, mixture = FALSE, net_id = 1, ...) {
   stopifnot(inherits(x, "fitSimpleSBMPop"))
@@ -242,7 +262,8 @@ bmpop$set(
   #'
   #' @param type the type of the plot
   #' @param ...
-  #'
+  #' 
+  #' @import ggplot2
   #' @importFrom tibble tibble
   #' @importFrom tidyr pivot_longer
   #' @importFrom dplyr mutate pull
@@ -285,6 +306,9 @@ fitBipartiteSBMPop$set(
   "public", "plot",
   #' The function to plot the fitBipartite objects
   #'
+  #' @import ggplot2
+  #' @import dplyr
+  #' @importFrom matrixStats rowMeans2
   #' @importFrom patchwork plot_layout plot_annotation wrap_plots
   #' @importFrom reshape2 melt
   #' @importFrom purrr map_dfc
@@ -485,7 +509,8 @@ fitBipartiteSBMPop$set(
 #'
 #' @param x a fitBipartiteSBMPop object.
 #' @param type The type of the plot. Could be "graphon", "meso" or "block".
-#' @param ord A reordering of the blocks.
+#' @param oRow A reordering of the row blocks.
+#' @param oCol A reordering of the column blocks.
 #' @param mixture Should the block proportions of each network be plotted as
 #' well?
 #' @param net_id Use to plot only on network in "graphon" view.
@@ -493,7 +518,20 @@ fitBipartiteSBMPop$set(
 #' @return A plot, a ggplot2 object.
 #' @export
 #'
-#' @examples plot(my_bisbm_pop)
+#' @examples
+#' alpha1 <- matrix(c(0.8, 0.1, 0.2, 0.7), byrow = TRUE, nrow = 2)
+#' 
+#' first_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5, 0.5), rho = c(0.5, 0.5), alpha = alpha1, M = 2)
+#'
+#' \dontrun{
+#' # A collection where joint modelisation makes sense
+#' cl_joint <- estimate_colBiSBM(
+#'   netlist = first_collection,
+#'   colsbm_model = "iid",
+#'   global_opts = list(nb_cores = parallel::detectCores() - 1)
+#' )
+#' plot(cl_joint)
+#' }
 plot.fitBipartiteSBMPop <- function(x, type = "graphon", oRow = NULL, oCol = NULL, mixture = FALSE, net_id = 1, ...) {
   stopifnot(inherits(x, "fitBipartiteSBMPop"))
   p <- x$plot(

@@ -21,3 +21,8 @@ A list of M lists, which contains : $adjacency_matrix, $clustering
 \description{
 Generate collection of unipartite
 }
+\details{
+If n is a single value, this value will be replicated for each of
+the M networks. If it is a vector, it must be of size M, specifying the
+number of nodes for each network.
+}

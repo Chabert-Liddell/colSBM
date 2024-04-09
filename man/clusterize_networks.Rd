@@ -74,7 +74,7 @@ Net <- lapply(
   }
 )
 \dontrun{
-cl <- clusterized_networks(Net,
+cl <- clusterize_networks(Net,
   colsbm_model = "iid",
   directed = FALSE,
   distribution = "bernoulli",

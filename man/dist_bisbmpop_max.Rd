@@ -2,7 +2,8 @@
 % Please edit documentation in R/bmpop_distance.R
 \name{dist_bisbmpop_max}
 \alias{dist_bisbmpop_max}
-\title{Compute the dissimilarity between 2 mesoscale structures}
+\title{Compute the dissimilarity between 2 mesoscale structures for bipartite
+SBM}
 \usage{
 dist_bisbmpop_max(pi, rho, alpha, delta = c(1, 1), weight = "max", norm = "L2")
 }
@@ -23,11 +24,21 @@ dist_bisbmpop_max(pi, rho, alpha, delta = c(1, 1), weight = "max", norm = "L2")
 The dissimilarity between two mesoscale structure.
 }
 \description{
-Compute the dissimilarity between 2 mesoscale structures
+Compute the dissimilarity between 2 mesoscale structures for bipartite
+SBM
 }
 \details{
 If weight is "max" then the weight of each block is computed as
 \code{pmax(pi[[1]], pi[[2]])}. If "mean", then we take the average. "max"
 penalize to a greater extent the difference in block proportion between
 structure.
+}
+\examples{
+pi <- list(c(0.5,0.5), c(0.1,0.9))
+rho <- list(c(0.1,0.9), c(0.5,0.5))
+alpha <- list(matrix(c(0.9,0.1,
+                       0.1, 0.05), byrow = TRUE, nrow = 2),
+               matrix(c(0.9,0.1,
+                       0.1, 0.05), byrow = TRUE, nrow = 2))
+dist_bisbmpop_max(pi, alpha)
 }

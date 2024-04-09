@@ -1,5 +1,7 @@
 #' An R6 Class object, a collection of model for population of sbm netowrks
 #'
+#' @import R6
+#' 
 #' @export
 
 bmpop <- R6::R6Class(
@@ -912,6 +914,8 @@ bmpop <- R6::R6Class(
     #   unlist(best_models)[[best_id]]
     # },
     #
+
+    #' @importFrom aricode ARI
     choose_models = function(models, Q, index = seq(self$M), nb_clusters = 1L) {
       # browser()
       ord_mod <- order(purrr::map_dbl(models, ~ .$BICL), # ~max(.$map$ICL, .$BICL)),

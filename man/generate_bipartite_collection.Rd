@@ -17,9 +17,11 @@ generate_bipartite_collection(
 )
 }
 \arguments{
-\item{nr}{the number of row nodes or a vector of the row nodes per network}
+\item{nr}{the number of row nodes  or a vector specifying the
+number of row nodes for each of the M networks}
 
-\item{nc}{the number of col nodes or a vector of the row nodes per network}
+\item{nc}{the number of column nodes  or a vector specifying the
+number of column nodes for each of the M networks}
 
 \item{pi}{a vector of probability to belong to the row clusters}
 
@@ -31,6 +33,8 @@ generate_bipartite_collection(
 
 \item{model}{the colBiSBM model to use. Available: "iid", "pi", "rho",
 "pirho"}
+
+\item{distribution}{the emission distribution : "bernoulli" or "poisson"}
 
 \item{return_memberships}{a boolean which choose whether the function returns
 a list containing the memberships and the incidence matrices or just the

@@ -43,7 +43,7 @@
 #'   }
 #' )
 #' \dontrun{
-#' cl <- clusterized_networks(Net,
+#' cl <- clusterize_networks(Net,
 #'   colsbm_model = "iid",
 #'   directed = FALSE,
 #'   distribution = "bernoulli",
@@ -298,97 +298,6 @@ clusterize_networks <- function(netlist,
   list_model_binary <- recursive_clustering(my_bmpop)
 
   invisible(list_model_binary)
-
-  # ======================= Clustering par empty cluster
-
-  # rk <- rev(rank(my_bmpop$BICL))
-  # net_cl <- purrr::map(rk, ~my_bmpop$model_list[[1]][[.]][[1]]$net_clustering)
-  # net_cl <- unique(net_cl)
-  # net_cl <- net_cl[1:(min(length(net_cl), 5))]
-  # part_id <- list()
-  # for(nc in seq_along(net_cl)) {
-  #   tmp_id <- lapply(unique(net_cl[[nc]]), function(g) net_id[net_cl[[nc]] == g])
-  #   part_id <- c(part_id, tmp_id)
-  # }
-  # #browser()
-  # id_list <- vector("list", length(net_cl))
-  # partial_id <- unique(c(list(net_id), part_id))
-  # for(nc in seq_along(net_cl)) {
-  #   id_list[[nc]] <-
-  #     c(id_list[[nc]],
-  #       sapply(unique(net_cl[[nc]]),
-  #              function(g) {
-  #                x <- net_id[net_cl[[nc]] == g]
-  #                which(
-  #                  unlist(
-  #                    lapply(
-  #                      seq_along(partial_id),
-  #                      function(f) isTRUE(all.equal(x, partial_id[[f]]))
-  #                    )))
-  #              }
-  #       ))
-  # }
-  # partial_fit <- list(my_bmpop)
-  # it <- 2
-  # #browser()
-  # while (it <= length(partial_id)) {
-  #   Z_init <- lapply(
-  #     seq_along(my_bmpop$model_list[[1]]),
-  #     function(q) {
-  #       lapply(seq_along(my_bmpop$model_list[[1]][[q]]),
-  #              function(j) my_bmpop$model_list[[1]][[q]][[j]]$Z[partial_id[[it]]])
-  #                    }
-  #       )
-  #   partial_fit[[it]] <-
-  #     bmpop$new(netlist = netlist[partial_id[[it]]],
-  #               net_id = net_id[partial_id[[it]]],
-  #               directed = directed,
-  #               model = model,
-  #               free_density = free_density,
-  #               Z_init = Z_init,
-  #               fit_sbm = fit_sbm[partial_id[[it]]],
-  #               global_opts = global_opts,
-  #               fit_opts = fit_opts)
-  #   partial_fit[[it]]$optimize()
-  #   tmp_rk <- rev(rank(partial_fit[[it]]$BICL))
-  #   tmp_cl <- purrr::map(tmp_rk,
-  #                        ~ partial_fit[[it]]$model_list[[1]][[.]][[1]]$net_clustering)
-  #
-  #   tmp_cl <- unique(tmp_cl)
-  #   tmp_cl <- tmp_cl[1:(min(length(tmp_cl), 5))]
-  #   tmp_id <- list()
-  #   for (nc in seq_along(tmp_cl)) {
-  #     tmp_id <- c(tmp_id,
-  #                     lapply(unique(tmp_cl[[nc]]), function(g) partial_id[[it]][tmp_cl[[nc]] == g]))
-  #   }
-  #   old_id <- length(partial_id)
-  #   partial_id <- unique(c(partial_id, tmp_id))
-  #   new_id <- length(partial_id)
-  #
-  #   if (old_id < new_id) {
-  #     index <- which(sapply(seq_along(id_list), function(q) any(id_list[[q]] == it)))
-  #     id_list <- c(id_list,
-  #                  lapply(
-  #                    seq_along(id_list[index]),
-  #                    function(q) {
-  #                      idl <- id_list[index][[q]]
-  #                      wh <- numeric(new_id - old_id +1)
-  #                      for (id in seq(old_id+1, new_id)) {
-  #                        vv <- which(vapply(seq_along(partial_id),
-  #                                           function(k)
-  #                                             setequal(setdiff(partial_id[[it]],
-  #                                                              partial_id[[id]]),
-  #                                                      partial_id[[k]]), FUN.VALUE = TRUE))
-  #                        wh[id-old_id] <- ifelse(length(vv) > 0, vv, 0)
-  #                      }
-  #                      sort(unique(c(idl[idl != it], na.omit(wh[wh!=0]), (old_id+1):new_id)))
-  #     }))
-  #   }
-  #   it <- it + 1
-  # }
-  # return(list(id_list = id_list,
-  #             id = partial_id,
-  #             fit = partial_fit))
 }
 
 
@@ -404,6 +313,25 @@ clusterize_networks <- function(netlist,
 #' @export
 #'
 #' @examples
+#'
+#' #' # Trivial example with Gnp networks:
+#' Net <- lapply(
+#'   list(.7, .7, .2, .2),
+#'   function(p) {
+#'     A <- matrix(0, 15, 15)
+#'     A[lower.tri(A)][sample(15 * 14 / 2, size = round(p * 15 * 14 / 2))] <- 1
+#'     A <- A + t(A)
+#'   }
+#' )
+#' \dontrun{
+#' cl <- clusterize_networks(Net,
+#'   colsbm_model = "iid",
+#'   directed = FALSE,
+#'   distribution = "bernoulli",
+#'   nb_run = 1
+#' )
+#' best_partition <- extract_best_partition(cl)
+#' }
 extract_best_partition <- function(l) {
   if (inherits(l, "fitSimpleSBMPop")) {
     return(l)
@@ -455,8 +383,12 @@ extract_best_partition <- function(l) {
 #' @examples
 #' alpha1 <- matrix(c(0.8, 0.1, 0.2, 0.7), byrow = TRUE, nrow = 2)
 #' alpha2 <- matrix(c(0.8, 0.5, 0.5, 0.2), byrow = TRUE, nrow = 2)
-#' first_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5, 0.5), rho = c(0.5, 0.5), alpha = alpha1, M = 2)
-#' second_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5, 0.5), rho = c(0.5, 0.5), alpha = alpha2, M = 2)
+#' first_collection <- generate_bipartite_collection(nr = 50, nc = 25,
+#'      pi = c(0.5, 0.5), rho = c(0.5, 0.5),
+#'      alpha = alpha1, M = 2)
+#' second_collection <- generate_bipartite_collection(nr = 50, nc = 25,
+#'      pi = c(0.5, 0.5), rho = c(0.5, 0.5), 
+#'      alpha = alpha2, M = 2)
 #'
 #' netlist <- append(first_collection, second_collection)
 #'
@@ -471,12 +403,10 @@ clusterize_bipartite_networks <- function(netlist,
                                           colsbm_model,
                                           net_id = NULL,
                                           distribution = "bernoulli",
-                                          fit_sbm = NULL,
                                           nb_run = 3L,
                                           global_opts = list(),
                                           fit_opts = list(),
                                           fit_init = NULL,
-                                          silent_parallelization = FALSE,
                                           full_inference = FALSE) {
   # Adding default global_opts
     switch(colsbm_model,
@@ -557,14 +487,8 @@ clusterize_bipartite_networks <- function(netlist,
     nb_run = nb_run,
     global_opts = global_opts,
     fit_opts = fit_opts,
-    silent_parallelization = silent_parallelization
   )
 
-
-  #' Perform the recursive clustering of the networks
-  #'
-  #' @param fit is a bisbmpop object, ie an instance of the colBiSBM model
-  #' fitted
   recursive_clustering <- function(fit) {
     # If there is only one network base case reached
     if (fit$best_fit$M == 1) {
@@ -670,7 +594,6 @@ clusterize_bipartite_networks <- function(netlist,
               Z_init = Z_init, # TODO Change this parameter name, cause all Q
               global_opts = global_opts,
               fit_opts = fit_opts,
-              silent_parallelization = silent_parallelization,
               sep_BiSBM = filtered_sep_BiSBM
             )
           )
@@ -740,6 +663,25 @@ clusterize_bipartite_networks <- function(netlist,
 #' @export
 #'
 #' @examples
+#' alpha1 <- matrix(c(0.8, 0.1, 0.2, 0.7), byrow = TRUE, nrow = 2)
+#' alpha2 <- matrix(c(0.8, 0.5, 0.5, 0.2), byrow = TRUE, nrow = 2)
+#' first_collection <- generate_bipartite_collection(nr = 50, nc = 25,
+#'      pi = c(0.5, 0.5), rho = c(0.5, 0.5),
+#'      alpha = alpha1, M = 2)
+#' second_collection <- generate_bipartite_collection(nr = 50, nc = 25,
+#'      pi = c(0.5, 0.5), rho = c(0.5, 0.5), 
+#'      alpha = alpha2, M = 2)
+#'
+#' netlist <- append(first_collection, second_collection)
+#'
+#' \dontrun{
+#' cl_separated <- clusterize_bipartite_networks(
+#'   netlist = netlist,
+#'   colsbm_model = "iid",
+#'   global_opts = list(nb_cores = parallel::detectCores() - 1)
+#' )
+#' best_bipartite_partition <- extract_best_bipartite_partition(cl_separated)
+#' }
 extract_best_bipartite_partition <- function(l) {
   if (inherits(l, "fitBipartiteSBMPop")) {
     return(l)

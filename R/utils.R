@@ -27,6 +27,10 @@ generate_unipartite_network <- function(n, pi, alpha) {
 #' @param alpha the matrix of connectivity between two clusters
 #' @param M the number of networks to generate
 #'
+#' @details If n is a single value, this value will be replicated for each of 
+#' the M networks. If it is a vector, it must be of size M, specifying the 
+#' number of nodes for each network.
+#' 
 #' @return A list of M lists, which contains : $adjacency_matrix, $clustering
 #'
 #' @export
@@ -114,14 +118,17 @@ generate_bipartite_network <- function(
 
 #' Generate collection of bipartite networks
 #'
-#' @param nr the number of row nodes or a vector of the row nodes per network
-#' @param nc the number of col nodes or a vector of the row nodes per network
+#' @param nr the number of row nodes  or a vector specifying the
+#' number of row nodes for each of the M networks
+#' @param nc the number of column nodes  or a vector specifying the
+#' number of column nodes for each of the M networks
 #' @param pi a vector of probability to belong to the row clusters
 #' @param rho a vector of probability to belong to the columns clusters
 #' @param alpha the matrix of connectivity between two clusters
 #' @param M the number of networks to generate
 #' @param model the colBiSBM model to use. Available: "iid", "pi", "rho",
 #' "pirho"
+#' @param distribution the emission distribution : "bernoulli" or "poisson"
 #' @param return_memberships a boolean which choose whether the function returns
 #' a list containing the memberships and the incidence matrices or just the
 #' incidence matrices. Defaults to FALSE, only the matrices are returned.
@@ -555,6 +562,8 @@ logit <- function(x) log(x / (1 - x))
 }
 
 #' Reorder colBiSBM parameters
+#' 
+#' @param model a fitBipartiteSBMPop object on which the reordering is performed
 #'
 #' @export
 reorder_parameters <- function(model) {

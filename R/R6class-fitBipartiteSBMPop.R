@@ -1,80 +1,128 @@
 #' An R6 Class object, a fitted population of netowrks sbm
 #' once $optimize() is done
-#' @noMd
-#' @noRd
-
+#' 
+#' @import R6
+#' 
+#' @export
 fitBipartiteSBMPop <- R6::R6Class(
   classname = "fitBipartiteSBMPop",
   # inherit = "bmpop",
   #
-  # TODO : fix the comments to adapt to bipartite
   public = list(
     # For user function add helpful n[[m]]$row and n[[m]][[]]
-    n = NULL, # A list with two dimensions, each of size M for the rows and cols
-    M = NULL, # Number of networks
-    A = NULL, # List of incidence Matrix of size n[[1]][m]xnc[m]
-    mask = NULL, # List of M masks, indicating NAs in the matrices.
-    # 1 for NA, 0 else
-    nonNAs = NULL, # List of M masks, indicating non NAs in the matrices.
-    # 1 - mask, so 0 for NA, 1 for non NA
-    nb_inter = NULL, # A vector of length M the number of unique non NA entries
-    directed = NULL, # Boolean for network direction, Constant
-    Q = NULL, # Number of clusters, vectors of size2
-    tau = NULL, # List of size M of list of two variational parameters
-    # n[[1]][m]xQ matrices and n[[2]][m]xQ matrices
-    alpha = NULL, # Matrix of size QxQ, connection parameters
-    delta = NULL, # Vector of M,  density parameters with delta[1] = 1
-    pi = NULL, # List of M vectors of size Q, the mixture parameters
-    pim = NULL, # List of M vectors of size Q, the mixture parameters in case
-    # of free_mixture
-    e = NULL, # Vector of size M, the sum of unique entries
-    emqr = NULL, # List of M QxQ matrix, the sum of edges between q and r in m, ie the edges that are observed
-    nmqr = NULL, # list of M QxQ matrix, the number of entries between q and r in m, ie all the possible edges
-    alpham = NULL, # list of M QxQ matrix, the classic sbm parameters
-    free_mixture_row = NULL, # A boolean indicating if there is a free mixture
-    # on the rows
-    free_mixture_col = NULL, # A boolean indicating if there is a free mixture
-    # on the columns
-    free_density = NULL, # A boolean
-    weight = NULL, # A vector of size M for weighted likelihood
-    distribution = NULL, # "poisson", "bernoulli"
-    mloss = Inf, # Loss on the M step of the VEM
-    vloss = NULL, # Loss on the VE step of the VEM
-    vbound = NULL, # The Variational bound
-    net_id = NULL, # The "ids" or names of the networks (if none given, they are set to their number in A list)
-    df_mixture = NULL, # The degrees of freedom for mixture parameters pi,used to compute penalty
-    df_connect = NULL, # The degrees of freedom for connection parameters alpha,used to compute penalty
-    df_density = NULL, # The degrees of freedom for density parameters delta,used to compute penalty
-    Cpi = NULL, # A list of matrices of size Qd x M containing TRUE (1)
-    # or FALSE (0) if the d-th dimension cluster is represented
-    # in the network m
+    #' @field n A list with two dimensions, each of size M for the rows and cols
+    n = NULL,
+    #' @field M Number of networks
+    M = NULL,
+    #' @field A List of incidence Matrix of size n[[1]][m]xnc[m]
+    A = NULL, 
+    #' @field mask List of M masks, indicating NAs in the matrices. 1 for NA, 0 else
+    mask = NULL,
+    #'@field nonNAs List of M masks, indicating non NAs in the matrices. 1 - mask, so 0 for NA, 1 for non NA
+    nonNAs = NULL, 
+    #'@field nb_inter A vector of length M the number of unique non NA entries
+    nb_inter = NULL,
+    #'@field Q Number of clusters, vectors of size2
+    Q = NULL, # 
+    #'@field tau List of size M of list of two variational parameters.
+    #' n[[1]][m]xQ matrices and n[[2]][m]xQ matrices
+    tau = NULL,
+    #'@field alpha Matrix of size QxQ, connection parameters
+    alpha = NULL, # 
+    #'@field delta  Vector of M,  density parameters with delta[1] = 1
+    delta = NULL, #
+    #'@field pi List of M vectors of size Q, the mixture parameters
+    pi = NULL, #
+    #'@field pim List of M vectors of size Q, the mixture parameters in case
+    #' of free_mixture
+    pim = NULL, 
+    #'@field e Vector of size M, the sum of unique entries
+    e = NULL, # 
+    #'@field emqr List of M QxQ matrix, the sum of edges between q and r in m,
+    #' ie the edges that are observed.
+    emqr = NULL,
+    #'@field nmqr list of M QxQ matrix, the number of entries between q and r 
+    #' in m, ie all the possible edges.
+    nmqr = NULL,
+    #'@field alpham list of M QxQ matrix, the classic sbm parameters.
+    alpham = NULL,
+    #'@field free_mixture_row A boolean indicating if there is a free mixture
+    #' on the rows
+    free_mixture_row = NULL,
+    #'@field free_mixture_col A boolean indicating if there is a free mixture
+    #' on the columns
+    free_mixture_col = NULL,
+    #'@field free_density A boolean TODO delete
+    free_density = NULL,
+    #'@field weight A vector of size M for weighted likelihood
+    weight = NULL,
+    #'@field distribution Emission distribution either : "poisson" or 
+    #' "bernoulli"
+    distribution = NULL,
+    #'@field mloss Loss on the M step of the VEM
+    mloss = Inf,
+    #'@field vloss Loss on the VE step of the VEM
+    vloss = NULL,
+    #'@field vbound The variational bound
+    vbound = NULL,
+    #'@field net_id A vector containing the "ids" or names of the networks 
+    #' (if none given, they are set to their number in A list)
+    net_id = NULL,
+    #'@field df_mixture The degrees of freedom for mixture parameters pi,used 
+    #' to compute penalty
+    df_mixture = NULL,
+    #'@field df_connect The degrees of freedom for connection parameters 
+    #' alpha,used to compute penalty
+    df_connect = NULL,
+    #'@field df_density The degrees of freedom for density parameters delta,
+    #' used to compute penalty
+    df_density = NULL,
+    #'@field Cpi  A list of matrices of size Qd x M containing TRUE (1)
+    #' or FALSE (0) if the d-th dimension cluster is represented
+    #' in the network m
+    Cpi = NULL,
+    #'@field Calpha The corresponding support on the connectivity parameters
+    #' computed with Cpi.
     Calpha = NULL,
-    logfactA = NULL, # used with the Poisson probability distribution
-    #  algo_ve = NULL,
-    #  minibatch = NULL,
-    init_method = NULL, # The initialization method used for the first clustering
+    #'@field logfactA A quantity used with the Poisson probability distribution
+    logfactA = NULL,
+    #'@field init_method The initialization method used for the first clustering
+    init_method = NULL, # 
     #  verbosity = NULL,
-    penalty = NULL, # The penalty computed based on the number of parameters
+    #'@field penalty  The penalty computed based on the number of parameters
+    penalty = NULL,
     # approx_pois = NULL,
-    Z = NULL, # The clusters memberships, a list of size M of two matrices : 1 for rows clusters memberships and 2 for columns clusters memberships
-    MAP = NULL, # Maximum a posteriori
+    #'@field Z  The clusters memberships, a list of size M of two matrices : 1 
+    #' for rows clusters memberships and 2 for columns clusters memberships
+    Z = NULL,
+    #'@field MAP Maximum a posteriori
+    MAP = NULL,
+    #'@field MAP_parameters MAP params
     MAP_parameters = NULL,
+    #'@field ICL Stores the ICL of the model
     ICL = NULL,
+    #'@field BICL Stores the BICL of the model
     BICL = NULL,
-    penalty_clustering = NULL,
-    ICL_clustering = NULL,
-    net_clustering = NULL,
-    counter_merge = 0,
-    counter_split = 0,
+    #'@field fit_opts Fit parameters, used to determine the fitting method/
     fit_opts = NULL,
+    #'@field step_counter Counts the number of passes
     step_counter = 0,
-    greedy_exploration_starting_point = NULL, # Stores the coordinates Q1 & Q2
-    # from the greedy exploration to
-    # keep track of the starting_point
-    effective_clustering_list = NULL, # A list of size M storing the number of
-    # the clusters that contains at least one
-    # point
+    #'@field greedy_exploration_starting_point Stores the coordinates Q1 & Q2 
+    #' from the greedy exploration to  keep track of the starting_point
+    greedy_exploration_starting_point = NULL, 
+    #' @field effective_clustering_list A list of size M storing the number 
+    #' of the clusters that contains at least one point. Used for safety checks.
+    effective_clustering_list = NULL, 
+    #'@field clustering_is_complete A boolean used to know if the model real
+    #' blocks match the expected blocks.
     clustering_is_complete = TRUE,
+
+    #' @description
+    #' Initializes the fitBipartiteSBMPop object
+    #' 
+    #' @param A List of incidence Matrix of size n[[1]][m]xnc[m]
+    #' @param Q A vector of size 2 with the number of row blocks and column 
+    #' blocks
     initialize = function(A = NULL,
                           Q = NULL,
                           Z = NULL,
@@ -86,7 +134,6 @@ fitBipartiteSBMPop <- R6::R6Class(
                           free_density = TRUE,
                           Cpi = NULL,
                           Calpha = NULL,
-                          directed = NULL,
                           init_method = "spectral",
                           weight = NULL, # A vector of size M, the weight of each network
                           greedy_exploration_starting_point = NULL,
@@ -277,6 +324,8 @@ fitBipartiteSBMPop <- R6::R6Class(
       self$nb_inter <- vapply(seq(self$M), function(m) sum(self$nonNAs[[m]]), FUN.VALUE = .1)
       self$vbound <- vector("list", self$M)
     },
+    #' Method to compute the maximum a posteriori for Z clustering
+    #' @return nothing; stores the values
     compute_MAP = function() {
       self$Z <- lapply(
         self$tau,
@@ -291,9 +340,11 @@ fitBipartiteSBMPop <- R6::R6Class(
       )
       invisible(self$Z)
     },
-    objective = function() {
-      sum(vapply(seq_along(self$A), function(m) vb(m)), FUN.VALUE = .1)
-    },
+    #' Computes the portion of the vbound with tau and alpha
+    #' @param m The id of the network for which to compute
+    #' @param MAP Wether to use the MAP parameters or not, a boolean, defaults
+    #' to FALSE.
+    #' @return The computed quantity.
     vb_tau_alpha = function(m, MAP = FALSE) {
       # Loading all the quantities useful for the computation
 
@@ -326,6 +377,11 @@ fitBipartiteSBMPop <- R6::R6Class(
         }
       )
     },
+    #' Computes the portion of the vbound with tau pi and rho
+    #' @param m The id of the network for which to compute
+    #' @param MAP Wether to use the MAP parameters or not, a boolean, defaults
+    #' to FALSE.
+    #' @return The computed quantity.
     vb_tau_pi = function(m, MAP = FALSE) {
       if (!MAP) {
         sum(self$tau[[m]][[1]][, which(self$Cpi[[1]][, m])] %*%
@@ -343,10 +399,14 @@ fitBipartiteSBMPop <- R6::R6Class(
           ))
       }
     },
+    #' Computes the entropy of the model
+    #' @param m The id of the network for which to compute
+    #' @return The computed quantity.
     entropy_tau = function(m) {
       -sum(.xlogx(self$tau[[m]][[1]][, which(self$Cpi[[1]][, m])])) -
         sum(.xlogx(self$tau[[m]][[2]][, which(self$Cpi[[2]][, m])]))
     },
+
     fn_vb_alpha_delta = function(par, emqr, nmqr) {
       alpha <- par[1:self$df_connect]
       delta <- c(1, par[1:self$df_density + self$df_connect])
@@ -383,14 +443,6 @@ fitBipartiteSBMPop <- R6::R6Class(
           },
           FUN.VALUE = .1
         )
-      if (self$directed) {
-        res <- -c(as.vector(res_alpha), res_delta[2:self$M])
-      } else {
-        res <- -c(
-          as.vector(res_alpha[lower.tri(res_alpha, diag = TRUE)]),
-          res_delta[2:self$M]
-        )
-      }
       invisible(res)
     },
     eval_g0_vb_alpha_delta = function(par, emqr, nmqr) {
@@ -470,6 +522,9 @@ fitBipartiteSBMPop <- R6::R6Class(
         self$delta <- d
       }
     },
+    #' Computes the variational bound (vbound)
+    #'
+    #' @return The variational bound for the model.
     compute_vbound = function() {
       sum(vapply(
         seq_along(self$A),
@@ -477,6 +532,9 @@ fitBipartiteSBMPop <- R6::R6Class(
         FUN.VALUE = .1
       ))
     },
+    #' Computes the penalty for the model
+    #' 
+    #' @return the computed penalty using the formulae.
     compute_penalty = function() {
       Cpi <- list()
       if (self$free_mixture_row) {
@@ -528,6 +586,10 @@ fitBipartiteSBMPop <- R6::R6Class(
       }
       return(self$penalty)
     },
+    #' Computes the ICL criterion
+    #' @param MAP Wether to use the MAP parameters or not, a boolean, defaults
+    #' to FALSE.
+    #' @return The ICL for the model.
     compute_icl = function(MAP = FALSE) {
       ICL <-
         sum(vapply(
@@ -542,82 +604,19 @@ fitBipartiteSBMPop <- R6::R6Class(
       }
       return(ICL)
     },
+    #' Computes the BICL criterion
+    #' @param MAP Wether to use the MAP parameters or not, a boolean, defaults
+    #' to FALSE.
+    #' @return The ICL for the model.
     compute_BICL = function(MAP = TRUE) {
       self$BICL <- self$compute_vbound() -
         self$compute_penalty()
       invisible(self$BICL)
     },
 
-    ################################################################################
-    ## A modifier
-    # TODO Ask @Chabert-Liddell
-    # compute_exact_icl = function() {
-    #   # TODO : fix the computation
-    #   ## directed not implemented yet
-    #   df_mixture <- ifelse(self$free_mixture, (self$Q - 1), self$Q - 1)
-    #   df_connect <-
-    #     ifelse(self$directed, self$Q**2, self$Q * (self$Q + 1) / 2)
-    #   if (self$free_density) df_connect <- df_connect + self$M - 1
-    #   eqr <- colSums(self$emqr, 1)
-    #   nqr <- colSums(self$nmqr, 1)
-    #   if (!self$directed) {
-    #     diag(eqr) <- diag(eqr) / 2
-    #     diag(nqr) <- diag(nqr) / 2
-    #     exicl <- -df_mixture * lbeta(.5, .5) +
-    #       self$M * (lgamma(.5 * self$Q) - self$Q * lgamma(.5)) +
-    #       sum(lbeta(.5 + eqr, .5 + nqr - eqr)[lower.tri(eqr, diag = TRUE)]) +
-    #       Reduce(
-    #         sum,
-    #         lapply(
-    #           seq_along(self$A),
-    #           function(m) {
-    #             sum(lgamma(self$n[m] * self$pi[[m]] + .5)) -
-    #               lgamma(sum(self$n[m] * self$pi[[m]] + .5))
-    #           }
-    #         )
-    #       )
-    #   } else {
-    #     exicl <- df_mixture * (1 / lbeta(.5, .5)) +
-    #       self$M * (lgamma(.5 * self$Q) - self$Q * lgamma(.5)) +
-    #       sum(lbeta(.5 + eqr, .5 + nqr - eqr)) +
-    #       Reduce(
-    #         sum,
-    #         lapply(
-    #           seq_along(self$A),
-    #           function(m) {
-    #             sum(lgamma(self$n[m] * self$pi[[m]] + .5)) -
-    #               lgamma(sum(self$n[m] * self$pi[[m]] + .5))
-    #           }
-    #         )
-    #       )
-    #   }
-    #   return(exicl)
-    # },
-    # compute_exact_icl_iid = function() {
-    #   ## directed not implemented yet
-    #   df_mixture <- ifelse(self$free_mixture, self$M * (self$Q - 1), self$Q - 1)
-    #   emqr <- self$emqr
-    #   nmqr <- self$nmqr
-    #   for (m in seq_along(self$A)) {
-    #     diag(emqr[m, , ]) <- diag(emqr[m, , ]) / 2
-    #     diag(nmqr[m, , ]) <- diag(nmqr[m, , ]) / 2
-    #   }
-    #   Reduce(
-    #     sum,
-    #     lapply(
-    #       seq_along(self$A),
-    #       function(m) {
-    #         -df_mixture * lbeta(.5, .5) +
-    #           (lgamma(.5 * self$Q) - self$Q * lgamma(.5)) +
-    #           sum(lbeta(.5 + emqr[m, , ], .5 + nmqr[m, , ] - emqr[m, , ])[lower.tri(emqr[m, , ], diag = TRUE)]) +
-    #           sum(lgamma(self$n[m] * self$pi[[m]] + .5)) -
-    #           lgamma(sum(self$n[m] * self$pi[[m]] + .5))
-    #       }
-    #     )
-    #   )
-    # },
-    ################################################################################
-
+    #' Updates the MAP parameters
+    #'
+    #' @return nothing; but stores the values
     update_MAP_parameters = function() {
       Z <- self$compute_MAP()
       ZR <- lapply(
@@ -657,7 +656,18 @@ fitBipartiteSBMPop <- R6::R6Class(
       invisible(Z)
     },
 
-    # The fixed point algorithm to update the tau
+    #' Method to update tau values
+    #' 
+    #' @description
+    #' Not really a fixed point as $\tau^1$ depends only $\tau^2$.
+    #' 
+    #' @param m The number of the network in the netlist
+    #' @param d The dimension to update
+    #' @param max_iter The maximum number of iterations to perform, defaults
+    #' to 1
+    #' @param tol The tolerance for which to stop iterating
+    #' 
+    #' @return The new tau values
     fixed_point_tau = function(m, d, max_iter = 1, tol = 1e-3) {
       # Just 1 step is necessary because tau1 depends only on tau2
       condition <- TRUE
@@ -768,6 +778,16 @@ fitBipartiteSBMPop <- R6::R6Class(
       self$tau[[m]][[d]] <- tau_new
       invisible(tau_new)
     },
+
+    #' Fixed point to update alpha and delta 
+    #' TODO Check and fix
+    #' 
+    #' @param MAP A boolean wether to use MAP parameters or not, defaults to
+    #' FALSE
+    #' @param max_iter The maximum number of iterations, default to 50
+    #' @param tol The tolerance for which to stop iterating
+    #' 
+    #' @return nothing; stores the values
     fixed_point_alpha_delta = function(MAP = FALSE, max_iter = 50, tol = 1e-6) {
       # switch(
       #   self$distribution,
@@ -806,6 +826,13 @@ fitBipartiteSBMPop <- R6::R6Class(
         self$delta <- d
       }
     },
+    #' Computes the pi per network, known as the pim
+    #' 
+    #' @param m The number of the network in the netlist
+    #' @param MAP A boolean wether to use the MAP parameters or not, defaults to
+    #' FALSE
+    #' 
+    #' @return nothing; stores the values
     update_pim = function(m, MAP = FALSE) {
       # Here we compute the pi for each of the m networks
       # So those are the "pim"
@@ -827,6 +854,12 @@ fitBipartiteSBMPop <- R6::R6Class(
         self$MAP$pim[[m]] <- list(pim1, pim2)
       }
     },
+    #' Computes the pi for the whole model
+    #'
+    #' @param MAP A boolean wether to use the MAP parameters or not, defaults to
+    #' FALSE
+    #'
+    #' @return the pi and stores the values
     update_pi = function(MAP = FALSE) {
       # The function is m subscripted but it might not need it to work
       for (m in seq.int(self$M)) {
@@ -908,6 +941,13 @@ fitBipartiteSBMPop <- R6::R6Class(
       }
       invisible(pi)
     },
+    #' Computes the alpha per network, known as the alpĥam
+    #' 
+    #' @param m The number of the network in the netlist
+    #' @param MAP A boolean wether to use the MAP parameters or not, defaults to
+    #' FALSE
+    #' 
+    #' @return the alpham and stores the values
     update_alpham = function(m, MAP = FALSE) {
       if (!MAP) {
         alpham <- self$emqr[m, , ] / self$nmqr[m, , ]
@@ -922,6 +962,12 @@ fitBipartiteSBMPop <- R6::R6Class(
       }
       invisible(alpham)
     },
+    #' Computes the alpha for the whole model
+    #'
+    #' @param MAP A boolean wether to use the MAP parameters or not, defaults to
+    #' FALSE
+    #'
+    #' @return the alpha and stores the values
     update_alpha = function(MAP = FALSE) {
       # For iid and pi-colSBM
       if (!MAP) {
@@ -935,6 +981,10 @@ fitBipartiteSBMPop <- R6::R6Class(
       }
       invisible(alpha)
     },
+
+    #' Initialize clusters
+    #'
+    #' @importFrom gtools rdirichlet
     init_clust = function() {
       self$tau <-
         switch(self$init_method,
@@ -1138,6 +1188,14 @@ fitBipartiteSBMPop <- R6::R6Class(
         self$fixed_point_alpha_delta()
       }
     },
+
+    #' @description
+    #' The M step of the VEM
+    #' 
+    #' @param MAP A boolean wether to use the MAP parameters or not, defaults to
+    #' FALSE
+    #' @param max_iter The maximum number of iterations, default to 2
+    #' @param tol The tolerance for which to stop iterating defaults to 1e-3
     m_step = function(MAP = FALSE, max_iter = 2, tol = 1e-3, ...) {
       # browser()
       # lapply(seq_along(self$pi), function(m) self$update_pi(m, MAP = MAP))
@@ -1156,9 +1214,21 @@ fitBipartiteSBMPop <- R6::R6Class(
         )
       }
     },
+    #' An optimization version for the VE step of the VEM but currently a 
+    #' placeholder
+    #' 
+    #' @param m The number of the network in the netlist
+    #' @param max_iter The maximum number of iterations, default to 2
+    #' @param tol The tolerance for which to stop iterating defaults to 1e-3
     ve_step = function(m, max_iter = 2, tol = 1e-3, ...) {
       # Place holder for gradient ascent or other optimization methods
     },
+    #' Updates the mqr quantities
+    #' 
+    #' @description
+    #' Namely, it updates the emqr and nmqr.
+    #' 
+    #' @param m The number of the network in the netlist
     update_mqr = function(m) {
       # Compute the "mqr" quantities
       # emqr : the observed edges
@@ -1171,6 +1241,7 @@ fitBipartiteSBMPop <- R6::R6Class(
         (self$A[[m]] * (self$nonNAs[[m]])) %*% tau_m_2
       self$nmqr[m, , ] <- t(tau_m_1) %*% (self$nonNAs[[m]]) %*% tau_m_2
     },
+    #' TODO Investigate what its supposed to do
     make_permutation = function() {
       # TODO : ask @Chabert-Liddell or @demiperimetre to see if such permutation are useful at the end
       if (self$free_mixture_row | !self$free_mixture_col) {
@@ -1200,13 +1271,16 @@ fitBipartiteSBMPop <- R6::R6Class(
       col_order <- order(col_row, decreasing = TRUE)
 
       # Tau, emqr and nmqr, alpha & pi are reordered accordingly
-      if (ncol(tau_1) != 1) {
-        next
-      }
-      if (ncol(tau_2) != 1) {
-        next
-      }
+      # if (ncol(tau_1) != 1) {
+      #   next
+      # }
+      # if (ncol(tau_2) != 1) {
+      #   next
+      # }
     },
+    #' Computes the number of blocks that are effectively populated
+    #' 
+    #' @return nothing; but stores the value
     compute_effective_clustering = function() {
       self$effective_clustering_list <- lapply(seq.int(self$M), function(m) {
         list(
@@ -1215,10 +1289,14 @@ fitBipartiteSBMPop <- R6::R6Class(
         )
       })
     },
+    #' Perform the whole initialization and VEM algorithm
+    #' 
+    #' @param max_step The maximum number of steps to perform optimization
+    #' @param tol The tolerance for which to stop iterating, default to 1e-3
+    #' 
+    #' @return nothing
     optimize = function(max_step = 20, tol = 1e-3, ...) {
       if (all(self$Q == c(1, 1))) {
-        # DONE urgently : handle the case where Q1 == 1 && Q2 != 1 || Q1 != 1 && Q2 == 1
-        # DONE Two dimensions for tau, Z and pi
         self$tau <- lapply(
           seq(self$M),
           function(m) list(matrix(1, self$n[[1]][m], 1), matrix(1, self$n[[2]][m], 1))
@@ -1345,6 +1423,10 @@ fitBipartiteSBMPop <- R6::R6Class(
       }
       self$reorder_parameters()
     },
+    #' Reorder the blocks putting the "strongest" ones first in order to have
+    #' a coherent ordering of blocks with SBM and LBM for visualisation.
+    #'
+    #' @return nothing; stores the new ordering
     reorder_parameters = function() {
       Z_label_switch <- function(Z, new_order) {
         # Create a mapping of old labels to new labels
@@ -1423,6 +1505,8 @@ fitBipartiteSBMPop <- R6::R6Class(
         self$MAP$pi[[m]][[2]] <- self$MAP$pi[[m]][[2]][p2, drop = FALSE]
       })
     },
+    #' The message printed when one prints the object
+    #' @param type The title above the message.
     show = function(type = "Fitted Collection of Bipartite SBM") {
       cat(type, "--", self$distribution, "variant for", self$M, "networks \n")
       cat("=====================================================================\n")
@@ -1443,6 +1527,7 @@ fitBipartiteSBMPop <- R6::R6Class(
       cat("  $memberships, $parameters, $BICL, $vbound, $pred_dyads \n")
       cat("=====================================================================")
     },
+    #' The print method
     print = function() self$show()
   ),
   active = list(

@@ -13,7 +13,6 @@ estimate_colBiSBM(
   global_opts = list(),
   fit_opts = list(),
   Z_init = NULL,
-  silent_parallelization = FALSE,
   sep_BiSBM = NULL
 )
 }
@@ -57,7 +56,7 @@ exploration process.
 \item{\code{nb_cores} }{integer for number of cores used for
 parallelization. Default is 1}
 \item{\code{verbosity} }{integer for verbosity (0, 1, 2, 3, 4). Default is 1.
-0 will disable completely the output of the function. \textit{Note:} you
+0 will disable completely the output of the function. Note: you
 can access the $joint_modelisation_preferred attribute to check which
 modelisation is preferred}
 \item{\code{Q1_max} }{integer for the max size in row to explore. Default is
@@ -106,8 +105,10 @@ order. Default to TRUE.}
 \examples{
 alpha1 <- matrix(c(0.8, 0.1, 0.2, 0.7), byrow = TRUE, nrow = 2)
 alpha2 <- matrix(c(0.8, 0.5, 0.5, 0.2), byrow = TRUE, nrow = 2)
-first_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5, 0.5), rho = c(0.5, 0.5), alpha = alpha1, M = 2)
-second_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5, 0.5), rho = c(0.5, 0.5), alpha = alpha2, M = 2)
+first_collection <- generate_bipartite_collection(nr = 50, nc = 25, 
+pi = c(0.5, 0.5), rho = c(0.5, 0.5), alpha = alpha1, M = 2)
+second_collection <- generate_bipartite_collection(nr = 50, nc = 25, 
+pi = c(0.5, 0.5), rho = c(0.5, 0.5), alpha = alpha2, M = 2)
 
 netlist <- append(first_collection, second_collection)
 

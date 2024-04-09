@@ -1,48 +1,89 @@
 #' An R6 Class object, a collection of model for population of BiSBM networks
 #'
+#' @description
+#' This object contain all the logic and methods to estimate a colBiSBM model
+#' 
+#' @import R6
+#' @importFrom aricode ARI
+#' 
 #' @export
-
 bisbmpop <- R6::R6Class(
   "bisbmpop",
   #
   public = list(
+    #' @field n A list with two dimensions, each of size M for the rows and cols
     n = NULL,
+    #' @field A List of incidence Matrix of size n[[1]][m]xnc[m]
     A = NULL,
+    #' @field M Number of networks
     M = NULL,
+    #' @field mask List of M masks, indicating NAs in the matrices. 1 for NA, 0 else
     mask = NULL, # 1 for NA and 0 for observed
+    #'@field distribution Emission distribution either : "poisson" or 
+    #' "bernoulli"
     distribution = NULL,
+    #'@field net_id A vector containing the "ids" or names of the networks 
+    #' (if none given, they are set to their number in A list)
     net_id = NULL,
-    model_list = NULL, # A list of size Q1max * Q2max containing the best models
-    discarded_model_list = NULL, # A list of size
-    # Q1max * Q2max * (nb_models - 1) containing
-    # the discarded models
+    #'@field model_list A list of size Q1max * Q2max containing the best models
+    model_list = NULL,
+    #'@field discarded_model_list  A list of size
+    #' Q1max * Q2max * (nb_models - 1) containing
+    #' the discarded models.
+    discarded_model_list = NULL,
+    #'@field global_opts A list of options for the model space exploration.
+    #' See details for more information on which options are available.
     global_opts = NULL,
+    #'@field fit_opts A list of options specifically for fitting the models.
     fit_opts = NULL,
-    separated_inits = NULL, # A nested list : Q1 init containing Q2 init
-    # with each entry containing list of size M
-    # storing the separated inits for the class
-    exploration_order_list = NULL, # A list used to store the path taken
-    # in the state space
+    #'@field separated_inits A nested list : Q1 init containing Q2 init
+    #' with each entry containing list of size M
+    #' storing the separated inits for the class. 
+    separated_inits = NULL,
+    #'@field exploration_order_list A list used to store the path taken
+    #' in the state space.
+    exploration_order_list = NULL,
+    #'@field Z_init A list of initializations for the Z memberships.
     Z_init = NULL,
+    #'@field free_density TODO remove
     free_density = NULL,
+    #'@field free_mixture_row A boolean signaling if there is free mixture on 
+    #' the row blocks
     free_mixture_row = NULL,
+    #'@field free_mixture_col A boolean signaling if there is free mixture on 
+    #' the columns blocks
     free_mixture_col = NULL,
+    #'@field ICL A matrix of size Q1*Q2 storing the best ICL found for each 
+    #' value of Q1, Q2.
     ICL = NULL,
-    sep_BiSBM = NULL, # A named list containing attributes for each sep BiSBM
+    #'@field sep_BiSBM A named list containing attributes for each sep BiSBM. 
+    sep_BiSBM = NULL,
+    #'@field BICL A matrix of size Q1*Q2 storing the best BICL found for each 
+    #' value of Q1, Q2.
     BICL = NULL,
+    #'@field vbound A matrix of size Q1*Q2 storing the best vbound found for each 
+    #' value of Q1, Q2.
     vbound = NULL,
+    #'@field best_fit A fitBipartiteSBMPop object changing regularly to store 
+    #' the current best fit.
     best_fit = NULL,
-    adjusted_fit = NULL, # Defining a field in case the user wants to adjust
+    #'@field adjusted_fit Defining a field in case the user wants to adjust a 
+    #' prefitted bisbmpop.
+    adjusted_fit = NULL,
+    #'@field logfactA A quantity used with the Poisson probability distribution
     logfactA = NULL,
+    #'@field improved A field use at each step to check if it has improved.
     improved = NULL,
-    moving_window_coordinates = NULL, # A list of size two containing the
-    # coordinates of the bottom left and top
-    # right points of the square
-    old_moving_window_coordinates = NULL, # A list containing the previous
-    # coordinates of the moving window
-    joint_modelisation_preferred = NULL, # A boolean to store the preferred
-    # modelisation
-
+    #'@field moving_window_coordinates A list of size two containing the
+    #' coordinates of the bottom left and top
+    #' right points of the square
+    moving_window_coordinates = NULL,
+    #'@field old_moving_window_coordinates A list containing the previous
+    #' coordinates of the moving window.
+    old_moving_window_coordinates = NULL,
+    #'@field joint_modelisation_preferred A boolean to store the preferred
+    #' modelisation.
+    joint_modelisation_preferred = NULL,
 
 
 
@@ -51,6 +92,25 @@ bisbmpop <- R6::R6Class(
     #'
     #' This class is generally called via the user function `estimate_colBiSBM`
     #'
+    #' @param netlist The list of M networks
+    #' @param net_id A list of name for the networs, defaults to 1 to M if not 
+    #' provided
+    #' @param distribution The emission distribution either "bernoulli" or 
+    #' "poisson"
+    #' @param free_density If we account for different density between networks 
+    #' TODO Remove
+    #' @param free_mixture_row A boolean indicating if there is free mixture on 
+    #' the row blocks
+    #' @param free_mixture_col A boolean indicating if there is free mixture on 
+    #' the column blocks
+    #' @param Z_init A bidimensional list providing a clustering of the row and 
+    #' column nodes
+    #' @param global_opts A list of global options used by the algorithm. See 
+    #' details of the user function for more information.
+    #' @param fit_opts A list of fit options used by the algorithm. See 
+    #' details of the user function for more information.
+    #' 
+    #' @return A new 'bisbmpop' object.
     initialize = function(netlist = NULL,
                           net_id = NULL,
                           distribution = "bernoulli",
@@ -475,11 +535,6 @@ bisbmpop <- R6::R6Class(
           },
           nb_cores = self$global_opts$nb_cores,
           backend = self$global_opts$backend
-          # mc.allow.recursive = TRUE,
-          # mc.cleanup = TRUE,
-          # mc.share.copy = FALSE, # Trying to increase speed
-          # # mc.retry = -1, # To prevent big crash
-          # mc.progress = FALSE
         )
       }
       # Fitting the Q splits and selecting the next model
@@ -1041,11 +1096,6 @@ bisbmpop <- R6::R6Class(
           },
           nb_cores = self$global_opts$nb_cores,
           backend = self$global_opts$backend
-          # mc.allow.recursive = TRUE,
-          # mc.cleanup = TRUE,
-          # mc.share.copy = FALSE, # Trying to increase speed
-          # # mc.retry = -1, # To prevent big crash
-          # mc.progress = FALSE
         )
       } else {
         possible_models <- lapply(
@@ -1311,9 +1361,11 @@ bisbmpop <- R6::R6Class(
 
     #' A method to plot the state of space and its current exploration.
     #'
-    #' @details the function takes no parameters and print a plot
+    #' @details the method takes no parameters and print a plot
     #' of the current state of the model_list.
     #' 
+    #' @param plot_detail Is by default set using the global options.
+    #'
     #' @importFrom ggnewscale new_scale_color
     #' @return nothing
     state_space_plot = function(plot_detail = self$global_opts$plot_detail) {
@@ -1447,16 +1499,18 @@ bisbmpop <- R6::R6Class(
       }
     },
 
-    #' Function to greedily explore state of space looking for the mode
+    #' Method to greedily explore state of space looking for the mode
     #' and storing the models discovered along the way
     #'
     #' @param starting_point A vector of the two coordinates
-    #' c(Q1,Q2) which are the starting point
+    #' c(Q1,Q2) which are the starting point.
+    #' @param max_iter The maximum number of iteration of greedy exploration to
+    #' perform, defaults to 12.
     #' @param max_step_without_improvement defaults to 2, the
-    #' number of steps to try improving before stopping the search
-    #' @export
+    #' number of steps to try improving before stopping the search.
+    #'
     #' @return c(Q1_mode, Q2_mode) which indicates the Q1 and Q2
-    #' for which the BICL was maximal
+    #' for which the BICL was maximal.
     greedy_exploration = function(starting_point, max_iter = 12,
                                   max_step_without_improvement = 2) {
       # Initialize
@@ -1648,7 +1702,7 @@ bisbmpop <- R6::R6Class(
 
     #' Optimization from a given Z_init
     #'
-    #' The functions takes no parameters
+    #' The method takes no parameters
     #'
     #' @return nothing but stores the models in the model list
     optimize_from_zinit = function() {
@@ -1658,16 +1712,16 @@ bisbmpop <- R6::R6Class(
       )
       dim(model_list) <- c(self$global_opts$Q1_max, self$global_opts$Q2_max)
 
-      #' The function fit a fitBipartiteSBMPop object with the wanted
-      #' parameters
-      #'
-      #' @param q1 the row cluster number
-      #' @param q2 the col cluster number
-      #' @param Z the given clustering to fit from
-      #' @param Cpi (optional) the supports if provided
-      #' @param Calpha (optional) the alpha support, if provided
-      #'
-      #' @return a fitBipartite fitted object
+      # The function fit a fitBipartiteSBMPop object with the wanted
+      # parameters
+      #
+      # @param q1 the row cluster number
+      # @param q2 the col cluster number
+      # @param Z the given clustering to fit from
+      # @param Cpi (optional) the supports if provided
+      # @param Calpha (optional) the alpha support, if provided
+      #
+      # @return a fitBipartite fitted object
       optimize_init <- function(q1, q2, Z, Cpi = NULL, Calpha = NULL) {
         fit <- fitBipartiteSBMPop$new(
           A = self$A,
@@ -1709,7 +1763,7 @@ bisbmpop <- R6::R6Class(
 
     #' Burn-in method to start exploring the state of space
     #'
-    #' The functions takes no parameters but modify the object
+    #' The method takes no parameters but modify the object
     #'
     #' @return nothing; but stores the values
     burn_in = function() {
@@ -2031,6 +2085,15 @@ bisbmpop <- R6::R6Class(
         self$print_metrics()
       }
     },
+
+    #' The optimization method
+    #' 
+    #' @description
+    #' This method performs the burn in (ie initialization + greedy 
+    #' exploration) and the steps of moving window with cluster splitting and 
+    #' merging around the mode found.
+    #' 
+    #' @return nothing; but stores the values
     optimize = function() {
       # The burn_in step computes models with a greedy approach
       self$burn_in()
@@ -2103,11 +2166,9 @@ bisbmpop <- R6::R6Class(
     #' @description
     #' This method is a moving windows
     #' over the Q1xQ2 space for the number of clusters
-    #' @noMd
-    #' @noRd
     #' @param center is the coordinates (Q1, Q2) in the model list of the mode
     #' @param depth is how far away from the center
-    #' the function should be applied in a grid style
+    #' the method should be applied in a grid style
     #' going from center - (depth,depth) to center + (depth, depth)
     #' @return nothing; but updates the object by adding new models
     moving_window = function(center, depth = 1) {
@@ -2527,6 +2588,13 @@ bisbmpop <- R6::R6Class(
         )
       }
     },
+
+    #' To truncate the discarder model list
+    #' 
+    #' @description
+    #' This method remove the worst models regarding the BICL criterion.
+    #' 
+    #' @return nothing
     truncate_discarded_model_list = function() {
       for (q1 in seq.int(self$global_opts$Q1_max)) {
         for (q2 in seq.int(self$global_opts$Q2_max)) {
@@ -2542,6 +2610,13 @@ bisbmpop <- R6::R6Class(
         }
       }
     },
+
+    #' Check if the point is in the limits
+    #' 
+    #' @param point A vector of size 2, containing the first coordinate Q1, the
+    #' number of row blocks and Q2 the number of column blocks.
+    #' 
+    #' @return A boolean if the point if in the limits of [0,Q1_max]x[0,Q2_max]
     point_is_in_limits = function(point) {
       Q1 <- point[[1]]
       Q2 <- point[[2]]
@@ -2550,6 +2625,15 @@ bisbmpop <- R6::R6Class(
         Q1 <= self$global_opts$Q1_max &&
         Q2 <= self$global_opts$Q2_max)
     },
+
+    #' Store the criteria and best fit
+    #' 
+    #' @description
+    #' This method stores the criteria (vbound, ICL, BICL) of the models
+    #' in model_list attribute and at the end choose the best model using the
+    #' BICL criterion.
+    #' 
+    #' @return nothing; modifies the object
     store_criteria_and_best_fit = function() {
       # Store the vbound, ICL and BICL into the appropriate lists
 
@@ -2572,6 +2656,13 @@ bisbmpop <- R6::R6Class(
       # Assign the best_fit
       self$best_fit <- self$model_list[[which.max(self$BICL)]]
     },
+    #' Computation of the separated Bi SBM
+    #' 
+    #' @description
+    #' This method performs the computation of BiSBM for each of the
+    #' network in the netlist.
+    #' 
+    #' @return nothing; stores the values
     compute_sep_BiSBM_BICL = function() {
       # Computes the sepBiSBM ICL to compare with the model
       # TODO See if I can parallelize
@@ -2619,6 +2710,13 @@ bisbmpop <- R6::R6Class(
         cat("\n Total sepBiSBM BICL : ", sum(self$sep_BiSBM$BICL), "\n")
       }
     },
+    #' Method to choose the collection modelisation or a separated one
+    #' 
+    #' @description
+    #' Using the BICL criterion, the best model fitted after the procedure
+    #' and the separated Bi SBM this method choose the one that maximizes the 
+    #' BICL criterion.
+    #' @return nothing; stores a boolean
     choose_joint_or_separated = function() {
       # Now compare to the sepBiSBM
       start_time <- Sys.time()
@@ -2653,9 +2751,16 @@ bisbmpop <- R6::R6Class(
         }
       }
     },
+    #' Plot method
+    #' 
+    #' @description
+    #' Plots the state space exploration
     plot = function() {
       self$state_space_plot(plot_detail = 1)
     },
+
+    #' Print the vbound, the ICL and the BICL
+    #' @return nothing
     print_metrics = function() {
       # Capturing the pretty print of matrices
       vbound_print <- paste0(capture.output(
