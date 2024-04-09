@@ -791,7 +791,7 @@ fitSimpleSBMPop <- R6::R6Class(
       invisible(alpha)
     },
 
-    #' Initialize clusters
+    #' @description Initialize clusters
     #' 
     #' @importFrom gtools rdirichlet
     init_clust = function() {

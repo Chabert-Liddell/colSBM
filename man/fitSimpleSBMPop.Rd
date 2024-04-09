@@ -290,6 +290,7 @@ once $optimize() is done
 \if{html}{\out{<a id="method-fitSimpleSBMPop-init_clust"></a>}}
 \if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-init_clust}{}}}
 \subsection{Method \code{init_clust()}}{
+Initialize clusters
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$init_clust()}\if{html}{\out{</div>}}
 }

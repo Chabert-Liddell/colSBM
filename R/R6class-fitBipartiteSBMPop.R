@@ -1,8 +1,8 @@
 #' An R6 Class object, a fitted population of netowrks sbm
 #' once $optimize() is done
 #' 
-#' @import R6
-#' 
+#' @importFrom R6 R6Class
+#'
 #' @export
 fitBipartiteSBMPop <- R6::R6Class(
   classname = "fitBipartiteSBMPop",
@@ -659,7 +659,7 @@ fitBipartiteSBMPop <- R6::R6Class(
     #' Method to update tau values
     #' 
     #' @description
-    #' Not really a fixed point as $\tau^1$ depends only $\tau^2$.
+    #' Not really a fixed point as tau^1 depends only tau^2.
     #' 
     #' @param m The number of the network in the netlist
     #' @param d The dimension to update
@@ -982,7 +982,7 @@ fitBipartiteSBMPop <- R6::R6Class(
       invisible(alpha)
     },
 
-    #' Initialize clusters
+    #' @description Initialize clusters
     #'
     #' @importFrom gtools rdirichlet
     init_clust = function() {

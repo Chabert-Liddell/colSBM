@@ -404,7 +404,7 @@ Method to update tau values
 \if{html}{\out{<a id="method-fitBipartiteSBMPop-fixed_point_tau"></a>}}
 \if{latex}{\out{\hypertarget{method-fitBipartiteSBMPop-fixed_point_tau}{}}}
 \subsection{Method \code{fixed_point_tau()}}{
-Not really a fixed point as $\tau^1$ depends only $\tau^2$.
+Not really a fixed point as tau^1 depends only tau^2.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$fixed_point_tau(m, d, max_iter = 1, tol = 0.001)}\if{html}{\out{</div>}}
 }
@@ -543,13 +543,13 @@ FALSE}
 }
 \subsection{Returns}{
 the alpha and stores the values
-Initialize clusters
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-fitBipartiteSBMPop-init_clust"></a>}}
 \if{latex}{\out{\hypertarget{method-fitBipartiteSBMPop-init_clust}{}}}
 \subsection{Method \code{init_clust()}}{
+Initialize clusters
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$init_clust()}\if{html}{\out{</div>}}
 }
