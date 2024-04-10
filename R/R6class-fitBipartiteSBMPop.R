@@ -9,12 +9,12 @@ fitBipartiteSBMPop <- R6::R6Class(
   # inherit = "bmpop",
   #
   public = list(
-    # For user function add helpful n[[m]]$row and n[[m]][[]]
+    # For user function add helpful `n[[m]]$row and n[[m]][[]]`
     #' @field n A list with two dimensions, each of size M for the rows and cols
     n = NULL,
     #' @field M Number of networks
     M = NULL,
-    #' @field A List of incidence Matrix of size n[[1]][m]xnc[m]
+    #' @field A List of incidence Matrix of size `n[[1]][m]xn[[2]][m]`
     A = NULL, 
     #' @field mask List of M masks, indicating NAs in the matrices. 1 for NA, 0 else
     mask = NULL,
@@ -25,11 +25,11 @@ fitBipartiteSBMPop <- R6::R6Class(
     #'@field Q Number of clusters, vectors of size2
     Q = NULL, # 
     #'@field tau List of size M of list of two variational parameters.
-    #' n[[1]][m]xQ matrices and n[[2]][m]xQ matrices
+    #' `n[[1]][m]xQ` matrices and `n[[2]][m]xQ` matrices
     tau = NULL,
     #'@field alpha Matrix of size QxQ, connection parameters
     alpha = NULL, # 
-    #'@field delta  Vector of M,  density parameters with delta[1] = 1
+    #'@field delta  Vector of M,  density parameters with `delta[1] = 1`
     delta = NULL, #
     #'@field pi List of M vectors of size Q, the mixture parameters
     pi = NULL, #
@@ -120,9 +120,31 @@ fitBipartiteSBMPop <- R6::R6Class(
     #' @description
     #' Initializes the fitBipartiteSBMPop object
     #' 
-    #' @param A List of incidence Matrix of size n[[1]][m]xnc[m]
+    #' @param A List of incidence Matrix of size `n[[2]][m]xn[[2]][m]`
     #' @param Q A vector of size 2 with the number of row blocks and column 
     #' blocks
+    #' @param Z  The clusters memberships, a list of size M of two matrices : 1 
+    #' for rows clusters memberships and 2 for columns clusters memberships
+    #' @param mask List of M masks, indicating NAs in the matrices. 1 for NA, 0 else
+    #' @param net_id A vector containing the "ids" or names of the networks 
+    #' (if none given, they are set to their number in A list)
+    #' @param distribution Emission distribution either : "poisson" or 
+    #' "bernoulli"
+    #' @param free_mixture_row A boolean indicating if there is a free mixture
+    #' on the rows
+    #' @param free_mixture_col A boolean indicating if there is a free mixture
+    #' on the columns
+    #' @param free_density A boolean not used TODO delete
+    #' @param Cpi  A list of matrices of size Qd x M containing TRUE (1)
+    #' or FALSE (0) if the d-th dimension cluster is represented
+    #' in the network m
+    #' @param Calpha The corresponding support on the connectivity parameters
+    #' computed with Cpi.
+    #' @param init_method The initialization method used for the first clustering
+    #' @param weight A vector of size M for weighted likelihood
+    #' @param greedy_exploration_starting_point Stores the coordinates Q1 & Q2 
+    #' from the greedy exploration to  keep track of the starting_point
+    #' @param fit_opts Fit parameters, used to determine the fitting method/
     initialize = function(A = NULL,
                           Q = NULL,
                           Z = NULL,
@@ -406,7 +428,15 @@ fitBipartiteSBMPop <- R6::R6Class(
       -sum(.xlogx(self$tau[[m]][[1]][, which(self$Cpi[[1]][, m])])) -
         sum(.xlogx(self$tau[[m]][[2]][, which(self$Cpi[[2]][, m])]))
     },
-
+    #' Objective function for the variational bound regarding
+    #' the alpha and delta parameters.
+    #' 
+    #' @param par The parameters, alpha and delta combined in one big vector.
+    #' @param emqr List of M QxQ matrix, the sum of edges between q and r in m
+    #' @param nmqr List of M QxQ matrix, the number of entries between q and r 
+    #' in m
+    #' 
+    #' @return The evaluation of the function
     fn_vb_alpha_delta = function(par, emqr, nmqr) {
       alpha <- par[1:self$df_connect]
       delta <- c(1, par[1:self$df_density + self$df_connect])
@@ -420,6 +450,15 @@ fitBipartiteSBMPop <- R6::R6Class(
         )
       sum(res)
     },
+    #' Gradient of the objective function for the variational bound regarding
+    #' the alpha and delta parameters.
+    #' 
+    #' @param par The parameters, alpha and delta combined in one big vector.
+    #' @param emqr List of M QxQ matrix, the sum of edges between q and r in m
+    #' @param nmqr List of M QxQ matrix, the number of entries between q and r 
+    #' in m
+    #' 
+    #' @return The evaluation of the function
     gr_vb_alpha_delta = function(par, emqr, nmqr) {
       # browser()
       alpha <- par[1:self$df_connect]
@@ -445,6 +484,14 @@ fitBipartiteSBMPop <- R6::R6Class(
         )
       invisible(res)
     },
+    #' Constraint
+    #'
+    #' @param par The parameters, alpha and delta combined in one big vector.
+    #' @param emqr List of M QxQ matrix, the sum of edges between q and r in m
+    #' @param nmqr List of M QxQ matrix, the number of entries between q and r 
+    #' in m
+    #'
+    #' @return The evaluation of the function
     eval_g0_vb_alpha_delta = function(par, emqr, nmqr) {
       as.vector(
         vapply(
@@ -457,6 +504,14 @@ fitBipartiteSBMPop <- R6::R6Class(
         )
       )
     },
+    #' Jacobian of the constraint
+    #'
+    #' @param par The parameters, alpha and delta combined in one big vector.
+    #' @param emqr List of M QxQ matrix, the sum of edges between q and r in m
+    #' @param nmqr List of M QxQ matrix, the number of entries between q and r 
+    #' in m
+    #'
+    #' @return The evaluation of the function
     eval_jac_g0_vb_alpha_delta = function(par, emqr, nmqr) {
       jac_d <- aperm(
         vapply(
@@ -474,8 +529,15 @@ fitBipartiteSBMPop <- R6::R6Class(
       }
       cbind(jac_d, jac_a)
     },
+    #' Updates the alpha and delta parameters
+    #' 
+    #' @param MAP Wether to use the MAP parameters or not, a boolean, defaults
+    #' to FALSE.
+    #' 
+    #' @return nothing; but stores the values
     update_alpha_delta = function(MAP = FALSE) {
       # browser()
+      # TODO Modify and adapt to bipartite case
       d <- self$delta
       a <- self$alpha
       a <- pmin(a * d[1], 1 - 1e-12)
@@ -607,7 +669,7 @@ fitBipartiteSBMPop <- R6::R6Class(
     #' Computes the BICL criterion
     #' @param MAP Wether to use the MAP parameters or not, a boolean, defaults
     #' to FALSE.
-    #' @return The ICL for the model.
+    #' @return The BICL for the model.
     compute_BICL = function(MAP = TRUE) {
       self$BICL <- self$compute_vbound() -
         self$compute_penalty()
@@ -985,6 +1047,7 @@ fitBipartiteSBMPop <- R6::R6Class(
     #' @description Initialize clusters
     #'
     #' @importFrom gtools rdirichlet
+    #' @return nothing; stores
     init_clust = function() {
       self$tau <-
         switch(self$init_method,
@@ -1188,14 +1251,15 @@ fitBipartiteSBMPop <- R6::R6Class(
         self$fixed_point_alpha_delta()
       }
     },
-
-    #' @description
     #' The M step of the VEM
-    #' 
+    #'
     #' @param MAP A boolean wether to use the MAP parameters or not, defaults to
     #' FALSE
     #' @param max_iter The maximum number of iterations, default to 2
     #' @param tol The tolerance for which to stop iterating defaults to 1e-3
+    #' @param ... Other parameters
+    #' 
+    #' @return nothing; stores values
     m_step = function(MAP = FALSE, max_iter = 2, tol = 1e-3, ...) {
       # browser()
       # lapply(seq_along(self$pi), function(m) self$update_pi(m, MAP = MAP))
@@ -1220,6 +1284,9 @@ fitBipartiteSBMPop <- R6::R6Class(
     #' @param m The number of the network in the netlist
     #' @param max_iter The maximum number of iterations, default to 2
     #' @param tol The tolerance for which to stop iterating defaults to 1e-3
+    #' @param ... Other parameters
+    #' 
+    #' @return nothing; stores values
     ve_step = function(m, max_iter = 2, tol = 1e-3, ...) {
       # Place holder for gradient ascent or other optimization methods
     },
@@ -1242,6 +1309,7 @@ fitBipartiteSBMPop <- R6::R6Class(
       self$nmqr[m, , ] <- t(tau_m_1) %*% (self$nonNAs[[m]]) %*% tau_m_2
     },
     #' TODO Investigate what its supposed to do
+    #' @return nothing
     make_permutation = function() {
       # TODO : ask @Chabert-Liddell or @demiperimetre to see if such permutation are useful at the end
       if (self$free_mixture_row | !self$free_mixture_col) {
@@ -1293,6 +1361,7 @@ fitBipartiteSBMPop <- R6::R6Class(
     #' 
     #' @param max_step The maximum number of steps to perform optimization
     #' @param tol The tolerance for which to stop iterating, default to 1e-3
+    #' @param ... Other parameters
     #' 
     #' @return nothing
     optimize = function(max_step = 20, tol = 1e-3, ...) {
@@ -1528,13 +1597,231 @@ fitBipartiteSBMPop <- R6::R6Class(
       cat("=====================================================================")
     },
     #' The print method
-    print = function() self$show()
+    #'
+    #' @return nothing; print to console
+    print = function() self$show(),
+    #' @title The method to plot the fitBipartite objects
+    #'
+    #' @import ggplot2
+    #' @import dplyr
+    #' @importFrom matrixStats rowMeans2
+    #' @importFrom patchwork plot_layout plot_annotation wrap_plots
+    #' @importFrom reshape2 melt
+    #' @importFrom purrr map_dfc
+    #' 
+    #' @param type The type of the plot. Could be "graphon", "meso" or "block".
+    #' @param oRow A reordering of the row blocks.
+    #' @param oCol A reordering of the column blocks.
+    #' @param mixture Should the block proportions of each network be plotted as
+    #' well?
+    #' @param net_id Use to plot only on network in "graphon" view.
+    #' @param ... Further argument to be passed
+    #' @return A plot, a ggplot2 object.
+    plot = function(type = "graphon", oRow = NULL, oCol = NULL, mixture = FALSE, net_id = NULL, ...) {
+      # The below order use mean over all networks to have a consistent display
+      if (is.null(oRow)) {
+        if (self$Q[2] == 1) {
+          mean_rho <- 1
+        } else {
+          mean_rho <- matrixStats::rowMeans2(sapply(self$pi, function(pi) pi[[2]]))
+        }
+        oRow <- order(self$alpha %*% mean_rho, decreasing = TRUE)
+      }
+      if (is.null(oCol)) {
+        if (self$Q[1] == 1) {
+          mean_pi <- 1
+        } else {
+          mean_pi <- matrixStats::rowMeans2(sapply(self$pi, function(pi) pi[[1]]))
+        }
+        oCol <- order(mean_pi %*% self$alpha, decreasing = TRUE)
+      }
+      p <- switch(type,
+        graphon = {
+          if (self$Q[1] == 1) {
+            ymin <- rep(0, each = self$Q[2])
+            ymax <- rep(1, each = self$Q[2])
+          } else {
+            ymin <- rep(c(0, cumsum(self$pi[[net_id]][[1]][oRow][1:(self$Q[1] - 1)])), each = self$Q[2])
+            ymax <- rep(c(cumsum(self$pi[[net_id]][[1]][oRow])), each = self$Q[2])
+          }
+          if (self$Q[2] == 1) {
+            xmin <- rep(0, self$Q[1])
+            xmax <- rep(1, self$Q[1])
+          } else {
+            xmin <- rep(c(0, cumsum(self$pi[[net_id]][[2]][oCol][1:(self$Q[2] - 1)])), self$Q[1])
+            xmax <- rep(cumsum(self$pi[[net_id]][[2]][oCol]), self$Q[1])
+          }
+          (self$alpha[oRow, oCol] * mean(self$delta)) %>%
+            t() %>%
+            reshape2::melt() %>%
+            dplyr::mutate(
+              xmin = xmin,
+              ymin = ymin,
+              xmax = xmax,
+              ymax = ymax
+            ) %>%
+            ggplot2::ggplot(ggplot2::aes(
+              xmin = xmin, ymin = ymin,
+              xmax = xmax, ymax = ymax, fill = value
+            )) +
+            ggplot2::geom_rect() +
+            ggplot2::scale_fill_gradient2("alpha", low = "white", mid = "red", midpoint = 1) +
+            ggplot2::geom_hline(yintercept = cumsum(self$pi[[net_id]][[1]][oRow][1:(self$Q[1] - 1)]), size = .2) +
+            ggplot2::geom_vline(xintercept = cumsum(self$pi[[net_id]][[2]][oCol][1:(self$Q[2] - 1)]), size = .2) +
+            ggplot2::scale_y_reverse() +
+            ggplot2::theme_bw(base_size = 15, base_rect_size = 1, base_line_size = 1) +
+            ggplot2::xlab("Column Blocks") +
+            ggplot2::ylab("Row Blocks") +
+            ggplot2::coord_equal(expand = FALSE)
+        },
+        meso = {
+          p_alpha <- self$alpha[oRow, oCol, drop = FALSE] %>%
+            t() %>%
+            reshape2::melt() %>%
+            ggplot2::ggplot(ggplot2::aes(x = Var1, y = Var2, fill = value)) +
+            ggplot2::geom_tile() +
+            ggplot2::scale_fill_gradient2("alpha", low = "white", high = "red") +
+            ggplot2::geom_hline(yintercept = seq(self$Q[1]) + .5) +
+            ggplot2::geom_vline(xintercept = seq(self$Q[2]) + .5) +
+            ggplot2::scale_y_reverse() +
+            ggplot2::theme_bw(base_size = 15, base_rect_size = 1, base_line_size = 1) +
+            ggplot2::xlab("") +
+            ggplot2::ylab("") +
+            ggplot2::coord_fixed(expand = FALSE)
+          #  scale_y_reverse()
+          if (self$free_density) {
+            xl <- paste(round(self$delta, 1))
+          } else {
+            xl <- ""
+          }
+          df_pi <- purrr::map_dfc(
+            seq_along(self$net_id),
+            function(m) setNames(data.frame(self$pim[[m]][[1]][oRow]), self$net_id[m])
+          )
+          df_rho <- purrr::map_dfc(
+            seq_along(self$net_id),
+            function(m) setNames(data.frame(self$pim[[m]][[2]][oCol]), 
+              self$net_id[m])
+          )
+          # names(df_pi) <- self$net_id
+          if (mixture) {
+            p_pi <-
+              df_pi %>%
+              #    rename() %>%
+              dplyr::mutate(q = seq(self$Q[1])) %>%
+              tidyr::pivot_longer(cols = -c(q)) %>%
+              dplyr::mutate(Proportion = value) %>%
+              ggplot2::ggplot(ggplot2::aes(
+                fill = as.factor(q), y = name,
+                x = Proportion
+              )) +
+              ggplot2::geom_col() +
+              ggplot2::coord_flip(expand = FALSE) +
+              ggplot2::scale_fill_brewer("Row block",
+                type = "qual", palette = "Paired",
+                direction = -1
+              ) +
+              ggplot2::guides(fill = ggplot2::guide_legend(
+                ncol = self$Q[1] %/% 3 + 1,
+                byrow = TRUE
+              )) +
+              ggplot2::ylab("") +
+              ggplot2::ylab(xl) +
+              ggplot2::theme(axis.text.x = ggplot2::element_text(
+                angle = 90, vjust = .5,
+                hjust = 1
+              ))
+            ggplot2::theme_bw(base_size = 15)
+            p_rho <- df_rho %>%
+              #    rename() %>%
+              dplyr::mutate(q = seq(self$Q[2])) %>%
+              tidyr::pivot_longer(cols = -c(q)) %>%
+              dplyr::mutate(Proportion = value) %>%
+              ggplot2::ggplot(ggplot2::aes(
+                fill = as.factor(q), y = name,
+                x = Proportion
+              )) +
+              ggplot2::geom_col() +
+              # ggplot2::coord_flip(expand = FALSE) +
+              ggplot2::scale_fill_brewer("Column block",
+                type = "qual", palette = "Set2",
+                direction = -1
+              ) +
+              ggplot2::guides(fill = ggplot2::guide_legend(
+                ncol = self$Q[2] %/% 3 + 1,
+                byrow = TRUE
+              )) +
+              ggplot2::ylab("") +
+              ggplot2::ylab(xl) +
+              ggplot2::theme_bw(base_size = 15)
+            # Merging the plots with patchwork
+            mixture_layout <- "
+                              ##CCCC
+                              ##CCCC
+                              RRAAAA
+                              RRAAAA
+                              RRAAAA
+                              "
+            p_alpha <- patchwork::wrap_plots(
+              R = p_pi, C = p_rho, A = p_alpha,
+              design = mixture_layout
+            ) +
+              patchwork::plot_layout(
+                guides = "collect",
+                design = mixture_layout
+              )
+          }
+          return(p_alpha)
+        },
+        "block" = {
+          as.matrix(self$A[[net_id]])[
+            order(self$Z[[net_id]][[1]]),
+            order(self$Z[[net_id]][[2]])
+          ] %>%
+            reshape2::melt() %>%
+            ggplot2::ggplot(ggplot2::aes(x = Var2, y = rev(Var1), fill = value)) +
+            ggplot2::geom_tile(show.legend = FALSE) +
+            ggplot2::geom_hline(
+              yintercept = cumsum(tabulate(self$Z[[net_id]][[1]])[self$Q[1]:2]) + .5,
+              col = "red", size = .5
+            ) +
+            ggplot2::geom_vline(
+              xintercept = cumsum(tabulate(self$Z[[net_id]][[2]])[1:(self$Q[2] - 1)]) + .5,
+              col = "red", size = .5
+            ) +
+            ggplot2::scale_fill_gradient(low = "white", high = "black", na.value = "transparent") +
+            ggplot2::ylab("") +
+            ggplot2::xlab(self$net_id[net_id]) +
+            ggplot2::scale_x_discrete(
+              breaks = ""
+            ) +
+            # ggplot2::scale_y_reverse() +
+            ggplot2::scale_y_discrete(
+              breaks = "",
+              guide = ggplot2::guide_axis(angle = 0)
+            ) +
+            ggplot2::coord_equal(expand = FALSE) +
+            ggplot2::theme_bw(base_size = 15) +
+            ggplot2::theme(axis.ticks = ggplot2::element_blank())
+        }
+      )
+      return(p)
+    }
   ),
   active = list(
+    #' @field nb_nodes Returns n a list of the number of nodes per network
     nb_nodes = function(value) self$n,
+    #' @field nb_blocks Returns Q a vector with 2 coordinates, Q1 and Q2 for the
+    #' row blocks and the column blocks 
     nb_blocks = function(value) self$Q,
+    #' @field support Returns the Cpi, a list of M boolean matrices indicating 
+    #' which blocks are populated
     support = function(value) self$Cpi,
+    #' @field prob_memberships Returns the tau, the probabilities of memberships
+    #' "a posteriori", after seeing the data
     prob_memberships = function(value) self$tau,
+    #' @field parameters Returns the list of parameters of the model, alpha, pi 
+    #' and rho
     parameters = function(value) {
       list(
         alpha = self$alpha,
@@ -1542,6 +1829,8 @@ fitBipartiteSBMPop <- R6::R6Class(
         rho = lapply(self$pi, function(list_pi_rho) list_pi_rho[[2]])
       )
     },
+    #' @field pred_dyads Predicted dyads from the estimated probabilities and
+    #' parameters
     pred_dyads = function(value) {
       lapply(
         seq(self$M),
@@ -1551,6 +1840,7 @@ fitBipartiteSBMPop <- R6::R6Class(
         }
       )
     },
+    #' @field memberships The block memberships
     memberships = function(value) {
       self$Z
     }

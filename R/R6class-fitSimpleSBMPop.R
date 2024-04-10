@@ -8,52 +8,131 @@ fitSimpleSBMPop <- R6::R6Class(
   # inherit = "bmpop",
   #
   public = list(
+    #' @field n A list of size M with the number of nodes per network
     n = NULL, # a vector of size M
+    #' @field M Number of networks
     M = NULL, # Number of networks
+    #' @field A List of incidence matrices of size `n \times n`
     A = NULL, # List of n[m]xn[m] Matrix
+    #' @field mask List of M masks, indicating NAs in the matrices. 1 for NA, 0 else
     mask = NULL, # List of NA Matrices
+    #' @field nb_inter A vector of length M the number of unique non NA entries
     nb_inter = NULL, # A vector of length M the number of unique non NA entries
+    #' @field directed A boolean indicating if the networks are directed or not
     directed = NULL, # Boolean for network direction, Constant
+    #' @field Q An integer indicating the number of blocks
     Q = NULL, # Number of clusters, Constant
+    #' @field tau List of length M, variational parameters `n[m]xQ[m]` matrices
     tau = NULL, # List of length M, variational parameters n[m]xQ[m] matrices
+    #' @field alpha Matrix of size QxQ, connection parameters
     alpha = NULL, # Matrix of size QxQ, connection parameters
+    #' @field delta Vector of M,  density parameters with `delta[1] = 1`
     delta = NULL, # Vector of M,  density parameters with delta[1] = 1
+    #' @field pi List of M vectors of size Q, the mixture parameters
     pi = NULL, # List of M vectors of size Q, the mixture parameters
+    #' @field e Vector of size M, the sum of unique entries
     e = NULL, # Vector of size M, the sum of unique entries
+    #' @field emqr  List of M QxQ matrix, the sum of edges between q and r in m
     emqr = NULL, # List of M QxQ matrix, the sum of edges between q and r in m
+    #' @field nmqr List of M QxQ matrix, the number of entries between q and r in m
     nmqr = NULL, # list of M QxQ matrix, the number of entries between q and r in m
+    #' @field pim  List of M vectors of size Q, the mixture parameters (pi_tilde)
     pim = NULL, # List of M vectors of size Q, the mixture parameters (pi_tilde)
+    #' @field alpham  list of M QxQ matrix, the classic sbm parameters (alpha_tilde)
     alpham = NULL, # list of M QxQ matrix, the classic sbm parameters (alpha_tilde)
+    #' @field free_mixture A boolean indicating if the model is with free
+    #' mixture
     free_mixture = NULL, # A boolean
+    #' @field free_density A boolean indicating if the model is with free
+    #' density
     free_density = NULL, # A boolean
+    #' @field weight  A vector of size M for weighted likelihood
     weight = NULL, # A vector of size M for weighted likelihood
+    #' @field distribution The emission distribution, either bernoulli or
+    #' poisson
     distribution = NULL, # "poisson", "bernoulli"
+    #' @field Cpi  A list of matrices of size Q x M containing TRUE (1)
+    #' or FALSE (0) if the cluster is represented in the network m
     Cpi = NULL,
+    #' @field Calpha The corresponding support on the connectivity parameters
+    #' computed with Cpi.
     Calpha = NULL,
+    #' @field mloss Loss on the M step of the VEM
     mloss = Inf,
+    #' @field vloss Loss on the VE step of the VEM
     vloss = NULL,
+    #' @field vbound The variational bound
     vbound = NULL,
+    #' @field net_id A vector containing the "ids" or names of the networks
+    #' (if none given, they are set to their number in A list)
     net_id = NULL,
+    #' @field df_mixture The degrees of freedom for mixture parameters pi,used
+    #' to compute penalty
     df_mixture = NULL,
+    #' @field df_connect The degrees of freedom for connection parameters
+    #' alpha,used to compute penalty
     df_connect = NULL,
+    #' @field df_density The degrees of freedom for density parameters delta,
+    #' used to compute penalty
     df_density = NULL,
+    #' @field logfactA A quantity used with the Poisson probability distribution
     logfactA = NULL,
     #  algo_ve = NULL,
     #  minibatch = NULL,
+    #' @field init_method The initialization method used for the first clustering
     init_method = NULL,
     #  verbosity = NULL,
+    #' @field penalty  The penalty computed based on the number of parameters
     penalty = NULL,
     # approx_pois = NULL,
+    #' @field Z  The clusters memberships, a list of size M of two matrices : 1
+    #' for rows clusters memberships and 2 for columns clusters memberships
     Z = NULL,
+    #' @field map Maximum a posteriori
     map = NULL,
+    #' @field map_parameters MAP params
     map_parameters = NULL,
+    #' @field ICL Stores the ICL of the model
     ICL = NULL,
+    #' @field penalty_clustering Unused attribute
     penalty_clustering = NULL,
+    #' @field BICL Stores the BICL of the model
     BICL = NULL,
+    #' @field net_clustering Unused parameter
     net_clustering = NULL,
+    #' @field counter_merge A counter for the merge (backward) steps
     counter_merge = 0,
+    #' @field counter_split A counter for the splitting (forward) steps
     counter_split = 0,
+    #' @field fit_opts Fit parameters, used to determine the fitting method/
     fit_opts = NULL,
+
+    #' @description
+    #' Initializes the fitBipartiteSBMPop object
+    #'
+    #' @param A List of incidence Matrix of size `n[[2]][m]xn[[2]][m]`
+    #' @param Q The number of blocks
+    #' @param Z  The block memberships, a list of size M of two matrices : 1
+    #' for rows clusters memberships and 2 for columns clusters memberships
+    #' @param mask List of M masks, indicating NAs in the matrices. 1 for NA, 0 else
+    #' @param net_id A vector containing the "ids" or names of the networks
+    #' (if none given, they are set to their number in A list)
+    #' @param distribution Emission distribution either : "poisson" or
+    #' "bernoulli"
+    #' @param free_mixture A boolean indicating if there is a free mixture
+    #' @param free_density A boolean indicating if there is a free_density
+    #' @param directed A boolean specifying if the networks are directed or not
+    #' @param weight A vector of size M for weighted likelihood
+    #' @param Cpi  A list of matrices of size Qd x M containing TRUE (1)
+    #' or FALSE (0) if the d-th dimension cluster is represented
+    #' in the network m
+    #' @param Calpha The corresponding support on the connectivity parameters
+    #' computed with Cpi.
+    #' @param init_method The initialization method used for the first clustering
+    #' @param greedy_exploration_starting_point Stores the coordinates Q1 & Q2
+    #' from the greedy exploration to  keep track of the starting_point
+    #' @param logfactA A quantity used with the Poisson probability distribution
+    #' @param fit_opts Fit parameters, used to determine the fitting method/
     initialize = function(A = NULL,
                           Q = NULL,
                           Z = NULL,
@@ -177,6 +256,8 @@ fitSimpleSBMPop <- R6::R6Class(
         vapply(seq(self$M), function(m) self$n[m]**2 - sum(self$mask[[m]]), FUN.VALUE = .1)
       self$vbound <- vector("list", self$M)
     },
+    #' Method to compute the maximum a posteriori for Z clustering
+    #' @return nothing; stores the values
     compute_map = function() {
       self$Z <- lapply(
         self$tau,
@@ -184,9 +265,16 @@ fitSimpleSBMPop <- R6::R6Class(
       )
       invisible(self$Z)
     },
+    #' Objective function
+    #' @return The evaluation of the function
     objective = function() {
       sum(vapply(seq_along(self$A), function(m) vb(m)), FUN.VALUE = .1)
     },
+    #' Computes the portion of the vbound with tau and alpha
+    #' @param m The id of the network for which to compute
+    #' @param map Wether to use the MAP parameters or not, a boolean, defaults
+    #' to FALSE.
+    #' @return The computed quantity.
     vb_tau_alpha = function(m, map = FALSE) {
       if (map) {
         emqr <- outer(self$Cpi[, m], self$Cpi[, m]) * self$map$emqr[m, , ]
@@ -214,6 +302,10 @@ fitSimpleSBMPop <- R6::R6Class(
         }
       )
     },
+    #' @param m The id of the network for which to compute
+    #' @param map Wether to use the MAP parameters or not, a boolean, defaults
+    #' to FALSE.
+    #' @return The computed quantity.
     vb_tau_pi = function(m, map = FALSE) {
       if (!map) {
         sum(self$tau[[m]][, which(self$Cpi[, m]), drop = FALSE] %*% log(self$pi[[m]][which(self$Cpi[, m])]))
@@ -221,9 +313,21 @@ fitSimpleSBMPop <- R6::R6Class(
         sum(.xlogy(tabulate(self$Z[[m]], self$Q), self$map$pi[[m]]))
       }
     },
+    #' Computes the entropy of the model
+    #' @param m The id of the network for which to compute
+    #' @return The computed quantity.
     entropy_tau = function(m) {
       -sum(.xlogx(self$tau[[m]][, which(self$Cpi[, m])]))
     },
+    #' Objective function for the variational bound regarding
+    #' the alpha and delta parameters.
+    #'
+    #' @param par The parameters, alpha and delta combined in one big vector.
+    #' @param emqr List of M QxQ matrix, the sum of edges between q and r in m
+    #' @param nmqr List of M QxQ matrix, the number of entries between q and r
+    #' in m
+    #'
+    #' @return The evaluation of the function
     fn_vb_alpha_delta = function(par, emqr, nmqr) {
       df_connect <- ifelse(self$directed, self$Q**2, choose(self$Q + 1, 2))
       alpha <- matrix(0, self$Q, self$Q)
@@ -244,6 +348,15 @@ fitSimpleSBMPop <- R6::R6Class(
         )
       sum(res)
     },
+    #' Gradient of the objective function for the variational bound regarding
+    #' the alpha and delta parameters.
+    #'
+    #' @param par The parameters, alpha and delta combined in one big vector.
+    #' @param emqr List of M QxQ matrix, the sum of edges between q and r in m
+    #' @param nmqr List of M QxQ matrix, the number of entries between q and r
+    #' in m
+    #'
+    #' @return The evaluation of the function
     gr_vb_alpha_delta = function(par, emqr, nmqr) {
       # browser()
       df_connect <- ifelse(self$directed, self$Q**2, choose(self$Q + 1, 2))
@@ -279,6 +392,14 @@ fitSimpleSBMPop <- R6::R6Class(
       }
       invisible(res)
     },
+    #' Constraint
+    #'
+    #' @param par The parameters, alpha and delta combined in one big vector.
+    #' @param emqr List of M QxQ matrix, the sum of edges between q and r in m
+    #' @param nmqr List of M QxQ matrix, the number of entries between q and r
+    #' in m
+    #'
+    #' @return The evaluation of the function
     eval_g0_vb_alpha_delta = function(par, emqr, nmqr) {
       df_connect <- ifelse(self$directed, self$Q**2, choose(self$Q + 1, 2))
       as.vector(
@@ -292,6 +413,14 @@ fitSimpleSBMPop <- R6::R6Class(
         )
       )
     },
+    #' Jacobian of the constraint
+    #'
+    #' @param par The parameters, alpha and delta combined in one big vector.
+    #' @param emqr List of M QxQ matrix, the sum of edges between q and r in m
+    #' @param nmqr List of M QxQ matrix, the number of entries between q and r
+    #' in m
+    #'
+    #' @return The evaluation of the function
     eval_jac_g0_vb_alpha_delta = function(par, emqr, nmqr) {
       df_connect <- ifelse(self$directed, self$Q**2, choose(self$Q + 1, 2))
       jac_d <- aperm(
@@ -310,6 +439,12 @@ fitSimpleSBMPop <- R6::R6Class(
       }
       cbind(jac_d, jac_a)
     },
+    #' Updates the alpha and delta parameters
+    #'
+    #' @param map Wether to use the MAP parameters or not, a boolean, defaults
+    #' to FALSE.
+    #'
+    #' @return nothing; but stores the values
     update_alpha_delta = function(map = FALSE) {
       # browser()
       # Only undirected
@@ -370,6 +505,9 @@ fitSimpleSBMPop <- R6::R6Class(
         self$delta <- d
       }
     },
+    #' Computes the variational bound (vbound)
+    #'
+    #' @return The variational bound for the model.
     compute_vbound = function() {
       sum(vapply(
         seq_along(self$A),
@@ -377,6 +515,9 @@ fitSimpleSBMPop <- R6::R6Class(
         FUN.VALUE = .1
       ))
     },
+    #' Computes the penalty for the model
+    #'
+    #' @return the computed penalty using the formulae.
     compute_penalty = function() {
       if (self$free_mixture) {
         self$df_mixture <- colSums(self$Cpi) - 1
@@ -406,7 +547,10 @@ fitSimpleSBMPop <- R6::R6Class(
     #                          sum(self$df_mixture *log(self$n)))
     #   invisible(self$penalty)
     # },
-
+    #' Computes the ICL criterion
+    #' @param map Wether to use the MAP parameters or not, a boolean, defaults
+    #' to FALSE.
+    #' @return The ICL for the model.
     compute_icl = function(map = FALSE) {
       ICL <-
         sum(vapply(
@@ -421,6 +565,10 @@ fitSimpleSBMPop <- R6::R6Class(
       }
       return(ICL)
     },
+    #' Computes the BICL criterion
+    #' @param map Wether to use the MAP parameters or not, a boolean, defaults
+    #' to FALSE.
+    #' @return The ICL for the model.
     compute_BICL = function(map = TRUE) {
       # browser()
       #    Z_unique <- lapply(self$Z, function(Z) sort(unique(Z)))
@@ -460,6 +608,8 @@ fitSimpleSBMPop <- R6::R6Class(
       #   FUN.VALUE = .1)) - pen
       invisible(self$BICL)
     },
+    #' Computes the exact ICL criterion
+    #' @return The exact ICL for the model.
     compute_exact_icl = function() {
       ## directed not implemented yet
       df_mixture <- ifelse(self$free_mixture, (self$Q - 1), self$Q - 1)
@@ -501,6 +651,8 @@ fitSimpleSBMPop <- R6::R6Class(
       }
       return(exicl)
     },
+    #' Computes the exact ICL criterion for iid
+    #' @return The exact ICL for the iid model.
     compute_exact_icl_iid = function() {
       ## directed not implemented yet
       df_mixture <- ifelse(self$free_mixture, self$M * (self$Q - 1), self$Q - 1)
@@ -524,6 +676,9 @@ fitSimpleSBMPop <- R6::R6Class(
         )
       )
     },
+    #' Updates the MAP parameters
+    #'
+    #' @return nothing; but stores the values
     update_map_parameters = function() {
       Z <- self$compute_map()
       Z <- lapply(
@@ -560,6 +715,14 @@ fitSimpleSBMPop <- R6::R6Class(
       lapply(seq.int(self$M), function(m) self$update_alpham(m, map = TRUE))
       invisible(Z)
     },
+    #' Method to update tau values with a fixed-point algorithm
+    #'
+    #' @param m The number of the network in the netlist
+    #' @param max_iter The maximum number of iterations to perform, defaults
+    #' to 1
+    #' @param tol The tolerance for which to stop iterating defaults to 1e-2
+    #'
+    #' @return The new tau values
     fixed_point_tau = function(m, max_iter = 1, tol = 1e-2) {
       condition <- TRUE
       it <- 0
@@ -682,6 +845,14 @@ fitSimpleSBMPop <- R6::R6Class(
       }
       invisible(self$tau[[m]])
     },
+    #' Fixed point to update alpha and delta
+    #'
+    #' @param map A boolean wether to use MAP parameters or not, defaults to
+    #' FALSE
+    #' @param max_iter The maximum number of iterations, default to 50
+    #' @param tol The tolerance for which to stop iterating
+    #'
+    #' @return nothing; stores the values
     fixed_point_alpha_delta = function(map = FALSE, max_iter = 50, tol = 1e-6) {
       # switch(
       #   self$distribution,
@@ -720,6 +891,13 @@ fitSimpleSBMPop <- R6::R6Class(
         self$delta <- d
       }
     },
+    #' Computes the pi for the whole model
+    #'
+    #' @param m The number of the network in the netlist
+    #' @param map A boolean wether to use the MAP parameters or not, defaults to
+    #' FALSE
+    #'
+    #' @return the pi and stores the values
     update_pi = function(m, map = FALSE) {
       self$update_pim(m, map)
       if (!map) {
@@ -756,6 +934,13 @@ fitSimpleSBMPop <- R6::R6Class(
       }
       invisible(pi)
     },
+    #' Computes the pi per network, known as the pim
+    #'
+    #' @param m The number of the network in the netlist
+    #' @param map A boolean wether to use the MAP parameters or not, defaults to
+    #' FALSE
+    #'
+    #' @return nothing; stores the values
     update_pim = function(m, map = FALSE) {
       if (!map) {
         pi <- self$Cpi[, m] * .colMeans(self$tau[[m]], self$n[m], self$Q)
@@ -766,6 +951,13 @@ fitSimpleSBMPop <- R6::R6Class(
       }
       invisible(pi)
     },
+    #' Computes the alpha per network, known as the alpĥam
+    #'
+    #' @param m The number of the network in the netlist
+    #' @param map A boolean wether to use the MAP parameters or not, defaults to
+    #' FALSE
+    #'
+    #' @return the alpham and stores the values
     update_alpham = function(m, map = FALSE) {
       if (!map) {
         alpham <- outer(self$Cpi[, m], self$Cpi[, m]) * self$emqr[m, , ] / self$nmqr[m, , ]
@@ -778,6 +970,12 @@ fitSimpleSBMPop <- R6::R6Class(
       }
       invisible(alpham)
     },
+    #' Computes the alpha for the whole model
+    #'
+    #' @param map A boolean wether to use the MAP parameters or not, defaults to
+    #' FALSE
+    #'
+    #' @return the alpha and stores the values
     update_alpha = function(map = FALSE) {
       if (!map) {
         alpha <- self$Calpha * (colSums(self$emqr, dims = 1) / colSums(self$nmqr, dims = 1))
@@ -792,7 +990,7 @@ fitSimpleSBMPop <- R6::R6Class(
     },
 
     #' @description Initialize clusters
-    #' 
+    #'
     #' @importFrom gtools rdirichlet
     init_clust = function() {
       self$tau <-
@@ -891,9 +1089,20 @@ fitSimpleSBMPop <- R6::R6Class(
         self$fixed_point_alpha_delta()
       }
     },
+    #' @description TODO Remove
     make_permutation = function() {
 
     },
+    #' @description
+    #' The M step of the VEM
+    #'
+    #' @param map A boolean wether to use the MAP parameters or not, defaults to
+    #' FALSE
+    #' @param max_iter The maximum number of iterations, default to 2
+    #' @param tol The tolerance for which to stop iterating defaults to 1e-3
+    #' @param ... Other parameters
+    #'
+    #' @return nothing; stores values
     m_step = function(map = FALSE, max_iter = 100, tol = 1e-3, ...) {
       ## A faire: Separer l'update de pi du m_step, on le fait beaucou trop.
       ## Completement sous optimal lorsque M est grand.
@@ -912,9 +1121,24 @@ fitSimpleSBMPop <- R6::R6Class(
         )
       }
     },
+    #' An optimization version for the VE step of the VEM but currently a
+    #' placeholder
+    #'
+    #' @param m The number of the network in the netlist
+    #' @param max_iter The maximum number of iterations, default to 2
+    #' @param tol The tolerance for which to stop iterating defaults to 1e-3
+    #' @param ... Other parameters
+    #'
+    #' @return nothing; stores values
     ve_step = function(m, max_iter = 20, tol = 1e-3, ...) {
       # Place holder for gradient ascent or other optimization methods
     },
+    #' Updates the mqr quantities
+    #'
+    #' @description
+    #' Namely, it updates the emqr and nmqr.
+    #'
+    #' @param m The number of the network in the netlist
     update_mqr = function(m) {
       tau_tmp <- self$tau[[m]]
       Um <- 1 - as.matrix(self$mask[[m]])
@@ -922,6 +1146,13 @@ fitSimpleSBMPop <- R6::R6Class(
       self$emqr[m, , ] <- outer(self$Cpi[, m], self$Cpi[, m]) * .tquadform(tau_tmp, Am)
       self$nmqr[m, , ] <- outer(self$Cpi[, m], self$Cpi[, m]) * .tquadform(tau_tmp, Um)
     },
+    #' Perform the whole initialization and VEM algorithm
+    #'
+    #' @param max_step The maximum number of steps to perform optimization
+    #' @param tol The tolerance for which to stop iterating, default to 1e-3
+    #' @param ... Other parameters
+    #'
+    #' @return nothing; stores values
     optimize = function(max_step = self$fit_opts$max_step, tol = 1e-3, ...) {
       if (self$Q == 1) {
         self$tau <- lapply(seq(self$M), function(m) matrix(1, self$n[m], 1))
@@ -1035,6 +1266,8 @@ fitSimpleSBMPop <- R6::R6Class(
       self$compute_icl(map = TRUE)
       self$compute_BICL()
     },
+    #' The message printed when one prints the object
+    #' @param type The title above the message.
     show = function(type = "Fitted Collection of Simple SBM") {
       cat(type, "--", self$distribution, "variant for", self$M, "networks \n")
       cat("=====================================================================\n")
@@ -1045,16 +1278,170 @@ fitSimpleSBMPop <- R6::R6Class(
       cat("  $distribution, $nb_nodes, $nb_clusters, $support, $Z \n")
       cat("  $memberships, $parameters, $BICL, $vbound, $pred_dyads \n")
     },
+    #' The print method
+    #' 
+    #' @return nothing; print to console
     print = function() {
       self$show()
+    },
+    #' Plot method
+    #'
+    #' @import ggplot2
+    #' @importFrom patchwork plot_layout plot_annotation wrap_plots
+    #' @importFrom reshape2 melt
+    #' @importFrom purrr map_dfc
+    #' 
+    #' @param type The type of the plot. Could be "graphon", "meso" or "block".
+    #' @param ord A reordering of the blocks.
+    #' @param mixture Should the block proportions of each network be plotted as
+    #' well?
+    #' @param net_id Use to plot only on network in "graphon" view.
+    #' @param ... Further argument to be passed
+    #' 
+    #' @return A plot, a ggplot2 object.
+    plot = function(type = "graphon", ord = NULL, mixture = FALSE, net_id = NULL, ...) {
+      if (is.null(ord)) ord <- order(diag(self$alpha), decreasing = TRUE)
+      p <- switch(type,
+        graphon = {
+          (self$alpha[ord, ord] * mean(self$delta)) %>%
+            t() %>%
+            reshape2::melt() %>%
+            dplyr::mutate(
+              xmax = rep(c(0, cumsum(self$pi[[net_id]][ord][1:(self$Q - 1)])), self$Q),
+              xmin = rep(cumsum(self$pi[[net_id]][ord]), self$Q),
+              ymax = rep(c(0, cumsum(self$pi[[net_id]][ord][1:(self$Q - 1)])), each = self$Q),
+              ymin = rep(cumsum(self$pi[[net_id]][ord]), each = self$Q)
+            ) %>%
+            ggplot2::ggplot(ggplot2::aes(
+              xmin = xmin, ymin = ymin,
+              xmax = xmax, ymax = ymax, fill = value
+            )) +
+            ggplot2::geom_rect() +
+            ggplot2::scale_fill_gradient2("alpha", low = "white", mid = "red", midpoint = 1) +
+            ggplot2::geom_hline(yintercept = cumsum(self$pi[[net_id]][ord][1:(self$Q - 1)]), size = .2) +
+            ggplot2::geom_vline(xintercept = cumsum(self$pi[[net_id]][ord][1:(self$Q - 1)]), size = .2) +
+            ggplot2::scale_y_reverse() +
+            ggplot2::theme_bw(base_size = 15, base_rect_size = 1, base_line_size = 1) +
+            ggplot2::xlab("") +
+            ggplot2::ylab("") +
+            ggplot2::coord_equal(expand = FALSE)
+        },
+        meso = {
+          if (self$free_mixture) {
+            pim <- self$pi
+          } else {
+            pim <- self$pim
+          }
+          p_alpha <- self$alpha[ord, ord] %>%
+            t() %>%
+            reshape2::melt() %>%
+            ggplot2::ggplot(ggplot2::aes(x = Var1, y = Var2, fill = value)) +
+            ggplot2::geom_tile() +
+            ggplot2::scale_fill_gradient2("alpha", low = "white", high = "red") +
+            ggplot2::geom_hline(yintercept = seq(self$Q) + .5) +
+            ggplot2::geom_vline(xintercept = seq(self$Q) + .5) +
+            ggplot2::scale_y_reverse() +
+            ggplot2::theme_bw(base_size = 15, base_rect_size = 1, base_line_size = 1) +
+            ggplot2::xlab("") +
+            ggplot2::ylab("") +
+            ggplot2::coord_fixed(expand = FALSE)
+          #  scale_y_reverse()
+          if (self$free_density) {
+            xl <- paste(round(self$delta, 1))
+          } else {
+            xl <- ""
+          }
+          df <- purrr::map_dfc(
+            seq_along(self$net_id),
+            function(m) self$pim[[m]][ord]
+          )
+          names(df) <- self$net_id
+          if (mixture) {
+            p_pi <-
+              df %>%
+              #    rename() %>%
+              dplyr::mutate(q = seq(self$Q)) %>%
+              tidyr::pivot_longer(cols = -c(q)) %>%
+              ggplot2::ggplot(ggplot2::aes(fill = as.factor(q), y = name, x = value)) +
+              ggplot2::geom_col() +
+              ggplot2::coord_flip(expand = FALSE) +
+              ggplot2::scale_fill_brewer("Block",
+                type = "qual", palette = "Paired",
+                direction = -1
+              ) +
+              ggplot2::ylab("") +
+              ggplot2::ylab(xl) +
+              ggplot2::theme_bw(base_size = 15)
+            p_alpha <- (p_alpha | p_pi) + patchwork::plot_layout(guides = "collect", widths = c(.65, .35)) +
+              patchwork::plot_annotation(title = NULL)
+          }
+          return(p_alpha)
+        },
+        "block" = {
+          Z <- factor(self$Z[[net_id]], levels = rev(ord))
+          as.matrix(self$A[[net_id]])[
+            order(Z),
+            order(Z)
+          ] %>% # t() %>%
+            reshape2::melt() %>%
+            dplyr::mutate(con = self$alpha[self$Z[[net_id]], self$Z[[net_id]]][
+              order(Z),
+              order(Z)
+            ] %>% # t() %>%#[self$Z[[net_id]], self$Z[[net_id]]][
+              #  order(Z),
+              #    order(Z)] %>%
+              reshape2::melt() %>%
+              dplyr::pull(value)) %>%
+            ggplot2::ggplot(ggplot2::aes(x = Var2, y = Var1, fill = value, alpha = value)) +
+            ggplot2::geom_tile(ggplot2::aes(alpha = con),
+              fill = "red", size = 0, show.legend = FALSE
+            ) +
+            ggplot2::geom_tile(show.legend = FALSE) +
+            ggplot2::geom_hline(
+              yintercept = cumsum(tabulate(Z)[1:(self$Q - 1)]) + .5,
+              col = "red", size = .5
+            ) +
+            ggplot2::geom_vline(
+              xintercept = cumsum(tabulate(Z)[(self$Q):2]) + .5,
+              col = "red", size = .5
+            ) +
+            ggplot2::scale_fill_gradient(low = "white", high = "black") +
+            ggplot2::ylab("") +
+            ggplot2::xlab(self$net_id[net_id]) +
+            ggplot2::scale_x_discrete(
+              limits = rev,
+              breaks = ""
+            ) +
+            # ggplot2::scale_y_reverse() +
+            ggplot2::scale_y_discrete( # limits = rev,
+              breaks = "", # label = rev(custom_lab3),
+              guide = ggplot2::guide_axis(angle = 0)
+            ) +
+            ggplot2::scale_alpha(range = c(0, 1)) +
+            ggplot2::coord_equal(expand = FALSE) +
+            ggplot2::theme_bw(base_size = 15) +
+            ggplot2::theme(axis.ticks = ggplot2::element_blank())
+        }
+      )
+      return(p)
     }
   ),
   active = list(
+    #' @field dircoef The coefficients used change if the network is directed
+    #' or not
     dircoef = function() ifelse(self$directed, 1, .5),
+    #' @field nb_nodes Returns n a list of the number of nodes per network
     nb_nodes = function(value) self$n,
+    #' @field nb_clusters Returns Q an integer with the number of blocks
     nb_clusters = function(value) self$Q,
+    #' @field support Returns the Cpi, a list of M boolean matrices indicating
+    #' which blocks are populated
     support = function(value) self$Cpi,
+    #' @field memberships Returns the tau, the probabilities of memberships
+    #' "a posteriori", after seeing the data
     memberships = function(value) self$tau,
+    #' @field parameters Returns the list of parameters of the model, alpha, pi
+    #' and delta
     parameters = function(value) {
       list(
         alpha = self$alpha,
@@ -1062,6 +1449,8 @@ fitSimpleSBMPop <- R6::R6Class(
         delta = self$delta
       )
     },
+    #' @field pred_dyads Predicted dyads from the estimated probabilities and
+    #' parameters
     pred_dyads = function(value) {
       lapply(
         seq(self$M),

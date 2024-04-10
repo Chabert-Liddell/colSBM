@@ -13,7 +13,7 @@ bisbmpop <- R6::R6Class(
   public = list(
     #' @field n A list with two dimensions, each of size M for the rows and cols
     n = NULL,
-    #' @field A List of incidence Matrix of size n[[1]][m]xnc[m]
+    #' @field A List of incidence Matrix of size `n[[1]][m]xn[[2]][m]`
     A = NULL,
     #' @field M Number of networks
     M = NULL,
@@ -93,7 +93,7 @@ bisbmpop <- R6::R6Class(
     #' This class is generally called via the user function `estimate_colBiSBM`
     #'
     #' @param netlist The list of M networks
-    #' @param net_id A list of name for the networs, defaults to 1 to M if not 
+    #' @param net_id A list of name for the networks, defaults to 1 to M if not 
     #' provided
     #' @param distribution The emission distribution either "bernoulli" or 
     #' "poisson"
@@ -2616,7 +2616,7 @@ bisbmpop <- R6::R6Class(
     #' @param point A vector of size 2, containing the first coordinate Q1, the
     #' number of row blocks and Q2 the number of column blocks.
     #' 
-    #' @return A boolean if the point if in the limits of [0,Q1_max]x[0,Q2_max]
+    #' @return A boolean if the point if in the limits of `[0,Q1_max]x[0,Q2_max]`
     point_is_in_limits = function(point) {
       Q1 <- point[[1]]
       Q2 <- point[[2]]

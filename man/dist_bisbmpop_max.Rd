@@ -40,5 +40,5 @@ alpha <- list(matrix(c(0.9,0.1,
                        0.1, 0.05), byrow = TRUE, nrow = 2),
                matrix(c(0.9,0.1,
                        0.1, 0.05), byrow = TRUE, nrow = 2))
-dist_bisbmpop_max(pi, alpha)
+dist_bisbmpop_max(pi, rho, alpha)
 }

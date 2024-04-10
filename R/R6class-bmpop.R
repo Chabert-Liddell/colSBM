@@ -1,37 +1,83 @@
 #' An R6 Class object, a collection of model for population of sbm netowrks
 #'
 #' @import R6
-#' 
+#'
 #' @export
 
 bmpop <- R6::R6Class(
   "bmpop",
   #
   public = list(
+    #' @field n A list of size M with the number of nodes per network
     n = NULL,
+    #' @field A List of incidence Matrix of size `n \times n`
     A = NULL,
+    #' @field M Number of networks
     M = NULL,
+    #' @field mask List of M masks, indicating NAs in the matrices. 1 for NA, 0 else
     mask = NULL, # 1 for NA and 0 for observed
+    #' @field directed A boolean indicating if the networks are directed or not
     directed = NULL,
+    #' @field distribution Emission distribution either : "poisson" or
+    #' "bernoulli"
     distribution = NULL,
+    #' @field net_id A vector containing the "ids" or names of the networks
+    #' (if none given, they are set to their number in A list)
     net_id = NULL,
+    #' @field model_list A list of size Q containing the best models
     model_list = NULL,
+    #' @field global_opts A list of options for the model space exploration.
+    #' See details for more information on which options are available.
     global_opts = NULL,
+    #' @field fit_opts A list of options specifically for fitting the models.
     fit_opts = NULL,
+    #' @field fit_sbm Pre-fitted sbm objects
     fit_sbm = NULL,
+    #' @field Z_init A list of initializations for the Z memberships.
     Z_init = NULL,
+    #' @field free_density A boolean indicating if we consider free density or if
+    #' all networks have the same density
     free_density = NULL,
+    #' @field free_mixture A boolean signaling if there is free mixture
     free_mixture = NULL,
+    #' @field ICL_sbm A list storing the ICL for each sbm fitted
     ICL_sbm = NULL,
+    #' @field ICL A list of size Q storing the best ICL found for each Q
     ICL = NULL,
+    #' @field BICL A list of size Q storing the best BICL found for each Q
     BICL = NULL,
+    #' @field vbound A list of size Q storing the best vbound found for each Q
     vbound = NULL,
+    #' @field best_fit A fitSimpleSBMPop object changing regularly to store
+    #' the current best fit.
     best_fit = NULL,
+    #' @field logfactA A quantity used with the Poisson probability distribution
     logfactA = NULL,
+    #' @field improved A field use at each step to check if it has improved.
     improved = list(
       forward = TRUE,
       backward = TRUE
     ),
+    #' @description
+    #' Create a new instance of the bisbmpop object
+    #'
+    #' This class is generally called via the user function `estimate_colBiSBM`
+    #' @param netlist The list of M networks
+    #' @param net_id A list of name for the networks, defaults to 1 to M if not
+    #' provided
+    #' @param directed A boolean indicating if the networks are directed or not
+    #' @param distribution The emission distribution either "bernoulli" or
+    #' "poisson"
+    #' @param free_density If we account for different density between networks
+    #' @param free_mixture A boolean indicating if there is free mixture
+    #' @param fit_sbm The pre-fitted SBM
+    #' @param Z_init A list providing a clustering of the nodes
+    #' @param global_opts A list of global options used by the algorithm. See
+    #' details of the user function for more information.
+    #' @param fit_opts A list of fit options used by the algorithm. See
+    #' details of the user function for more information.
+    #'
+    #' @return A new 'sbmpop' object.
     initialize = function(netlist = NULL,
                           net_id = NULL,
                           directed = NULL,
@@ -106,14 +152,16 @@ bmpop <- R6::R6Class(
       self$fit_opts <- utils::modifyList(self$fit_opts, fit_opts)
     },
 
-    # Fit a list of SBM if fit_sbm == TRUE
+    #' Fit a list of SBM if fit_sbm == TRUE
+    #'
+    #' @return nothing; but stores the values
     optimize_sbm = function() {
       ## Need to change ICL computation for Z^map
       if (is.null(self$fit_sbm)) {
         #  p <- progressr::progressor(along = self$A)
         self$fit_sbm <-
           colsbm_lapply(
-#          bettermc::mclapply(
+            #          bettermc::mclapply(
             X = seq_along(self$A),
             FUN = function(m) {
               #     p(sprintf("m=%g", m))
@@ -147,6 +195,12 @@ bmpop <- R6::R6Class(
         )
       }
     },
+    #' Fit the colSBM mode using sbm as initializations
+    #' @param index The sequence of networks number going from 1 to M
+    #' @param Q The number of clusters
+    #' @param nb_clusters A subindex for model list, in practice always 1
+    #'
+    #' @return bmpop object
     optimize_from_sbm = function(index, Q, nb_clusters) {
       # browser()
       # for (q in seq(self$global_opts$Q_min, self$global_opts$Q_max)) {
@@ -246,6 +300,12 @@ bmpop <- R6::R6Class(
       self$BICL[Q] <- best_models[[1]]$BICL
       # }
     },
+    #' Fit the colSBM mode using spectral decompositions as initializations
+    #' @param index The sequence of networks number going from 1 to M
+    #' @param Q The number of clusters
+    #' @param nb_clusters A subindex for model list, in practice always 1
+    #'
+    #' @return bmpop object
     optimize_spectral = function(index, Q, nb_clusters) {
       lapply(
         X = seq(self$global_opts$nb_init),
@@ -268,6 +328,19 @@ bmpop <- R6::R6Class(
         }
       )
     },
+    #' Fit a colSBM model using a given initialization provided with Z for
+    #' a specific network
+    #'
+    #' @param index The sequence of networks number going from 1 to M
+    #' @param Z The provided initialization
+    #' @param Q The number of clusters
+    #' @param nb_clusters A subindex for model list, in practice always 1
+    #' @param Cpi A list of size M containing the support for the possibly
+    #' absent blocks, defaults to NULL
+    #' @param Calpha A list of size M containing the support for the possibly
+    #' absent interaction parameter, defaults to NULL
+    #'
+    #' @return bmpop object
     optimize_init = function(index, Z, Q, nb_clusters, Cpi = NULL, Calpha = NULL) {
       mypopbm <- fitSimpleSBMPop$new(
         A = self$A[index],
@@ -288,6 +361,14 @@ bmpop <- R6::R6Class(
       mypopbm$optimize()
       return(mypopbm)
     },
+    #' Fit the whole colSBM mode using a given initialization provided with a
+    #' given Z_init
+    #'
+    #' @param index The sequence of networks number going from 1 to M
+    #' @param Q The number of clusters
+    #' @param nb_clusters A subindex for model list, in practice always 1
+    #'
+    #' @return bmpop object
     optimize_from_zinit = function(index, Q, nb_clusters) {
       models <- lapply(
         self$Z_init[[Q]],
@@ -299,6 +380,10 @@ bmpop <- R6::R6Class(
       self$ICL[Q] <- best_models[[1]]$map$ICL
       self$BICL[Q] <- best_models[[1]]$BICL
     },
+    #' Burn-in method that performs the initialization
+    #' necessary to next begin the search and model selection
+    #'
+    #' @return nothing; but stores the values
     burn_in = function() {
       # browser()
       if (self$global_opts$sbm_init | !is.null(self$fit_sbm)) {
@@ -340,7 +425,7 @@ bmpop <- R6::R6Class(
           cat("Starting initialization from spectral clustering.\n")
         }
         colsbm_lapply(
-#        bettermc::mclapply(
+          #        bettermc::mclapply(
           X = seq(self$global_opts$Q_min, self$global_opts$Q_max),
           FUN = function(Q) {
             models <- self$optimize_spectral(
@@ -354,8 +439,8 @@ bmpop <- R6::R6Class(
             self$BICL[Q] <- best_models[[1]]$BICL
             rm(models)
           },
-          nb_cores = self$global_opts$nb_cores#,
-          #mc.share.copy = FALSE
+          nb_cores = self$global_opts$nb_cores # ,
+          # mc.share.copy = FALSE
         )
         # voir pour l'init spectral.
       }
@@ -368,9 +453,18 @@ bmpop <- R6::R6Class(
         cat("ICL    : ", round(self$ICL), "\n")
         cat("BICL   : ", round(self$BICL), "\n")
       }
-      # self$forward_pass()
-      # self$backward_pass()
     },
+    #' This forward pass split the clusters found previously and reallocate the
+    #' nodes to the new clusters
+    #'
+    #' @param Q_min The minimal number of clusters, defaults to the global
+    #' options Q_min parameter
+    #' @param Q_max The max number of clusters, defaults to the global
+    #' options Q_max parameter
+    #' @param index The sequence of networks number going from 1 to M
+    #' @param nb_clusters A subindex for model list, in practice always 1
+    #'
+    #' @return Q - 1
     forward_pass = function(Q_min = self$global_opts$Q_min,
                             Q_max = self$global_opts$Q_max,
                             index = seq(self$M), nb_clusters = 1L) {
@@ -446,75 +540,75 @@ bmpop <- R6::R6Class(
         )
         list_popbm <-
           colsbm_lapply(
-#          bettermc::mclapply(
-          seq_along(fold),
-          function(x) {
-            lapply(
-              seq_along(list_Zinit[fold[[x]]]),
-              function(it) {
-                # browser()
-                # res <- self$optimize_init(index = index,
-                #                    Z = Z_init[[it]],
-                #                    Q = Q,
-                #                    nb_clusters = nb_clusters)
-                res <- fitSimpleSBMPop$new(
-                  A = self$A,
-                  mask = self$mask,
-                  Z = list_Zinit[[it]],
-                  distribution = self$distribution,
-                  net_id = self$net_id,
-                  directed = self$directed,
-                  free_density = self$free_density,
-                  free_mixture = self$free_mixture,
-                  Q = Q,
-                  logfactA = self$logfactA,
-                  init_method = "given",
-                  Cpi = NULL,
-                  Calpha = NULL,
-                  fit_opts = self$fit_opts
-                )
-                res$optimize()
-                tmp_list <- list(res)
-                if (self$free_mixture & self$M > 1) {
-                  C1 <- vapply(seq(res$M),
-                    function(m) res$pi[[m]] > 1 / res$n[m],
-                    FUN.VALUE = rep(TRUE, Q)
+            #          bettermc::mclapply(
+            seq_along(fold),
+            function(x) {
+              lapply(
+                seq_along(list_Zinit[fold[[x]]]),
+                function(it) {
+                  # browser()
+                  # res <- self$optimize_init(index = index,
+                  #                    Z = Z_init[[it]],
+                  #                    Q = Q,
+                  #                    nb_clusters = nb_clusters)
+                  res <- fitSimpleSBMPop$new(
+                    A = self$A,
+                    mask = self$mask,
+                    Z = list_Zinit[[it]],
+                    distribution = self$distribution,
+                    net_id = self$net_id,
+                    directed = self$directed,
+                    free_density = self$free_density,
+                    free_mixture = self$free_mixture,
+                    Q = Q,
+                    logfactA = self$logfactA,
+                    init_method = "given",
+                    Cpi = NULL,
+                    Calpha = NULL,
+                    fit_opts = self$fit_opts
                   )
-                  dim(C1) <- c(Q, res$M)
-                  for (zeros in seq(5)) {
-                    Cpi <- vapply(seq(res$M),
-                      function(m) res$pi[[m]] > zeros / 100, # res$n[m],
+                  res$optimize()
+                  tmp_list <- list(res)
+                  if (self$free_mixture & self$M > 1) {
+                    C1 <- vapply(seq(res$M),
+                      function(m) res$pi[[m]] > 1 / res$n[m],
                       FUN.VALUE = rep(TRUE, Q)
                     )
-                    dim(Cpi) <- c(Q, res$M)
-                    if (any(!Cpi) & all(rowSums(Cpi) > 0) &
-                      (zeros == 1 | any(Cpi != C1))) {
-                      tmp_res <- res$clone()
-                      tmp_res$Cpi <- Cpi
-                      tmp_res$Calpha <-
-                        Reduce("+", lapply(
-                          seq(res$M),
-                          function(m) tcrossprod(Cpi[, m])
-                        )) > 0
-                      tmp_res$init_method <- "empty"
-                      tmp_res$optimize()
-                      tmp_list <- c(tmp_list, tmp_res)
+                    dim(C1) <- c(Q, res$M)
+                    for (zeros in seq(5)) {
+                      Cpi <- vapply(seq(res$M),
+                        function(m) res$pi[[m]] > zeros / 100, # res$n[m],
+                        FUN.VALUE = rep(TRUE, Q)
+                      )
+                      dim(Cpi) <- c(Q, res$M)
+                      if (any(!Cpi) & all(rowSums(Cpi) > 0) &
+                        (zeros == 1 | any(Cpi != C1))) {
+                        tmp_res <- res$clone()
+                        tmp_res$Cpi <- Cpi
+                        tmp_res$Calpha <-
+                          Reduce("+", lapply(
+                            seq(res$M),
+                            function(m) tcrossprod(Cpi[, m])
+                          )) > 0
+                        tmp_res$init_method <- "empty"
+                        tmp_res$optimize()
+                        tmp_list <- c(tmp_list, tmp_res)
+                      }
                     }
                   }
+                  # lapply(seq_along(tmp_list),
+                  #        function(j) {
+                  #          tmp_list[[j]]$A <- NULL
+                  #          tmp_list[[j]]$mask <- NULL
+                  #        }
+                  # )
+                  # gc()
+                  return(tmp_list)
                 }
-                # lapply(seq_along(tmp_list),
-                #        function(j) {
-                #          tmp_list[[j]]$A <- NULL
-                #          tmp_list[[j]]$mask <- NULL
-                #        }
-                # )
-                # gc()
-                return(tmp_list)
-              }
-            )
-          },
-          nb_cores = self$global_opts$nb_cores
-        )
+              )
+            },
+            nb_cores = self$global_opts$nb_cores
+          )
         list_popbm <- unlist(list_popbm)
         if (purrr::is_empty(list_popbm) & old_icl[Q] < old_icl[Q - 1]) { # a verifier et ou ou
           counter <- counter + 1
@@ -560,6 +654,16 @@ bmpop <- R6::R6Class(
       }
       Q - 1
     },
+    #' This backward pass merges the clusters found previously
+    #'
+    #' @param Q_min The minimal number of clusters, defaults to the global
+    #' options Q_min parameter
+    #' @param Q_max The max number of clusters, defaults to the global
+    #' options Q_max parameter
+    #' @param index The sequence of networks number going from 1 to M
+    #' @param nb_clusters A subindex for model list, in practice always 1
+    #'
+    #' @return Q + 1
     backward_pass = function(Q_min = self$global_opts$Q_min,
                              Q_max = self$global_opts$Q_max,
                              index = seq(self$M), nb_clusters = 1L) {
@@ -596,103 +700,103 @@ bmpop <- R6::R6Class(
           rep(1:ceiling(length(list_Zinit) / max(Q, 10)), each = max(Q, 10))[1:length(list_Zinit)]
         )
         list_popbm <-
-          colsbm_lapply(#bettermc::mclapply(
-          seq_along(fold),
-          function(x) {
-            models <- lapply(
-              seq_along(list_Zinit[fold[[x]]]),
-              function(it) {
-                # browser()
-                # res <- self$optimize_init(index = index,
-                #                    Z = Z_init[[it]],
-                #                    Q = Q,
-                #                    nb_clusters = nb_clusters)
-                res <- fitSimpleSBMPop$new(
-                  A = self$A,
-                  mask = self$mask,
-                  Z = list_Zinit[[it]],
-                  distribution = self$distribution,
-                  net_id = self$net_id,
-                  directed = self$directed,
-                  free_density = self$free_density,
-                  free_mixture = self$free_mixture,
-                  Q = Q,
-                  logfactA = self$logfactA,
-                  init_method = "given",
-                  Cpi = NULL,
-                  Calpha = NULL,
-                  fit_opts = self$fit_opts
-                )
-                res$optimize()
-                tmp_list <- list(res)
-                if (self$free_mixture & self$M > 1) {
-                  C1 <- vapply(seq(res$M),
-                    function(m) res$pi[[m]] > 1 / res$n[m],
-                    FUN.VALUE = rep(TRUE, Q)
+          colsbm_lapply( # bettermc::mclapply(
+            seq_along(fold),
+            function(x) {
+              models <- lapply(
+                seq_along(list_Zinit[fold[[x]]]),
+                function(it) {
+                  # browser()
+                  # res <- self$optimize_init(index = index,
+                  #                    Z = Z_init[[it]],
+                  #                    Q = Q,
+                  #                    nb_clusters = nb_clusters)
+                  res <- fitSimpleSBMPop$new(
+                    A = self$A,
+                    mask = self$mask,
+                    Z = list_Zinit[[it]],
+                    distribution = self$distribution,
+                    net_id = self$net_id,
+                    directed = self$directed,
+                    free_density = self$free_density,
+                    free_mixture = self$free_mixture,
+                    Q = Q,
+                    logfactA = self$logfactA,
+                    init_method = "given",
+                    Cpi = NULL,
+                    Calpha = NULL,
+                    fit_opts = self$fit_opts
                   )
-                  dim(C1) <- c(Q, res$M)
-                  for (zeros in seq(5)) {
-                    Cpi <- vapply(seq(res$M),
-                      function(m) res$pi[[m]] > zeros / 100, # res$n[m],
+                  res$optimize()
+                  tmp_list <- list(res)
+                  if (self$free_mixture & self$M > 1) {
+                    C1 <- vapply(seq(res$M),
+                      function(m) res$pi[[m]] > 1 / res$n[m],
                       FUN.VALUE = rep(TRUE, Q)
                     )
-                    dim(Cpi) <- c(Q, res$M)
-                    if (any(!Cpi) & all(rowSums(Cpi) > 0) &
-                      (zeros == 1 | any(Cpi != C1))) {
-                      tmp_res <- res$clone()
-                      tmp_res$Cpi <- Cpi
-                      tmp_res$Calpha <-
-                        Reduce("+", lapply(
-                          seq(res$M),
-                          function(m) tcrossprod(Cpi[, m])
-                        )) > 0
-                      tmp_res$init_method <- "empty"
-                      tmp_res$optimize()
-                      tmp_list <- c(tmp_list, tmp_res)
+                    dim(C1) <- c(Q, res$M)
+                    for (zeros in seq(5)) {
+                      Cpi <- vapply(seq(res$M),
+                        function(m) res$pi[[m]] > zeros / 100, # res$n[m],
+                        FUN.VALUE = rep(TRUE, Q)
+                      )
+                      dim(Cpi) <- c(Q, res$M)
+                      if (any(!Cpi) & all(rowSums(Cpi) > 0) &
+                        (zeros == 1 | any(Cpi != C1))) {
+                        tmp_res <- res$clone()
+                        tmp_res$Cpi <- Cpi
+                        tmp_res$Calpha <-
+                          Reduce("+", lapply(
+                            seq(res$M),
+                            function(m) tcrossprod(Cpi[, m])
+                          )) > 0
+                        tmp_res$init_method <- "empty"
+                        tmp_res$optimize()
+                        tmp_list <- c(tmp_list, tmp_res)
+                      }
                     }
                   }
+                  # lapply(seq_along(tmp_list),
+                  #        function(j) {
+                  #          tmp_list[[j]]$A <- NULL
+                  #          tmp_list[[j]]$mask <- NULL
+                  #        }
+                  # )
+                  # gc()
+                  return(tmp_list)
                 }
-                # lapply(seq_along(tmp_list),
-                #        function(j) {
-                #          tmp_list[[j]]$A <- NULL
-                #          tmp_list[[j]]$mask <- NULL
-                #        }
-                # )
-                # gc()
-                return(tmp_list)
-              }
-            )
-            #  browser()
-            models <- unlist(models)
-            ord_mod <- order(purrr::map_dbl(models, ~ .$BICL),
-              decreasing = TRUE
-            )
-            best_models <- models[ord_mod[1]]
-            for (id in ord_mod) {
-              if (length(best_models) >= self$global_opts$nb_models) {
-                break
-              } else {
-                ari <- purrr::map_dbl(
-                  seq_along(best_models),
-                  function(m) {
-                    sum(purrr::map_dbl(
-                      seq_along(self$A),
-                      ~ aricode::ARI(
-                        best_models[[m]]$Z[[.]],
-                        models[[id]]$Z[[.]]
-                      )
-                    ))
+              )
+              #  browser()
+              models <- unlist(models)
+              ord_mod <- order(purrr::map_dbl(models, ~ .$BICL),
+                decreasing = TRUE
+              )
+              best_models <- models[ord_mod[1]]
+              for (id in ord_mod) {
+                if (length(best_models) >= self$global_opts$nb_models) {
+                  break
+                } else {
+                  ari <- purrr::map_dbl(
+                    seq_along(best_models),
+                    function(m) {
+                      sum(purrr::map_dbl(
+                        seq_along(self$A),
+                        ~ aricode::ARI(
+                          best_models[[m]]$Z[[.]],
+                          models[[id]]$Z[[.]]
+                        )
+                      ))
+                    }
+                  )
+                  if (all(ari < best_models[[1]]$M)) {
+                    best_models <- c(best_models, models[[id]])
                   }
-                )
-                if (all(ari < best_models[[1]]$M)) {
-                  best_models <- c(best_models, models[[id]])
                 }
               }
-            }
-            return(best_models)
-          },
-          nb_cores = self$global_opts$nb_cores
-        )
+              return(best_models)
+            },
+            nb_cores = self$global_opts$nb_cores
+          )
         list_popbm <- unlist(list_popbm)
         if (purrr::is_empty(list_popbm)) {
           counter <- counter + 1
@@ -736,6 +840,14 @@ bmpop <- R6::R6Class(
       }
       Q + 1
     },
+    #' The optimization method
+    #'
+    #' @description
+    #' This method performs the burn in and the steps of moving window with
+    #' cluster splitting (forward pass) and merging (backward pass) around the mode found.
+    #'
+    #' @return nothing; but stores the values
+
     optimize = function() {
       # browser()
       #      future::plan("future::multisession", workers = self$global_opts$nb_cores)
@@ -915,7 +1027,15 @@ bmpop <- R6::R6Class(
     # },
     #
 
+    #' Performs the model selection based on the BICL criterion
     #' @importFrom aricode ARI
+    #'
+    #' @param models The list of models in which to choose the best
+    #' @param Q The value of Q for which the model selection is performed
+    #' @param index The sequence of networks number going from 1 to M
+    #' @param nb_clusters A subindex for model list, in practice always 1
+    #'
+    #' @return The best models
     choose_models = function(models, Q, index = seq(self$M), nb_clusters = 1L) {
       # browser()
       ord_mod <- order(purrr::map_dbl(models, ~ .$BICL), # ~max(.$map$ICL, .$BICL)),
@@ -970,6 +1090,9 @@ bmpop <- R6::R6Class(
       }
       return(best_models)
     },
+    #' The message printed when one prints the object
+    #'
+    #' @param type The title above the message.
     show = function(type = "Fitted Collection of Simple SBM") {
       cat(type, "--", self$distribution, "variant for", self$M, "networks \n")
       cat("=====================================================================\n")
@@ -981,6 +1104,50 @@ bmpop <- R6::R6Class(
       cat("BICL = ", self$best_fit$BICL, " -- #Empty blocks : ", sum(!self$best_fit$Cpi), " \n")
       cat("=====================================================================")
     },
-    print = function() self$show()
+    #' The print method
+    #'
+    #' @return nothing; print to console
+    print = function() self$show(),
+    #' Plot method
+    #'
+    #' @param type the type of the plot
+    #' @param ...
+    #'
+    #' @import ggplot2
+    #' @importFrom tibble tibble
+    #' @importFrom tidyr pivot_longer
+    #' @importFrom dplyr mutate pull
+    plot = function(type = "trace", ...) {
+      tb <- tibble::tibble(
+        Q = seq(length(self$BICL)),
+        ICL = self$ICL,
+        BICL = self$BICL,
+        vbound = self$vbound
+      )
+      if (!is.null(self$ICL_sbm)) {
+        tb %>% dplyr::mutate(SBM = self$ICL_sbm)
+      }
+      tb %>%
+        tidyr::pivot_longer(cols = -Q, names_to = "Criterion") %>%
+        ggplot2::ggplot(ggplot2::aes(
+          x = Q, y = value,
+          linetype = Criterion, color = Criterion,
+          shape = Criterion
+        )) +
+        ggplot2::annotate(
+          geom = "rect",
+          xmin = max(which.max(self$BICL) -
+            self$global_opts$depth, 1),
+          xmax = min(which.max(self$BICL) +
+            self$global_opts$depth, length(self$BICL)),
+          ymin = -Inf,
+          ymax = Inf,
+          fill = "gray90"
+        ) +
+        ggplot2::geom_line() +
+        ggplot2::geom_point(size = 3) +
+        ggplot2::ylab("") +
+        ggplot2::theme_bw()
+    }
   )
 )

@@ -11,7 +11,7 @@ This object contain all the logic and methods to estimate a colBiSBM model
 \describe{
 \item{\code{n}}{A list with two dimensions, each of size M for the rows and cols}
 
-\item{\code{A}}{List of incidence Matrix of size n[\link{1}]\link{m}xnc\link{m}}
+\item{\code{A}}{List of incidence Matrix of size \verb{n[[1]][m]xn[[2]][m]}}
 
 \item{\code{M}}{Number of networks}
 
@@ -132,7 +132,7 @@ This class is generally called via the user function \code{estimate_colBiSBM}
 \describe{
 \item{\code{netlist}}{The list of M networks}
 
-\item{\code{net_id}}{A list of name for the networs, defaults to 1 to M if not
+\item{\code{net_id}}{A list of name for the networks, defaults to 1 to M if not
 provided}
 
 \item{\code{distribution}}{The emission distribution either "bernoulli" or
@@ -370,7 +370,7 @@ number of row blocks and Q2 the number of column blocks.}
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-A boolean if the point if in the limits of \link{0,Q1_max}x\link{0,Q2_max}
+A boolean if the point if in the limits of \verb{[0,Q1_max]x[0,Q2_max]}
 Store the criteria and best fit
 }
 }

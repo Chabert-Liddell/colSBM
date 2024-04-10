@@ -2,12 +2,13 @@
 % Please edit documentation in R/R6class-fitBipartiteSBMPop.R
 \name{fitBipartiteSBMPop}
 \alias{fitBipartiteSBMPop}
-\title{An R6 Class object, a fitted population of netowrks sbm
-once $optimize() is done}
+\title{The method to plot the fitBipartite objects}
 \description{
-An R6 Class object, a fitted population of netowrks sbm
-once $optimize() is done
+The method to plot the fitBipartite objects
 
+The method to plot the fitBipartite objects
+}
+\details{
 An R6 Class object, a fitted population of netowrks sbm
 once $optimize() is done
 }
@@ -18,7 +19,7 @@ once $optimize() is done
 
 \item{\code{M}}{Number of networks}
 
-\item{\code{A}}{List of incidence Matrix of size n[\link{1}]\link{m}xnc\link{m}}
+\item{\code{A}}{List of incidence Matrix of size \verb{n[[1]][m]xn[[2]][m]}}
 
 \item{\code{mask}}{List of M masks, indicating NAs in the matrices. 1 for NA, 0 else}
 
@@ -29,11 +30,11 @@ once $optimize() is done
 \item{\code{Q}}{Number of clusters, vectors of size2}
 
 \item{\code{tau}}{List of size M of list of two variational parameters.
-n[\link{1}][m]xQ matrices and n[\link{2}][m]xQ matrices}
+\verb{n[[1]][m]xQ} matrices and \verb{n[[2]][m]xQ} matrices}
 
 \item{\code{alpha}}{Matrix of size QxQ, connection parameters}
 
-\item{\code{delta}}{Vector of M,  density parameters with delta\link{1} = 1}
+\item{\code{delta}}{Vector of M,  density parameters with \code{delta[1] = 1}}
 
 \item{\code{pi}}{List of M vectors of size Q, the mixture parameters}
 
@@ -120,6 +121,30 @@ blocks match the expected blocks.}
 }
 \if{html}{\out{</div>}}
 }
+\section{Active bindings}{
+\if{html}{\out{<div class="r6-active-bindings">}}
+\describe{
+\item{\code{nb_nodes}}{Returns n a list of the number of nodes per network}
+
+\item{\code{nb_blocks}}{Returns Q a vector with 2 coordinates, Q1 and Q2 for the
+row blocks and the column blocks}
+
+\item{\code{support}}{Returns the Cpi, a list of M boolean matrices indicating
+which blocks are populated}
+
+\item{\code{prob_memberships}}{Returns the tau, the probabilities of memberships
+"a posteriori", after seeing the data}
+
+\item{\code{parameters}}{Returns the list of parameters of the model, alpha, pi
+and rho}
+
+\item{\code{pred_dyads}}{Predicted dyads from the estimated probabilities and
+parameters}
+
+\item{\code{memberships}}{The block memberships}
+}
+\if{html}{\out{</div>}}
+}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
@@ -186,10 +211,45 @@ Initializes the fitBipartiteSBMPop object
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{A}}{List of incidence Matrix of size n[\link{1}]\link{m}xnc\link{m}}
+\item{\code{A}}{List of incidence Matrix of size \verb{n[[2]][m]xn[[2]][m]}}
 
 \item{\code{Q}}{A vector of size 2 with the number of row blocks and column
-blocks
+blocks}
+
+\item{\code{Z}}{The clusters memberships, a list of size M of two matrices : 1
+for rows clusters memberships and 2 for columns clusters memberships}
+
+\item{\code{mask}}{List of M masks, indicating NAs in the matrices. 1 for NA, 0 else}
+
+\item{\code{net_id}}{A vector containing the "ids" or names of the networks
+(if none given, they are set to their number in A list)}
+
+\item{\code{distribution}}{Emission distribution either : "poisson" or
+"bernoulli"}
+
+\item{\code{free_mixture_row}}{A boolean indicating if there is a free mixture
+on the rows}
+
+\item{\code{free_mixture_col}}{A boolean indicating if there is a free mixture
+on the columns}
+
+\item{\code{free_density}}{A boolean not used TODO delete}
+
+\item{\code{Cpi}}{A list of matrices of size Qd x M containing TRUE (1)
+or FALSE (0) if the d-th dimension cluster is represented
+in the network m}
+
+\item{\code{Calpha}}{The corresponding support on the connectivity parameters
+computed with Cpi.}
+
+\item{\code{init_method}}{The initialization method used for the first clustering}
+
+\item{\code{weight}}{A vector of size M for weighted likelihood}
+
+\item{\code{greedy_exploration_starting_point}}{Stores the coordinates Q1 & Q2
+from the greedy exploration to  keep track of the starting_point}
+
+\item{\code{fit_opts}}{Fit parameters, used to determine the fitting method/
 Method to compute the maximum a posteriori for Z clustering}
 }
 \if{html}{\out{</div>}}
@@ -271,7 +331,8 @@ Computes the entropy of the model
 }
 \subsection{Returns}{
 The computed quantity.
-Computes the variational bound (vbound)
+Objective function for the variational bound regarding
+the alpha and delta parameters.
 }
 }
 \if{html}{\out{<hr>}}
@@ -282,6 +343,23 @@ Computes the variational bound (vbound)
 \if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$fn_vb_alpha_delta(par, emqr, nmqr)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{par}}{The parameters, alpha and delta combined in one big vector.}
+
+\item{\code{emqr}}{List of M QxQ matrix, the sum of edges between q and r in m}
+
+\item{\code{nmqr}}{List of M QxQ matrix, the number of entries between q and r
+in m}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The evaluation of the function
+Gradient of the objective function for the variational bound regarding
+the alpha and delta parameters.
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-fitBipartiteSBMPop-gr_vb_alpha_delta"></a>}}
@@ -291,6 +369,22 @@ Computes the variational bound (vbound)
 \if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$gr_vb_alpha_delta(par, emqr, nmqr)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{par}}{The parameters, alpha and delta combined in one big vector.}
+
+\item{\code{emqr}}{List of M QxQ matrix, the sum of edges between q and r in m}
+
+\item{\code{nmqr}}{List of M QxQ matrix, the number of entries between q and r
+in m}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The evaluation of the function
+Constraint
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-fitBipartiteSBMPop-eval_g0_vb_alpha_delta"></a>}}
@@ -300,6 +394,22 @@ Computes the variational bound (vbound)
 \if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$eval_g0_vb_alpha_delta(par, emqr, nmqr)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{par}}{The parameters, alpha and delta combined in one big vector.}
+
+\item{\code{emqr}}{List of M QxQ matrix, the sum of edges between q and r in m}
+
+\item{\code{nmqr}}{List of M QxQ matrix, the number of entries between q and r
+in m}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The evaluation of the function
+Jacobian of the constraint
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-fitBipartiteSBMPop-eval_jac_g0_vb_alpha_delta"></a>}}
@@ -309,6 +419,22 @@ Computes the variational bound (vbound)
 \if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$eval_jac_g0_vb_alpha_delta(par, emqr, nmqr)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{par}}{The parameters, alpha and delta combined in one big vector.}
+
+\item{\code{emqr}}{List of M QxQ matrix, the sum of edges between q and r in m}
+
+\item{\code{nmqr}}{List of M QxQ matrix, the number of entries between q and r
+in m}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The evaluation of the function
+Updates the alpha and delta parameters
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-fitBipartiteSBMPop-update_alpha_delta"></a>}}
@@ -318,6 +444,18 @@ Computes the variational bound (vbound)
 \if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$update_alpha_delta(MAP = FALSE)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{MAP}}{Wether to use the MAP parameters or not, a boolean, defaults
+to FALSE.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+nothing; but stores the values
+Computes the variational bound (vbound)
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-fitBipartiteSBMPop-compute_vbound"></a>}}
@@ -383,7 +521,7 @@ to FALSE.}
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-The ICL for the model.
+The BICL for the model.
 Updates the MAP parameters
 }
 }
@@ -554,12 +692,15 @@ Initialize clusters
 \if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$init_clust()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+nothing; stores
+The M step of the VEM
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-fitBipartiteSBMPop-m_step"></a>}}
 \if{latex}{\out{\hypertarget{method-fitBipartiteSBMPop-m_step}{}}}
 \subsection{Method \code{m_step()}}{
-The M step of the VEM
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$m_step(MAP = FALSE, max_iter = 2, tol = 0.001, ...)}\if{html}{\out{</div>}}
 }
@@ -572,11 +713,16 @@ FALSE}
 
 \item{\code{max_iter}}{The maximum number of iterations, default to 2}
 
-\item{\code{tol}}{The tolerance for which to stop iterating defaults to 1e-3
-An optimization version for the VE step of the VEM but currently a
-placeholder}
+\item{\code{tol}}{The tolerance for which to stop iterating defaults to 1e-3}
+
+\item{\code{...}}{Other parameters}
 }
 \if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+nothing; stores values
+An optimization version for the VE step of the VEM but currently a
+placeholder
 }
 }
 \if{html}{\out{<hr>}}
@@ -594,10 +740,15 @@ placeholder}
 
 \item{\code{max_iter}}{The maximum number of iterations, default to 2}
 
-\item{\code{tol}}{The tolerance for which to stop iterating defaults to 1e-3
-Updates the mqr quantities}
+\item{\code{tol}}{The tolerance for which to stop iterating defaults to 1e-3}
+
+\item{\code{...}}{Other parameters}
 }
 \if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+nothing; stores values
+Updates the mqr quantities
 }
 }
 \if{html}{\out{<hr>}}
@@ -613,8 +764,7 @@ Namely, it updates the emqr and nmqr.
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{m}}{The number of the network in the netlist
-TODO Investigate what its supposed to do
-Computes the number of blocks that are effectively populated}
+TODO Investigate what its supposed to do}
 }
 \if{html}{\out{</div>}}
 }
@@ -627,6 +777,10 @@ Computes the number of blocks that are effectively populated}
 \if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$make_permutation()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+nothing
+Computes the number of blocks that are effectively populated
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-fitBipartiteSBMPop-compute_effective_clustering"></a>}}
@@ -655,6 +809,8 @@ Perform the whole initialization and VEM algorithm
 \item{\code{max_step}}{The maximum number of steps to perform optimization}
 
 \item{\code{tol}}{The tolerance for which to stop iterating, default to 1e-3}
+
+\item{\code{...}}{Other parameters}
 }
 \if{html}{\out{</div>}}
 }
@@ -702,6 +858,9 @@ The print method}
 \if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$print()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+nothing; print to console
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-fitBipartiteSBMPop-plot"></a>}}
@@ -718,6 +877,27 @@ The print method}
 )}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{type}}{The type of the plot. Could be "graphon", "meso" or "block".}
+
+\item{\code{oRow}}{A reordering of the row blocks.}
+
+\item{\code{oCol}}{A reordering of the column blocks.}
+
+\item{\code{mixture}}{Should the block proportions of each network be plotted as
+well?}
+
+\item{\code{net_id}}{Use to plot only on network in "graphon" view.}
+
+\item{\code{...}}{Further argument to be passed}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A plot, a ggplot2 object.
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-fitBipartiteSBMPop-clone"></a>}}
