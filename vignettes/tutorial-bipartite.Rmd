@@ -10,13 +10,17 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.fullwidth = TRUE,
+  fig.width = 6,
+  fig.height = 6
 )
 ```
 
 ```{r setup}
 library(colSBM)
 library(patchwork)
+library(parallel)
 data("dorebipartite")
 ```
 
@@ -37,7 +41,8 @@ res_pp_iid <- estimate_colBiSBM(
   global_opts = list(
     verbosity = 1,
     plot_detail = 0,
-    nb_cores = parallel::detectCores() - 1
+    nb_cores = 2,
+    backend = "parallel"
   )
 )
 ```
@@ -46,7 +51,7 @@ We can look at how the variational bound and the model selection criteria evolve
 Here, the BICL criterion selects Q = `r res_pp_iid$best_fit$Q` blocks.
 
 
-```{r}
+```{r, fig.cap="State-space exploration"}
 plot(res_pp_iid)
 best_fit <- res_pp_iid$best_fit
 ```
@@ -59,7 +64,7 @@ Here are some useful fields to analyze the results.
 best_fit
 ```
 
-We can get:
+We can retrieve:
 
 * the estimation of the model parameters
 
@@ -70,24 +75,24 @@ best_fit$parameters
 * The block memberships:
 
 ```{r}
-best_fit$memberships
+best_fit$memberships[[4]]$row
 ```
 
 And their probabilities:
 
 ```{r}
-best_fit$prob_memberships
+best_fit$prob_memberships[[3]][[1]][1:10, 1]
 ```
 
 * The prediction for each dyads in the networks, here for network number 3.
 
 ```{r}
-best_fit$pred_dyads[[3]][1:10, 1:5]
+best_fit$pred_dyads[[3]][1:10, 1]
 ```
 
 We can also plot the networks individually:
 
-```{r plot-block}
+```{r plot-block, fig.cap = "Networks after fitting the model and reordering the nodes and blocks"}
 plot(res_pp_iid$best_fit, type = "block", net_id = 1) +
   plot(res_pp_iid$best_fit, type = "block", net_id = 2) +
   plot(res_pp_iid$best_fit, type = "block", net_id = 3) +
@@ -96,15 +101,14 @@ plot(res_pp_iid$best_fit, type = "block", net_id = 1) +
 
 Or make different plots to exhibit the mesoscale structure:
 
-```{r}
+```{r, fig.cap=c("Graphon type plot", "Mesoscale type plot")}
 plot(res_pp_iid$best_fit, type = "graphon")
 plot(res_pp_iid$best_fit, type = "meso", mixture = TRUE)
 ```
 
 # Clustering of networks
 
-Let simulate some directed networks with a lower triangular structure that looks
-alike foodwebs.
+Lets simulate some bipartite networks with a lower triangular structure.
 
 ```{r}
 set.seed(1234)
@@ -139,7 +143,8 @@ net_clust <- clusterize_bipartite_networks(
   global_opts = list(
     verbosity = 0,
     plot_details = 0,
-    nb_cores = parallel::detectCores() - 1,
+    nb_cores = 2,
+    backend = "parallel",
     Q1_max = 9,
     Q2_max = 9
   ) # Max number of clusters
@@ -161,21 +166,17 @@ contains networks from the same authors.
 
 The plot of the mesoscale structure of the whole collection is the following:
 
-```{r}
+```{r, fig.cap="Whole collection graphon type plot"}
 plot(net_clust[[1]])
 ```
 
 but then we can compare the mesoscale structures of the 3 groups:
 
-```{r plot-part}
-plot(best_partition[[1]][[1]],
-  type = "graphon"
-) +
-  plot(best_partition[[1]][[2]],
-    type = "graphon"
-  ) +
-  plot(best_partition[[2]],
-    type = "graphon"
-  ) +
-  plot_layout(guides = "collect") + plot_annotation(tag_levels = "1")
+```{r plot-part, fig.width = 8, fig.cap="Best partition graphon type plots"}
+wrap_plots(
+  plot(best_partition[[1]][[1]], type = "graphon"),
+  plot(best_partition[[1]][[2]], type = "graphon"),
+  plot(best_partition[[2]], type = "graphon"),
+  ncol = 2) +
+  plot_annotation(tag_levels = "1")
 ```
