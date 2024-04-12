@@ -1666,8 +1666,8 @@ fitBipartiteSBMPop <- R6::R6Class(
             )) +
             ggplot2::geom_rect() +
             ggplot2::scale_fill_gradient2("alpha", low = "white", mid = "red", midpoint = 1) +
-            ggplot2::geom_hline(yintercept = cumsum(self$pi[[net_id]][[1]][oRow][1:(self$Q[1] - 1)]), size = .2) +
-            ggplot2::geom_vline(xintercept = cumsum(self$pi[[net_id]][[2]][oCol][1:(self$Q[2] - 1)]), size = .2) +
+            ggplot2::geom_hline(yintercept = cumsum(self$pi[[net_id]][[1]][oRow][1:(self$Q[1] - 1)]), linewidth = .2) +
+            ggplot2::geom_vline(xintercept = cumsum(self$pi[[net_id]][[2]][oCol][1:(self$Q[2] - 1)]), linewidth = .2) +
             ggplot2::scale_y_reverse() +
             ggplot2::theme_bw(base_size = 15, base_rect_size = 1, base_line_size = 1) +
             ggplot2::xlab("Column Blocks") +

@@ -48,6 +48,6 @@ cl_joint <- estimate_colBiSBM(
   colsbm_model = "iid",
   global_opts = list(nb_cores = parallel::detectCores() - 1)
 )
-plot(cl_joint)
+plot(cl_joint$best_fit)
 }
 }

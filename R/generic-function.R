@@ -45,7 +45,7 @@
 #'   distribution = "bernoulli",
 #'   nb_run = 1
 #' )
-#' plot(cl)
+#' plot(cl$best_fit)
 #' }
 
 plot.fitSimpleSBMPop <- function(x, type = "graphon",
@@ -159,7 +159,7 @@ plot.bmpop <- function(x, type = "trace", ...) {
 #'   colsbm_model = "iid",
 #'   global_opts = list(nb_cores = parallel::detectCores() - 1)
 #' )
-#' plot(cl_joint)
+#' plot(cl_joint$best_fit)
 #' }
 plot.fitBipartiteSBMPop <- function(x, type = "graphon", oRow = NULL, oCol = NULL, mixture = FALSE, net_id = 1, ...) {
   stopifnot(inherits(x, "fitBipartiteSBMPop"))
@@ -167,5 +167,16 @@ plot.fitBipartiteSBMPop <- function(x, type = "graphon", oRow = NULL, oCol = NUL
     type = type, oRow = oRow, oCol = oCol, mixture = mixture,
     net_id = net_id, ...
   )
+  p
+}
+
+#' Plot the state-space exploration plot for a bipartite collection object
+#'
+#' @param x a bisbmpop object.
+#' @return A plot, a ggplot2 object.
+#' @export
+plot.bisbmpop <- function(x) {
+  stopifnot(inherits(x, "bisbmpop"))
+  p <- x$plot()
   p
 }

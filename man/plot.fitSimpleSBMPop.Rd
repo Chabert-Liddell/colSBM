@@ -43,6 +43,6 @@ cl <- estimate_colSBM(Net,
   distribution = "bernoulli",
   nb_run = 1
 )
-plot(cl)
+plot(cl$best_fit)
 }
 }

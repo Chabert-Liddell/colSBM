@@ -2,10 +2,10 @@
 #'
 #' @description
 #' This object contain all the logic and methods to estimate a colBiSBM model
-#' 
+#'
 #' @import R6
 #' @importFrom aricode ARI
-#' 
+#'
 #' @export
 bisbmpop <- R6::R6Class(
   "bisbmpop",
@@ -19,69 +19,69 @@ bisbmpop <- R6::R6Class(
     M = NULL,
     #' @field mask List of M masks, indicating NAs in the matrices. 1 for NA, 0 else
     mask = NULL, # 1 for NA and 0 for observed
-    #'@field distribution Emission distribution either : "poisson" or 
+    #' @field distribution Emission distribution either : "poisson" or
     #' "bernoulli"
     distribution = NULL,
-    #'@field net_id A vector containing the "ids" or names of the networks 
+    #' @field net_id A vector containing the "ids" or names of the networks
     #' (if none given, they are set to their number in A list)
     net_id = NULL,
-    #'@field model_list A list of size Q1max * Q2max containing the best models
+    #' @field model_list A list of size Q1max * Q2max containing the best models
     model_list = NULL,
-    #'@field discarded_model_list  A list of size
+    #' @field discarded_model_list  A list of size
     #' Q1max * Q2max * (nb_models - 1) containing
     #' the discarded models.
     discarded_model_list = NULL,
-    #'@field global_opts A list of options for the model space exploration.
+    #' @field global_opts A list of options for the model space exploration.
     #' See details for more information on which options are available.
     global_opts = NULL,
-    #'@field fit_opts A list of options specifically for fitting the models.
+    #' @field fit_opts A list of options specifically for fitting the models.
     fit_opts = NULL,
-    #'@field separated_inits A nested list : Q1 init containing Q2 init
+    #' @field separated_inits A nested list : Q1 init containing Q2 init
     #' with each entry containing list of size M
-    #' storing the separated inits for the class. 
+    #' storing the separated inits for the class.
     separated_inits = NULL,
-    #'@field exploration_order_list A list used to store the path taken
+    #' @field exploration_order_list A list used to store the path taken
     #' in the state space.
     exploration_order_list = NULL,
-    #'@field Z_init A list of initializations for the Z memberships.
+    #' @field Z_init A list of initializations for the Z memberships.
     Z_init = NULL,
-    #'@field free_density TODO remove
+    #' @field free_density TODO remove
     free_density = NULL,
-    #'@field free_mixture_row A boolean signaling if there is free mixture on 
+    #' @field free_mixture_row A boolean signaling if there is free mixture on
     #' the row blocks
     free_mixture_row = NULL,
-    #'@field free_mixture_col A boolean signaling if there is free mixture on 
+    #' @field free_mixture_col A boolean signaling if there is free mixture on
     #' the columns blocks
     free_mixture_col = NULL,
-    #'@field ICL A matrix of size Q1*Q2 storing the best ICL found for each 
+    #' @field ICL A matrix of size Q1*Q2 storing the best ICL found for each
     #' value of Q1, Q2.
     ICL = NULL,
-    #'@field sep_BiSBM A named list containing attributes for each sep BiSBM. 
+    #' @field sep_BiSBM A named list containing attributes for each sep BiSBM.
     sep_BiSBM = NULL,
-    #'@field BICL A matrix of size Q1*Q2 storing the best BICL found for each 
+    #' @field BICL A matrix of size Q1*Q2 storing the best BICL found for each
     #' value of Q1, Q2.
     BICL = NULL,
-    #'@field vbound A matrix of size Q1*Q2 storing the best vbound found for each 
+    #' @field vbound A matrix of size Q1*Q2 storing the best vbound found for each
     #' value of Q1, Q2.
     vbound = NULL,
-    #'@field best_fit A fitBipartiteSBMPop object changing regularly to store 
+    #' @field best_fit A fitBipartiteSBMPop object changing regularly to store
     #' the current best fit.
     best_fit = NULL,
-    #'@field adjusted_fit Defining a field in case the user wants to adjust a 
+    #' @field adjusted_fit Defining a field in case the user wants to adjust a
     #' prefitted bisbmpop.
     adjusted_fit = NULL,
-    #'@field logfactA A quantity used with the Poisson probability distribution
+    #' @field logfactA A quantity used with the Poisson probability distribution
     logfactA = NULL,
-    #'@field improved A field use at each step to check if it has improved.
+    #' @field improved A field use at each step to check if it has improved.
     improved = NULL,
-    #'@field moving_window_coordinates A list of size two containing the
+    #' @field moving_window_coordinates A list of size two containing the
     #' coordinates of the bottom left and top
     #' right points of the square
     moving_window_coordinates = NULL,
-    #'@field old_moving_window_coordinates A list containing the previous
+    #' @field old_moving_window_coordinates A list containing the previous
     #' coordinates of the moving window.
     old_moving_window_coordinates = NULL,
-    #'@field joint_modelisation_preferred A boolean to store the preferred
+    #' @field joint_modelisation_preferred A boolean to store the preferred
     #' modelisation.
     joint_modelisation_preferred = NULL,
 
@@ -93,23 +93,23 @@ bisbmpop <- R6::R6Class(
     #' This class is generally called via the user function `estimate_colBiSBM`
     #'
     #' @param netlist The list of M networks
-    #' @param net_id A list of name for the networks, defaults to 1 to M if not 
+    #' @param net_id A list of name for the networks, defaults to 1 to M if not
     #' provided
-    #' @param distribution The emission distribution either "bernoulli" or 
+    #' @param distribution The emission distribution either "bernoulli" or
     #' "poisson"
-    #' @param free_density If we account for different density between networks 
+    #' @param free_density If we account for different density between networks
     #' TODO Remove
-    #' @param free_mixture_row A boolean indicating if there is free mixture on 
+    #' @param free_mixture_row A boolean indicating if there is free mixture on
     #' the row blocks
-    #' @param free_mixture_col A boolean indicating if there is free mixture on 
+    #' @param free_mixture_col A boolean indicating if there is free mixture on
     #' the column blocks
-    #' @param Z_init A bidimensional list providing a clustering of the row and 
+    #' @param Z_init A bidimensional list providing a clustering of the row and
     #' column nodes
-    #' @param global_opts A list of global options used by the algorithm. See 
+    #' @param global_opts A list of global options used by the algorithm. See
     #' details of the user function for more information.
-    #' @param fit_opts A list of fit options used by the algorithm. See 
+    #' @param fit_opts A list of fit options used by the algorithm. See
     #' details of the user function for more information.
-    #' 
+    #'
     #' @return A new 'bisbmpop' object.
     initialize = function(netlist = NULL,
                           net_id = NULL,
@@ -1363,7 +1363,7 @@ bisbmpop <- R6::R6Class(
     #'
     #' @details the method takes no parameters and print a plot
     #' of the current state of the model_list.
-    #' 
+    #'
     #' @param plot_detail Is by default set using the global options.
     #'
     #' @importFrom ggnewscale new_scale_color
@@ -1424,10 +1424,30 @@ bisbmpop <- R6::R6Class(
             linewidth = 2,
             arrow = ggplot2::arrow()
           ) +
-          ggplot2::guides(color = ggplot2::guide_legend(title = "Greedy exploration path")) +
+          ggplot2::guides(color = ggplot2::guide_legend(
+            title = "Greedy exploration path"
+          )) +
+          ggplot2::coord_cartesian(
+            xlim = c(0, self$global_opts$Q1_max + 1),
+            ylim = c(0, self$global_opts$Q2_max + 1)
+          ) +
           ggplot2::scale_color_discrete() +
-          ggplot2::scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q2_max)) +
-          ggplot2::scale_x_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))), limits = c(1, self$global_opts$Q1_max))
+          ggplot2::scale_y_continuous(
+            breaks = function(x) {
+              unique(
+                floor(pretty(seq(0, (max(x) + 1) * 1.1)))
+              )
+            },
+            limits = c(0, self$global_opts$Q2_max)
+          ) +
+          ggplot2::scale_x_continuous(
+            breaks = function(x) {
+              unique(
+                floor(pretty(seq(0, (max(x) + 1) * 1.1)))
+              )
+            },
+            limits = c(0, self$global_opts$Q1_max)
+          )
 
         if (!is.null(self$old_moving_window_coordinates)) {
           # If there are previous moving windows coordinates
@@ -2087,12 +2107,12 @@ bisbmpop <- R6::R6Class(
     },
 
     #' The optimization method
-    #' 
+    #'
     #' @description
-    #' This method performs the burn in (ie initialization + greedy 
-    #' exploration) and the steps of moving window with cluster splitting and 
+    #' This method performs the burn in (ie initialization + greedy
+    #' exploration) and the steps of moving window with cluster splitting and
     #' merging around the mode found.
-    #' 
+    #'
     #' @return nothing; but stores the values
     optimize = function() {
       # The burn_in step computes models with a greedy approach
@@ -2590,10 +2610,10 @@ bisbmpop <- R6::R6Class(
     },
 
     #' To truncate the discarder model list
-    #' 
+    #'
     #' @description
     #' This method remove the worst models regarding the BICL criterion.
-    #' 
+    #'
     #' @return nothing
     truncate_discarded_model_list = function() {
       for (q1 in seq.int(self$global_opts$Q1_max)) {
@@ -2612,10 +2632,10 @@ bisbmpop <- R6::R6Class(
     },
 
     #' Check if the point is in the limits
-    #' 
+    #'
     #' @param point A vector of size 2, containing the first coordinate Q1, the
     #' number of row blocks and Q2 the number of column blocks.
-    #' 
+    #'
     #' @return A boolean if the point if in the limits of `[0,Q1_max]x[0,Q2_max]`
     point_is_in_limits = function(point) {
       Q1 <- point[[1]]
@@ -2627,12 +2647,12 @@ bisbmpop <- R6::R6Class(
     },
 
     #' Store the criteria and best fit
-    #' 
+    #'
     #' @description
     #' This method stores the criteria (vbound, ICL, BICL) of the models
     #' in model_list attribute and at the end choose the best model using the
     #' BICL criterion.
-    #' 
+    #'
     #' @return nothing; modifies the object
     store_criteria_and_best_fit = function() {
       # Store the vbound, ICL and BICL into the appropriate lists
@@ -2657,40 +2677,40 @@ bisbmpop <- R6::R6Class(
       self$best_fit <- self$model_list[[which.max(self$BICL)]]
     },
     #' Computation of the separated Bi SBM
-    #' 
+    #'
     #' @description
     #' This method performs the computation of BiSBM for each of the
     #' network in the netlist.
-    #' 
+    #'
     #' @return nothing; stores the values
     compute_sep_BiSBM_BICL = function() {
       # Computes the sepBiSBM ICL to compare with the model
       # TODO See if I can parallelize
-      self$sep_BiSBM$models <- colsbm_lapply(seq.int(self$M), 
-      function(m) {
-        sep_BiSBM <- bisbmpop$new(
-          netlist = list(self$A[[m]]),
-          distribution = self$distribution,
-          free_mixture_row = FALSE,
-          free_mixture_col = FALSE,
-          free_density = FALSE,
-          global_opts = list(
-            verbosity = 0,
-            plot_details = 0,
-            nb_cores = self$global_opts$nb_cores,
-            parallelization_vector = self$global_opts$parallelization_vector
-          ),
-          fit_opts = self$fit_opts
-        )
-        sep_BiSBM$optimize()
-        sep_BiSBM$best_fit
-      },
-      nb_cores = self$global_opts$nb_cores,
-      mc.silent = TRUE,
-      backend = self$global_opts$backend
-      # mc.allow.recursive = TRUE,
-      # mc.retry = -1, # To prevent big crash
-      # mc.progress = FALSE
+      self$sep_BiSBM$models <- colsbm_lapply(seq.int(self$M),
+        function(m) {
+          sep_BiSBM <- bisbmpop$new(
+            netlist = list(self$A[[m]]),
+            distribution = self$distribution,
+            free_mixture_row = FALSE,
+            free_mixture_col = FALSE,
+            free_density = FALSE,
+            global_opts = list(
+              verbosity = 0,
+              plot_details = 0,
+              nb_cores = self$global_opts$nb_cores,
+              parallelization_vector = self$global_opts$parallelization_vector
+            ),
+            fit_opts = self$fit_opts
+          )
+          sep_BiSBM$optimize()
+          sep_BiSBM$best_fit
+        },
+        nb_cores = self$global_opts$nb_cores,
+        mc.silent = TRUE,
+        backend = self$global_opts$backend
+        # mc.allow.recursive = TRUE,
+        # mc.retry = -1, # To prevent big crash
+        # mc.progress = FALSE
       )
 
       self$sep_BiSBM$BICL <- sapply(seq.int(self$M), function(m) {
@@ -2711,10 +2731,10 @@ bisbmpop <- R6::R6Class(
       }
     },
     #' Method to choose the collection modelisation or a separated one
-    #' 
+    #'
     #' @description
     #' Using the BICL criterion, the best model fitted after the procedure
-    #' and the separated Bi SBM this method choose the one that maximizes the 
+    #' and the separated Bi SBM this method choose the one that maximizes the
     #' BICL criterion.
     #' @return nothing; stores a boolean
     choose_joint_or_separated = function() {
@@ -2752,7 +2772,7 @@ bisbmpop <- R6::R6Class(
       }
     },
     #' Plot method
-    #' 
+    #'
     #' @description
     #' Plots the state space exploration
     plot = function() {
@@ -2779,6 +2799,30 @@ bisbmpop <- R6::R6Class(
       cat("ICL    : \n", ICL_print, "\n\n")
       cat("BICL   : \n", BICL_print, "\n\n")
       cat("Best fit at Q=(", toString(self$best_fit$Q), ")\n")
-    }
+    },
+    #' The message printed when one prints the object
+    #' @param type The title above the message.
+    show = function(type = "Fitted Collection of Bipartite SBM\nwith all fitted models") {
+      cat(type, "--", self$distribution, "variant for", self$M, "networks \n")
+      cat("=====================================================================\n")
+      cat("net_id = (", self$net_id, ")\n")
+      cat(
+        "Dimensions = (", toString(lapply(seq.int(self$M), function(m) {
+          c(self$n[[1]][[m]], self$n[[2]][[m]])
+        })), ") - (",
+        toString(self$best_fit$Q), ") blocks for best fit.\n"
+      )
+      cat(
+        "\n#Empty row blocks on all networks for best fit: ", sum(!self$best_fit$Cpi[[1]]),
+        " -- #Empty columns blocks on all networks for best fit: ", sum(!self$best_fit$Cpi[[2]]), " \n\n"
+      )
+      cat("* Access best fit : $best_fit \n")
+      cat("All metrics:")
+      self$print_metrics()
+      cat("=====================================================================")
+    },
+    #' The print method
+    #' @return nothing; prints to console
+    print = function() self$show()
   )
 )

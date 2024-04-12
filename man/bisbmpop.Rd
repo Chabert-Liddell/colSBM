@@ -103,6 +103,8 @@ modelisation.}
 \item \href{#method-bisbmpop-choose_joint_or_separated}{\code{bisbmpop$choose_joint_or_separated()}}
 \item \href{#method-bisbmpop-plot}{\code{bisbmpop$plot()}}
 \item \href{#method-bisbmpop-print_metrics}{\code{bisbmpop$print_metrics()}}
+\item \href{#method-bisbmpop-show}{\code{bisbmpop$show()}}
+\item \href{#method-bisbmpop-print}{\code{bisbmpop$print()}}
 \item \href{#method-bisbmpop-clone}{\code{bisbmpop$clone()}}
 }
 }
@@ -442,6 +444,38 @@ Print the vbound, the ICL and the BICL
 
 \subsection{Returns}{
 nothing
+The message printed when one prints the object
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-bisbmpop-show"></a>}}
+\if{latex}{\out{\hypertarget{method-bisbmpop-show}{}}}
+\subsection{Method \code{show()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{bisbmpop$show(
+  type = "Fitted Collection of Bipartite SBM\\nwith all fitted models"
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{type}}{The title above the message.
+The print method}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-bisbmpop-print"></a>}}
+\if{latex}{\out{\hypertarget{method-bisbmpop-print}{}}}
+\subsection{Method \code{print()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{bisbmpop$print()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+nothing; prints to console
 }
 }
 \if{html}{\out{<hr>}}

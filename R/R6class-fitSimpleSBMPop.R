@@ -1295,7 +1295,8 @@ fitSimpleSBMPop <- R6::R6Class(
     #' @param ord A reordering of the blocks.
     #' @param mixture Should the block proportions of each network be plotted as
     #' well?
-    #' @param net_id Use to plot only on network in "graphon" view.
+    #' @param net_id The id of the network to plot. Used to plot only on 
+    #' network in "graphon" view.
     #' @param ... Further argument to be passed
     #' 
     #' @return A plot, a ggplot2 object.
@@ -1303,14 +1304,25 @@ fitSimpleSBMPop <- R6::R6Class(
       if (is.null(ord)) ord <- order(diag(self$alpha), decreasing = TRUE)
       p <- switch(type,
         graphon = {
+          if (self$Q == 1) {
+            ymin <- rep(0, each = self$Q)
+            ymax <- rep(1, each = self$Q)
+            xmin <- rep(0, self$Q)
+            xmax <- rep(1, self$Q)
+          } else {
+            xmax <- rep(c(0, cumsum(self$pi[[net_id]][ord][1:(self$Q - 1)])), self$Q)
+            xmin <- rep(cumsum(self$pi[[net_id]][ord]), self$Q)
+            ymax <- rep(c(0, cumsum(self$pi[[net_id]][ord][1:(self$Q - 1)])), each = self$Q)
+            ymin <- rep(cumsum(self$pi[[net_id]][ord]), each = self$Q)
+          }
           (self$alpha[ord, ord] * mean(self$delta)) %>%
             t() %>%
             reshape2::melt() %>%
             dplyr::mutate(
-              xmax = rep(c(0, cumsum(self$pi[[net_id]][ord][1:(self$Q - 1)])), self$Q),
-              xmin = rep(cumsum(self$pi[[net_id]][ord]), self$Q),
-              ymax = rep(c(0, cumsum(self$pi[[net_id]][ord][1:(self$Q - 1)])), each = self$Q),
-              ymin = rep(cumsum(self$pi[[net_id]][ord]), each = self$Q)
+              xmax = xmax,
+              xmin = xmin,
+              ymax = ymax,
+              ymin = ymin
             ) %>%
             ggplot2::ggplot(ggplot2::aes(
               xmin = xmin, ymin = ymin,
@@ -1318,8 +1330,8 @@ fitSimpleSBMPop <- R6::R6Class(
             )) +
             ggplot2::geom_rect() +
             ggplot2::scale_fill_gradient2("alpha", low = "white", mid = "red", midpoint = 1) +
-            ggplot2::geom_hline(yintercept = cumsum(self$pi[[net_id]][ord][1:(self$Q - 1)]), size = .2) +
-            ggplot2::geom_vline(xintercept = cumsum(self$pi[[net_id]][ord][1:(self$Q - 1)]), size = .2) +
+            ggplot2::geom_hline(yintercept = cumsum(self$pi[[net_id]][ord][1:(self$Q - 1)]), linewidth = .2) +
+            ggplot2::geom_vline(xintercept = cumsum(self$pi[[net_id]][ord][1:(self$Q - 1)]), linewidth = .2) +
             ggplot2::scale_y_reverse() +
             ggplot2::theme_bw(base_size = 15, base_rect_size = 1, base_line_size = 1) +
             ggplot2::xlab("") +
