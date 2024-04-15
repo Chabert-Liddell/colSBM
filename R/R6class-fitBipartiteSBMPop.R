@@ -142,7 +142,7 @@ fitBipartiteSBMPop <- R6::R6Class(
                           Z = NULL,
                           mask = NULL,
                           net_id = NULL,
-                          distribution = "bernoulli",
+                          distribution = NULL,
                           free_mixture_row = TRUE,
                           free_mixture_col = TRUE,
                           Cpi = NULL,
@@ -373,9 +373,8 @@ fitBipartiteSBMPop <- R6::R6Class(
           )
         },
         "poisson" = {
-          sum(.xlogy(emqr, alpha, eps = 1e-12) -
-            nmqr * alpha -
-            self$logfactA[m])
+          sum(self$Calpha * .xlogy(emqr, alpha, eps = 1e-12)) -
+            sum(nmqr * self$Calpha * alpha - self$logfactA[m])
         }
       )
     },
@@ -467,7 +466,7 @@ fitBipartiteSBMPop <- R6::R6Class(
       self$penalty <- 0.5 * (pi1_penalty + pi2_penalty +
         alpha_penalty +
         S1_penalty + S2_penalty)
-      if (self$penalty == -Inf | self$penalty == Inf) {
+      if (is.infinite(self$penalty)) {
         stop("Infinite penalty !")
       }
       return(self$penalty)
