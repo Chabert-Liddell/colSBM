@@ -34,11 +34,17 @@ penalize to a greater extent the difference in block proportion between
 structure.
 }
 \examples{
-pi <- list(c(0.5,0.5), c(0.1,0.9))
-rho <- list(c(0.1,0.9), c(0.5,0.5))
-alpha <- list(matrix(c(0.9,0.1,
-                       0.1, 0.05), byrow = TRUE, nrow = 2),
-               matrix(c(0.9,0.1,
-                       0.1, 0.05), byrow = TRUE, nrow = 2))
+pi <- list(c(0.5, 0.5), c(0.1, 0.9))
+rho <- list(c(0.1, 0.9), c(0.5, 0.5))
+alpha <- list(
+  matrix(c(
+    0.9, 0.1,
+    0.1, 0.05
+  ), byrow = TRUE, nrow = 2),
+  matrix(c(
+    0.9, 0.1,
+    0.1, 0.05
+  ), byrow = TRUE, nrow = 2)
+)
 dist_bisbmpop_max(pi, rho, alpha)
 }

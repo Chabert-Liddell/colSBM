@@ -43,8 +43,6 @@ in the state space.}
 
 \item{\code{Z_init}}{A list of initializations for the Z memberships.}
 
-\item{\code{free_density}}{TODO remove}
-
 \item{\code{free_mixture_row}}{A boolean signaling if there is free mixture on
 the row blocks}
 
@@ -120,7 +118,6 @@ This class is generally called via the user function \code{estimate_colBiSBM}
   netlist = NULL,
   net_id = NULL,
   distribution = "bernoulli",
-  free_density = FALSE,
   free_mixture_row = FALSE,
   free_mixture_col = FALSE,
   Z_init = NULL,
@@ -139,9 +136,6 @@ provided}
 
 \item{\code{distribution}}{The emission distribution either "bernoulli" or
 "poisson"}
-
-\item{\code{free_density}}{If we account for different density between networks
-TODO Remove}
 
 \item{\code{free_mixture_row}}{A boolean indicating if there is free mixture on
 the row blocks}

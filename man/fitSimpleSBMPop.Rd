@@ -882,7 +882,7 @@ well?}
 \item{\code{net_id}}{The id of the network to plot. Used to plot only on
 network in "graphon" view.}
 
-\item{\code{...}}{Further argument to be passed}
+\item{\code{...}}{Further arguments to be passed}
 }
 \if{html}{\out{</div>}}
 }

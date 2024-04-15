@@ -34,8 +34,6 @@ once $optimize() is done
 
 \item{\code{alpha}}{Matrix of size QxQ, connection parameters}
 
-\item{\code{delta}}{Vector of M,  density parameters with \code{delta[1] = 1}}
-
 \item{\code{pi}}{List of M vectors of size Q, the mixture parameters}
 
 \item{\code{pim}}{List of M vectors of size Q, the mixture parameters in case
@@ -57,8 +55,6 @@ on the rows}
 \item{\code{free_mixture_col}}{A boolean indicating if there is a free mixture
 on the columns}
 
-\item{\code{free_density}}{A boolean TODO delete}
-
 \item{\code{weight}}{A vector of size M for weighted likelihood}
 
 \item{\code{distribution}}{Emission distribution either : "poisson" or
@@ -78,9 +74,6 @@ to compute penalty}
 
 \item{\code{df_connect}}{The degrees of freedom for connection parameters
 alpha,used to compute penalty}
-
-\item{\code{df_density}}{The degrees of freedom for density parameters delta,
-used to compute penalty}
 
 \item{\code{Cpi}}{A list of matrices of size Qd x M containing TRUE (1)
 or FALSE (0) if the d-th dimension cluster is represented
@@ -153,18 +146,12 @@ parameters}
 \item \href{#method-fitBipartiteSBMPop-vb_tau_alpha}{\code{fitBipartiteSBMPop$vb_tau_alpha()}}
 \item \href{#method-fitBipartiteSBMPop-vb_tau_pi}{\code{fitBipartiteSBMPop$vb_tau_pi()}}
 \item \href{#method-fitBipartiteSBMPop-entropy_tau}{\code{fitBipartiteSBMPop$entropy_tau()}}
-\item \href{#method-fitBipartiteSBMPop-fn_vb_alpha_delta}{\code{fitBipartiteSBMPop$fn_vb_alpha_delta()}}
-\item \href{#method-fitBipartiteSBMPop-gr_vb_alpha_delta}{\code{fitBipartiteSBMPop$gr_vb_alpha_delta()}}
-\item \href{#method-fitBipartiteSBMPop-eval_g0_vb_alpha_delta}{\code{fitBipartiteSBMPop$eval_g0_vb_alpha_delta()}}
-\item \href{#method-fitBipartiteSBMPop-eval_jac_g0_vb_alpha_delta}{\code{fitBipartiteSBMPop$eval_jac_g0_vb_alpha_delta()}}
-\item \href{#method-fitBipartiteSBMPop-update_alpha_delta}{\code{fitBipartiteSBMPop$update_alpha_delta()}}
 \item \href{#method-fitBipartiteSBMPop-compute_vbound}{\code{fitBipartiteSBMPop$compute_vbound()}}
 \item \href{#method-fitBipartiteSBMPop-compute_penalty}{\code{fitBipartiteSBMPop$compute_penalty()}}
 \item \href{#method-fitBipartiteSBMPop-compute_icl}{\code{fitBipartiteSBMPop$compute_icl()}}
 \item \href{#method-fitBipartiteSBMPop-compute_BICL}{\code{fitBipartiteSBMPop$compute_BICL()}}
 \item \href{#method-fitBipartiteSBMPop-update_MAP_parameters}{\code{fitBipartiteSBMPop$update_MAP_parameters()}}
 \item \href{#method-fitBipartiteSBMPop-fixed_point_tau}{\code{fitBipartiteSBMPop$fixed_point_tau()}}
-\item \href{#method-fitBipartiteSBMPop-fixed_point_alpha_delta}{\code{fitBipartiteSBMPop$fixed_point_alpha_delta()}}
 \item \href{#method-fitBipartiteSBMPop-update_pim}{\code{fitBipartiteSBMPop$update_pim()}}
 \item \href{#method-fitBipartiteSBMPop-update_pi}{\code{fitBipartiteSBMPop$update_pi()}}
 \item \href{#method-fitBipartiteSBMPop-update_alpham}{\code{fitBipartiteSBMPop$update_alpham()}}
@@ -198,7 +185,6 @@ Initializes the fitBipartiteSBMPop object
   distribution = "bernoulli",
   free_mixture_row = TRUE,
   free_mixture_col = TRUE,
-  free_density = TRUE,
   Cpi = NULL,
   Calpha = NULL,
   init_method = "spectral",
@@ -232,8 +218,6 @@ on the rows}
 
 \item{\code{free_mixture_col}}{A boolean indicating if there is a free mixture
 on the columns}
-
-\item{\code{free_density}}{A boolean not used TODO delete}
 
 \item{\code{Cpi}}{A list of matrices of size Qd x M containing TRUE (1)
 or FALSE (0) if the d-th dimension cluster is represented
@@ -331,129 +315,6 @@ Computes the entropy of the model
 }
 \subsection{Returns}{
 The computed quantity.
-Objective function for the variational bound regarding
-the alpha and delta parameters.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-fitBipartiteSBMPop-fn_vb_alpha_delta"></a>}}
-\if{latex}{\out{\hypertarget{method-fitBipartiteSBMPop-fn_vb_alpha_delta}{}}}
-\subsection{Method \code{fn_vb_alpha_delta()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$fn_vb_alpha_delta(par, emqr, nmqr)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{par}}{The parameters, alpha and delta combined in one big vector.}
-
-\item{\code{emqr}}{List of M QxQ matrix, the sum of edges between q and r in m}
-
-\item{\code{nmqr}}{List of M QxQ matrix, the number of entries between q and r
-in m}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The evaluation of the function
-Gradient of the objective function for the variational bound regarding
-the alpha and delta parameters.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-fitBipartiteSBMPop-gr_vb_alpha_delta"></a>}}
-\if{latex}{\out{\hypertarget{method-fitBipartiteSBMPop-gr_vb_alpha_delta}{}}}
-\subsection{Method \code{gr_vb_alpha_delta()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$gr_vb_alpha_delta(par, emqr, nmqr)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{par}}{The parameters, alpha and delta combined in one big vector.}
-
-\item{\code{emqr}}{List of M QxQ matrix, the sum of edges between q and r in m}
-
-\item{\code{nmqr}}{List of M QxQ matrix, the number of entries between q and r
-in m}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The evaluation of the function
-Constraint
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-fitBipartiteSBMPop-eval_g0_vb_alpha_delta"></a>}}
-\if{latex}{\out{\hypertarget{method-fitBipartiteSBMPop-eval_g0_vb_alpha_delta}{}}}
-\subsection{Method \code{eval_g0_vb_alpha_delta()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$eval_g0_vb_alpha_delta(par, emqr, nmqr)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{par}}{The parameters, alpha and delta combined in one big vector.}
-
-\item{\code{emqr}}{List of M QxQ matrix, the sum of edges between q and r in m}
-
-\item{\code{nmqr}}{List of M QxQ matrix, the number of entries between q and r
-in m}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The evaluation of the function
-Jacobian of the constraint
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-fitBipartiteSBMPop-eval_jac_g0_vb_alpha_delta"></a>}}
-\if{latex}{\out{\hypertarget{method-fitBipartiteSBMPop-eval_jac_g0_vb_alpha_delta}{}}}
-\subsection{Method \code{eval_jac_g0_vb_alpha_delta()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$eval_jac_g0_vb_alpha_delta(par, emqr, nmqr)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{par}}{The parameters, alpha and delta combined in one big vector.}
-
-\item{\code{emqr}}{List of M QxQ matrix, the sum of edges between q and r in m}
-
-\item{\code{nmqr}}{List of M QxQ matrix, the number of entries between q and r
-in m}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The evaluation of the function
-Updates the alpha and delta parameters
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-fitBipartiteSBMPop-update_alpha_delta"></a>}}
-\if{latex}{\out{\hypertarget{method-fitBipartiteSBMPop-update_alpha_delta}{}}}
-\subsection{Method \code{update_alpha_delta()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$update_alpha_delta(MAP = FALSE)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{MAP}}{Wether to use the MAP parameters or not, a boolean, defaults
-to FALSE.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-nothing; but stores the values
 Computes the variational bound (vbound)
 }
 }
@@ -563,36 +424,6 @@ to 1}
 }
 \subsection{Returns}{
 The new tau values
-Fixed point to update alpha and delta
-TODO Check and fix
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-fitBipartiteSBMPop-fixed_point_alpha_delta"></a>}}
-\if{latex}{\out{\hypertarget{method-fitBipartiteSBMPop-fixed_point_alpha_delta}{}}}
-\subsection{Method \code{fixed_point_alpha_delta()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$fixed_point_alpha_delta(
-  MAP = FALSE,
-  max_iter = 50,
-  tol = 1e-06
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{MAP}}{A boolean wether to use MAP parameters or not, defaults to
-FALSE}
-
-\item{\code{max_iter}}{The maximum number of iterations, default to 50}
-
-\item{\code{tol}}{The tolerance for which to stop iterating}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-nothing; stores the values
 Computes the pi per network, known as the pim
 }
 }
