@@ -1,3 +1,8 @@
+# colSBM 0.4.0
+* Adding `colBiSBM`, supporting bipartite collections
+* Changing parallelization support, using a `colsbm_lapply` generic function that the user can customize with their own backend (parallel, bettermc, future)
+* Adding `dorebipartite` a new dataset containing a bipartite collection dataset
+
 # colSBM 0.3.0
 * Improved generic `plot()` functions
 
