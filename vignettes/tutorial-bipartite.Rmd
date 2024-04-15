@@ -1,5 +1,5 @@
 ---
-title: "Tutorial on plant pollinitor data"
+title: "Tutorial on plant pollinator data"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Tutorial on plant pollinitor data}
