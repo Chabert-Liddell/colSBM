@@ -27,10 +27,10 @@ generate_unipartite_network <- function(n, pi, alpha) {
 #' @param alpha the matrix of connectivity between two clusters
 #' @param M the number of networks to generate
 #'
-#' @details If n is a single value, this value will be replicated for each of 
-#' the M networks. If it is a vector, it must be of size M, specifying the 
+#' @details If n is a single value, this value will be replicated for each of
+#' the M networks. If it is a vector, it must be of size M, specifying the
 #' number of nodes for each network.
-#' 
+#'
 #' @return A list of M lists, which contains : $adjacency_matrix, $clustering
 #'
 #' @export
@@ -563,7 +563,7 @@ logit <- function(x) log(x / (1 - x))
 }
 
 #' Reorder colBiSBM parameters
-#' 
+#'
 #' @param model a fitBipartiteSBMPop object on which the reordering is performed
 #'
 #' @export
@@ -641,5 +641,3 @@ reorder_parameters <- function(model) {
   })
   return(out_model)
 }
-
-

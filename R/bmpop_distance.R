@@ -17,11 +17,17 @@
 #' @export
 #'
 #' @examples
-#' pi <- list(c(0.5,0.5), c(0.1,0.9))
-#' alpha <- list(matrix(c(0.9,0.1,
-#'                        0.1, 0.05), byrow = TRUE, nrow = 2),
-#'                matrix(c(0.9,0.1,
-#'                        0.1, 0.05), byrow = TRUE, nrow = 2))
+#' pi <- list(c(0.5, 0.5), c(0.1, 0.9))
+#' alpha <- list(
+#'   matrix(c(
+#'     0.9, 0.1,
+#'     0.1, 0.05
+#'   ), byrow = TRUE, nrow = 2),
+#'   matrix(c(
+#'     0.9, 0.1,
+#'     0.1, 0.05
+#'   ), byrow = TRUE, nrow = 2)
+#' )
 #' dist_bmpop_max(pi, alpha)
 dist_bmpop_max <- function(pi, alpha, delta = c(1, 1), weight = "max",
                            norm = "L2", directed) {
@@ -54,7 +60,7 @@ dist_bmpop_max <- function(pi, alpha, delta = c(1, 1), weight = "max",
   d
 }
 
-#' Compute the dissimilarity between 2 mesoscale structures for bipartite 
+#' Compute the dissimilarity between 2 mesoscale structures for bipartite
 #' SBM
 #'
 #' @param pi A list of two probability vectors (row)
@@ -74,12 +80,18 @@ dist_bmpop_max <- function(pi, alpha, delta = c(1, 1), weight = "max",
 #' @export
 #'
 #' @examples
-#' pi <- list(c(0.5,0.5), c(0.1,0.9))
-#' rho <- list(c(0.1,0.9), c(0.5,0.5))
-#' alpha <- list(matrix(c(0.9,0.1,
-#'                        0.1, 0.05), byrow = TRUE, nrow = 2),
-#'                matrix(c(0.9,0.1,
-#'                        0.1, 0.05), byrow = TRUE, nrow = 2))
+#' pi <- list(c(0.5, 0.5), c(0.1, 0.9))
+#' rho <- list(c(0.1, 0.9), c(0.5, 0.5))
+#' alpha <- list(
+#'   matrix(c(
+#'     0.9, 0.1,
+#'     0.1, 0.05
+#'   ), byrow = TRUE, nrow = 2),
+#'   matrix(c(
+#'     0.9, 0.1,
+#'     0.1, 0.05
+#'   ), byrow = TRUE, nrow = 2)
+#' )
 #' dist_bisbmpop_max(pi, rho, alpha)
 dist_bisbmpop_max <- function(
     pi,

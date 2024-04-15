@@ -12,8 +12,8 @@
 #' @noRd
 #' @noMd
 #'
-#' @examples 
-#' X <- seq(1,5)
+#' @examples
+#' X <- seq(1, 5)
 #' colsbm_lapply(X, backend = "parallel", nb_cores = 2L)
 colsbm_lapply <- function(X, FUN, backend = "parallel",
                           nb_cores = parallel::detectCores() - 1, ...) {

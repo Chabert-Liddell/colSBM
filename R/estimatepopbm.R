@@ -148,7 +148,7 @@ clusterize_networks <- function(netlist,
         },
         backend = global_opts$backend,
         nb_cores = min(nb_run, nb_cores),
-        mc.progress = TRUE#, nb_cores = min(nb_run, nb_cores)
+        mc.progress = TRUE # , nb_cores = min(nb_run, nb_cores)
       )
     my_bmpop <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$BICL,
       FUN.VALUE = .1
@@ -383,12 +383,16 @@ extract_best_partition <- function(l) {
 #' @examples
 #' alpha1 <- matrix(c(0.8, 0.1, 0.2, 0.7), byrow = TRUE, nrow = 2)
 #' alpha2 <- matrix(c(0.8, 0.5, 0.5, 0.2), byrow = TRUE, nrow = 2)
-#' first_collection <- generate_bipartite_collection(nr = 50, nc = 25,
-#'      pi = c(0.5, 0.5), rho = c(0.5, 0.5),
-#'      alpha = alpha1, M = 2)
-#' second_collection <- generate_bipartite_collection(nr = 50, nc = 25,
-#'      pi = c(0.5, 0.5), rho = c(0.5, 0.5), 
-#'      alpha = alpha2, M = 2)
+#' first_collection <- generate_bipartite_collection(
+#'   nr = 50, nc = 25,
+#'   pi = c(0.5, 0.5), rho = c(0.5, 0.5),
+#'   alpha = alpha1, M = 2
+#' )
+#' second_collection <- generate_bipartite_collection(
+#'   nr = 50, nc = 25,
+#'   pi = c(0.5, 0.5), rho = c(0.5, 0.5),
+#'   alpha = alpha2, M = 2
+#' )
 #'
 #' netlist <- append(first_collection, second_collection)
 #'
@@ -408,68 +412,68 @@ clusterize_bipartite_networks <- function(netlist,
                                           fit_opts = list(),
                                           fit_init = NULL,
                                           full_inference = FALSE) {
-  # Adding default global_opts
-    switch(colsbm_model,
-      "iid" = {
-        free_mixture_row <- FALSE
-        free_mixture_col <- FALSE
-      },
-      "pi" = {
-        free_mixture_row <- TRUE
-        free_mixture_col <- FALSE
-      },
-      "rho" = {
-        free_mixture_row <- FALSE
-        free_mixture_col <- TRUE
-      },
-      "pirho" = {
-        free_mixture_row <- TRUE
-        free_mixture_col <- TRUE
-      },
-      stop(
-        "colsbm_model unknown.",
-        " Must be one of iid, pi, rho, pirho, delta or deltapi"
-      )
+  #  Adding default global_opts
+  switch(colsbm_model,
+    "iid" = {
+      free_mixture_row <- FALSE
+      free_mixture_col <- FALSE
+    },
+    "pi" = {
+      free_mixture_row <- TRUE
+      free_mixture_col <- FALSE
+    },
+    "rho" = {
+      free_mixture_row <- FALSE
+      free_mixture_col <- TRUE
+    },
+    "pirho" = {
+      free_mixture_row <- TRUE
+      free_mixture_col <- TRUE
+    },
+    stop(
+      "colsbm_model unknown.",
+      " Must be one of iid, pi, rho, pirho, delta or deltapi"
     )
-    # Check if a netlist is provided, try to cast it if not
-    if (!is.list(netlist)) {
-      netlist <- list(netlist)
-    }
-    # go is used to temporarily store the default global_opts
-    go <- list(
-      Q1_min = 1L,
-      Q2_min = 1L,
-      Q1_max = floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2),
-      Q2_max = floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2),
-      nb_init = 10L,
-      nb_models = 5L,
-      backend = "parallel",
-      depth = 1L,
-      plot_details = 1L,
-      max_pass = 10L,
-      verbosity = 1L,
-      nb_cores = 1L,
-      parallelization_vector = c(TRUE, TRUE)
-    )
-    go <- utils::modifyList(go, global_opts)
-    global_opts <- go
-    if (is.null(global_opts$nb_cores)) {
-      global_opts$nb_cores <- 1L
-    }
-    nb_cores <- global_opts$nb_cores
-    if (is.null(global_opts$backend)) {
-      global_opts$backend <- "parallel"
-    }
-    if (is.null(global_opts$Q1_max)) {
-      Q1_max <- floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2)
-    } else {
-      Q1_max <- global_opts$Q1_max
-    }
-    if (is.null(global_opts$Q2_max)) {
-      Q2_max <- floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2)
-    } else {
-      Q2_max <- global_opts$Q2_max
-    }  
+  )
+  # Check if a netlist is provided, try to cast it if not
+  if (!is.list(netlist)) {
+    netlist <- list(netlist)
+  }
+  # go is used to temporarily store the default global_opts
+  go <- list(
+    Q1_min = 1L,
+    Q2_min = 1L,
+    Q1_max = floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2),
+    Q2_max = floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2),
+    nb_init = 10L,
+    nb_models = 5L,
+    backend = "parallel",
+    depth = 1L,
+    plot_details = 1L,
+    max_pass = 10L,
+    verbosity = 1L,
+    nb_cores = 1L,
+    parallelization_vector = c(TRUE, TRUE)
+  )
+  go <- utils::modifyList(go, global_opts)
+  global_opts <- go
+  if (is.null(global_opts$nb_cores)) {
+    global_opts$nb_cores <- 1L
+  }
+  nb_cores <- global_opts$nb_cores
+  if (is.null(global_opts$backend)) {
+    global_opts$backend <- "parallel"
+  }
+  if (is.null(global_opts$Q1_max)) {
+    Q1_max <- floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2)
+  } else {
+    Q1_max <- global_opts$Q1_max
+  }
+  if (is.null(global_opts$Q2_max)) {
+    Q2_max <- floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2)
+  } else {
+    Q2_max <- global_opts$Q2_max
+  }
 
 
   if (global_opts$verbosity >= 1) {
@@ -661,12 +665,16 @@ clusterize_bipartite_networks <- function(netlist,
 #' @examples
 #' alpha1 <- matrix(c(0.8, 0.1, 0.2, 0.7), byrow = TRUE, nrow = 2)
 #' alpha2 <- matrix(c(0.8, 0.5, 0.5, 0.2), byrow = TRUE, nrow = 2)
-#' first_collection <- generate_bipartite_collection(nr = 50, nc = 25,
-#'      pi = c(0.5, 0.5), rho = c(0.5, 0.5),
-#'      alpha = alpha1, M = 2)
-#' second_collection <- generate_bipartite_collection(nr = 50, nc = 25,
-#'      pi = c(0.5, 0.5), rho = c(0.5, 0.5), 
-#'      alpha = alpha2, M = 2)
+#' first_collection <- generate_bipartite_collection(
+#'   nr = 50, nc = 25,
+#'   pi = c(0.5, 0.5), rho = c(0.5, 0.5),
+#'   alpha = alpha1, M = 2
+#' )
+#' second_collection <- generate_bipartite_collection(
+#'   nr = 50, nc = 25,
+#'   pi = c(0.5, 0.5), rho = c(0.5, 0.5),
+#'   alpha = alpha2, M = 2
+#' )
 #'
 #' netlist <- append(first_collection, second_collection)
 #'

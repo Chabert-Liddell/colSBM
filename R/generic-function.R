@@ -1,6 +1,6 @@
 # fitSimpleSBMPop$set(
 #   "public", "plot",
-  
+
 # )
 
 # bmpop$set(
@@ -28,7 +28,7 @@
 #' @return A plot, a ggplot2 object.
 #' @export
 #'
-#' @examples 
+#' @examples
 #' # Trivial example with Gnp networks:
 #' Net <- lapply(
 #'   list(.7, .7, .2, .2),
@@ -47,7 +47,6 @@
 #' )
 #' plot(cl$best_fit)
 #' }
-
 plot.fitSimpleSBMPop <- function(x, type = "graphon",
                                  ord = NULL, mixture = FALSE, net_id = 1, ...) {
   stopifnot(inherits(x, "fitSimpleSBMPop"))
@@ -149,7 +148,7 @@ plot.bmpop <- function(x, type = "trace", ...) {
 #'
 #' @examples
 #' alpha1 <- matrix(c(0.8, 0.1, 0.2, 0.7), byrow = TRUE, nrow = 2)
-#' 
+#'
 #' first_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5, 0.5), rho = c(0.5, 0.5), alpha = alpha1, M = 2)
 #'
 #' \dontrun{
@@ -174,7 +173,7 @@ plot.fitBipartiteSBMPop <- function(x, type = "graphon", oRow = NULL, oCol = NUL
 #'
 #' @param x a bisbmpop object.
 #' @param ... other arguments to pass to the plot.
-#' 
+#'
 #' @return A plot, a ggplot2 object.
 #' @export
 plot.bisbmpop <- function(x, ...) {

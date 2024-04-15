@@ -1297,7 +1297,7 @@ fitSimpleSBMPop <- R6::R6Class(
     #' well?
     #' @param net_id The id of the network to plot. Used to plot only on 
     #' network in "graphon" view.
-    #' @param ... Further argument to be passed
+    #' @param ... Further arguments to be passed
     #' 
     #' @return A plot, a ggplot2 object.
     plot = function(type = "graphon", ord = NULL, mixture = FALSE, net_id = NULL, ...) {

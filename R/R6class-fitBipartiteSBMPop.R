@@ -1,6 +1,6 @@
 #' An R6 Class object, a fitted population of netowrks sbm
 #' once $optimize() is done
-#' 
+#'
 #' @importFrom R6 R6Class
 #'
 #' @export
@@ -15,113 +15,113 @@ fitBipartiteSBMPop <- R6::R6Class(
     #' @field M Number of networks
     M = NULL,
     #' @field A List of incidence Matrix of size `n[[1]][m]xn[[2]][m]`
-    A = NULL, 
+    A = NULL,
     #' @field mask List of M masks, indicating NAs in the matrices. 1 for NA, 0 else
     mask = NULL,
-    #'@field nonNAs List of M masks, indicating non NAs in the matrices. 1 - mask, so 0 for NA, 1 for non NA
-    nonNAs = NULL, 
-    #'@field nb_inter A vector of length M the number of unique non NA entries
+    #' @field nonNAs List of M masks, indicating non NAs in the matrices. 1 - mask, so 0 for NA, 1 for non NA
+    nonNAs = NULL,
+    #' @field nb_inter A vector of length M the number of unique non NA entries
     nb_inter = NULL,
-    #'@field Q Number of clusters, vectors of size2
-    Q = NULL, # 
-    #'@field tau List of size M of list of two variational parameters.
+    #' @field Q Number of clusters, vectors of size2
+    Q = NULL, #
+    #' @field tau List of size M of list of two variational parameters.
     #' `n[[1]][m]xQ` matrices and `n[[2]][m]xQ` matrices
     tau = NULL,
-    #'@field alpha Matrix of size QxQ, connection parameters
-    alpha = NULL, # 
-    #'@field pi List of M vectors of size Q, the mixture parameters
+    #' @field alpha Matrix of size QxQ, connection parameters
+    alpha = NULL, #
+    #' @field pi List of M vectors of size Q, the mixture parameters
     pi = NULL, #
-    #'@field pim List of M vectors of size Q, the mixture parameters in case
+    #' @field pim List of M vectors of size Q, the mixture parameters in case
     #' of free_mixture
-    pim = NULL, 
-    #'@field e Vector of size M, the sum of unique entries
-    e = NULL, # 
-    #'@field emqr List of M QxQ matrix, the sum of edges between q and r in m,
+    pim = NULL,
+    #' @field e Vector of size M, the sum of unique entries
+    e = NULL, #
+    #' @field emqr List of M QxQ matrix, the sum of edges between q and r in m,
     #' ie the edges that are observed.
     emqr = NULL,
-    #'@field nmqr list of M QxQ matrix, the number of entries between q and r 
+    #' @field nmqr list of M QxQ matrix, the number of entries between q and r
     #' in m, ie all the possible edges.
     nmqr = NULL,
-    #'@field alpham list of M QxQ matrix, the classic sbm parameters.
+    #' @field alpham list of M QxQ matrix, the classic sbm parameters.
     alpham = NULL,
-    #'@field free_mixture_row A boolean indicating if there is a free mixture
+    #' @field free_mixture_row A boolean indicating if there is a free mixture
     #' on the rows
     free_mixture_row = NULL,
-    #'@field free_mixture_col A boolean indicating if there is a free mixture
+    #' @field free_mixture_col A boolean indicating if there is a free mixture
     #' on the columns
     free_mixture_col = NULL,
-    #'@field weight A vector of size M for weighted likelihood
+    #' @field weight A vector of size M for weighted likelihood
     weight = NULL,
-    #'@field distribution Emission distribution either : "poisson" or 
+    #' @field distribution Emission distribution either : "poisson" or
     #' "bernoulli"
     distribution = NULL,
-    #'@field mloss Loss on the M step of the VEM
+    #' @field mloss Loss on the M step of the VEM
     mloss = Inf,
-    #'@field vloss Loss on the VE step of the VEM
+    #' @field vloss Loss on the VE step of the VEM
     vloss = NULL,
-    #'@field vbound The variational bound
+    #' @field vbound The variational bound
     vbound = NULL,
-    #'@field net_id A vector containing the "ids" or names of the networks 
+    #' @field net_id A vector containing the "ids" or names of the networks
     #' (if none given, they are set to their number in A list)
     net_id = NULL,
-    #'@field df_mixture The degrees of freedom for mixture parameters pi,used 
+    #' @field df_mixture The degrees of freedom for mixture parameters pi,used
     #' to compute penalty
     df_mixture = NULL,
-    #'@field df_connect The degrees of freedom for connection parameters 
+    #' @field df_connect The degrees of freedom for connection parameters
     #' alpha,used to compute penalty
     df_connect = NULL,
-    #'@field Cpi  A list of matrices of size Qd x M containing TRUE (1)
+    #' @field Cpi  A list of matrices of size Qd x M containing TRUE (1)
     #' or FALSE (0) if the d-th dimension cluster is represented
     #' in the network m
     Cpi = NULL,
-    #'@field Calpha The corresponding support on the connectivity parameters
+    #' @field Calpha The corresponding support on the connectivity parameters
     #' computed with Cpi.
     Calpha = NULL,
-    #'@field logfactA A quantity used with the Poisson probability distribution
+    #' @field logfactA A quantity used with the Poisson probability distribution
     logfactA = NULL,
-    #'@field init_method The initialization method used for the first clustering
-    init_method = NULL, # 
+    #' @field init_method The initialization method used for the first clustering
+    init_method = NULL, #
     #  verbosity = NULL,
-    #'@field penalty  The penalty computed based on the number of parameters
+    #' @field penalty  The penalty computed based on the number of parameters
     penalty = NULL,
     # approx_pois = NULL,
-    #'@field Z  The clusters memberships, a list of size M of two matrices : 1 
+    #' @field Z  The clusters memberships, a list of size M of two matrices : 1
     #' for rows clusters memberships and 2 for columns clusters memberships
     Z = NULL,
-    #'@field MAP Maximum a posteriori
+    #' @field MAP Maximum a posteriori
     MAP = NULL,
-    #'@field MAP_parameters MAP params
+    #' @field MAP_parameters MAP params
     MAP_parameters = NULL,
-    #'@field ICL Stores the ICL of the model
+    #' @field ICL Stores the ICL of the model
     ICL = NULL,
-    #'@field BICL Stores the BICL of the model
+    #' @field BICL Stores the BICL of the model
     BICL = NULL,
-    #'@field fit_opts Fit parameters, used to determine the fitting method/
+    #' @field fit_opts Fit parameters, used to determine the fitting method/
     fit_opts = NULL,
-    #'@field step_counter Counts the number of passes
+    #' @field step_counter Counts the number of passes
     step_counter = 0,
-    #'@field greedy_exploration_starting_point Stores the coordinates Q1 & Q2 
+    #' @field greedy_exploration_starting_point Stores the coordinates Q1 & Q2
     #' from the greedy exploration to  keep track of the starting_point
-    greedy_exploration_starting_point = NULL, 
-    #' @field effective_clustering_list A list of size M storing the number 
+    greedy_exploration_starting_point = NULL,
+    #' @field effective_clustering_list A list of size M storing the number
     #' of the clusters that contains at least one point. Used for safety checks.
-    effective_clustering_list = NULL, 
-    #'@field clustering_is_complete A boolean used to know if the model real
+    effective_clustering_list = NULL,
+    #' @field clustering_is_complete A boolean used to know if the model real
     #' blocks match the expected blocks.
     clustering_is_complete = TRUE,
 
     #' @description
     #' Initializes the fitBipartiteSBMPop object
-    #' 
+    #'
     #' @param A List of incidence Matrix of size `n[[2]][m]xn[[2]][m]`
-    #' @param Q A vector of size 2 with the number of row blocks and column 
+    #' @param Q A vector of size 2 with the number of row blocks and column
     #' blocks
-    #' @param Z  The clusters memberships, a list of size M of two matrices : 1 
+    #' @param Z  The clusters memberships, a list of size M of two matrices : 1
     #' for rows clusters memberships and 2 for columns clusters memberships
     #' @param mask List of M masks, indicating NAs in the matrices. 1 for NA, 0 else
-    #' @param net_id A vector containing the "ids" or names of the networks 
+    #' @param net_id A vector containing the "ids" or names of the networks
     #' (if none given, they are set to their number in A list)
-    #' @param distribution Emission distribution either : "poisson" or 
+    #' @param distribution Emission distribution either : "poisson" or
     #' "bernoulli"
     #' @param free_mixture_row A boolean indicating if there is a free mixture
     #' on the rows
@@ -134,7 +134,7 @@ fitBipartiteSBMPop <- R6::R6Class(
     #' computed with Cpi.
     #' @param init_method The initialization method used for the first clustering
     #' @param weight A vector of size M for weighted likelihood
-    #' @param greedy_exploration_starting_point Stores the coordinates Q1 & Q2 
+    #' @param greedy_exploration_starting_point Stores the coordinates Q1 & Q2
     #' from the greedy exploration to  keep track of the starting_point
     #' @param fit_opts Fit parameters, used to determine the fitting method/
     initialize = function(A = NULL,
@@ -419,7 +419,7 @@ fitBipartiteSBMPop <- R6::R6Class(
       ))
     },
     #' Computes the penalty for the model
-    #' 
+    #'
     #' @return the computed penalty using the formulae.
     compute_penalty = function() {
       Cpi <- list()
@@ -540,16 +540,16 @@ fitBipartiteSBMPop <- R6::R6Class(
     },
 
     #' Method to update tau values
-    #' 
+    #'
     #' @description
     #' Not really a fixed point as tau^1 depends only tau^2.
-    #' 
+    #'
     #' @param m The number of the network in the netlist
     #' @param d The dimension to update
     #' @param max_iter The maximum number of iterations to perform, defaults
     #' to 1
     #' @param tol The tolerance for which to stop iterating
-    #' 
+    #'
     #' @return The new tau values
     fixed_point_tau = function(m, d, max_iter = 1, tol = 1e-3) {
       # Just 1 step is necessary because tau1 depends only on tau2
@@ -662,11 +662,11 @@ fitBipartiteSBMPop <- R6::R6Class(
       invisible(tau_new)
     },
     #' Computes the pi per network, known as the pim
-    #' 
+    #'
     #' @param m The number of the network in the netlist
     #' @param MAP A boolean wether to use the MAP parameters or not, defaults to
     #' FALSE
-    #' 
+    #'
     #' @return nothing; stores the values
     update_pim = function(m, MAP = FALSE) {
       # Here we compute the pi for each of the m networks
@@ -777,11 +777,11 @@ fitBipartiteSBMPop <- R6::R6Class(
       invisible(pi)
     },
     #' Computes the alpha per network, known as the alpĥam
-    #' 
+    #'
     #' @param m The number of the network in the netlist
     #' @param MAP A boolean wether to use the MAP parameters or not, defaults to
     #' FALSE
-    #' 
+    #'
     #' @return the alpham and stores the values
     update_alpham = function(m, MAP = FALSE) {
       if (!MAP) {
@@ -806,12 +806,12 @@ fitBipartiteSBMPop <- R6::R6Class(
     update_alpha = function(MAP = FALSE) {
       # For iid and pi-colSBM
       if (!MAP) {
-        # Sums over the M networks (dims = 1)
+        #  Sums over the M networks (dims = 1)
         alpha <- self$Calpha * colSums(self$emqr, dims = 1) / colSums(self$nmqr, dims = 1)
         alpha[is.nan(alpha)] <- 0
         self$alpha <- alpha
       } else {
-        # Sums over the M networks (dims = 1)
+        #  Sums over the M networks (dims = 1)
         alpha <- self$Calpha * colSums(self$MAP$emqr, dims = 1) / colSums(self$MAP$nmqr, dims = 1)
         alpha[is.nan(alpha)] <- 0
         self$MAP$alpha <- alpha
@@ -1029,7 +1029,7 @@ fitBipartiteSBMPop <- R6::R6Class(
     #' @param max_iter The maximum number of iterations, default to 2
     #' @param tol The tolerance for which to stop iterating defaults to 1e-3
     #' @param ... Other parameters
-    #' 
+    #'
     #' @return nothing; stores values
     m_step = function(MAP = FALSE, max_iter = 2, tol = 1e-3, ...) {
       # browser()
@@ -1037,25 +1037,24 @@ fitBipartiteSBMPop <- R6::R6Class(
       self$update_pi(MAP = MAP)
 
       self$update_alpha(MAP = MAP)
-
     },
-    #' An optimization version for the VE step of the VEM but currently a 
+    #' An optimization version for the VE step of the VEM but currently a
     #' placeholder
-    #' 
+    #'
     #' @param m The number of the network in the netlist
     #' @param max_iter The maximum number of iterations, default to 2
     #' @param tol The tolerance for which to stop iterating defaults to 1e-3
     #' @param ... Other parameters
-    #' 
+    #'
     #' @return nothing; stores values
     ve_step = function(m, max_iter = 2, tol = 1e-3, ...) {
       # Place holder for gradient ascent or other optimization methods
     },
     #' Updates the mqr quantities
-    #' 
+    #'
     #' @description
     #' Namely, it updates the emqr and nmqr.
-    #' 
+    #'
     #' @param m The number of the network in the netlist
     update_mqr = function(m) {
       # Compute the "mqr" quantities
@@ -1108,7 +1107,7 @@ fitBipartiteSBMPop <- R6::R6Class(
       # }
     },
     #' Computes the number of blocks that are effectively populated
-    #' 
+    #'
     #' @return nothing; but stores the value
     compute_effective_clustering = function() {
       self$effective_clustering_list <- lapply(seq.int(self$M), function(m) {
@@ -1119,11 +1118,11 @@ fitBipartiteSBMPop <- R6::R6Class(
       })
     },
     #' Perform the whole initialization and VEM algorithm
-    #' 
+    #'
     #' @param max_step The maximum number of steps to perform optimization
     #' @param tol The tolerance for which to stop iterating, default to 1e-3
     #' @param ... Other parameters
-    #' 
+    #'
     #' @return nothing
     optimize = function(max_step = 20, tol = 1e-3, ...) {
       if (all(self$Q == c(1, 1))) {
@@ -1355,7 +1354,7 @@ fitBipartiteSBMPop <- R6::R6Class(
     #' @importFrom patchwork plot_layout plot_annotation wrap_plots
     #' @importFrom reshape2 melt
     #' @importFrom purrr map_dfc
-    #' 
+    #'
     #' @param type The type of the plot. Could be "graphon", "meso" or "block".
     #' @param oRow A reordering of the row blocks.
     #' @param oCol A reordering of the column blocks.
@@ -1443,8 +1442,12 @@ fitBipartiteSBMPop <- R6::R6Class(
           )
           df_rho <- purrr::map_dfc(
             seq_along(self$net_id),
-            function(m) setNames(data.frame(self$pim[[m]][[2]][oCol]), 
-              self$net_id[m])
+            function(m) {
+              setNames(
+                data.frame(self$pim[[m]][[2]][oCol]),
+                self$net_id[m]
+              )
+            }
           )
           # names(df_pi) <- self$net_id
           if (mixture) {
@@ -1555,15 +1558,15 @@ fitBipartiteSBMPop <- R6::R6Class(
     #' @field nb_nodes Returns n a list of the number of nodes per network
     nb_nodes = function(value) self$n,
     #' @field nb_blocks Returns Q a vector with 2 coordinates, Q1 and Q2 for the
-    #' row blocks and the column blocks 
+    #' row blocks and the column blocks
     nb_blocks = function(value) self$Q,
-    #' @field support Returns the Cpi, a list of M boolean matrices indicating 
+    #' @field support Returns the Cpi, a list of M boolean matrices indicating
     #' which blocks are populated
     support = function(value) self$Cpi,
     #' @field prob_memberships Returns the tau, the probabilities of memberships
     #' "a posteriori", after seeing the data
     prob_memberships = function(value) self$tau,
-    #' @field parameters Returns the list of parameters of the model, alpha, pi 
+    #' @field parameters Returns the list of parameters of the model, alpha, pi
     #' and rho
     parameters = function(value) {
       list(
