@@ -152,7 +152,7 @@ net_clust <- clusterize_bipartite_networks(
 ```
 
 ```{r}
-best_partition <- extract_best_bipartite_partition(net_clust)
+best_partition <- unlist(extract_best_bipartite_partition(net_clust))
 ```
 
 We obtain a list of `r length(unlist(best_partition))` tested collections. The lists are nested and reflect the
@@ -174,9 +174,9 @@ but then we can compare the mesoscale structures of the 3 groups:
 
 ```{r plot-part, fig.width = 8, fig.cap="Best partition graphon type plots"}
 wrap_plots(
-  plot(best_partition[[1]][[1]], type = "graphon"),
-  plot(best_partition[[1]][[2]], type = "graphon"),
+  plot(best_partition[[1]], type = "graphon"),
   plot(best_partition[[2]], type = "graphon"),
+  plot(best_partition[[3]], type = "graphon"),
   ncol = 2) +
   plot_annotation(tag_levels = "1")
 ```

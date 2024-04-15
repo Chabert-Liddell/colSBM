@@ -220,7 +220,8 @@ generate_bipartite_collection <- function(
           return_memberships = return_memberships
         )
       })
-    }
+    },
+    stop("Error unknown model. Must be one of : iid, pi, rho, pirho.")
   )
 
   return(out)

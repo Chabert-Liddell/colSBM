@@ -505,7 +505,7 @@ estimate_colBiSBM <-
     if (global_opts$verbosity >= 1) {
       cat(
         "\n==== Full computation performed in",
-        format(Sys.time() - start_time, digits = 3), "===="
+        format(Sys.time() - start_time, digits = 3), "====\n"
       )
     }
 

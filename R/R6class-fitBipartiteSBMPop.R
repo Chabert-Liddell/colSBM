@@ -258,7 +258,7 @@ fitBipartiteSBMPop <- R6::R6Class(
       # pi-delta colSBM : free_mixture = T, free_density = T
       self$free_mixture_row <- free_mixture_row
       self$free_mixture_col <- free_mixture_col
-      self$free_density <- free_density
+      self$free_density <- FALSE
 
       # Setting the needed matrices for free mixture models
       if (is.null(Cpi[[1]]) | is.null(Cpi[[2]]) |
@@ -1033,10 +1033,12 @@ fitBipartiteSBMPop <- R6::R6Class(
     update_alpha = function(MAP = FALSE) {
       # For iid and pi-colSBM
       if (!MAP) {
+        # Sums over the M networks (dims = 1)
         alpha <- self$Calpha * colSums(self$emqr, dims = 1) / colSums(self$nmqr, dims = 1)
         alpha[is.nan(alpha)] <- 0
         self$alpha <- alpha
       } else {
+        # Sums over the M networks (dims = 1)
         alpha <- self$Calpha * colSums(self$MAP$emqr, dims = 1) / colSums(self$MAP$nmqr, dims = 1)
         alpha[is.nan(alpha)] <- 0
         self$MAP$alpha <- alpha
@@ -1269,7 +1271,7 @@ fitBipartiteSBMPop <- R6::R6Class(
         self$update_alpha(MAP = MAP)
       } else {
         switch(self$distribution,
-          "poisson" = self$fixed_point_alpha_delta(MAP = MAP),
+          "poisson" = self$update_alpha_delta(MAP = MAP),
           "bernoulli" =
             ifelse(self$fit_opts$approx_pois,
               self$fixed_point_alpha_delta(MAP = MAP),

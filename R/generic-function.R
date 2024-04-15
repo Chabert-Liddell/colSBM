@@ -173,10 +173,12 @@ plot.fitBipartiteSBMPop <- function(x, type = "graphon", oRow = NULL, oCol = NUL
 #' Plot the state-space exploration plot for a bipartite collection object
 #'
 #' @param x a bisbmpop object.
+#' @param ... other arguments to pass to the plot.
+#' 
 #' @return A plot, a ggplot2 object.
 #' @export
-plot.bisbmpop <- function(x) {
+plot.bisbmpop <- function(x, ...) {
   stopifnot(inherits(x, "bisbmpop"))
-  p <- x$plot()
+  p <- x$plot(...)
   p
 }

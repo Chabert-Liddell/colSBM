@@ -4,10 +4,12 @@
 \alias{plot.bisbmpop}
 \title{Plot the state-space exploration plot for a bipartite collection object}
 \usage{
-\method{plot}{bisbmpop}(x)
+\method{plot}{bisbmpop}(x, ...)
 }
 \arguments{
 \item{x}{a bisbmpop object.}
+
+\item{...}{other arguments to pass to the plot.}
 }
 \value{
 A plot, a ggplot2 object.
