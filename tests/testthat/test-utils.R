@@ -37,4 +37,105 @@ test_that("Generate bipartite collection with vectors for nc and nr", {
     expect_equal(length(increasingCol), M)
     expect_equal(lapply(increasingCol, nrow), as.list(nr))
     expect_equal(lapply(increasingCol, ncol), as.list(nc))
+    #  Wrong M
+    expect_error(colSBM::generate_bipartite_collection(
+        nr, nc, pir, pic, alpha,
+        M + 1
+    ))
+    expect_error(colSBM::generate_bipartite_collection(
+        c(nr, 1), nc, pir, pic, alpha,
+        M
+    ))
+    expect_error(colSBM::generate_bipartite_collection(
+        nr, c(nc, 1), pir, pic, alpha,
+        M
+    ))
+})
+
+test_that("Testing the different models", {
+    expect_error(
+        colSBM::generate_bipartite_collection(
+            nr, nc, pir, pic, alpha,
+            M,
+            model = "iidi"
+        )
+    )
+    expect_no_error(
+        colSBM::generate_bipartite_collection(
+            nr, nc, pir, pic, alpha,
+            M,
+            model = "iid"
+        )
+    )
+    expect_no_error(
+        colSBM::generate_bipartite_collection(
+            nr, nc, pir, pic, alpha,
+            M,
+            model = "pi"
+        )
+    )
+    expect_no_error(
+        colSBM::generate_bipartite_collection(
+            nr, nc, pir, pic, alpha,
+            M,
+            model = "rho"
+        )
+    )
+    expect_no_error(
+        colSBM::generate_bipartite_collection(
+            nr, nc, pir, pic, alpha,
+            M,
+            model = "pirho"
+        )
+    )
+})
+
+test_that("Base case spectral biclustering", {
+    X <- matrix(c(1, 0, 0, 1), byrow = TRUE, nrow = 2)
+    expect_equal(
+        colSBM:::spectral_biclustering(X = X, K = c(1, 1)),
+        list(
+            row_clustering = c(1, 1),
+            col_clustering = c(1, 1)
+        )
+    )
+})
+
+test_that("Spectral clustering too many clusters works", {
+    X <- generate_unipartite_network(n = 10, pi = 1, alpha = 0.9)$adjacency
+    expect_message(
+        colSBM:::spectral_clustering(X = X, K = 12),
+    )
+})
+
+test_that("Base case spectral biclustering", {
+    X <- matrix(c(1, 0, 0, 1), byrow = TRUE, nrow = 2)
+    expect_equal(
+        colSBM:::spectral_biclustering(X = X, K = c(1, 1)),
+        list(
+            row_clustering = c(1, 1),
+            col_clustering = c(1, 1)
+        )
+    )
+})
+
+test_that("Base case hierarchical biclustering", {
+    X <- matrix(c(1, 0, 0, 1), byrow = TRUE, nrow = 2)
+    expect_equal(
+        colSBM:::bipartite_hierarchic_clustering(X = X, K = c(1, 1)),
+        list(
+            row_clustering = c(1, 1),
+            col_clustering = c(1, 1)
+        )
+    )
+})
+
+test_that("Hierarchical biclustering works", {
+    X <- generate_bipartite_network(
+        nr = 10, 10, pi = c(0.4, 0.6), rho = 1,
+        alpha = matrix(c(0.9, 0.1), byrow = TRUE, nrow = 2)
+    )
+    expect_no_error(
+        colSBM:::bipartite_hierarchic_clustering(X = X, K = c(2, 1)),
+    )
 })
