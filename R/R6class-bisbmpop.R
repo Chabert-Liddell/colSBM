@@ -45,8 +45,6 @@ bisbmpop <- R6::R6Class(
     exploration_order_list = NULL,
     #' @field Z_init A list of initializations for the Z memberships.
     Z_init = NULL,
-    #' @field free_density TODO remove
-    free_density = NULL,
     #' @field free_mixture_row A boolean signaling if there is free mixture on
     #' the row blocks
     free_mixture_row = NULL,
@@ -97,8 +95,6 @@ bisbmpop <- R6::R6Class(
     #' provided
     #' @param distribution The emission distribution either "bernoulli" or
     #' "poisson"
-    #' @param free_density If we account for different density between networks
-    #' TODO Remove
     #' @param free_mixture_row A boolean indicating if there is free mixture on
     #' the row blocks
     #' @param free_mixture_col A boolean indicating if there is free mixture on
@@ -114,7 +110,6 @@ bisbmpop <- R6::R6Class(
     initialize = function(netlist = NULL,
                           net_id = NULL,
                           distribution = "bernoulli",
-                          free_density = FALSE,
                           free_mixture_row = FALSE,
                           free_mixture_col = FALSE,
                           Z_init = NULL,
@@ -155,7 +150,6 @@ bisbmpop <- R6::R6Class(
         Z = NULL
       )
       self$distribution <- distribution
-      self$free_density <- free_density
       self$free_mixture_row <- free_mixture_row
       self$free_mixture_col <- free_mixture_col
       self$global_opts <- list(
@@ -416,7 +410,6 @@ bisbmpop <- R6::R6Class(
               Q = split_Q,
               free_mixture_row = self$free_mixture_row,
               free_mixture_col = self$free_mixture_col,
-              free_density = self$free_density,
               init_method = "given",
               distribution = self$distribution,
               Z = q_th_Z_init,
@@ -659,7 +652,6 @@ bisbmpop <- R6::R6Class(
               Q = split_Q,
               free_mixture_row = self$free_mixture_row,
               free_mixture_col = self$free_mixture_col,
-              free_density = self$free_density,
               init_method = "given",
               distribution = self$distribution,
               Z = q_th_Z_init,
@@ -978,7 +970,6 @@ bisbmpop <- R6::R6Class(
               Q = merge_Q,
               free_mixture_row = self$free_mixture_row,
               free_mixture_col = self$free_mixture_col,
-              free_density = self$free_density,
               init_method = "given",
               distribution = self$distribution,
               Z = q_th_Z_init,
@@ -1221,7 +1212,6 @@ bisbmpop <- R6::R6Class(
               Q = merge_Q,
               free_mixture_row = self$free_mixture_row,
               free_mixture_col = self$free_mixture_col,
-              free_density = self$free_density,
               init_method = "given",
               distribution = self$distribution,
               Z = q_th_Z_init,
@@ -1748,7 +1738,6 @@ bisbmpop <- R6::R6Class(
           Q = c(q1, q2),
           free_mixture_row = self$free_mixture_row,
           free_mixture_col = self$free_mixture_col,
-          free_density = self$free_density,
           Cpi = Cpi,
           Calpha = Calpha,
           init_method = "given",
@@ -1815,7 +1804,6 @@ bisbmpop <- R6::R6Class(
           Q = c(1, 1),
           free_mixture_row = FALSE, # There can't be free mixture with 1 cluster
           free_mixture_col = FALSE, # There can't be free mixture with 1 cluster
-          free_density = self$free_density,
           fit_opts = self$fit_opts,
           distribution = self$distribution,
           greedy_exploration_starting_point = c(1, 1),
@@ -1842,7 +1830,6 @@ bisbmpop <- R6::R6Class(
               Q = c(1, 2),
               free_mixture_row = FALSE, # There can't be free mixture with 1 net
               free_mixture_col = FALSE, # There can't be free mixture with 1 net
-              free_density = self$free_density,
               distribution = self$distribution,
               init_method = "spectral",
               fit_opts = self$fit_opts
@@ -1885,7 +1872,6 @@ bisbmpop <- R6::R6Class(
               Q = c(2, 1),
               free_mixture_row = FALSE, # There can't be free mixture with 1 net
               free_mixture_col = FALSE, # There can't be free mixture with 1 net
-              free_density = self$free_density,
               distribution = self$distribution,
               init_method = "spectral",
               fit_opts = self$fit_opts
@@ -1999,7 +1985,6 @@ bisbmpop <- R6::R6Class(
           A = self$A, Q = c(1, 2),
           free_mixture_row = FALSE, # There can't be free mixture with 1 cluster
           free_mixture_col = self$free_mixture_col,
-          free_density = self$free_density,
           Z = M_clusterings_1_2,
           init_method = "given",
           distribution = self$distribution,
@@ -2011,7 +1996,6 @@ bisbmpop <- R6::R6Class(
           A = self$A, Q = c(2, 1),
           free_mixture_row = self$free_mixture_row,
           free_mixture_col = FALSE, # There can't be free mixture with 1 cluster
-          free_density = self$free_density,
           Z = M_clusterings_2_1,
           init_method = "given",
           distribution = self$distribution,
@@ -2372,7 +2356,6 @@ bisbmpop <- R6::R6Class(
               Q = current_model_Q,
               free_mixture_row = self$free_mixture_row,
               free_mixture_col = self$free_mixture_col,
-              free_density = self$free_density,
               init_method = "spectral",
               distribution = self$distribution,
               net_id = self$net_id,
@@ -2543,7 +2526,6 @@ bisbmpop <- R6::R6Class(
               Q = current_model_Q,
               free_mixture_row = self$free_mixture_row,
               free_mixture_col = self$free_mixture_col,
-              free_density = self$free_density,
               init_method = "spectral",
               distribution = self$distribution,
               net_id = self$net_id,
@@ -2693,7 +2675,6 @@ bisbmpop <- R6::R6Class(
             distribution = self$distribution,
             free_mixture_row = FALSE,
             free_mixture_col = FALSE,
-            free_density = FALSE,
             global_opts = list(
               verbosity = 0,
               plot_details = 0,

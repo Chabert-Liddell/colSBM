@@ -277,10 +277,14 @@ estimate_colSBM <-
 #' @examples
 #' alpha1 <- matrix(c(0.8, 0.1, 0.2, 0.7), byrow = TRUE, nrow = 2)
 #' alpha2 <- matrix(c(0.8, 0.5, 0.5, 0.2), byrow = TRUE, nrow = 2)
-#' first_collection <- generate_bipartite_collection(nr = 50, nc = 25, 
-#' pi = c(0.5, 0.5), rho = c(0.5, 0.5), alpha = alpha1, M = 2)
-#' second_collection <- generate_bipartite_collection(nr = 50, nc = 25, 
-#' pi = c(0.5, 0.5), rho = c(0.5, 0.5), alpha = alpha2, M = 2)
+#' first_collection <- generate_bipartite_collection(
+#'   nr = 50, nc = 25,
+#'   pi = c(0.5, 0.5), rho = c(0.5, 0.5), alpha = alpha1, M = 2
+#' )
+#' second_collection <- generate_bipartite_collection(
+#'   nr = 50, nc = 25,
+#'   pi = c(0.5, 0.5), rho = c(0.5, 0.5), alpha = alpha2, M = 2
+#' )
 #'
 #' netlist <- append(first_collection, second_collection)
 #'
@@ -310,22 +314,18 @@ estimate_colBiSBM <-
            sep_BiSBM = NULL) {
     switch(colsbm_model,
       "iid" = {
-        free_density <- FALSE
         free_mixture_row <- FALSE
         free_mixture_col <- FALSE
       },
       "pi" = {
-        free_density <- FALSE
         free_mixture_row <- TRUE
         free_mixture_col <- FALSE
       },
       "rho" = {
-        free_density <- FALSE
         free_mixture_row <- FALSE
         free_mixture_col <- TRUE
       },
       "pirho" = {
-        free_density <- FALSE
         free_mixture_row <- TRUE
         free_mixture_col <- TRUE
       },
@@ -401,7 +401,6 @@ estimate_colBiSBM <-
               netlist = netlist,
               net_id = net_id,
               distribution = distribution,
-              free_density = free_density,
               free_mixture_row = free_mixture_row,
               free_mixture_col = free_mixture_col,
               global_opts = global_opts,
@@ -424,7 +423,6 @@ estimate_colBiSBM <-
               netlist = netlist,
               net_id = net_id,
               distribution = distribution,
-              free_density = free_density,
               free_mixture_row = free_mixture_row,
               free_mixture_col = free_mixture_col,
               global_opts = global_opts,

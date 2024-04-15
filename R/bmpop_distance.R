@@ -86,8 +86,8 @@ dist_bisbmpop_max <- function(
     rho, alpha, delta = c(1, 1), weight = "max", norm = "L2") {
   if (missing(pi) || missing(rho)) {
     distance <- switch(norm,
-      "L1" = sum(abs(alpha[[1]] / delta[1] - alpha[[2]] / delta[2])),
-      "L2" = sum((alpha[[1]] / delta[1] - alpha[[2]] / delta[2])**2)
+      "L1" = sum(abs(alpha[[1]] - alpha[[2]])),
+      "L2" = sum((alpha[[1]] - alpha[[2]])**2)
     )
   } else {
     w_pi <- switch(weight,
@@ -100,10 +100,10 @@ dist_bisbmpop_max <- function(
     )
     distance <- switch(norm,
       "L1" = sum(as.vector(w_pi) %*%
-        (abs(alpha[[1]] / delta[1] - alpha[[2]] / delta[2])) %*%
+        (abs(alpha[[1]] - alpha[[2]])) %*%
         as.vector(w_rho)),
       "L2" = sum(as.vector(w_pi) %*%
-        ((alpha[[1]] / delta[1] - alpha[[2]] / delta[2])**2) %*%
+        ((alpha[[1]] - alpha[[2]])**2) %*%
         as.vector(w_rho))
     )
   }

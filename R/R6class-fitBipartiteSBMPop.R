@@ -29,8 +29,6 @@ fitBipartiteSBMPop <- R6::R6Class(
     tau = NULL,
     #'@field alpha Matrix of size QxQ, connection parameters
     alpha = NULL, # 
-    #'@field delta  Vector of M,  density parameters with `delta[1] = 1`
-    delta = NULL, #
     #'@field pi List of M vectors of size Q, the mixture parameters
     pi = NULL, #
     #'@field pim List of M vectors of size Q, the mixture parameters in case
@@ -52,8 +50,6 @@ fitBipartiteSBMPop <- R6::R6Class(
     #'@field free_mixture_col A boolean indicating if there is a free mixture
     #' on the columns
     free_mixture_col = NULL,
-    #'@field free_density A boolean TODO delete
-    free_density = NULL,
     #'@field weight A vector of size M for weighted likelihood
     weight = NULL,
     #'@field distribution Emission distribution either : "poisson" or 
@@ -74,9 +70,6 @@ fitBipartiteSBMPop <- R6::R6Class(
     #'@field df_connect The degrees of freedom for connection parameters 
     #' alpha,used to compute penalty
     df_connect = NULL,
-    #'@field df_density The degrees of freedom for density parameters delta,
-    #' used to compute penalty
-    df_density = NULL,
     #'@field Cpi  A list of matrices of size Qd x M containing TRUE (1)
     #' or FALSE (0) if the d-th dimension cluster is represented
     #' in the network m
@@ -134,7 +127,6 @@ fitBipartiteSBMPop <- R6::R6Class(
     #' on the rows
     #' @param free_mixture_col A boolean indicating if there is a free mixture
     #' on the columns
-    #' @param free_density A boolean not used TODO delete
     #' @param Cpi  A list of matrices of size Qd x M containing TRUE (1)
     #' or FALSE (0) if the d-th dimension cluster is represented
     #' in the network m
@@ -153,7 +145,6 @@ fitBipartiteSBMPop <- R6::R6Class(
                           distribution = "bernoulli",
                           free_mixture_row = TRUE,
                           free_mixture_col = TRUE,
-                          free_density = TRUE,
                           Cpi = NULL,
                           Calpha = NULL,
                           init_method = "spectral",
@@ -252,13 +243,12 @@ fitBipartiteSBMPop <- R6::R6Class(
       self$fit_opts <- utils::modifyList(self$fit_opts, fit_opts)
 
       # Registering the colSBM model to fit
-      # iid : free_mixture = F, free_density = F
-      # pi colSBM : free_mixture = T, free_density = F
-      # delta colSBM : free_mixture = F, free_density = T
-      # pi-delta colSBM : free_mixture = T, free_density = T
+      # iid : free_mixture_row = F, free_mixture_col = F
+      # pi colSBM : free_mixture_row = T, free_mixture_col = F
+      # rho colSBM : free_mixture_row = F, free_mixture_col = T
+      # pi-rho colSBM : free_mixture_row = T, free_mixture_col = T
       self$free_mixture_row <- free_mixture_row
       self$free_mixture_col <- free_mixture_col
-      self$free_density <- FALSE
 
       # Setting the needed matrices for free mixture models
       if (is.null(Cpi[[1]]) | is.null(Cpi[[2]]) |
@@ -325,20 +315,12 @@ fitBipartiteSBMPop <- R6::R6Class(
       # Degrees of freedom
       # for iid
       self$df_mixture <- self$Q - 1
-      self$df_density <- self$M - 1
       self$df_connect <- self$Q[1] * self$Q[2]
 
       self$Z <- if (is.null(Z)) {
         vector("list", self$M)
       } else {
         Z
-      }
-
-      # Computing the density of the m networks
-      self$delta <- rep(1, self$M)
-      if (self$free_density) {
-        self$delta <- (self$e / (self$n[[1]] * self$n[[2]])) /
-          (self$e[1] / ((self$n[[1]][1] * self$n[[2]][1])))
       }
 
       self$alpha <- matrix(.5, Q[1], Q[2])
@@ -378,23 +360,21 @@ fitBipartiteSBMPop <- R6::R6Class(
         emqr <- matrix_mqr_to_use * self$MAP$emqr[m, , ]
         nmqr <- matrix_mqr_to_use * self$MAP$nmqr[m, , ]
         alpha <- self$Calpha * self$MAP$alpha
-        delta <- self$MAP$delta[m]
       } else {
         emqr <- matrix_mqr_to_use * self$emqr[m, , ]
         nmqr <- matrix_mqr_to_use * self$nmqr[m, , ]
         alpha <- self$Calpha * self$alpha
-        delta <- self$delta[m]
       }
       switch(self$distribution,
         "bernoulli" = {
           sum(
-            self$Calpha * .xlogy(emqr, alpha * delta, eps = 1e-12) +
-              self$Calpha * .xlogy(nmqr - emqr, 1 - alpha * delta, eps = 1e-12)
+            self$Calpha * .xlogy(emqr, alpha, eps = 1e-12) +
+              self$Calpha * .xlogy(nmqr - emqr, 1 - alpha, eps = 1e-12)
           )
         },
         "poisson" = {
-          sum(.xlogy(emqr, alpha * delta, eps = 1e-12) -
-            nmqr * alpha * delta -
+          sum(.xlogy(emqr, alpha, eps = 1e-12) -
+            nmqr * alpha -
             self$logfactA[m])
         }
       )
@@ -427,162 +407,6 @@ fitBipartiteSBMPop <- R6::R6Class(
     entropy_tau = function(m) {
       -sum(.xlogx(self$tau[[m]][[1]][, which(self$Cpi[[1]][, m])])) -
         sum(.xlogx(self$tau[[m]][[2]][, which(self$Cpi[[2]][, m])]))
-    },
-    #' Objective function for the variational bound regarding
-    #' the alpha and delta parameters.
-    #' 
-    #' @param par The parameters, alpha and delta combined in one big vector.
-    #' @param emqr List of M QxQ matrix, the sum of edges between q and r in m
-    #' @param nmqr List of M QxQ matrix, the number of entries between q and r 
-    #' in m
-    #' 
-    #' @return The evaluation of the function
-    fn_vb_alpha_delta = function(par, emqr, nmqr) {
-      alpha <- par[1:self$df_connect]
-      delta <- c(1, par[1:self$df_density + self$df_connect])
-      res <-
-        vapply(seq_along(self$A),
-          function(m) {
-            -.5 * sum(emqr[m, , ] * .log(alpha * delta[m], eps = 1e-9) +
-              (nmqr[m, , ] - emqr[m, , ]) * .log(1 - alpha * delta[m], eps = 1e-9))
-          },
-          FUN.VALUE = .1
-        )
-      sum(res)
-    },
-    #' Gradient of the objective function for the variational bound regarding
-    #' the alpha and delta parameters.
-    #' 
-    #' @param par The parameters, alpha and delta combined in one big vector.
-    #' @param emqr List of M QxQ matrix, the sum of edges between q and r in m
-    #' @param nmqr List of M QxQ matrix, the number of entries between q and r 
-    #' in m
-    #' 
-    #' @return The evaluation of the function
-    gr_vb_alpha_delta = function(par, emqr, nmqr) {
-      # browser()
-      alpha <- par[1:self$df_connect]
-      delta <- c(1, par[1:self$df_density + self$df_connect])
-      res_alpha <-
-        lapply(
-          seq_along(self$A),
-          function(m) {
-            emqr[m, , ] / pmax(alpha, 1e-9) -
-              (nmqr[m, , ] - emqr[m, , ]) *
-                (delta[m] / pmax(1 - alpha * delta[m], 1e-9))
-          }
-        )
-      res_alpha <- Reduce("+", res_alpha)
-      res_delta <-
-        vapply(seq_along(self$A),
-          function(m) {
-            sum(emqr[m, , ] / (pmax(delta[m], 1e-9)) -
-              (nmqr[m, , ] - emqr[m, , ]) *
-                (delta[m] / pmax(1 - alpha * delta[m], 1e-9)))
-          },
-          FUN.VALUE = .1
-        )
-      invisible(res)
-    },
-    #' Constraint
-    #'
-    #' @param par The parameters, alpha and delta combined in one big vector.
-    #' @param emqr List of M QxQ matrix, the sum of edges between q and r in m
-    #' @param nmqr List of M QxQ matrix, the number of entries between q and r 
-    #' in m
-    #'
-    #' @return The evaluation of the function
-    eval_g0_vb_alpha_delta = function(par, emqr, nmqr) {
-      as.vector(
-        vapply(
-          seq(self$M - 1),
-          function(m) {
-            c(par[1:self$df_density + self$df_connect])[m] *
-              par[1:self$df_connect] - 1 + 1e-9
-          },
-          FUN.VALUE = rep(.1, self$df_connect)
-        )
-      )
-    },
-    #' Jacobian of the constraint
-    #'
-    #' @param par The parameters, alpha and delta combined in one big vector.
-    #' @param emqr List of M QxQ matrix, the sum of edges between q and r in m
-    #' @param nmqr List of M QxQ matrix, the number of entries between q and r 
-    #' in m
-    #'
-    #' @return The evaluation of the function
-    eval_jac_g0_vb_alpha_delta = function(par, emqr, nmqr) {
-      jac_d <- aperm(
-        vapply(
-          seq(self$df_density),
-          function(m) diag(par[m + self$df_connect], self$df_connect),
-          FUN.VALUE = matrix(.1, self$df_connect, self$df_connect)
-        ),
-        perm = c(2, 3, 1)
-      )
-      dim(jac_d) <- c((self$df_density) * self$df_connect, self$df_connect)
-      jac_a <- matrix(0, (self$df_density) * self$df_connect, self$df_density)
-      for (m in seq(self$df_density)) {
-        jac_a[1:(self$df_connect) + (m - 1) * (self$df_connect), m] <-
-          par[1:(self$df_connect)]
-      }
-      cbind(jac_d, jac_a)
-    },
-    #' Updates the alpha and delta parameters
-    #' 
-    #' @param MAP Wether to use the MAP parameters or not, a boolean, defaults
-    #' to FALSE.
-    #' 
-    #' @return nothing; but stores the values
-    update_alpha_delta = function(MAP = FALSE) {
-      # browser()
-      # TODO Modify and adapt to bipartite case
-      d <- self$delta
-      a <- self$alpha
-      a <- pmin(a * d[1], 1 - 1e-12)
-      d <- d / d[1]
-      if (MAP) {
-        emqr <- self$MAP$emqr
-        nmqr <- self$MAP$nmqr
-      } else {
-        emqr <- self$emqr
-        nmqr <- self$nmqr
-      }
-      hat <- nloptr::nloptr(
-        x0 = c(a, d[2:self$M]),
-        eval_f = self$fn_vb_alpha_delta,
-        eval_grad_f = self$gr_vb_alpha_delta,
-        lb = c(rep(
-          10 * .Machine$double.eps,
-          self$df_connect + self$df_density
-        )),
-        ub = c(
-          rep(
-            1 - 10 * .Machine$double.eps,
-            self$df_connect
-          ),
-          rep(Inf, self$df_density)
-        ),
-        eval_g_ineq = self$eval_g0_vb_alpha_delta,
-        eval_jac_g_ineq = self$eval_jac_g0_vb_alpha_delta,
-        opts = list(
-          "algorithm" = "NLOPT_LD_MMA",
-          # "local_opts" = list("algorithm" = "NLOPT_LD_LBFGS",
-          #                     "xtol_rel" = 1.0e-4),
-          "xtol_rel" = 1.0e-4
-        ),
-        emqr = emqr, nmqr = nmqr
-      )
-      a <- matrix(hat$solution[1:self$df_connect], self$Q[1], self$Q[2])
-      d <- c(1, hat$solution[1:(self$df_density) + self$df_connect])
-      if (MAP) {
-        self$MAP$alpha <- a
-        self$MAP$delta <- d
-      } else {
-        self$alpha <- a
-        self$delta <- d
-      }
     },
     #' Computes the variational bound (vbound)
     #'
@@ -637,7 +461,7 @@ fitBipartiteSBMPop <- R6::R6Class(
         # will be computed using supports
         alpha_penalty <- sum(self$Calpha) * log(N_M)
       } else {
-        # iid or delta
+        # iid
         alpha_penalty <- self$Q[1] * self$Q[2] * log(N_M)
       }
       self$penalty <- 0.5 * (pi1_penalty + pi2_penalty +
@@ -709,11 +533,8 @@ fitBipartiteSBMPop <- R6::R6Class(
       )
       self$MAP$Z <- Z
       self$MAP$alpha <- self$alpha
-      self$MAP$delta <- self$delta
       self$m_step(MAP = TRUE)
-      if (!self$free_density) {
-        self$MAP$delta <- self$delta
-      }
+
       lapply(seq.int(self$M), function(m) self$update_alpham(m, MAP = TRUE))
       invisible(Z)
     },
@@ -753,12 +574,12 @@ fitBipartiteSBMPop <- R6::R6Class(
                 )) +
                 ((self$nonNAs[[m]]) * self$A[[m]]) %*%
                 t(self$Cpi[[2]][, m] * t(self$tau[[m]][[2]])) %*%
-                t(.logit(self$Calpha * self$delta[m] * self$alpha,
+                t(.logit(self$Calpha * self$alpha,
                   eps = 1e-9
                 )) +
                 (self$nonNAs[[m]]) %*%
                 t(self$Cpi[[2]][, m] * t(self$tau[[m]][[2]])) %*%
-                t(.log(1 - self$Calpha * self$alpha * self$delta[m],
+                t(.log(1 - self$Calpha * self$alpha,
                   eps = 1e-9
                 ))
               # In order to fix NaN appearing in the formula (log(Pi) when Pi
@@ -777,10 +598,10 @@ fitBipartiteSBMPop <- R6::R6Class(
               )) +
               t((self$nonNAs[[m]]) * self$A[[m]]) %*%
               t(self$Cpi[[1]][, m] * t(self$tau[[m]][[1]])) %*%
-              .logit(self$Calpha * self$delta[m] * self$alpha, eps = 1e-9) +
+              .logit(self$Calpha * self$alpha, eps = 1e-9) +
               t(self$nonNAs[[m]]) %*%
               t(self$Cpi[[1]][, m] * t(self$tau[[m]][[1]])) %*%
-              .log(1 - self$Calpha * self$alpha * self$delta[m], eps = 1e-9)
+              .log(1 - self$Calpha * self$alpha, eps = 1e-9)
             # In order to fix NaN appearing in the formula (log(Pi) when Pi
             # = 0), the .xlogy function is used with eps = 1e-9
             # POSSIBLE POINT OF FAILURE
@@ -793,20 +614,20 @@ fitBipartiteSBMPop <- R6::R6Class(
               t(matrix(log(self$pi[[m]][[d]]), self$Q[d], self$n[[1]][m])) +
               ((self$nonNAs[[m]]) * self$A[[m]]) %*%
               self$tau[[m]][[2]] %*%
-              t(log(self$delta[m] * self$alpha)) -
+              t(log(self$alpha)) -
               (self$nonNAs[[m]]) %*%
               self$tau[[m]][[2]] %*%
-              t(self$alpha * self$delta[m])
+              t(self$alpha)
           }
           if (d == 2) {
             tau_new <-
               t(matrix(log(self$pi[[m]][[d]]), self$Q[d], self$n[[2]][m])) +
               t((self$nonNAs[[m]]) * self$A[[m]]) %*%
               self$tau[[m]][[1]] %*%
-              log(self$delta[m] * self$alpha) -
+              log(self$alpha) -
               t(self$nonNAs[[m]]) %*%
               self$tau[[m]][[1]] %*%
-              (self$alpha * self$delta[m])
+              (self$alpha)
           }
           invisible(tau_new)
         }
@@ -839,54 +660,6 @@ fitBipartiteSBMPop <- R6::R6Class(
       tau_new <- tau_new / rowSums(tau_new)
       self$tau[[m]][[d]] <- tau_new
       invisible(tau_new)
-    },
-
-    #' Fixed point to update alpha and delta 
-    #' TODO Check and fix
-    #' 
-    #' @param MAP A boolean wether to use MAP parameters or not, defaults to
-    #' FALSE
-    #' @param max_iter The maximum number of iterations, default to 50
-    #' @param tol The tolerance for which to stop iterating
-    #' 
-    #' @return nothing; stores the values
-    fixed_point_alpha_delta = function(MAP = FALSE, max_iter = 50, tol = 1e-6) {
-      # switch(
-      #   self$distribution,
-      #   "poisson" = {
-      condition <- TRUE
-      d <- self$delta
-      a <- self$alpha
-      d_old <- d
-      a_old <- a
-      it <- 0
-      if (MAP) {
-        emqr <- self$MAP$emqr
-        nmqr <- self$MAP$nmqr
-      } else {
-        emqr <- self$emqr
-        nmqr <- self$nmqr
-      }
-      while (condition) {
-        d <- rowSums(emqr, dim = 1) /
-          rowSums(aperm(array(a, c(self$Q[1], self$Q[2], self$M))) * nmqr, dim = 1)
-        d[1] <- 1
-        a <- colSums(emqr, dim = 1) /
-          colSums(array(d, c(self$M, self$Q[1], self$Q[2])) * nmqr, dim = 1)
-        a[is.nan(a)] <- 0
-        it <- it + 1
-        condition <- mean((a - a_old)**2) + mean((d - d_old)**2) > 2 * tol &
-          it < max_iter
-        d_old <- d
-        a_old <- a
-      }
-      if (MAP) {
-        self$MAP$alpha <- a
-        self$MAP$delta <- d
-      } else {
-        self$alpha <- a
-        self$delta <- d
-      }
     },
     #' Computes the pi per network, known as the pim
     #' 
@@ -1248,10 +1021,6 @@ fitBipartiteSBMPop <- R6::R6Class(
           # TODO add a "given_tau" init method
         )
       lapply(seq(self$M), function(m) self$update_alpham(m))
-      if (self$distribution == "bernoulli" & self$free_density &
-        !self$fit_opts$approx_pois) {
-        self$fixed_point_alpha_delta()
-      }
     },
     #' The M step of the VEM
     #'
@@ -1266,19 +1035,9 @@ fitBipartiteSBMPop <- R6::R6Class(
       # browser()
       # lapply(seq_along(self$pi), function(m) self$update_pi(m, MAP = MAP))
       self$update_pi(MAP = MAP)
-      if (self$free_density == FALSE) {
-        # deltas are all equals to 1
-        self$update_alpha(MAP = MAP)
-      } else {
-        switch(self$distribution,
-          "poisson" = self$update_alpha_delta(MAP = MAP),
-          "bernoulli" =
-            ifelse(self$fit_opts$approx_pois,
-              self$fixed_point_alpha_delta(MAP = MAP),
-              self$update_alpha_delta(MAP = MAP)
-            )
-        )
-      }
+
+      self$update_alpha(MAP = MAP)
+
     },
     #' An optimization version for the VE step of the VEM but currently a 
     #' placeholder
@@ -1384,22 +1143,9 @@ fitBipartiteSBMPop <- R6::R6Class(
           seq(self$M),
           function(m) self$update_mqr(m)
         )
-        if (self$free_density) {
-          # TODO later : implement the free density
-          self$alpha <- matrix(
-            sum(self$emqr[1, , ]) / sum(self$nmqr[1, , ]), 1, 1
-          )
-          self$delta <- vapply(
-            seq(self$M),
-            function(m) {
-              sum(self$emqr[m, , ]) / sum(self$alpha * self$nmqr[m, , ])
-            },
-            FUN.VALUE = .1
-          )
-        } else {
-          self$alpha <- matrix(sum(self$emqr) / sum(self$nmqr), 1, 1)
-          self$delta <- rep(1, self$M)
-        }
+
+        self$alpha <- matrix(sum(self$emqr) / sum(self$nmqr), 1, 1)
+
         self$alpham <- lapply(
           seq(self$M),
           function(m) {
@@ -1412,7 +1158,6 @@ fitBipartiteSBMPop <- R6::R6Class(
           Z = self$tau,
           pi = self$pi,
           alpha = self$alpha,
-          delta = self$delta,
           alpham = self$alpham,
           emqr = self$emqr,
           nmqr = self$nmqr
@@ -1653,7 +1398,7 @@ fitBipartiteSBMPop <- R6::R6Class(
             xmin <- rep(c(0, cumsum(self$pi[[net_id]][[2]][oCol][1:(self$Q[2] - 1)])), self$Q[1])
             xmax <- rep(cumsum(self$pi[[net_id]][[2]][oCol]), self$Q[1])
           }
-          (self$alpha[oRow, oCol] * mean(self$delta)) %>%
+          (self$alpha[oRow, oCol]) %>%
             t() %>%
             reshape2::melt() %>%
             dplyr::mutate(
@@ -1691,11 +1436,7 @@ fitBipartiteSBMPop <- R6::R6Class(
             ggplot2::ylab("") +
             ggplot2::coord_fixed(expand = FALSE)
           #  scale_y_reverse()
-          if (self$free_density) {
-            xl <- paste(round(self$delta, 1))
-          } else {
-            xl <- ""
-          }
+          xl <- ""
           df_pi <- purrr::map_dfc(
             seq_along(self$net_id),
             function(m) setNames(data.frame(self$pim[[m]][[1]][oRow]), self$net_id[m])
@@ -1837,7 +1578,7 @@ fitBipartiteSBMPop <- R6::R6Class(
       lapply(
         seq(self$M),
         function(m) {
-          A_hat <- self$tau[[m]][[1]] %*% (self$delta[m] * self$alpha) %*% t(self$tau[[m]][[2]])
+          A_hat <- self$tau[[m]][[1]] %*% (self$alpha) %*% t(self$tau[[m]][[2]])
           A_hat
         }
       )

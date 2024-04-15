@@ -411,22 +411,18 @@ clusterize_bipartite_networks <- function(netlist,
   # Adding default global_opts
     switch(colsbm_model,
       "iid" = {
-        free_density <- FALSE
         free_mixture_row <- FALSE
         free_mixture_col <- FALSE
       },
       "pi" = {
-        free_density <- FALSE
         free_mixture_row <- TRUE
         free_mixture_col <- FALSE
       },
       "rho" = {
-        free_density <- FALSE
         free_mixture_row <- FALSE
         free_mixture_col <- TRUE
       },
       "pirho" = {
-        free_density <- FALSE
         free_mixture_row <- TRUE
         free_mixture_col <- TRUE
       },
