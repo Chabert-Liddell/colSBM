@@ -2081,7 +2081,7 @@ bisbmpop <- R6::R6Class(
         }
 
         # Plot the state of space and it's exploration
-        self$state_space_plot()
+        # self$state_space_plot()
 
         # Finding the best of the two modes
         best_mode <- list(mode_1_2, mode_2_1)[[which.max(c(
@@ -2202,10 +2202,10 @@ bisbmpop <- R6::R6Class(
       if (!self$point_is_in_limits(c(Q1_mode - depth, Q2_mode - depth)) ||
         !self$point_is_in_limits(c(Q1_mode + depth, Q2_mode + depth))) {
         warning(paste0(
-          "\nThe windows is (partially) out of domain !",
+          "\nThe window is (partially) out of domain !",
           "\nTrying to go from (", toString(c(Q1_mode - depth, Q2_mode - depth)),
           ") to (", toString(c(Q1_mode + depth, Q2_mode + depth)), ").",
-          "\nMax windows should be :",
+          "\nMax window should be :",
           "\n(", toString(c(1, self$global_opts$Q2_max)),
           ")---(", toString(c(self$global_opts$Q1_max, self$global_opts$Q2_max)),
           ")",
@@ -2418,7 +2418,7 @@ bisbmpop <- R6::R6Class(
             )
         }
       }
-      self$state_space_plot()
+      # self$state_space_plot()
       if (self$global_opts$verbosity >= 3) {
         cat("\nEnd of the forward pass.\nBeginning the backward pass.")
       }
@@ -2590,7 +2590,7 @@ bisbmpop <- R6::R6Class(
           )
         }
       }
-      self$state_space_plot()
+      # self$state_space_plot()
       if (self$global_opts$verbosity >= 3) {
         cat("\nEnd of the backward pass.")
       }
