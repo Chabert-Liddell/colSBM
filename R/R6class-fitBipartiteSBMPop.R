@@ -216,12 +216,11 @@ fitBipartiteSBMPop <- R6::R6Class(
       self$Q <- Q
       self$distribution <- distribution
       if (self$distribution == "poisson") {
-        self$logfactA <- vapply(
+        self$logfactA <- lapply(
           seq_along(self$A),
           function(m) {
-            sum(lfactorial(self$A[[m]]), na.rm = TRUE)
-          },
-          FUN.VALUE = .1
+            lfactorial(self$A[[m]])
+          }
         )
       }
 
@@ -373,8 +372,15 @@ fitBipartiteSBMPop <- R6::R6Class(
           )
         },
         "poisson" = {
-          sum(self$Calpha * .xlogy(emqr, alpha, eps = 1e-12)) -
-            sum(nmqr * self$Calpha * alpha - self$logfactA[m])
+          # Retrieving tau
+          tau_1 <- self$tau[[m]][[1]]
+          tau_2 <- self$tau[[m]][[2]]
+
+          logfactA <- self$logfactA[[m]]
+
+          sum(self$Calpha * (- alpha) * nmqr + 
+            .xlogy(emqr, self$Calpha * alpha) -
+              t(tau_1) %*% logfactA %*% tau_2)
         }
       )
     },
@@ -610,20 +616,20 @@ fitBipartiteSBMPop <- R6::R6Class(
         "poisson" = {
           if (d == 1) {
             tau_new <-
-              t(matrix(log(self$pi[[m]][[d]]), self$Q[d], self$n[[1]][m])) +
+              t(matrix(.log(self$pi[[m]][[d]], eps = 1e-9), self$Q[d], self$n[[1]][m])) +
               ((self$nonNAs[[m]]) * self$A[[m]]) %*%
               self$tau[[m]][[2]] %*%
-              t(log(self$alpha)) -
+              t(.log(self$alpha, eps = 1e-9)) -
               (self$nonNAs[[m]]) %*%
               self$tau[[m]][[2]] %*%
               t(self$alpha)
           }
           if (d == 2) {
             tau_new <-
-              t(matrix(log(self$pi[[m]][[d]]), self$Q[d], self$n[[2]][m])) +
+              t(matrix(.log(self$pi[[m]][[d]], eps = 1e-9), self$Q[d], self$n[[2]][m])) +
               t((self$nonNAs[[m]]) * self$A[[m]]) %*%
               self$tau[[m]][[1]] %*%
-              log(self$alpha) -
+              .log(self$alpha, eps = 1e-9) -
               t(self$nonNAs[[m]]) %*%
               self$tau[[m]][[1]] %*%
               (self$alpha)
