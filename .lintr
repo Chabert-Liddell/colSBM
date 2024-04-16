@@ -1,0 +1,4 @@
+linters: linters_with_tags(tags = c("readability", "best_practices", 
+    "common_mistakes", "package_development"), 
+    indentation_linter(indent = 2L)) # see vignette("lintr")
+encoding: "UTF-8"
