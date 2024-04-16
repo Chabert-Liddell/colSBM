@@ -109,7 +109,7 @@ bisbmpop <- R6::R6Class(
     #' @return A new 'bisbmpop' object.
     initialize = function(netlist = NULL,
                           net_id = NULL,
-                          distribution = "bernoulli",
+                          distribution = NULL,
                           free_mixture_row = FALSE,
                           free_mixture_col = FALSE,
                           Z_init = NULL,
@@ -2641,6 +2641,11 @@ bisbmpop <- R6::R6Class(
 
       lapply(seq.int(self$global_opts$Q1_max), function(q1) {
         lapply(seq.int(self$global_opts$Q2_max), function(q2) {
+          #  current_model can in fact be a list we clean it
+          if (is.list(self$model_list[[q1, q2]])) {
+            #  The first element is selected
+            self$model_list[[q1, q2]] <- self$model_list[[q1, q2]][[1]]
+          }
           current_model <- self$model_list[[q1, q2]]
           # If the model has been detected by the exploration
           if (!is.null(current_model)) {
