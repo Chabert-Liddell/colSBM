@@ -102,7 +102,7 @@ test_that("Base case spectral biclustering", {
 })
 
 test_that("Spectral clustering too many clusters works", {
-    X <- generate_unipartite_network(n = 10, pi = 1, alpha = 0.9)$adjacency
+    X <- generate_unipartite_network(n = 10, pi = 1, alpha = 0.9)
     expect_message(
         colSBM:::spectral_clustering(X = X, K = 12),
     )

@@ -3,21 +3,47 @@
 #' @param n the number of nodes
 #' @param pi a vector of probability to belong to the clusters
 #' @param alpha the matrix of connectivity between two clusters
+#' @param distribution the emission distribution, either "bernoulli" or
+#' "poisson"
+#' @param return_memberships Boolean, should return memberships or not.
 #'
 #' @return An adjacency matrix
 
 #' @noMd
 #' @noRd
-generate_unipartite_network <- function(n, pi, alpha) {
+generate_unipartite_network <- function(
+    n, pi, alpha,
+    distribution = "bernoulli",
+    return_memberships = FALSE) {
   cluster_memberships <- rmultinom(n, size = 1, prob = pi)
-  node_node_interaction_prob <- t(cluster_memberships) %*% alpha %*% cluster_memberships
+  node_node_interaction_parameter <- t(cluster_memberships) %*% alpha %*% cluster_memberships
+
+  #  Here we switch on the distributions
   adjacency_matrix <- matrix(
-    rbinom(length(node_node_interaction_prob),
-      size = 1, prob = node_node_interaction_prob
+    switch(distribution,
+      "bernoulli" = {
+        rbinom(length(node_node_interaction_parameter),
+          size = 1, prob = node_node_interaction_parameter
+        )
+      },
+      "poisson" = {
+        rpois(length(node_node_interaction_parameter),
+          lambda = node_node_interaction_parameter
+        )
+      },
+      stop("distribution must be one of either 'bernoulli' or 'poisson'")
     ),
-    nrow = nrow(node_node_interaction_prob)
+    nrow = nrow(node_node_interaction_parameter)
   )
-  return(list(adjacency_matrix = adjacency_matrix, clustering = cluster_memberships))
+
+  if (return_memberships) {
+    return(list(
+      adjacency_matrix = adjacency_matrix,
+      block_memberships = cluster_memberships
+    ))
+  } else {
+    return(adjacency_matrix)
+  }
 }
 
 #' Generate collection of unipartite
@@ -26,6 +52,9 @@ generate_unipartite_network <- function(n, pi, alpha) {
 #' @param pi a vector of probability to belong to the clusters
 #' @param alpha the matrix of connectivity between two clusters
 #' @param M the number of networks to generate
+#' @param distribution the emission distribution, either "bernoulli" or
+#' "poisson"
+#' @param return_memberships Boolean, should return memberships or not.
 #'
 #' @details If n is a single value, this value will be replicated for each of
 #' the M networks. If it is a vector, it must be of size M, specifying the
@@ -34,7 +63,10 @@ generate_unipartite_network <- function(n, pi, alpha) {
 #' @return A list of M lists, which contains : $adjacency_matrix, $clustering
 #'
 #' @export
-generate_unipartite_collection <- function(n, pi, alpha, M) {
+generate_unipartite_collection <- function(
+    n, pi, alpha, M,
+    distribution = "bernoulli",
+    return_memberships = FALSE) {
   if (length(n) == 1) {
     n <- rep(n, M)
   }
@@ -51,7 +83,8 @@ generate_unipartite_collection <- function(n, pi, alpha, M) {
     generate_unipartite_network(
       n = n[[m]],
       pi = pi,
-      alpha = alpha
+      alpha = alpha,
+      distribution = distribution
     )
   })
   return(out)
@@ -74,33 +107,26 @@ generate_bipartite_network <- function(
     return_memberships = FALSE) {
   rowblocks_memberships <- rmultinom(nr, size = 1, prob = pi)
   colblocks_memberships <- rmultinom(nc, size = 1, prob = rho)
-  node_node_interaction_prob <- t(rowblocks_memberships) %*%
+  node_node_interaction_parameter <- t(rowblocks_memberships) %*%
     alpha %*%
     colblocks_memberships
-
-  # Defining the multi_rpois
-  multi_rpois <- function(lambda_vec) {
-    sapply(lambda_vec, function(lambda) {
-      rpois(1, lambda = lambda)
-    })
-  }
-
-  incidence_matrix <- switch(distribution,
-    "poisson" = {
-      matrix(
-        multi_rpois(node_node_interaction_prob),
-        nrow = nrow(node_node_interaction_prob)
-      )
-    },
-    {
-      matrix(
-        rbinom(length(node_node_interaction_prob),
-          size = 1, prob = node_node_interaction_prob
-        ),
-        nrow = nrow(node_node_interaction_prob)
-      )
-    }
+  incidence_matrix <- matrix(
+    switch(distribution,
+      "poisson" = {
+        rpois(length(node_node_interaction_parameter),
+          lambda = node_node_interaction_parameter
+        )
+      },
+      "bernoulli" = {
+        rbinom(length(node_node_interaction_parameter),
+          size = 1, prob = node_node_interaction_parameter
+        )
+      },
+      stop("distribution must be one of either 'bernoulli' or 'poisson'")
+    ),
+    nrow = nrow(node_node_interaction_parameter)
   )
+
   if (return_memberships) {
     return(list(
       incidence_matrix = incidence_matrix,
@@ -546,7 +572,7 @@ logit <- function(x) log(x / (1 - x))
     res <- log(x)
   } else {
     # OPTIM
-    x[x >= 1 - eps] <- 1 - eps
+    # x[x >= 1 - eps] <- 1 - eps
     x[x <= eps] <- eps
     res <- log(x)
   }
