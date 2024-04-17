@@ -52,7 +52,7 @@ test_that("Generate bipartite collection with vectors for nc and nr", {
     ))
 })
 
-test_that("Testing the different models", {
+test_that("Testing the different models for generating bipartite networks", {
     expect_error(
         colSBM::generate_bipartite_collection(
             nr, nc, pir, pic, alpha,
@@ -88,6 +88,60 @@ test_that("Testing the different models", {
             model = "pirho"
         )
     )
+})
+
+test_that("Testing various wrong arguments for generating bipartite networks",{
+    nr <- 10L
+    nc <- 10L
+    
+    alpha <- matrix(c(1L, 1L, 1L, 1L), nrow = 2)
+    wrong_alpha_bernoulli <- matrix(2L)
+    wrong_alpha_negative <- matrix(-5L)
+
+    pi <- c(0.5,0.5)
+    wrong_pi_sum <- c(0.5, 0.7)
+    wrong_pi_value <- c(-0.5)
+
+    # Wrong alpha
+    expect_error(colSBM:::generate_bipartite_network(nr = nr, nc = nc, 
+    pi = pi, rho = pi, alpha = wrong_alpha_bernoulli, 
+    distribution = "bernoulli"))
+    expect_error(colSBM:::generate_bipartite_network(nr = nr, nc = nc, 
+    pi = pi, rho = pi, alpha = wrong_alpha_negative, 
+    distribution = "bernoulli"))
+    expect_error(colSBM:::generate_bipartite_network(nr = nr, nc = nc, 
+    pi = pi, rho = pi, alpha = wrong_alpha_negative, 
+    distribution = "poisson"))
+    # No error
+    expect_no_error(colSBM:::generate_bipartite_network(nr = nr, nc = nc, 
+    pi = pi, rho = pi, alpha = alpha, 
+    distribution = "bernoulli"))
+    expect_no_error(colSBM:::generate_bipartite_network(nr = nr, nc = nc, 
+    pi = pi, rho = pi, alpha = alpha, 
+    distribution = "poisson"))
+
+    # Wrong pi
+    expect_error(colSBM:::generate_bipartite_network(nr = nr, nc = nc, 
+    pi = wrong_pi_sum, rho = pi, alpha = alpha, 
+    distribution = "bernoulli"))
+    expect_error(colSBM:::generate_bipartite_network(nr = nr, nc = nc, 
+    pi =  wrong_pi_value, rho = pi, alpha = alpha, 
+    distribution = "bernoulli"))
+    # Wrong rho
+    expect_error(colSBM:::generate_bipartite_network(nr = nr, nc = nc, 
+    pi = pi, rho = wrong_pi_sum, alpha = alpha, 
+    distribution = "bernoulli"))
+    expect_error(colSBM:::generate_bipartite_network(nr = nr, nc = nc, 
+    pi = pi, rho = wrong_pi_value, alpha = alpha,
+    distribution = "bernoulli"))
+    
+    # No error
+    expect_no_error(colSBM:::generate_bipartite_network(nr = nr, nc = nc, 
+    pi = pi, rho = pi, alpha = alpha, 
+    distribution = "bernoulli"))
+    expect_no_error(colSBM:::generate_bipartite_network(nr = nr, nc = nc, 
+    pi = pi, rho = pi, alpha = alpha, 
+    distribution = "bernoulli"))
 })
 
 test_that("Base case spectral biclustering", {

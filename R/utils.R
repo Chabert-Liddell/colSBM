@@ -15,6 +15,14 @@ generate_unipartite_network <- function(
     n, pi, alpha,
     distribution = "bernoulli",
     return_memberships = FALSE) {
+  stopifnot(
+    "All alpha coefficients must be positive" = all(alpha >= 0),
+    "With bernoulli, the alpha must be between 0 and 1" = (
+      distribution == "poisson" |
+        (distribution == "bernoulli" & all(alpha >= 0L & alpha <= 1L))),
+    "All pi must be between 0 and 1" = all(pi >= 0L & pi <= 1L),
+    "Pi must sum to one" = (sum(pi) == 1L)
+  )
   cluster_memberships <- rmultinom(n, size = 1, prob = pi)
   node_node_interaction_parameter <- t(cluster_memberships) %*% alpha %*% cluster_memberships
 
@@ -105,6 +113,17 @@ generate_unipartite_collection <- function(
 generate_bipartite_network <- function(
     nr, nc, pi, rho, alpha, distribution = "bernoulli",
     return_memberships = FALSE) {
+  stopifnot(
+    "All alpha coefficients must be positive" = all(alpha >= 0L),
+    "With bernoulli, the alpha must be between 0 and 1" = (
+      distribution == "poisson" |
+        (distribution == "bernoulli" & all(alpha >= 0L & alpha <= 1L))),
+    "All pi must be between 0 and 1" = all(pi >= 0L & pi <= 1L),
+    "Pi must sum to one" = (sum(pi) == 1L),
+    "All rho must be between 0 and 1" = all(rho >= 0L & rho <= 1L),
+    "Rho must sum to one" = (sum(rho) == 1L)
+  )
+
   rowblocks_memberships <- rmultinom(nr, size = 1, prob = pi)
   colblocks_memberships <- rmultinom(nc, size = 1, prob = rho)
   node_node_interaction_parameter <- t(rowblocks_memberships) %*%
