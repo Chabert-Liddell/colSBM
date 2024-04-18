@@ -21,7 +21,7 @@ generate_unipartite_network <- function(
       distribution == "poisson" |
         (distribution == "bernoulli" & all(alpha >= 0L & alpha <= 1L))),
     "All pi must be between 0 and 1" = all(pi >= 0L & pi <= 1L),
-    "Pi must sum to one" = (sum(pi) == 1L)
+    "Pi must sum to one" = all.equal(sum(pi), 1L)
   )
   cluster_memberships <- rmultinom(n, size = 1, prob = pi)
   node_node_interaction_parameter <- t(cluster_memberships) %*% alpha %*% cluster_memberships
@@ -119,9 +119,9 @@ generate_bipartite_network <- function(
       distribution == "poisson" |
         (distribution == "bernoulli" & all(alpha >= 0L & alpha <= 1L))),
     "All pi must be between 0 and 1" = all(pi >= 0L & pi <= 1L),
-    "Pi must sum to one" = (sum(pi) == 1L),
+    "Pi must sum to one" = all.equal(sum(pi), 1L),
     "All rho must be between 0 and 1" = all(rho >= 0L & rho <= 1L),
-    "Rho must sum to one" = (sum(rho) == 1L)
+    "Rho must sum to one" = all.equal(sum(rho), 1L)
   )
 
   rowblocks_memberships <- rmultinom(nr, size = 1, prob = pi)
