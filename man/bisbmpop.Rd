@@ -117,7 +117,7 @@ This class is generally called via the user function \code{estimate_colBiSBM}
 \if{html}{\out{<div class="r">}}\preformatted{bisbmpop$new(
   netlist = NULL,
   net_id = NULL,
-  distribution = "bernoulli",
+  distribution = NULL,
   free_mixture_row = FALSE,
   free_mixture_col = FALSE,
   Z_init = NULL,

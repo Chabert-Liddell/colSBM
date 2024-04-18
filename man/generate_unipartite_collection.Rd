@@ -4,7 +4,14 @@
 \alias{generate_unipartite_collection}
 \title{Generate collection of unipartite}
 \usage{
-generate_unipartite_collection(n, pi, alpha, M)
+generate_unipartite_collection(
+  n,
+  pi,
+  alpha,
+  M,
+  distribution = "bernoulli",
+  return_memberships = FALSE
+)
 }
 \arguments{
 \item{n}{the number of nodes or a vector of the nodes per network}
@@ -14,6 +21,11 @@ generate_unipartite_collection(n, pi, alpha, M)
 \item{alpha}{the matrix of connectivity between two clusters}
 
 \item{M}{the number of networks to generate}
+
+\item{distribution}{the emission distribution, either "bernoulli" or
+"poisson"}
+
+\item{return_memberships}{Boolean, should return memberships or not.}
 }
 \value{
 A list of M lists, which contains : $adjacency_matrix, $clustering

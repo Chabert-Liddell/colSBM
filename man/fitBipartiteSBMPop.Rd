@@ -182,7 +182,7 @@ Initializes the fitBipartiteSBMPop object
   Z = NULL,
   mask = NULL,
   net_id = NULL,
-  distribution = "bernoulli",
+  distribution = NULL,
   free_mixture_row = TRUE,
   free_mixture_col = TRUE,
   Cpi = NULL,
