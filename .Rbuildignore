@@ -17,3 +17,4 @@
 ^references\.bib$
 ^\.vscode$
 ^tests/testthat\.R$
+^\.lintr$
