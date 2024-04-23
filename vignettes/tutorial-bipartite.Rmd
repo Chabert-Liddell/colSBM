@@ -2,7 +2,7 @@
 title: "Tutorial on plant pollinator data"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Tutorial on plant pollinitor data}
+  %\VignetteIndexEntry{Tutorial on plant pollinator data}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -27,27 +27,38 @@ data("dorebipartite")
 # Estimation with colSBM
 
 We load a list of 15 plant-pollinator networks. They are binary undirected networks with different
-number of plant and pollinator species. First, we are going to model jointly the `r names(dorebipartite)[7:10]` networks,
+number of plant and pollinator species.
+
+## Networks benefiting from joint modelisation
+
+First, we are going to model jointly the `r names(dorebipartite)[7:8]` networks,
 using the *iid-colBiSBM* model.
 
 
-```{r results=FALSE, warning=FALSE}
-set.seed(1234)
+```{r warning=FALSE}
+set.seed(1234, "L'Ecuyer-CMRG")
 res_pp_iid <- estimate_colBiSBM(
-  netlist = dorebipartite[7:10], # A list of networks
+  netlist = dorebipartite[7L:8L], # A list of networks
   colsbm_model = "iid", # The name of the model
-  net_id = names(dorebipartite)[7:10], # Name of the networks
+  net_id = names(dorebipartite)[7L:8L], # Name of the networks
   nb_run = 1L, # Number of runs of the algorithm
   global_opts = list(
-    verbosity = 1,
-    plot_detail = 0,
-    nb_cores = 2,
-    backend = "parallel"
+    verbosity = 1L,
+    plot_detail = 0L,
+    nb_cores = 2L,
+    backend = "no_mc"
   )
 )
 ```
 
-We can look at how the variational bound and the model selection criteria evolve with the number of clusters.
+The output indicates that the collection benefits from a joint modelisation
+
+> Joint modelisation preferred
+
+This is based on the BICL criterion.
+
+We can look at how the variational bound and the model selection criteria evolve
+with the number of clusters.
 Here, the BICL criterion selects Q = `r res_pp_iid$best_fit$Q` blocks.
 
 
@@ -56,7 +67,7 @@ plot(res_pp_iid)
 best_fit <- res_pp_iid$best_fit
 ```
 
-# Results and analysis
+### Results and analysis
 
 Here are some useful fields to analyze the results.
 
@@ -75,28 +86,26 @@ best_fit$parameters
 * The block memberships:
 
 ```{r}
-best_fit$memberships[[4]]$row
+best_fit$memberships[[2]]$row[1:10]
 ```
 
 And their probabilities:
 
 ```{r}
-best_fit$prob_memberships[[3]][[1]][1:10, 1]
+best_fit$prob_memberships[[2]][[1]][1:10, 1]
 ```
 
-* The prediction for each dyads in the networks, here for network number 3.
+* The prediction for each dyads in the networks
 
 ```{r}
-best_fit$pred_dyads[[3]][1:10, 1]
+best_fit$pred_dyads[[2]][1:10, 1]
 ```
 
 We can also plot the networks individually:
 
 ```{r plot-block, fig.cap = "Networks after fitting the model and reordering the nodes and blocks"}
 plot(res_pp_iid$best_fit, type = "block", net_id = 1) +
-  plot(res_pp_iid$best_fit, type = "block", net_id = 2) +
-  plot(res_pp_iid$best_fit, type = "block", net_id = 3) +
-  plot(res_pp_iid$best_fit, type = "block", net_id = 4)
+  plot(res_pp_iid$best_fit, type = "block", net_id = 2)
 ```
 
 Or make different plots to exhibit the mesoscale structure:
@@ -106,47 +115,79 @@ plot(res_pp_iid$best_fit, type = "graphon")
 plot(res_pp_iid$best_fit, type = "meso", mixture = TRUE)
 ```
 
+
+## Networks not benefiting from joint modelisation
+
+Next, we model jointly the `r names(dorebipartite)[7:10]` networks,
+using the *iid-colBiSBM* model.
+
+```{r warning=FALSE}
+res_pp_iid_sep <- estimate_colBiSBM(
+  netlist = dorebipartite[7L:10L], # A list of networks
+  colsbm_model = "iid", # The name of the model
+  net_id = names(dorebipartite)[7L:10L], # Name of the networks
+  nb_run = 1L, # Number of runs of the algorithm
+  global_opts = list(
+    verbosity = 1L,
+    plot_detail = 0L,
+    nb_cores = 2L,
+    backend = "no_mc"
+  )
+)
+```
+
+The output indicates that the collection does not benefit from a joint 
+modelisation. 
+
+> Separated modelisation preferred
+
+The structures might be too different to be gathered in one 
+collection.
+
+
 # Clustering of networks
 
-Lets simulate some bipartite networks with a lower triangular structure.
+In the case of different structures clustering can be used to find a 
+partitionning among all the networks.
+
+We will simulate networks and add them to the 4 networks we used previously.
 
 ```{r}
-set.seed(1234)
 alpha <- matrix(c(
-  .05, .01, .01, .01,
-  .3, .05, .01, .01,
-  .5, .4, .05, .01,
-  .1, .8, .1, .05
-), 4, 4, byrow = TRUE)
-pi <- c(.1, .2, .6, .1)
-rho <- c(.1, .2, .6, .1)
+  0.9, 0.55,
+  0.6, 0.1
+), 2, 2, byrow = TRUE)
+pi <- c(0.73, 0.27)
+rho <- c(0.75, 0.25)
 sim_net <-
   generate_bipartite_collection(
-    nr = 30,
-    nc = 40,
+    nr = 40L,
+    nc = 30L,
     pi = pi,
     rho = rho,
     alpha = alpha,
-    M = 3,
+    M = 2L,
     model = "iid"
   )
 ```
 
 
-```{r results=FALSE}
-set.seed(1234)
+```{r results=FALSE, warning=FALSE}
 net_clust <- clusterize_bipartite_networks(
-  netlist = c(dorebipartite[7:10], sim_net), # A list of networks
+  netlist = c(dorebipartite[7L:10L], sim_net), # A list of networks
   colsbm_model = "iid", # The name of the model
-  net_id = c(names(dorebipartite)[7:10], "sim1", "sim2", "sim3"), # Name of the networks
+  net_id = c(
+    names(dorebipartite)[7L:10L],
+    paste0("sim", seq_along(sim_net))
+  ), # Name of the networks
   nb_run = 1L, # Number of runs of the algorithm
   global_opts = list(
-    verbosity = 0,
-    plot_details = 0,
-    nb_cores = 2,
-    backend = "parallel",
-    Q1_max = 9,
-    Q2_max = 9
+    verbosity = 0L,
+    plot_details = 0L,
+    nb_cores = 2L,
+    backend = "no_mc",
+    Q1_max = 9L,
+    Q2_max = 9L
   ) # Max number of clusters
 )
 ```
@@ -157,26 +198,28 @@ best_partition <- unlist(extract_best_bipartite_partition(net_clust))
 
 We obtain a list of `r length(unlist(best_partition))` tested collections. The lists are nested and reflect the
 sequential steps of clustering.
-The extraction of the best partition below reveals that our 3 simulated networks
-are considered as being part of the same collection and that the among the 4
+The extraction of the best partition below reveals that our `r length(sim_net)`
+simulated networks are considered as being part of the same collection and that
+the among the 4
 plant-pollinator networks there exists a difference leading to 2 collections that
 contains networks from the same authors.
 
-
-
-The plot of the mesoscale structure of the whole collection is the following:
+The plot of the mesoscale structure of the whole collection (ie before 
+partitionning) is the following:
 
 ```{r, fig.cap="Whole collection graphon type plot"}
 plot(net_clust[[1]])
 ```
 
-but then we can compare the mesoscale structures of the 3 groups:
+but then we can compare the mesoscale structures of the 
+`r length(best_partition)` groups:
 
 ```{r plot-part, fig.width = 8, fig.cap="Best partition graphon type plots"}
 wrap_plots(
-  plot(best_partition[[1]], type = "graphon"),
-  plot(best_partition[[2]], type = "graphon"),
-  plot(best_partition[[3]], type = "graphon"),
-  ncol = 2) +
-  plot_annotation(tag_levels = "1")
+  lapply(best_partition, function(collection) {
+    plot(collection, type = "graphon") +
+    ggplot2::ggtitle(label = "", subtitle = toString(collection$net_id)) 
+  }),
+  ncol = 2L
+)
 ```
