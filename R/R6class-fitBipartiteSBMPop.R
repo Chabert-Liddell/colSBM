@@ -1416,7 +1416,8 @@ fitBipartiteSBMPop <- R6::R6Class(
               xmax = xmax, ymax = ymax, fill = value
             )) +
             ggplot2::geom_rect() +
-            ggplot2::scale_fill_gradient2("alpha", low = "white", mid = "red", midpoint = 1) +
+            ggplot2::scale_fill_gradient2("alpha", low = "white", mid = "red", 
+              midpoint = 1, limits = c(0, ifelse(self$distribution == "bernoulli", 1, max(self$alpha)))) +
             ggplot2::geom_hline(yintercept = cumsum(self$pi[[net_id]][[1]][oRow][1:(self$Q[1] - 1)]), linewidth = .2) +
             ggplot2::geom_vline(xintercept = cumsum(self$pi[[net_id]][[2]][oCol][1:(self$Q[2] - 1)]), linewidth = .2) +
             ggplot2::scale_y_reverse() +
@@ -1431,7 +1432,10 @@ fitBipartiteSBMPop <- R6::R6Class(
             reshape2::melt() %>%
             ggplot2::ggplot(ggplot2::aes(x = Var1, y = Var2, fill = value)) +
             ggplot2::geom_tile() +
-            ggplot2::scale_fill_gradient2("alpha", low = "white", high = "red") +
+            ggplot2::scale_fill_gradient2("alpha", low = "white", 
+            high = "red", 
+            limits = c(0, 
+            ifelse(self$distribution == "bernoulli", 1, max(self$alpha)))) +
             ggplot2::geom_hline(yintercept = seq(self$Q[1]) + .5) +
             ggplot2::geom_vline(xintercept = seq(self$Q[2]) + .5) +
             ggplot2::scale_y_reverse() +
@@ -1478,6 +1482,7 @@ fitBipartiteSBMPop <- R6::R6Class(
               )) +
               ggplot2::ylab("") +
               ggplot2::ylab(xl) +
+              ggplot2::xlab("Row proportions") + 
               ggplot2::theme(axis.text.x = ggplot2::element_text(
                 angle = 90, vjust = .5,
                 hjust = 1
@@ -1504,6 +1509,7 @@ fitBipartiteSBMPop <- R6::R6Class(
               )) +
               ggplot2::ylab("") +
               ggplot2::ylab(xl) +
+              ggplot2::xlab("Column proportions") + 
               ggplot2::theme_bw(base_size = 15)
             # Merging the plots with patchwork
             mixture_layout <- "

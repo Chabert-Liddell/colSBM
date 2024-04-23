@@ -149,7 +149,11 @@ plot.bmpop <- function(x, type = "trace", ...) {
 #' @examples
 #' alpha1 <- matrix(c(0.8, 0.1, 0.2, 0.7), byrow = TRUE, nrow = 2)
 #'
-#' first_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5, 0.5), rho = c(0.5, 0.5), alpha = alpha1, M = 2)
+#' first_collection <- generate_bipartite_collection(
+#'   nr = 50, nc = 25,
+#'   pi = c(0.5, 0.5), rho = c(0.5, 0.5),
+#'   alpha = alpha1, M = 2
+#' )
 #'
 #' \dontrun{
 #' # A collection where joint modelisation makes sense

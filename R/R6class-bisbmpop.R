@@ -1505,7 +1505,7 @@ bisbmpop <- R6::R6Class(
         ggplot2::ggtitle("State space for ", toString(self$net_id))
 
 
-        print(state_plot)
+        state_plot
       }
     },
 
