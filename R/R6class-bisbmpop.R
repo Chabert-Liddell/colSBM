@@ -2401,11 +2401,9 @@ bisbmpop <- R6::R6Class(
             )
         }
       }
-      # self$state_space_plot()
       if (self$global_opts$verbosity >= 3) {
         cat("\nEnd of the forward pass.\nBeginning the backward pass.")
       }
-
       # Backward pass, where we merge
       for (current_Q1 in seq.int(from = Q1_mode + depth, to = Q1_mode - depth)) {
         if (current_Q1 < 1 || current_Q1 > self$global_opts$Q1_max) {

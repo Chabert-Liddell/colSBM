@@ -293,13 +293,13 @@ estimate_colSBM <-
 #' cl_joint <- estimate_colBiSBM(
 #'   netlist = first_collection,
 #'   colsbm_model = "iid",
-#'   global_opts = list(nb_cores = parallel::detectCores() - 1)
+#'   global_opts = list(nb_cores = parallelly::availableCores(omit = 1L))
 #' )
 #' # A collection where joint modelisation doesn't make sense
 #' cl_separated <- estimate_colBiSBM(
 #'   netlist = netlist,
 #'   colsbm_model = "iid",
-#'   global_opts = list(nb_cores = parallel::detectCores() - 1)
+#'   global_opts = list(nb_cores = parallelly::availableCores(omit = 1L))
 #' )
 #' }
 estimate_colBiSBM <-

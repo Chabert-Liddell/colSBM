@@ -38,7 +38,7 @@ netlist <- append(first_collection, second_collection)
 cl_separated <- clusterize_bipartite_networks(
   netlist = netlist,
   colsbm_model = "iid",
-  global_opts = list(nb_cores = parallel::detectCores() - 1)
+  global_opts = list(nb_cores = parallelly::availableCores(omit = 1L))
 )
 best_bipartite_partition <- extract_best_bipartite_partition(cl_separated)
 }

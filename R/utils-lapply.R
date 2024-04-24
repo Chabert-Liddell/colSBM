@@ -16,7 +16,8 @@
 #' X <- seq(1, 5)
 #' colsbm_lapply(X, backend = "parallel", nb_cores = 2L)
 colsbm_lapply <- function(X, FUN, backend = "parallel",
-                          nb_cores = parallel::detectCores() - 1, ...) {
+                          nb_cores = parallelly::availableCores(omit = 1L),
+                          ...) {
   if (!(backend %in% c("future", "parallel", "bettermc", "no_mc"))) {
     stop("Invalid backend. Choose 'parallel', 'future', 'bettermc' or 'no_mc'.")
   }
@@ -38,7 +39,10 @@ colsbm_lapply <- function(X, FUN, backend = "parallel",
       result <- parallel::parLapply(cl, X, FUN, ...)
       parallel::stopCluster(cl)
     } else {
-      result <- parallel::mclapply(X, FUN, mc.cores = nb_cores)
+      result <- parallel::mclapply(X, FUN,
+        mc.cores = nb_cores,
+        mc.preschedule = FALSE
+      )
     }
     return(result)
   }

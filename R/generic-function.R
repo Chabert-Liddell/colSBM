@@ -160,7 +160,7 @@ plot.bmpop <- function(x, type = "trace", ...) {
 #' cl_joint <- estimate_colBiSBM(
 #'   netlist = first_collection,
 #'   colsbm_model = "iid",
-#'   global_opts = list(nb_cores = parallel::detectCores() - 1)
+#'   global_opts = list(nb_cores = parallelly::availableCores(omit = 1L))
 #' )
 #' plot(cl_joint$best_fit)
 #' }
