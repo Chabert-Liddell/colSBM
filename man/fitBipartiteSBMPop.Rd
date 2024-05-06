@@ -704,6 +704,7 @@ nothing; print to console
   oCol = NULL,
   mixture = FALSE,
   net_id = NULL,
+  values = FALSE,
   ...
 )}\if{html}{\out{</div>}}
 }
@@ -720,7 +721,10 @@ nothing; print to console
 \item{\code{mixture}}{Should the block proportions of each network be plotted as
 well?}
 
-\item{\code{net_id}}{Use to plot only on network in "graphon" view.}
+\item{\code{net_id}}{Use to plot only one network in "graphon" view.}
+
+\item{\code{values}}{Wether or not to plot values on the alpha, pi and rho
+representation.}
 
 \item{\code{...}}{Further argument to be passed}
 }

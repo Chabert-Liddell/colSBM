@@ -141,6 +141,8 @@ plot.bmpop <- function(x, type = "trace", ...) {
 #' @param oCol A reordering of the column blocks.
 #' @param mixture Should the block proportions of each network be plotted as
 #' well?
+#' @param values Wether or not to plot values on the alpha, pi and rho
+#' representation.
 #' @param net_id Use to plot only on network in "graphon" view.
 #' @param ... Further argument to be passed
 #' @return A plot, a ggplot2 object.
@@ -166,6 +168,7 @@ plot.bmpop <- function(x, type = "trace", ...) {
 #' }
 plot.fitBipartiteSBMPop <- function(x, type = "graphon", oRow = NULL, oCol = NULL, mixture = FALSE, net_id = 1, ...) {
   stopifnot(inherits(x, "fitBipartiteSBMPop"))
+  # TODO Utiliser la liste Calpha pour localiser coeff jamais vus
   p <- x$plot(
     type = type, oRow = oRow, oCol = oCol, mixture = mixture,
     net_id = net_id, ...

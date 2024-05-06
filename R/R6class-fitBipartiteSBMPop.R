@@ -372,15 +372,15 @@ fitBipartiteSBMPop <- R6::R6Class(
           )
         },
         "poisson" = {
-          # Retrieving tau
+          #  Retrieving tau
           tau_1 <- self$tau[[m]][[1]]
           tau_2 <- self$tau[[m]][[2]]
 
           logfactA <- self$logfactA[[m]]
 
-          sum(self$Calpha * (- alpha) * nmqr + 
+          sum(self$Calpha * (-alpha) * nmqr +
             .xlogy(emqr, self$Calpha * alpha) -
-              t(tau_1) %*% logfactA %*% tau_2)
+            t(tau_1) %*% logfactA %*% tau_2)
         }
       )
     },
@@ -1274,11 +1274,13 @@ fitBipartiteSBMPop <- R6::R6Class(
         mean_rho <- matrix(1, 1, 1)
       }
       # The row clustering are reordered according to their marginal distribution
-      prob1 <- as.vector(mean_rho %*% t(self$MAP$alpha))
+      # prob1 <- as.vector(mean_rho %*% t(self$MAP$alpha))
+      prob1 <- rowMeans(self[["MAP"]][["alpha"]])
       p1 <- order(prob1, decreasing = TRUE)
 
       # The col clustering are reordered according to their marginal distribution
-      prob2 <- as.vector(mean_pi %*% self$MAP$alpha)
+      # prob2 <- as.vector(mean_pi %*% self$MAP$alpha)
+      prob2 <- colMeans(self[["MAP"]][["alpha"]])
       p2 <- order(prob2, decreasing = TRUE)
 
       # m independent
@@ -1365,10 +1367,12 @@ fitBipartiteSBMPop <- R6::R6Class(
     #' @param oCol A reordering of the column blocks.
     #' @param mixture Should the block proportions of each network be plotted as
     #' well?
-    #' @param net_id Use to plot only on network in "graphon" view.
+    #' @param values Wether or not to plot values on the alpha, pi and rho
+    #' representation.
+    #' @param net_id Use to plot only one network in "graphon" view.
     #' @param ... Further argument to be passed
     #' @return A plot, a ggplot2 object.
-    plot = function(type = "graphon", oRow = NULL, oCol = NULL, mixture = FALSE, net_id = NULL, ...) {
+    plot = function(type = "graphon", oRow = NULL, oCol = NULL, mixture = FALSE, net_id = NULL, values = FALSE, ...) {
       # The below order use mean over all networks to have a consistent display
       if (is.null(oRow)) {
         if (self$Q[2] == 1) {
@@ -1402,7 +1406,7 @@ fitBipartiteSBMPop <- R6::R6Class(
             xmin <- rep(c(0, cumsum(self$pi[[net_id]][[2]][oCol][1:(self$Q[2] - 1)])), self$Q[1])
             xmax <- rep(cumsum(self$pi[[net_id]][[2]][oCol]), self$Q[1])
           }
-          (self$alpha[oRow, oCol]) %>%
+          p_graphon <- (self$alpha[oRow, oCol]) %>%
             t() %>%
             reshape2::melt() %>%
             dplyr::mutate(
@@ -1416,15 +1420,24 @@ fitBipartiteSBMPop <- R6::R6Class(
               xmax = xmax, ymax = ymax, fill = value
             )) +
             ggplot2::geom_rect() +
-            ggplot2::scale_fill_gradient2("alpha", low = "white", mid = "red", 
-              midpoint = 1, limits = c(0, ifelse(self$distribution == "bernoulli", 1, max(self$alpha)))) +
+            ggplot2::scale_fill_gradient2("alpha",
+              low = "white", mid = "red",
+              midpoint = 1, limits = c(0, ifelse(self$distribution == "bernoulli", 1, max(self$alpha)))
+            ) +
             ggplot2::geom_hline(yintercept = cumsum(self$pi[[net_id]][[1]][oRow][1:(self$Q[1] - 1)]), linewidth = .2) +
-            ggplot2::geom_vline(xintercept = cumsum(self$pi[[net_id]][[2]][oCol][1:(self$Q[2] - 1)]), linewidth = .2) +
+            ggplot2::geom_vline(xintercept = cumsum(self$pi[[net_id]][[2]][oCol][1:(self$Q[2] - 1)]), linewidth = .2)
+            if (values) {
+              p_graphon <- p_graphon +
+                ggplot2::geom_text(ggplot2::aes(x = (Var2-min(Var2))/max(Var2), y = (Var1-0.5*min(Var1))/max(Var1), label = round(value, 2)), color = "black")
+            }
+
+          p_graphon <- p_graphon +
             ggplot2::scale_y_reverse() +
             ggplot2::theme_bw(base_size = 15, base_rect_size = 1, base_line_size = 1) +
             ggplot2::xlab("Column Blocks") +
             ggplot2::ylab("Row Blocks") +
             ggplot2::coord_equal(expand = FALSE)
+          return(p_graphon)
         },
         meso = {
           p_alpha <- self$alpha[oRow, oCol, drop = FALSE] %>%
@@ -1432,10 +1445,14 @@ fitBipartiteSBMPop <- R6::R6Class(
             reshape2::melt() %>%
             ggplot2::ggplot(ggplot2::aes(x = Var1, y = Var2, fill = value)) +
             ggplot2::geom_tile() +
-            ggplot2::scale_fill_gradient2("alpha", low = "white", 
-            high = "red", 
-            limits = c(0, 
-            ifelse(self$distribution == "bernoulli", 1, max(self$alpha)))) +
+            ggplot2::scale_fill_gradient2("alpha",
+              low = "white",
+              high = "red",
+              limits = c(
+                0,
+                ifelse(self$distribution == "bernoulli", 1, max(self$alpha))
+              )
+            ) +
             ggplot2::geom_hline(yintercept = seq(self$Q[1]) + .5) +
             ggplot2::geom_vline(xintercept = seq(self$Q[2]) + .5) +
             ggplot2::scale_y_reverse() +
@@ -1443,6 +1460,11 @@ fitBipartiteSBMPop <- R6::R6Class(
             ggplot2::xlab("") +
             ggplot2::ylab("") +
             ggplot2::coord_fixed(expand = FALSE)
+
+          if (values) {
+            p_alpha <- p_alpha +
+              ggplot2::geom_text(ggplot2::aes(label = round(value, 2)), color = "black")
+          }
           #  scale_y_reverse()
           xl <- ""
           df_pi <- purrr::map_dfc(
@@ -1482,7 +1504,7 @@ fitBipartiteSBMPop <- R6::R6Class(
               )) +
               ggplot2::ylab("") +
               ggplot2::ylab(xl) +
-              ggplot2::xlab("Row proportions") + 
+              ggplot2::xlab("Row proportions") +
               ggplot2::theme(axis.text.x = ggplot2::element_text(
                 angle = 90, vjust = .5,
                 hjust = 1
@@ -1494,7 +1516,7 @@ fitBipartiteSBMPop <- R6::R6Class(
               tidyr::pivot_longer(cols = -c(q)) %>%
               dplyr::mutate(Proportion = value) %>%
               ggplot2::ggplot(ggplot2::aes(
-                fill = as.factor(q), y = name,
+                fill = as.factor(q), y = rev(name),
                 x = Proportion
               )) +
               ggplot2::geom_col() +
@@ -1509,8 +1531,19 @@ fitBipartiteSBMPop <- R6::R6Class(
               )) +
               ggplot2::ylab("") +
               ggplot2::ylab(xl) +
-              ggplot2::xlab("Column proportions") + 
+              ggplot2::xlab("Column proportions") +
               ggplot2::theme_bw(base_size = 15)
+            if (values) {
+              p_pi <- p_pi +
+                ggplot2::geom_text(ggplot2::aes(label = round(Proportion, 2)),
+                  position = position_stack(vjust = 0.5), color = "black"
+                )
+              p_rho <- p_rho +
+                ggplot2::geom_text(ggplot2::aes(label = round(Proportion, 2)),
+                  position = position_stack(vjust = 0.5),
+                  color = "black"
+                )
+            }
             # Merging the plots with patchwork
             mixture_layout <- "
                               ##CCCC

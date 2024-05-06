@@ -29,6 +29,9 @@ well?}
 \item{net_id}{Use to plot only on network in "graphon" view.}
 
 \item{...}{Further argument to be passed}
+
+\item{values}{Wether or not to plot values on the alpha, pi and rho
+representation.}
 }
 \value{
 A plot, a ggplot2 object.

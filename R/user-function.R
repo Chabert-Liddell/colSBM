@@ -239,17 +239,7 @@ estimate_colSBM <-
 #'  moving window process. Values are 0 or 1. Default is 1.}
 #'  \item{\code{max_pass} }{the maximum number of moving window passes that will be
 #'  executed. Default is 10.}
-#'  \item{\code{parallelization_vector}}{a boolean vector of size 2. Each
-#'  boolean specifies if the level should be parallelized. c(TRUE, TRUE)
-#'  means that :
-#'  \itemize{
-#'  \item{1st: the \code{nb_run} models will be computed in parallel}
-#'  \item{2nd: the possible models during the state space exploration will be
-#'  computed in parallel.
-#'    }
-#'  }
-#'  The default is : c(TRUE, TRUE) which gives best performance
-#' }}
+#' }
 #'
 #' The list of parameters \code{fit_opts} are used to tune the Variational
 #' Expectation Maximization algorithm.
@@ -351,8 +341,7 @@ estimate_colBiSBM <-
       plot_details = 1L,
       max_pass = 10L,
       verbosity = 1L,
-      nb_cores = 1L,
-      parallelization_vector = c(TRUE, TRUE)
+      nb_cores = 1L
     )
     go <- utils::modifyList(go, global_opts)
     global_opts <- go
@@ -360,6 +349,7 @@ estimate_colBiSBM <-
       global_opts$nb_cores <- 1L
     }
     nb_cores <- global_opts$nb_cores
+    stopifnot("nb_cores must be at least 1." = nb_cores > 0L)
     if (is.null(global_opts$backend)) {
       global_opts$backend <- "parallel"
     }
@@ -377,8 +367,7 @@ estimate_colBiSBM <-
     start_time <- Sys.time()
     # To warn the user about the verbosity and nb_cores
     if (global_opts$verbosity >= 3 &&
-      global_opts$nb_cores > 1 &&
-      !any(global_opts$parallelization_vector)) {
+      global_opts$nb_cores > 1) {
       cat(
         "\nDue to the parallelization, the message logs",
         "might be in confusing order.",
@@ -391,50 +380,30 @@ estimate_colBiSBM <-
     }
     # tmp_fits run nb_run times a full model selection procedure
     # (the one from the research paper)
-    if (global_opts$parallelization_vector[1] && nb_run > 1) {
-      tmp_fits <-
-        colsbm_lapply(
-          #        bettermc::mclapply(
-          seq(nb_run),
-          function(x) {
-            tmp_fit <- bisbmpop$new(
-              netlist = netlist,
-              net_id = net_id,
-              distribution = distribution,
-              free_mixture_row = free_mixture_row,
-              free_mixture_col = free_mixture_col,
-              global_opts = global_opts,
-              fit_opts = fit_opts,
-              Z_init = Z_init
-            )
-            tmp_fit$sep_BiSBM <- sep_BiSBM
-            tmp_fit$optimize()
-            return(tmp_fit)
-          },
-          backend = global_opts$backend,
-          nb_cores = min(nb_run, nb_cores)
-        )
-    } else {
-      tmp_fits <-
-        lapply(
-          seq(nb_run),
-          function(x) {
-            tmp_fit <- bisbmpop$new(
-              netlist = netlist,
-              net_id = net_id,
-              distribution = distribution,
-              free_mixture_row = free_mixture_row,
-              free_mixture_col = free_mixture_col,
-              global_opts = global_opts,
-              fit_opts = fit_opts,
-              Z_init = Z_init
-            )
-            tmp_fit$sep_BiSBM <- sep_BiSBM
-            tmp_fit$optimize()
-            return(tmp_fit)
-          }
-        )
-    }
+    #
+    tmp_fits <-
+      colsbm_lapply(
+        #        bettermc::mclapply(
+        seq(nb_run),
+        function(x) {
+          tmp_fit <- bisbmpop$new(
+            netlist = netlist,
+            net_id = net_id,
+            distribution = distribution,
+            free_mixture_row = free_mixture_row,
+            free_mixture_col = free_mixture_col,
+            global_opts = global_opts,
+            fit_opts = fit_opts,
+            Z_init = Z_init
+          )
+          tmp_fit$sep_BiSBM <- sep_BiSBM
+          tmp_fit$optimize()
+          return(tmp_fit)
+        },
+        backend = global_opts$backend,
+        nb_cores = min(nb_run, nb_cores)
+      )
+
     # We choose the the bisbmpop to receive the best_fit in sense of the BICL
     bisbmpop <- tmp_fits[[which.max(vapply(tmp_fits, function(fit) fit$best_fit$BICL,
       FUN.VALUE = .1

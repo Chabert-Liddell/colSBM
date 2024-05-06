@@ -74,17 +74,7 @@ the values in the square defined.}
 moving window process. Values are 0 or 1. Default is 1.}
 \item{\code{max_pass} }{the maximum number of moving window passes that will be
 executed. Default is 10.}
-\item{\code{parallelization_vector}}{a boolean vector of size 2. Each
-boolean specifies if the level should be parallelized. c(TRUE, TRUE)
-means that :
-\itemize{
-\item{1st: the \code{nb_run} models will be computed in parallel}
-\item{2nd: the possible models during the state space exploration will be
-computed in parallel.
 }
-}
-The default is : c(TRUE, TRUE) which gives best performance
-}}
 
 The list of parameters \code{fit_opts} are used to tune the Variational
 Expectation Maximization algorithm.
