@@ -599,8 +599,6 @@ clusterize_bipartite_networks <- function(netlist,
         },
         nb_cores = global_opts$nb_cores,
         backend = global_opts$backend
-        # mc.stdout = "output",
-        # mc.retry = -1
       )
     # Fully recursive (like a top down HCA)
     if (full_inference) {
