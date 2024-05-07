@@ -291,7 +291,7 @@ spectral_clustering <- function(X, K) {
   if (n < 3) {
     return(rep(1, n))
   }
-  X[X == -1] <- NA
+  # X[X == -1] <- NA
   isolated <- which(rowSums(X, na.rm = TRUE) == 0)
   connected <- setdiff(seq(n), isolated)
   X <- X[connected, connected]
@@ -318,7 +318,6 @@ spectral_clustering <- function(X, K) {
   }
   index <- rev(order(abs(specabs$values)))[1:K]
   U <- specabs$vectors[, index]
-  print(U)
   U <- U / rowSums(U**2)**(1 / 2)
   U[is.na(U)] <- 0
   U[is.nan(U)] <- 0
