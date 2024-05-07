@@ -323,7 +323,7 @@ spectral_clustering <- function(X, K) {
   U[is.nan(U)] <- 0
   U[is.infinite(U)] <- 0
   print(U)
-  cl <- stats::kmeans(U, K, iter.max = 100, nstart = 100)$cluster
+  cl <- stats::kmeans(U[!is.na(U)], K, iter.max = 100, nstart = 100)$cluster
   clustering <- rep(1, n)
   clustering[connected] <- cl
   clustering[isolated] <- which.min(rowsum(rowSums(X, na.rm = TRUE), cl))
