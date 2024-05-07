@@ -318,12 +318,12 @@ spectral_clustering <- function(X, K) {
   }
   index <- rev(order(abs(specabs$values)))[1:K]
   U <- specabs$vectors[, index]
+  print(U)
   U <- U / rowSums(U**2)**(1 / 2)
   U[is.na(U)] <- 0
   U[is.nan(U)] <- 0
   U[is.infinite(U)] <- 0
-  print(U)
-  cl <- stats::kmeans(U[!is.na(U)], K, iter.max = 100, nstart = 100)$cluster
+  cl <- stats::kmeans(U, K, iter.max = 100, nstart = 100)$cluster
   clustering <- rep(1, n)
   clustering[connected] <- cl
   clustering[isolated] <- which.min(rowsum(rowSums(X, na.rm = TRUE), cl))
