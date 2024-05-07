@@ -291,7 +291,7 @@ spectral_clustering <- function(X, K) {
   if (n < 3) {
     return(rep(1, n))
   }
-  # X[X == -1] <- NA
+  X[X == -1] <- NA
   isolated <- which(rowSums(X, na.rm = TRUE) == 0)
   connected <- setdiff(seq(n), isolated)
   X <- X[connected, connected]
@@ -322,6 +322,7 @@ spectral_clustering <- function(X, K) {
   U[is.na(U)] <- 0
   U[is.nan(U)] <- 0
   U[is.infinite(U)] <- 0
+  U <- na.omit(U)
   cl <- stats::kmeans(U, K, iter.max = 100, nstart = 100)$cluster
   clustering <- rep(1, n)
   clustering[connected] <- cl
