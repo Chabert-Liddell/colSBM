@@ -26,7 +26,7 @@ colsbm_lapply <- function(X, FUN, backend = "parallel",
       stop("The 'future.apply' package must be loaded and configured with a plan
            outside this function.")
     }
-    result <- future.apply::future_lapply(X, FUN, ...)
+    result <- future.apply::future_lapply(X, FUN, ..., future.seed = NULL)
     return(result)
   }
 
