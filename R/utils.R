@@ -322,7 +322,9 @@ spectral_clustering <- function(X, K) {
   U[is.na(U)] <- 0
   U[is.nan(U)] <- 0
   U[is.infinite(U)] <- 0
-  U <- na.omit(U)
+  print(is.na(U))
+  print(is.nan(U))
+  print(is.infinite(U))
   cl <- stats::kmeans(U, K, iter.max = 100, nstart = 100)$cluster
   clustering <- rep(1, n)
   clustering[connected] <- cl
