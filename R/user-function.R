@@ -220,6 +220,11 @@ estimate_colSBM <-
 #'  \itemize{
 #'  \item{\code{nb_cores} }{integer for number of cores used for
 #'  parallelization. Default is 1}
+#'  \item{\code{full_parallelize}}{boolean deciding wether or not to parallelize
+#'  each tested sub-model. Defaults to FALSE. It should be noted that this
+#'  heavy parallelization in most cases does not benefit fitting a single 
+#'  collection. It is useful in the context of a compute cluster for instance 
+#' when clustering networks (`clusterize_bipartite_networks()`)}
 #'  \item{\code{verbosity} }{integer for verbosity (0, 1, 2, 3, 4). Default is 1.
 #'   0 will disable completely the output of the function. Note: you
 #'   can access the $joint_modelisation_preferred attribute to check which
@@ -337,6 +342,7 @@ estimate_colBiSBM <-
       nb_init = 10L,
       nb_models = 5L,
       backend = "parallel",
+      full_parallelize = FALSE,
       depth = 1L,
       plot_details = 1L,
       max_pass = 10L,

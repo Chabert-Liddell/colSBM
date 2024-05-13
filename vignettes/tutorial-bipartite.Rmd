@@ -41,12 +41,12 @@ res_pp_iid <- estimate_colBiSBM(
   netlist = dorebipartite[7L:8L], # A list of networks
   colsbm_model = "iid", # The name of the model
   net_id = names(dorebipartite)[7L:8L], # Name of the networks
-  nb_run = 1L, # Number of runs of the algorithm
+  nb_run = 2L, # Number of runs of the algorithm
   global_opts = list(
     verbosity = 1L,
     plot_detail = 0L,
     nb_cores = 2L,
-    backend = "no_mc"
+    backend = "parallel"
   )
 )
 ```

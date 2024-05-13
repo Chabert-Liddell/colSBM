@@ -158,6 +158,7 @@ bisbmpop <- R6::R6Class(
         Q2_min = 1L,
         Q2_max = floor(log(sum(self$n[[2]]))) + 2,
         spectral_init = TRUE,
+        full_parallelize = FALSE,
         nb_models = 5L,
         depth = 1L, # By default we set a small depth
         plot_details = 1L,
@@ -290,7 +291,7 @@ bisbmpop <- R6::R6Class(
         )
       }
       # Fitting the Q splits and selecting the next model
-        possible_models <- lapply(
+        possible_models <- colsbm_lapply(
           seq.int(possible_models_size),
           function(q) {
             # Once the row and col clustering are correctly split
@@ -523,7 +524,11 @@ bisbmpop <- R6::R6Class(
 
             q_th_models # The list of models is returned (if no free_mixture it's a
             # one element list).
-          }
+          },
+          backend = ifelse(self[["global_opts"]][["full_parallelize"]],
+            self[["global_opts"]][["backend"]], # If full_par, use mc backend 
+            "no_mc"), # Else no parallelization
+          nb_cores = self[["global_opts"]][["nb_cores"]]
         )
       # If there is free_mixture it creates nestedness so we need to unlist
       possible_models <- append(list(), unlist(possible_models))
@@ -604,7 +609,7 @@ bisbmpop <- R6::R6Class(
       )
 
       # Fitting the Q merges and selecting the next model
-        possible_models <- lapply(
+        possible_models <- colsbm_lapply(
           seq.int(possible_models_size),
           function(q) {
             # Once the row and col clustering are correctly merged
@@ -841,7 +846,11 @@ bisbmpop <- R6::R6Class(
 
             q_th_models # The list of models is returned (if no free_mixture it's a
             # one element list).
-          }
+          },
+          backend = ifelse(self[["global_opts"]][["full_parallelize"]],
+            self[["global_opts"]][["backend"]], # If full_par, use mc backend 
+            "no_mc"), # Else no parallelization
+          nb_cores = self[["global_opts"]][["nb_cores"]]
         )
 
       # If there is free_mixture it creates nestedness so we need to unlist

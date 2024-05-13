@@ -375,6 +375,9 @@ extract_best_partition <- function(l) {
 #' @details The best partition could be extract with the function
 #' `extract_best_bipartite_partition()`. The object of the list are fitBipartiteSBMPop
 #' object, so it is a model for a given number of blocks Q1, Q2.
+#' 
+#' This functions make call to `estimate_colBiSBM` but uses the 
+#' \code{full_parallelize} with TRUE to leverage cluster computation power.
 #' @export
 #'
 #' @seealso [colSBM::extract_best_bipartite_partition()], [colSBM::estimate_colBiSBM()],
@@ -448,6 +451,7 @@ clusterize_bipartite_networks <- function(netlist,
     nb_init = 10L,
     nb_models = 5L,
     backend = "parallel",
+    full_parallelize = TRUE,
     depth = 1L,
     plot_details = 0L,
     max_pass = 10L,
