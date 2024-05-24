@@ -314,7 +314,26 @@ spectral_clustering <- function(X, K) {
     U[is.na(U)] <- 0
     U[is.nan(U)] <- 0
     U[is.infinite(U)] <- 0
-    cl <- stats::kmeans(U, K, iter.max = 100, nstart = 100)$cluster
+    cl <- try(
+      expr = {
+        stats::kmeans(U, K,
+          iter.max = 100,
+          nstart = 100
+        )$cluster
+      },
+      silent = TRUE
+    )
+    while (inherits(cl, "try-error")) {
+      cl <- try(
+        expr = {
+          stats::kmeans(U, K,
+            iter.max = 100,
+            nstart = 100
+          )$cluster
+        },
+        silent = TRUE
+      )
+    }
   } else {
     cl <- rep(1, nrow(X))
   }
