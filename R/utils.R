@@ -450,6 +450,10 @@ hierarClust <- function(X, K) {
 #'
 #' @return A list of Q clustering of Q+1 clusters
 split_clust <- function(X, Z, Q, is_bipartite = FALSE) {
+  X <- matrix(X,
+    nrow = nrow(X),
+    ncol = ncol(X)
+  )
   Z_split <- lapply(
     seq(Q),
     FUN = function(q) {
@@ -464,6 +468,7 @@ split_clust <- function(X, Z, Q, is_bipartite = FALSE) {
       } else {
         Xsub <- cbind(X[Z == q, , drop = FALSE], t(X[, Z == q, drop = FALSE]))
       }
+      Xsub <- as.matrix(Xsub)
       if (nrow(unique(Xsub, MARGIN = 1)) <= 3) {
         return(Z)
       }
