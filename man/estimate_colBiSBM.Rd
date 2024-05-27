@@ -34,11 +34,11 @@ See details.}
 
 \item{fit_opts}{Fit options for the VEM algorithm. See details}
 
-\item{Z_init}{An optional bi-dimensional list of size Q1_max x Q2_max containing
+\item{Z_init}{An optional bi-dimensional list of size \code{Q1_max} x \code{Q2_max} containing
 for each value a list of two vectors of clusters memberships. Default to
 NULL.}
 
-\item{sep_BiSBM}{a pre-fitted sep_BiSBM. Used to avoid end computations. The
+\item{sep_BiSBM}{A pre-fitted \code{sep_BiSBM.} Used to avoid end computations. The
 best way to obtain one is to extract from a fitted bisbmpop object. Defaults
 to NULL.}
 }
@@ -53,48 +53,47 @@ Estimate a colBiSBM on a collection of networks
 The list of parameters \code{global_opts} essentially tunes the
 exploration process.
 \itemize{
-\item{\code{nb_cores} }{integer for number of cores used for
-parallelization. Default is 1}
-\item{\code{full_parallelize}}{boolean deciding wether or not to parallelize
+\item \code{nb_cores} integer for number of cores used for
+parallelization. Default is 1
+\item \code{full_parallelize} boolean deciding wether or not to parallelize
 each tested sub-model. Defaults to FALSE. It should be noted that this
 heavy parallelization in most cases does not benefit fitting a single
 collection. It is useful in the context of a compute cluster for instance
-when clustering networks (\code{clusterize_bipartite_networks()})}
-\item{\code{verbosity} }{integer for verbosity (0, 1, 2, 3, 4). Default is 1.
+when clustering networks (\code{clusterize_bipartite_networks()})
+\item \code{verbosity} integer for verbosity (0, 1, 2, 3, 4). Default is 1.
 0 will disable completely the output of the function. Note: you
 can access the $joint_modelisation_preferred attribute to check which
-modelisation is preferred}
-\item{\code{Q1_max} }{integer for the max size in row to explore. Default is
+modelisation is preferred
+\item \code{Q1_max} integer for the max size in row to explore. Default is
 computed with the following formula:
-\code{floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2)}}
-\item{\code{Q2_max} }{integer for the max size in columns to explore. Default is
+\code{floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2)}
+\item \code{Q2_max} integer for the max size in columns to explore. Default is
 computed with the following formula:
-\code{floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2)}}
-\item{\code{nb_models} }{the number of models to keep for each values of Q1,Q2.
-Default is 5.}
-\item{\code{depth} }{specifies how large will the moving window be. Default is 1,
+\code{floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2)}
+\item \code{nb_models} the number of models to keep for each values of Q1,Q2.
+Default is 5.
+\item \code{depth} specifies how large will the moving window be. Default is 1,
 meaning the window will go from (Q1 - 1, Q2 - 1) to (Q1 + 1, Q2 + 1) and all
-the values in the square defined.}
-\item{\code{plot_details} }{integer to control the display of the exploration and
-moving window process. Values are 0 or 1. Default is 1.}
-\item{\code{max_pass} }{the maximum number of moving window passes that will be
-executed. Default is 10.}
+the values in the square defined.
+\item \code{plot_details} integer to control the display of the exploration and
+moving window process. Values are 0 or 1. Default is 1.
+\item \code{max_pass} the maximum number of moving window passes that will be
+executed. Default is 10.
 }
 
 The list of parameters \code{fit_opts} are used to tune the Variational
 Expectation Maximization algorithm.
-
 \itemize{
-\item{algo_ve}{a string to choose the algorithm to use for the variational
-estimation. Available: "fp"}
-\item{verbosity}{an integer to choose the level of verbosity of the fit
-procedure. Defaults to 0. Available: 0,1}
-\item{approx_pois}{a boolean which determines if an approximation is used
-for the poisson distribution. Defaults to TRUE.}
-\item{\code{minibatch}}{a boolean settings wether to use a "minibatch" like
+\item \code{algo_ve} a string to choose the algorithm to use for the variational
+estimation. Available: "fp"
+\item \code{verbosity} an integer to choose the level of verbosity of the fit
+procedure. Defaults to 0. Available: 0,1
+\item \code{approx_pois} a boolean which determines if an approximation is used
+for the poisson distribution. Defaults to TRUE.
+\item \code{minibatch} a boolean settings wether to use a "minibatch" like
 approach. If set to TRUE during the VEM the networks will be optimized in
 random orders. If set to FALSE they are optimized in the lexicographical
-order. Default to TRUE.}
+order. Default to TRUE.
 }
 }
 \examples{

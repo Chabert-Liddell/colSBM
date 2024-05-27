@@ -1455,7 +1455,8 @@ fitBipartiteSBMPop <- R6::R6Class(
             ) +
             ggplot2::geom_hline(yintercept = seq(self$Q[1]) + .5) +
             ggplot2::geom_vline(xintercept = seq(self$Q[2]) + .5) +
-            ggplot2::scale_y_reverse() +
+            ggplot2::scale_x_continuous(breaks = seq(self$Q[2])) +
+            ggplot2::scale_y_reverse(breaks = seq(self$Q[1])) +
             ggplot2::theme_bw(base_size = 15, base_rect_size = 1, base_line_size = 1) +
             ggplot2::xlab("") +
             ggplot2::ylab("") +
@@ -1516,7 +1517,7 @@ fitBipartiteSBMPop <- R6::R6Class(
               tidyr::pivot_longer(cols = -c(q)) %>%
               dplyr::mutate(Proportion = value) %>%
               ggplot2::ggplot(ggplot2::aes(
-                fill = as.factor(q), y = rev(name),
+                fill = as.factor(q), y = name,
                 x = Proportion
               )) +
               ggplot2::geom_col() +
@@ -1525,6 +1526,10 @@ fitBipartiteSBMPop <- R6::R6Class(
                 type = "qual", palette = "Set2",
                 direction = -1
               ) +
+              # Reversing net id to match row
+              ggplot2::scale_y_discrete(limits=rev) +
+              # Reversing prop order to match the alpha
+              ggplot2::scale_x_reverse() +
               ggplot2::guides(fill = ggplot2::guide_legend(
                 ncol = self$Q[2] %/% 3 + 1,
                 byrow = TRUE

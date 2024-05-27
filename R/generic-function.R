@@ -166,11 +166,12 @@ plot.bmpop <- function(x, type = "trace", ...) {
 #' )
 #' plot(cl_joint$best_fit)
 #' }
-plot.fitBipartiteSBMPop <- function(x, type = "graphon", oRow = NULL, oCol = NULL, mixture = FALSE, net_id = 1, ...) {
+plot.fitBipartiteSBMPop <- function(x, type = "graphon", oRow = NULL, oCol = NULL, mixture = FALSE, values = FALSE, net_id = 1, ...) {
   stopifnot(inherits(x, "fitBipartiteSBMPop"))
   # TODO Utiliser la liste Calpha pour localiser coeff jamais vus
   p <- x$plot(
     type = type, oRow = oRow, oCol = oCol, mixture = mixture,
+    values = values,
     net_id = net_id, ...
   )
   p
