@@ -90,119 +90,167 @@ test_that("Testing the different models for generating bipartite networks", {
     )
 })
 
-test_that("Testing various wrong arguments for generating bipartite networks",{
+test_that("Testing various wrong arguments for generating bipartite networks", {
     nr <- 10L
     nc <- 10L
-    
+
     alpha <- matrix(c(1L, 1L, 1L, 1L), nrow = 2)
-    alpha_3 <- matrix(c(0.9, 0.4, 0.1,
-                    0.4, 0.1, 0.05,
-                    0.1, 0.05, 0.05), byrow = TRUE, ncol = 3)
+    alpha_3 <- matrix(c(
+        0.9, 0.4, 0.1,
+        0.4, 0.1, 0.05,
+        0.1, 0.05, 0.05
+    ), byrow = TRUE, ncol = 3)
     wrong_alpha_bernoulli <- matrix(2L)
     wrong_alpha_negative <- matrix(-5L)
 
-    pi <- c(0.5,0.5)
-    pi_sum_float <- c(1/3 + 0.28, 1/3, 1/3- 0.28)
+    pi <- c(0.5, 0.5)
+    pi_sum_float <- c(1 / 3 + 0.28, 1 / 3, 1 / 3 - 0.28)
     wrong_pi_sum <- c(0.5, 0.7)
     wrong_pi_value <- c(-0.5)
 
-    # Wrong alpha
-    expect_error(colSBM:::generate_bipartite_network(nr = nr, nc = nc, 
-    pi = pi, rho = pi, alpha = wrong_alpha_bernoulli, 
-    distribution = "bernoulli"))
-    expect_error(colSBM:::generate_bipartite_network(nr = nr, nc = nc, 
-    pi = pi, rho = pi, alpha = wrong_alpha_negative, 
-    distribution = "bernoulli"))
-    expect_error(colSBM:::generate_bipartite_network(nr = nr, nc = nc, 
-    pi = pi, rho = pi, alpha = wrong_alpha_negative, 
-    distribution = "poisson"))
+    #  Wrong alpha
+    expect_error(colSBM:::generate_bipartite_network(
+        nr = nr, nc = nc,
+        pi = pi, rho = pi, alpha = wrong_alpha_bernoulli,
+        distribution = "bernoulli"
+    ))
+    expect_error(colSBM:::generate_bipartite_network(
+        nr = nr, nc = nc,
+        pi = pi, rho = pi, alpha = wrong_alpha_negative,
+        distribution = "bernoulli"
+    ))
+    expect_error(colSBM:::generate_bipartite_network(
+        nr = nr, nc = nc,
+        pi = pi, rho = pi, alpha = wrong_alpha_negative,
+        distribution = "poisson"
+    ))
     # No error
-    expect_no_error(colSBM:::generate_bipartite_network(nr = nr, nc = nc, 
-    pi = pi, rho = pi, alpha = alpha, 
-    distribution = "bernoulli"))
-    expect_no_error(colSBM:::generate_bipartite_network(nr = nr, nc = nc, 
-    pi = pi, rho = pi, alpha = alpha, 
-    distribution = "poisson"))
-    expect_no_error(colSBM:::generate_bipartite_network(nr = nr, nc = nc, 
-    pi = pi_sum_float, rho = pi_sum_float, alpha = alpha_3, 
-    distribution = "bernoulli"))
+    expect_no_error(colSBM:::generate_bipartite_network(
+        nr = nr, nc = nc,
+        pi = pi, rho = pi, alpha = alpha,
+        distribution = "bernoulli"
+    ))
+    expect_no_error(colSBM:::generate_bipartite_network(
+        nr = nr, nc = nc,
+        pi = pi, rho = pi, alpha = alpha,
+        distribution = "poisson"
+    ))
+    expect_no_error(colSBM:::generate_bipartite_network(
+        nr = nr, nc = nc,
+        pi = pi_sum_float, rho = pi_sum_float, alpha = alpha_3,
+        distribution = "bernoulli"
+    ))
 
-    # Wrong pi
-    expect_error(colSBM:::generate_bipartite_network(nr = nr, nc = nc, 
-    pi = wrong_pi_sum, rho = pi, alpha = alpha, 
-    distribution = "bernoulli"))
-    expect_error(colSBM:::generate_bipartite_network(nr = nr, nc = nc, 
-    pi =  wrong_pi_value, rho = pi, alpha = alpha, 
-    distribution = "bernoulli"))
-    # Wrong rho
-    expect_error(colSBM:::generate_bipartite_network(nr = nr, nc = nc, 
-    pi = pi, rho = wrong_pi_sum, alpha = alpha, 
-    distribution = "bernoulli"))
-    expect_error(colSBM:::generate_bipartite_network(nr = nr, nc = nc, 
-    pi = pi, rho = wrong_pi_value, alpha = alpha,
-    distribution = "bernoulli"))
-    
+    #  Wrong pi
+    expect_error(colSBM:::generate_bipartite_network(
+        nr = nr, nc = nc,
+        pi = wrong_pi_sum, rho = pi, alpha = alpha,
+        distribution = "bernoulli"
+    ))
+    expect_error(colSBM:::generate_bipartite_network(
+        nr = nr, nc = nc,
+        pi = wrong_pi_value, rho = pi, alpha = alpha,
+        distribution = "bernoulli"
+    ))
+    #  Wrong rho
+    expect_error(colSBM:::generate_bipartite_network(
+        nr = nr, nc = nc,
+        pi = pi, rho = wrong_pi_sum, alpha = alpha,
+        distribution = "bernoulli"
+    ))
+    expect_error(colSBM:::generate_bipartite_network(
+        nr = nr, nc = nc,
+        pi = pi, rho = wrong_pi_value, alpha = alpha,
+        distribution = "bernoulli"
+    ))
+
     # No error
-    expect_no_error(colSBM:::generate_bipartite_network(nr = nr, nc = nc, 
-    pi = pi, rho = pi, alpha = alpha, 
-    distribution = "bernoulli"))
-    expect_no_error(colSBM:::generate_bipartite_network(nr = nr, nc = nc, 
-    pi = pi, rho = pi, alpha = alpha, 
-    distribution = "bernoulli"))
+    expect_no_error(colSBM:::generate_bipartite_network(
+        nr = nr, nc = nc,
+        pi = pi, rho = pi, alpha = alpha,
+        distribution = "bernoulli"
+    ))
+    expect_no_error(colSBM:::generate_bipartite_network(
+        nr = nr, nc = nc,
+        pi = pi, rho = pi, alpha = alpha,
+        distribution = "bernoulli"
+    ))
 })
 
-test_that("Testing various wrong arguments for generating unipartite networks",{
+test_that("Testing various wrong arguments for generating unipartite networks", {
     n <- 10L
-    
+
     alpha <- matrix(c(1L, 1L, 1L, 1L), nrow = 2)
-    alpha_3 <- matrix(c(0.9, 0.4, 0.1,
-                    0.4, 0.1, 0.05,
-                    0.1, 0.05, 0.05), byrow = TRUE, ncol = 3)
+    alpha_3 <- matrix(c(
+        0.9, 0.4, 0.1,
+        0.4, 0.1, 0.05,
+        0.1, 0.05, 0.05
+    ), byrow = TRUE, ncol = 3)
     wrong_alpha_bernoulli <- matrix(2L)
     wrong_alpha_negative <- matrix(-5L)
 
-    pi <- c(0.5,0.5)
-    pi_sum_float <- c(1/3 + 0.28, 1/3, 1/3- 0.28)
+    pi <- c(0.5, 0.5)
+    pi_sum_float <- c(1 / 3 + 0.28, 1 / 3, 1 / 3 - 0.28)
     wrong_pi_sum <- c(0.5, 0.7)
     wrong_pi_value <- c(-0.5)
 
-    # Wrong alpha
-    expect_error(colSBM:::generate_unipartite_network(n= n, 
-    pi = pi, alpha = wrong_alpha_bernoulli, 
-    distribution = "bernoulli"))
-    expect_error(colSBM:::generate_unipartite_network(n= n, 
-    pi = pi, alpha = wrong_alpha_negative, 
-    distribution = "bernoulli"))
-    expect_error(colSBM:::generate_unipartite_network(n= n, 
-    pi = pi, alpha = wrong_alpha_negative, 
-    distribution = "poisson"))
+    #  Wrong alpha
+    expect_error(colSBM:::generate_unipartite_network(
+        n = n,
+        pi = pi, alpha = wrong_alpha_bernoulli,
+        distribution = "bernoulli"
+    ))
+    expect_error(colSBM:::generate_unipartite_network(
+        n = n,
+        pi = pi, alpha = wrong_alpha_negative,
+        distribution = "bernoulli"
+    ))
+    expect_error(colSBM:::generate_unipartite_network(
+        n = n,
+        pi = pi, alpha = wrong_alpha_negative,
+        distribution = "poisson"
+    ))
 
     # No error
-    expect_no_error(colSBM:::generate_unipartite_network(n = n, 
-    pi = pi, alpha = alpha, 
-    distribution = "bernoulli"))
-    expect_no_error(colSBM:::generate_unipartite_network(n = n, 
-    pi = pi, alpha = alpha, 
-    distribution = "poisson"))
-    expect_no_error(colSBM:::generate_unipartite_network(n = n, 
-    pi = pi_sum_float, alpha = alpha_3,
-    distribution = "bernoulli"))
+    expect_no_error(colSBM:::generate_unipartite_network(
+        n = n,
+        pi = pi, alpha = alpha,
+        distribution = "bernoulli"
+    ))
+    expect_no_error(colSBM:::generate_unipartite_network(
+        n = n,
+        pi = pi, alpha = alpha,
+        distribution = "poisson"
+    ))
+    expect_no_error(colSBM:::generate_unipartite_network(
+        n = n,
+        pi = pi_sum_float, alpha = alpha_3,
+        distribution = "bernoulli"
+    ))
 
-    # Wrong pi
-    expect_error(colSBM:::generate_unipartite_network(n = n, 
-    pi = wrong_pi_sum, alpha = alpha, 
-    distribution = "bernoulli"))
-    expect_error(colSBM:::generate_unipartite_network(n = n, 
-    pi =  wrong_pi_value, alpha = alpha, 
-    distribution = "bernoulli"))
-    
+    #  Wrong pi
+    expect_error(colSBM:::generate_unipartite_network(
+        n = n,
+        pi = wrong_pi_sum, alpha = alpha,
+        distribution = "bernoulli"
+    ))
+    expect_error(colSBM:::generate_unipartite_network(
+        n = n,
+        pi = wrong_pi_value, alpha = alpha,
+        distribution = "bernoulli"
+    ))
+
     # No error
-    expect_no_error(colSBM:::generate_unipartite_network(n = n, 
-    pi = pi, alpha = alpha, 
-    distribution = "bernoulli"))
-    expect_no_error(colSBM:::generate_unipartite_network(n = n, 
-    pi = pi, alpha = alpha, 
-    distribution = "bernoulli"))
+    expect_no_error(colSBM:::generate_unipartite_network(
+        n = n,
+        pi = pi, alpha = alpha,
+        distribution = "bernoulli"
+    ))
+    expect_no_error(colSBM:::generate_unipartite_network(
+        n = n,
+        pi = pi, alpha = alpha,
+        distribution = "bernoulli"
+    ))
 })
 
 
@@ -254,4 +302,22 @@ test_that("Hierarchical biclustering works", {
     expect_no_error(
         colSBM:::bipartite_hierarchic_clustering(X = X, K = c(2, 1)),
     )
+})
+
+test_that("split_clust fails with a table", {
+    X <- as.table(matrix(c(
+        0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+        0, 1, 1, 1, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+        1, 2, 0, 0, 0, 0, 0, 0, 0, 1,
+        0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+        1, 1, 0, 1, 0, 0, 1, 0, 0, 1,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+        1, 1, 0, 1, 0, 0, 0, 0, 1, 1,
+        0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+        0, 1, 0, 0, 0, 0, 0, 1, 0, 0
+    ), nrow = 10, ncol = 10, byrow = TRUE))
+    Z <- c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+
+    expect_no_error(colSBM:::split_clust(X = X, Q = 2, Z = Z, is_bipartite = TRUE))
 })

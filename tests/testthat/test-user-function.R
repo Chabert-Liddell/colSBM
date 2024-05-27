@@ -18,7 +18,10 @@ test_that("Estimate colBiSBM does not accept incorrect nb_cores", {
       matrix(as.numeric(runif(100) > 0.5), nrow = 10)
     ),
     colsbm_model = "iid",
-    global_opts = list(nb_cores = 0L)
+    global_opts = list(
+      nb_cores = 0L,
+      verbosity = 0L
+    )
   ))
 })
 
@@ -29,6 +32,9 @@ test_that("Estimate colBiSBM runs without problems", {
       matrix(as.numeric(runif(100) > 0.5), nrow = 10)
     ),
     colsbm_model = "iid",
-    global_opts = list(nb_cores = 2L)
+    global_opts = list(
+      nb_cores = 2L,
+      verbosity = 0L
+    )
   ))
 })
