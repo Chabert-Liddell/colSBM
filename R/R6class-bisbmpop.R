@@ -291,31 +291,80 @@ bisbmpop <- R6::R6Class(
         )
       }
       # Fitting the Q splits and selecting the next model
-        possible_models <- colsbm_lapply(
-          seq.int(possible_models_size),
-          function(q) {
-            # Once the row and col clustering are correctly split
-            # they are merged
-            if (axis == "row") {
-              # If it's a row split
-              q_th_Z_init <- lapply(seq.int(self$M), function(m) {
-                list(row_clustering[[m]][[q]], col_clustering[[m]])
-              })
-            } else {
-              # If it's a col split
-              q_th_Z_init <- lapply(seq.int(self$M), function(m) {
-                list(row_clustering[[m]], col_clustering[[m]][[q]])
-              })
-            }
+      possible_models <- colsbm_lapply(
+        seq.int(possible_models_size),
+        function(q) {
+          # Once the row and col clustering are correctly split
+          # they are merged
+          if (axis == "row") {
+            # If it's a row split
+            q_th_Z_init <- lapply(seq.int(self$M), function(m) {
+              list(row_clustering[[m]][[q]], col_clustering[[m]])
+            })
+          } else {
+            # If it's a col split
+            q_th_Z_init <- lapply(seq.int(self$M), function(m) {
+              list(row_clustering[[m]], col_clustering[[m]][[q]])
+            })
+          }
 
-            if (self$global_opts$compare_stored) {
-              # Checking if the clustering has been encountered before
-              # in the model list
-              if (!is.null(self$model_list[[split_Q[1], split_Q[2]]])) {
+          if (self$global_opts$compare_stored) {
+            # Checking if the clustering has been encountered before
+            # in the model list
+            if (!is.null(self$model_list[[split_Q[1], split_Q[2]]])) {
+              stored_Z1 <- unlist(
+                lapply(
+                  seq_along(self$model_list[[split_Q[1], split_Q[2]]]$Z),
+                  function(m) self$model_list[[split_Q[1], split_Q[2]]]$Z[[m]][[1]]
+                )
+              )
+
+              q_th_Z1 <- unlist(
+                lapply(
+                  seq_along(q_th_Z_init),
+                  function(m) q_th_Z_init[[m]][[1]]
+                )
+              )
+
+              ARI_Z1 <- aricode::ARI(stored_Z1, q_th_Z1)
+
+              stored_Z2 <- unlist(
+                lapply(
+                  seq_along(self$model_list[[split_Q[1], split_Q[2]]]$Z),
+                  function(m) self$model_list[[split_Q[1], split_Q[2]]]$Z[[m]][[2]]
+                )
+              )
+
+              q_th_Z2 <- unlist(
+                lapply(
+                  seq_along(q_th_Z_init),
+                  function(m) q_th_Z_init[[m]][[2]]
+                )
+              )
+
+              ARI_Z2 <- aricode::ARI(stored_Z2, q_th_Z2)
+
+              # cat("\n1:", ARI_Z1, "| 2:", ARI_Z2)
+
+              # Using ARI to account for label switching
+              if (ARI_Z1 == 1 && ARI_Z2 == 1) {
+                if (self$global_opts$verbosity >= 4) {
+                  cat(
+                    "\nThe splitting memberships", q,
+                    "is identical to the model stored in (",
+                    toString(split_Q), "). It will not be computed."
+                  )
+                }
+                return(self$model_list[[split_Q[1], split_Q[2]]])
+              }
+            }
+            # in the discarded model list
+            if (!is.null(self$discarded_model_list[[split_Q[1], split_Q[2]]])) {
+              for (discarded_model in self$discarded_model_list[[split_Q[1], split_Q[2]]]) {
                 stored_Z1 <- unlist(
                   lapply(
-                    seq_along(self$model_list[[split_Q[1], split_Q[2]]]$Z),
-                    function(m) self$model_list[[split_Q[1], split_Q[2]]]$Z[[m]][[1]]
+                    seq_along(discarded_model$Z),
+                    function(m) discarded_model$Z[[m]][[1]]
                   )
                 )
 
@@ -330,8 +379,8 @@ bisbmpop <- R6::R6Class(
 
                 stored_Z2 <- unlist(
                   lapply(
-                    seq_along(self$model_list[[split_Q[1], split_Q[2]]]$Z),
-                    function(m) self$model_list[[split_Q[1], split_Q[2]]]$Z[[m]][[2]]
+                    seq_along(discarded_model$Z),
+                    function(m) discarded_model$Z[[m]][[2]]
                   )
                 )
 
@@ -343,193 +392,145 @@ bisbmpop <- R6::R6Class(
                 )
 
                 ARI_Z2 <- aricode::ARI(stored_Z2, q_th_Z2)
-
-                # cat("\n1:", ARI_Z1, "| 2:", ARI_Z2)
-
-                # Using ARI to account for label switching
                 if (ARI_Z1 == 1 && ARI_Z2 == 1) {
                   if (self$global_opts$verbosity >= 4) {
                     cat(
                       "\nThe splitting memberships", q,
-                      "is identical to the model stored in (",
+                      "is identical to a discarded model stored in (",
                       toString(split_Q), "). It will not be computed."
                     )
                   }
-                  return(self$model_list[[split_Q[1], split_Q[2]]])
-                }
-              }
-              # in the discarded model list
-              if (!is.null(self$discarded_model_list[[split_Q[1], split_Q[2]]])) {
-                for (discarded_model in self$discarded_model_list[[split_Q[1], split_Q[2]]]) {
-                  stored_Z1 <- unlist(
-                    lapply(
-                      seq_along(discarded_model$Z),
-                      function(m) discarded_model$Z[[m]][[1]]
-                    )
-                  )
-
-                  q_th_Z1 <- unlist(
-                    lapply(
-                      seq_along(q_th_Z_init),
-                      function(m) q_th_Z_init[[m]][[1]]
-                    )
-                  )
-
-                  ARI_Z1 <- aricode::ARI(stored_Z1, q_th_Z1)
-
-                  stored_Z2 <- unlist(
-                    lapply(
-                      seq_along(discarded_model$Z),
-                      function(m) discarded_model$Z[[m]][[2]]
-                    )
-                  )
-
-                  q_th_Z2 <- unlist(
-                    lapply(
-                      seq_along(q_th_Z_init),
-                      function(m) q_th_Z_init[[m]][[2]]
-                    )
-                  )
-
-                  ARI_Z2 <- aricode::ARI(stored_Z2, q_th_Z2)
-                  if (ARI_Z1 == 1 && ARI_Z2 == 1) {
-                    if (self$global_opts$verbosity >= 4) {
-                      cat(
-                        "\nThe splitting memberships", q,
-                        "is identical to a discarded model stored in (",
-                        toString(split_Q), "). It will not be computed."
-                      )
-                    }
-                    return(discarded_model)
-                  }
+                  return(discarded_model)
                 }
               }
             }
+          }
 
-            q_th_model <- fitBipartiteSBMPop$new(
-              A = self$A,
-              Q = split_Q,
-              free_mixture_row = self$free_mixture_row,
-              free_mixture_col = self$free_mixture_col,
-              init_method = "given",
-              distribution = self$distribution,
-              Z = q_th_Z_init,
-              net_id = self$net_id,
-              fit_opts = self$fit_opts,
+          q_th_model <- fitBipartiteSBMPop$new(
+            A = self$A,
+            Q = split_Q,
+            free_mixture_row = self$free_mixture_row,
+            free_mixture_col = self$free_mixture_col,
+            init_method = "given",
+            distribution = self$distribution,
+            Z = q_th_Z_init,
+            net_id = self$net_id,
+            fit_opts = self$fit_opts,
+          )
+          q_th_model$optimize()
+          if (self$global_opts$verbosity >= 4) {
+            cat(
+              "\n\tFitting ", q, "/", possible_models_size, "split for ",
+              axis
             )
-            q_th_model$optimize()
-            if (self$global_opts$verbosity >= 4) {
-              cat(
-                "\n\tFitting ", q, "/", possible_models_size, "split for ",
-                axis
-              )
-            }
+          }
 
-            # For free_mixture
-            q_th_models <- list(q_th_model)
+          # For free_mixture
+          q_th_models <- list(q_th_model)
 
-            if ((self$free_mixture_row | self$free_mixture_col) & self$M > 1) {
-              # Initializing a previously seen support
-              previous_Cpi <- list(
-                matrix(TRUE, nrow = q_th_model$Q[1], self$M),
-                matrix(TRUE, nrow = q_th_model$Q[2], self$M)
-              )
-              # The levels of tolerance
-              emptiness_levels <- seq(from = 0.01, to = 0.05, by = 0.01)
-              models_with_different_emptiness_levels <- lapply(
-                seq_along(emptiness_levels),
-                function(l) {
-                  Cpi <- list()
+          if ((self$free_mixture_row | self$free_mixture_col) & self$M > 1) {
+            # Initializing a previously seen support
+            previous_Cpi <- list(
+              matrix(TRUE, nrow = q_th_model$Q[1], self$M),
+              matrix(TRUE, nrow = q_th_model$Q[2], self$M)
+            )
+            # The levels of tolerance
+            emptiness_levels <- seq(from = 0.01, to = 0.05, by = 0.01)
+            models_with_different_emptiness_levels <- lapply(
+              seq_along(emptiness_levels),
+              function(l) {
+                Cpi <- list()
 
-                  # Compute the support for the rows
-                  if (self$free_mixture_row) {
-                    if (self$global_opts$verbosity >= 4) {
-                      cat(
-                        "\n\t\tFree mixture on the row, minimum pi threshold : ",
-                        emptiness_levels[l]
-                      )
-                    }
-                    Cpi[[1]] <- vapply(seq(q_th_model$M), function(m) {
-                      q_th_model$pi[[m]][[1]] > emptiness_levels[l]
-                    },
-                    FUN.VALUE = rep(TRUE, split_Q[1])
-                    )
-                    dim(Cpi[[1]]) <- c(split_Q[1], q_th_model$M)
-                  } else {
-                    # All networks use all clusters
-                    Cpi[[1]] <- matrix(TRUE, nrow = split_Q[1], ncol = q_th_model$M)
-                  }
-
-                  # Compute the support for the columns
-                  if (self$free_mixture_col) {
-                    if (self$global_opts$verbosity >= 4) {
-                      cat(
-                        "\n\t\tFree mixture on the columns, minimum rho threshold : ",
-                        emptiness_levels[l]
-                      )
-                    }
-                    Cpi[[2]] <- vapply(seq(q_th_model$M), function(m) {
-                      q_th_model$pi[[m]][[2]] > emptiness_levels[l]
-                    },
-                    FUN.VALUE = rep(TRUE, split_Q[2])
-                    )
-                    dim(Cpi[[2]]) <- c(split_Q[2], q_th_model$M)
-                  } else {
-                    # All networks use all clusters
-                    Cpi[[2]] <- matrix(TRUE, nrow = split_Q[2], ncol = q_th_model$M)
-                  }
-                  # Testing if the supports have been encountered before
-                  if (all(previous_Cpi[[1]] == Cpi[[1]]) & all(previous_Cpi[[2]] == Cpi[[2]])) {
-                    # The supports are the same, the previous model has been
-                    # encountered
-                    if (self$global_opts$verbosity >= 4) {
-                      cat(
-                        "\n\t\tSkipping threshold, same supports: ",
-                        emptiness_levels[l],
-                        ". Threshold number ", l, "/", length(emptiness_levels)
-                      )
-                    }
-                    previous_Cpi <- Cpi
-                    return(q_th_model)
-                  }
-                  previous_Cpi <- Cpi
-                  # With the supports computed we can now clone the fitBipartite
-                  # and fit wrt the supports.
-                  q_th_model_with_supports <- q_th_model$clone()
-
-                  # Adding the supports
-                  q_th_model_with_supports$Cpi <- Cpi
-                  q_th_model_with_supports$Calpha <-
-                    tcrossprod(Cpi[[1]], Cpi[[2]]) > 0
-                  q_th_model_with_supports$init_method <- "empty"
+                # Compute the support for the rows
+                if (self$free_mixture_row) {
                   if (self$global_opts$verbosity >= 4) {
                     cat(
-                      "\n\t\tFitting with threshold : ",
+                      "\n\t\tFree mixture on the row, minimum pi threshold : ",
+                      emptiness_levels[l]
+                    )
+                  }
+                  Cpi[[1]] <- vapply(seq(q_th_model$M), function(m) {
+                    q_th_model$pi[[m]][[1]] > emptiness_levels[l]
+                  },
+                  FUN.VALUE = rep(TRUE, split_Q[1])
+                  )
+                  dim(Cpi[[1]]) <- c(split_Q[1], q_th_model$M)
+                } else {
+                  # All networks use all clusters
+                  Cpi[[1]] <- matrix(TRUE, nrow = split_Q[1], ncol = q_th_model$M)
+                }
+
+                # Compute the support for the columns
+                if (self$free_mixture_col) {
+                  if (self$global_opts$verbosity >= 4) {
+                    cat(
+                      "\n\t\tFree mixture on the columns, minimum rho threshold : ",
+                      emptiness_levels[l]
+                    )
+                  }
+                  Cpi[[2]] <- vapply(seq(q_th_model$M), function(m) {
+                    q_th_model$pi[[m]][[2]] > emptiness_levels[l]
+                  },
+                  FUN.VALUE = rep(TRUE, split_Q[2])
+                  )
+                  dim(Cpi[[2]]) <- c(split_Q[2], q_th_model$M)
+                } else {
+                  # All networks use all clusters
+                  Cpi[[2]] <- matrix(TRUE, nrow = split_Q[2], ncol = q_th_model$M)
+                }
+                # Testing if the supports have been encountered before
+                if (all(previous_Cpi[[1]] == Cpi[[1]]) & all(previous_Cpi[[2]] == Cpi[[2]])) {
+                  # The supports are the same, the previous model has been
+                  # encountered
+                  if (self$global_opts$verbosity >= 4) {
+                    cat(
+                      "\n\t\tSkipping threshold, same supports: ",
                       emptiness_levels[l],
                       ". Threshold number ", l, "/", length(emptiness_levels)
                     )
                   }
-                  q_th_model_with_supports$optimize()
-                  q_th_model_with_supports
+                  previous_Cpi <- Cpi
+                  return(q_th_model)
                 }
-              )
+                previous_Cpi <- Cpi
+                # With the supports computed we can now clone the fitBipartite
+                # and fit wrt the supports.
+                q_th_model_with_supports <- q_th_model$clone()
+
+                # Adding the supports
+                q_th_model_with_supports$Cpi <- Cpi
+                q_th_model_with_supports$Calpha <-
+                  tcrossprod(Cpi[[1]], Cpi[[2]]) > 0
+                q_th_model_with_supports$init_method <- "empty"
+                if (self$global_opts$verbosity >= 4) {
+                  cat(
+                    "\n\t\tFitting with threshold : ",
+                    emptiness_levels[l],
+                    ". Threshold number ", l, "/", length(emptiness_levels)
+                  )
+                }
+                q_th_model_with_supports$optimize()
+                q_th_model_with_supports
+              }
+            )
 
 
-              # Now the two lists are merged
-              q_th_models <- append(
-                q_th_models,
-                models_with_different_emptiness_levels
-              )
-            }
+            # Now the two lists are merged
+            q_th_models <- append(
+              q_th_models,
+              models_with_different_emptiness_levels
+            )
+          }
 
-            q_th_models # The list of models is returned (if no free_mixture it's a
-            # one element list).
-          },
-          backend = ifelse(self[["global_opts"]][["full_parallelize"]],
-            self[["global_opts"]][["backend"]], # If full_par, use mc backend 
-            "no_mc"), # Else no parallelization
-          nb_cores = self[["global_opts"]][["nb_cores"]]
-        )
+          q_th_models # The list of models is returned (if no free_mixture it's a
+          # one element list).
+        },
+        backend = ifelse(self[["global_opts"]][["full_parallelize"]],
+          self[["global_opts"]][["backend"]], #  If full_par, use mc backend
+          "no_mc"
+        ), #  Else no parallelization
+        nb_cores = self[["global_opts"]][["nb_cores"]]
+      )
       # If there is free_mixture it creates nestedness so we need to unlist
       possible_models <- append(list(), unlist(possible_models))
       # Now we fit all the models for the differents splits
@@ -609,34 +610,83 @@ bisbmpop <- R6::R6Class(
       )
 
       # Fitting the Q merges and selecting the next model
-        possible_models <- colsbm_lapply(
-          seq.int(possible_models_size),
-          function(q) {
-            # Once the row and col clustering are correctly merged
-            # they are merged
-            switch(axis,
-              row = {
-                # If it's a row merge
-                q_th_Z_init <- lapply(seq.int(self$M), function(m) {
-                  list(row_clustering[[m]][[q]], col_clustering[[m]])
-                })
-              },
-              col = {
-                # If it's a col merge
-                q_th_Z_init <- lapply(seq.int(self$M), function(m) {
-                  list(row_clustering[[m]], col_clustering[[m]][[q]])
-                })
-              }
-            )
+      possible_models <- colsbm_lapply(
+        seq.int(possible_models_size),
+        function(q) {
+          # Once the row and col clustering are correctly merged
+          # they are merged
+          switch(axis,
+            row = {
+              # If it's a row merge
+              q_th_Z_init <- lapply(seq.int(self$M), function(m) {
+                list(row_clustering[[m]][[q]], col_clustering[[m]])
+              })
+            },
+            col = {
+              # If it's a col merge
+              q_th_Z_init <- lapply(seq.int(self$M), function(m) {
+                list(row_clustering[[m]], col_clustering[[m]][[q]])
+              })
+            }
+          )
 
-            if (self$global_opts$compare_stored) {
-              # Checking if the clustering has been encountered before
-              # in the model list
-              if (!is.null(self$model_list[[merge_Q[1], merge_Q[2]]])) {
+          if (self$global_opts$compare_stored) {
+            # Checking if the clustering has been encountered before
+            # in the model list
+            if (!is.null(self$model_list[[merge_Q[1], merge_Q[2]]])) {
+              stored_Z1 <- unlist(
+                lapply(
+                  seq_along(self$model_list[[merge_Q[1], merge_Q[2]]]$Z),
+                  function(m) self$model_list[[merge_Q[1], merge_Q[2]]]$Z[[m]][[1]]
+                )
+              )
+
+              q_th_Z1 <- unlist(
+                lapply(
+                  seq_along(q_th_Z_init),
+                  function(m) q_th_Z_init[[m]][[1]]
+                )
+              )
+
+              ARI_Z1 <- aricode::ARI(stored_Z1, q_th_Z1)
+
+              stored_Z2 <- unlist(
+                lapply(
+                  seq_along(self$model_list[[merge_Q[1], merge_Q[2]]]$Z),
+                  function(m) self$model_list[[merge_Q[1], merge_Q[2]]]$Z[[m]][[2]]
+                )
+              )
+
+              q_th_Z2 <- unlist(
+                lapply(
+                  seq_along(q_th_Z_init),
+                  function(m) q_th_Z_init[[m]][[2]]
+                )
+              )
+
+              ARI_Z2 <- aricode::ARI(stored_Z2, q_th_Z2)
+
+              # cat("\n1:", ARI_Z1, "| 2:", ARI_Z2)
+
+              # Using ARI to account for label switching
+              if (ARI_Z1 == 1 && ARI_Z2 == 1) {
+                if (self$global_opts$verbosity >= 4) {
+                  cat(
+                    "\nThe merging memberships", q,
+                    "is identical to the model stored in (",
+                    toString(merge_Q), "). It will not be computed."
+                  )
+                }
+                return(self$model_list[[merge_Q[1], merge_Q[2]]])
+              }
+            }
+            # in the discarded model list
+            if (!is.null(self$discarded_model_list[[merge_Q[1], merge_Q[2]]])) {
+              for (discarded_model in self$discarded_model_list[[merge_Q[1], merge_Q[2]]]) {
                 stored_Z1 <- unlist(
                   lapply(
-                    seq_along(self$model_list[[merge_Q[1], merge_Q[2]]]$Z),
-                    function(m) self$model_list[[merge_Q[1], merge_Q[2]]]$Z[[m]][[1]]
+                    seq_along(discarded_model$Z),
+                    function(m) discarded_model$Z[[m]][[1]]
                   )
                 )
 
@@ -651,8 +701,8 @@ bisbmpop <- R6::R6Class(
 
                 stored_Z2 <- unlist(
                   lapply(
-                    seq_along(self$model_list[[merge_Q[1], merge_Q[2]]]$Z),
-                    function(m) self$model_list[[merge_Q[1], merge_Q[2]]]$Z[[m]][[2]]
+                    seq_along(discarded_model$Z),
+                    function(m) discarded_model$Z[[m]][[2]]
                   )
                 )
 
@@ -664,194 +714,146 @@ bisbmpop <- R6::R6Class(
                 )
 
                 ARI_Z2 <- aricode::ARI(stored_Z2, q_th_Z2)
-
-                # cat("\n1:", ARI_Z1, "| 2:", ARI_Z2)
-
-                # Using ARI to account for label switching
                 if (ARI_Z1 == 1 && ARI_Z2 == 1) {
                   if (self$global_opts$verbosity >= 4) {
                     cat(
                       "\nThe merging memberships", q,
-                      "is identical to the model stored in (",
+                      "is identical to a discarded model stored in (",
                       toString(merge_Q), "). It will not be computed."
                     )
                   }
-                  return(self$model_list[[merge_Q[1], merge_Q[2]]])
-                }
-              }
-              # in the discarded model list
-              if (!is.null(self$discarded_model_list[[merge_Q[1], merge_Q[2]]])) {
-                for (discarded_model in self$discarded_model_list[[merge_Q[1], merge_Q[2]]]) {
-                  stored_Z1 <- unlist(
-                    lapply(
-                      seq_along(discarded_model$Z),
-                      function(m) discarded_model$Z[[m]][[1]]
-                    )
-                  )
-
-                  q_th_Z1 <- unlist(
-                    lapply(
-                      seq_along(q_th_Z_init),
-                      function(m) q_th_Z_init[[m]][[1]]
-                    )
-                  )
-
-                  ARI_Z1 <- aricode::ARI(stored_Z1, q_th_Z1)
-
-                  stored_Z2 <- unlist(
-                    lapply(
-                      seq_along(discarded_model$Z),
-                      function(m) discarded_model$Z[[m]][[2]]
-                    )
-                  )
-
-                  q_th_Z2 <- unlist(
-                    lapply(
-                      seq_along(q_th_Z_init),
-                      function(m) q_th_Z_init[[m]][[2]]
-                    )
-                  )
-
-                  ARI_Z2 <- aricode::ARI(stored_Z2, q_th_Z2)
-                  if (ARI_Z1 == 1 && ARI_Z2 == 1) {
-                    if (self$global_opts$verbosity >= 4) {
-                      cat(
-                        "\nThe merging memberships", q,
-                        "is identical to a discarded model stored in (",
-                        toString(merge_Q), "). It will not be computed."
-                      )
-                    }
-                    return(discarded_model)
-                  }
+                  return(discarded_model)
                 }
               }
             }
+          }
 
-            q_th_model <- fitBipartiteSBMPop$new(
-              A = self$A,
-              Q = merge_Q,
-              free_mixture_row = self$free_mixture_row,
-              free_mixture_col = self$free_mixture_col,
-              init_method = "given",
-              distribution = self$distribution,
-              Z = q_th_Z_init,
-              net_id = self$net_id,
-              fit_opts = self$fit_opts,
+          q_th_model <- fitBipartiteSBMPop$new(
+            A = self$A,
+            Q = merge_Q,
+            free_mixture_row = self$free_mixture_row,
+            free_mixture_col = self$free_mixture_col,
+            init_method = "given",
+            distribution = self$distribution,
+            Z = q_th_Z_init,
+            net_id = self$net_id,
+            fit_opts = self$fit_opts,
+          )
+          if (self$global_opts$verbosity >= 4) {
+            cat(
+              "\n\tFitting ", q, "/", possible_models_size,
+              "merge for", axis
             )
-            if (self$global_opts$verbosity >= 4) {
-              cat(
-                "\n\tFitting ", q, "/", possible_models_size,
-                "merge for", axis
-              )
-            }
-            q_th_model$optimize()
+          }
+          q_th_model$optimize()
 
-            # For free_mixture
-            q_th_models <- list(q_th_model)
+          # For free_mixture
+          q_th_models <- list(q_th_model)
 
-            emptiness_levels <- NULL
-            if ((self$free_mixture_row | self$free_mixture_col) & self$M > 1) {
-              # Initializing a previously seen support
-              previous_Cpi <- list(
-                matrix(TRUE, nrow = q_th_model$Q[1], self$M),
-                matrix(TRUE, nrow = q_th_model$Q[2], self$M)
-              )
-              # The levels of tolerance
-              emptiness_levels <- seq(from = 0.01, to = 0.05, by = 0.01)
-              models_with_different_emptiness_levels <- lapply(
-                seq_along(emptiness_levels),
-                function(l) {
-                  Cpi <- list()
+          emptiness_levels <- NULL
+          if ((self$free_mixture_row | self$free_mixture_col) & self$M > 1) {
+            # Initializing a previously seen support
+            previous_Cpi <- list(
+              matrix(TRUE, nrow = q_th_model$Q[1], self$M),
+              matrix(TRUE, nrow = q_th_model$Q[2], self$M)
+            )
+            # The levels of tolerance
+            emptiness_levels <- seq(from = 0.01, to = 0.05, by = 0.01)
+            models_with_different_emptiness_levels <- lapply(
+              seq_along(emptiness_levels),
+              function(l) {
+                Cpi <- list()
 
-                  # Compute the support for the rows
-                  if (self$free_mixture_row) {
-                    if (self$global_opts$verbosity >= 4) {
-                      cat(
-                        "\n\t\tFree mixture on the row, minimum pi threshold : ",
-                        emptiness_levels[l]
-                      )
-                    }
-                    Cpi[[1]] <- vapply(seq(q_th_model$M), function(m) {
-                      q_th_model$pi[[m]][[1]] > emptiness_levels[l]
-                    },
-                    FUN.VALUE = rep(TRUE, merge_Q[1])
-                    )
-                    dim(Cpi[[1]]) <- c(merge_Q[1], q_th_model$M)
-                  } else {
-                    # All networks use all clusters
-                    Cpi[[1]] <- matrix(TRUE, nrow = merge_Q[1], ncol = q_th_model$M)
-                  }
-
-                  # Compute the support for the columns
-                  if (self$free_mixture_col) {
-                    if (self$global_opts$verbosity >= 4) {
-                      cat(
-                        "\n\t\tFree mixture on the columns, minimum rho threshold : ",
-                        emptiness_levels[l]
-                      )
-                    }
-                    Cpi[[2]] <- vapply(seq(q_th_model$M), function(m) {
-                      q_th_model$pi[[m]][[2]] > emptiness_levels[l]
-                    },
-                    FUN.VALUE = rep(TRUE, merge_Q[2])
-                    )
-                    dim(Cpi[[2]]) <- c(merge_Q[2], q_th_model$M)
-                  } else {
-                    # All networks use all clusters
-                    Cpi[[2]] <- matrix(TRUE, nrow = merge_Q[2], ncol = q_th_model$M)
-                  }
-                  # Testing if the supports have been encountered before
-                  if (all(previous_Cpi[[1]] == Cpi[[1]]) & all(previous_Cpi[[2]] == Cpi[[2]])) {
-                    # The supports are the same, the previous model has been
-                    # encountered
-                    if (self$global_opts$verbosity >= 4) {
-                      cat(
-                        "\n\t\tSkipping threshold, same supports: ",
-                        emptiness_levels[l],
-                        ". Threshold number ", l, "/", length(emptiness_levels)
-                      )
-                    }
-                    previous_Cpi <- Cpi
-                    return(q_th_model)
-                  }
-                  previous_Cpi <- Cpi
-                  # With the supports computed we can now clone the fitBipartite
-                  # and fit wrt the supports.
-                  q_th_model_with_supports <- q_th_model$clone()
-
-                  # Adding the supports
-                  q_th_model_with_supports$Cpi <- Cpi
-                  q_th_model_with_supports$Calpha <-
-                    tcrossprod(Cpi[[1]], Cpi[[2]]) > 0
-                  q_th_model_with_supports$init_method <- "empty"
+                # Compute the support for the rows
+                if (self$free_mixture_row) {
                   if (self$global_opts$verbosity >= 4) {
                     cat(
-                      "\n\t\tFitting with threshold : ",
+                      "\n\t\tFree mixture on the row, minimum pi threshold : ",
+                      emptiness_levels[l]
+                    )
+                  }
+                  Cpi[[1]] <- vapply(seq(q_th_model$M), function(m) {
+                    q_th_model$pi[[m]][[1]] > emptiness_levels[l]
+                  },
+                  FUN.VALUE = rep(TRUE, merge_Q[1])
+                  )
+                  dim(Cpi[[1]]) <- c(merge_Q[1], q_th_model$M)
+                } else {
+                  # All networks use all clusters
+                  Cpi[[1]] <- matrix(TRUE, nrow = merge_Q[1], ncol = q_th_model$M)
+                }
+
+                # Compute the support for the columns
+                if (self$free_mixture_col) {
+                  if (self$global_opts$verbosity >= 4) {
+                    cat(
+                      "\n\t\tFree mixture on the columns, minimum rho threshold : ",
+                      emptiness_levels[l]
+                    )
+                  }
+                  Cpi[[2]] <- vapply(seq(q_th_model$M), function(m) {
+                    q_th_model$pi[[m]][[2]] > emptiness_levels[l]
+                  },
+                  FUN.VALUE = rep(TRUE, merge_Q[2])
+                  )
+                  dim(Cpi[[2]]) <- c(merge_Q[2], q_th_model$M)
+                } else {
+                  # All networks use all clusters
+                  Cpi[[2]] <- matrix(TRUE, nrow = merge_Q[2], ncol = q_th_model$M)
+                }
+                # Testing if the supports have been encountered before
+                if (all(previous_Cpi[[1]] == Cpi[[1]]) & all(previous_Cpi[[2]] == Cpi[[2]])) {
+                  # The supports are the same, the previous model has been
+                  # encountered
+                  if (self$global_opts$verbosity >= 4) {
+                    cat(
+                      "\n\t\tSkipping threshold, same supports: ",
                       emptiness_levels[l],
                       ". Threshold number ", l, "/", length(emptiness_levels)
                     )
                   }
-                  q_th_model_with_supports$optimize()
-                  q_th_model_with_supports
+                  previous_Cpi <- Cpi
+                  return(q_th_model)
                 }
-              )
+                previous_Cpi <- Cpi
+                # With the supports computed we can now clone the fitBipartite
+                # and fit wrt the supports.
+                q_th_model_with_supports <- q_th_model$clone()
+
+                # Adding the supports
+                q_th_model_with_supports$Cpi <- Cpi
+                q_th_model_with_supports$Calpha <-
+                  tcrossprod(Cpi[[1]], Cpi[[2]]) > 0
+                q_th_model_with_supports$init_method <- "empty"
+                if (self$global_opts$verbosity >= 4) {
+                  cat(
+                    "\n\t\tFitting with threshold : ",
+                    emptiness_levels[l],
+                    ". Threshold number ", l, "/", length(emptiness_levels)
+                  )
+                }
+                q_th_model_with_supports$optimize()
+                q_th_model_with_supports
+              }
+            )
 
 
-              # Now the two lists are merged
-              q_th_models <- append(
-                q_th_models,
-                models_with_different_emptiness_levels
-              )
-            }
+            # Now the two lists are merged
+            q_th_models <- append(
+              q_th_models,
+              models_with_different_emptiness_levels
+            )
+          }
 
-            q_th_models # The list of models is returned (if no free_mixture it's a
-            # one element list).
-          },
-          backend = ifelse(self[["global_opts"]][["full_parallelize"]],
-            self[["global_opts"]][["backend"]], # If full_par, use mc backend 
-            "no_mc"), # Else no parallelization
-          nb_cores = self[["global_opts"]][["nb_cores"]]
-        )
+          q_th_models # The list of models is returned (if no free_mixture it's a
+          # one element list).
+        },
+        backend = ifelse(self[["global_opts"]][["full_parallelize"]],
+          self[["global_opts"]][["backend"]], #  If full_par, use mc backend
+          "no_mc"
+        ), #  Else no parallelization
+        nb_cores = self[["global_opts"]][["nb_cores"]]
+      )
 
       # If there is free_mixture it creates nestedness so we need to unlist
       possible_models <- append(list(), unlist(possible_models))

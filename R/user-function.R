@@ -222,8 +222,8 @@ estimate_colSBM <-
 #'  parallelization. Default is 1
 #'  \item \code{full_parallelize} boolean deciding wether or not to parallelize
 #'  each tested sub-model. Defaults to FALSE. It should be noted that this
-#'  heavy parallelization in most cases does not benefit fitting a single 
-#'  collection. It is useful in the context of a compute cluster for instance 
+#'  heavy parallelization in most cases does not benefit fitting a single
+#' collection. It is useful in the context of a compute cluster for instance
 #' when clustering networks (`clusterize_bipartite_networks()`)
 #'  \item \code{verbosity} integer for verbosity (0, 1, 2, 3, 4). Default is 1.
 #'   0 will disable completely the output of the function. Note: you

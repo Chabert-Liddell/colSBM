@@ -1426,10 +1426,10 @@ fitBipartiteSBMPop <- R6::R6Class(
             ) +
             ggplot2::geom_hline(yintercept = cumsum(self$pi[[net_id]][[1]][oRow][1:(self$Q[1] - 1)]), linewidth = .2) +
             ggplot2::geom_vline(xintercept = cumsum(self$pi[[net_id]][[2]][oCol][1:(self$Q[2] - 1)]), linewidth = .2)
-            if (values) {
-              p_graphon <- p_graphon +
-                ggplot2::geom_text(ggplot2::aes(x = (Var2-min(Var2))/max(Var2), y = (Var1-0.5*min(Var1))/max(Var1), label = round(value, 2)), color = "black")
-            }
+          if (values) {
+            p_graphon <- p_graphon +
+              ggplot2::geom_text(ggplot2::aes(x = (Var2 - min(Var2)) / max(Var2), y = (Var1 - 0.5 * min(Var1)) / max(Var1), label = round(value, 2)), color = "black")
+          }
 
           p_graphon <- p_graphon +
             ggplot2::scale_y_reverse() +
@@ -1526,9 +1526,9 @@ fitBipartiteSBMPop <- R6::R6Class(
                 type = "qual", palette = "Set2",
                 direction = -1
               ) +
-              # Reversing net id to match row
-              ggplot2::scale_y_discrete(limits=rev) +
-              # Reversing prop order to match the alpha
+              #  Reversing net id to match row
+              ggplot2::scale_y_discrete(limits = rev) +
+              #  Reversing prop order to match the alpha
               ggplot2::scale_x_reverse() +
               ggplot2::guides(fill = ggplot2::guide_legend(
                 ncol = self$Q[2] %/% 3 + 1,

@@ -218,7 +218,7 @@ but then we can compare the mesoscale structures of the
 wrap_plots(
   lapply(best_partition, function(collection) {
     plot(collection, type = "graphon") +
-    ggplot2::ggtitle(label = "", subtitle = toString(collection$net_id)) 
+      ggplot2::ggtitle(label = "", subtitle = toString(collection$net_id))
   }),
   ncol = 2L
 )

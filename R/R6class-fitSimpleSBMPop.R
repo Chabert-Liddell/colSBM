@@ -1279,7 +1279,7 @@ fitSimpleSBMPop <- R6::R6Class(
       cat("  $memberships, $parameters, $BICL, $vbound, $pred_dyads \n")
     },
     #' The print method
-    #' 
+    #'
     #' @return nothing; print to console
     print = function() {
       self$show()
@@ -1290,15 +1290,15 @@ fitSimpleSBMPop <- R6::R6Class(
     #' @importFrom patchwork plot_layout plot_annotation wrap_plots
     #' @importFrom reshape2 melt
     #' @importFrom purrr map_dfc
-    #' 
+    #'
     #' @param type The type of the plot. Could be "graphon", "meso" or "block".
     #' @param ord A reordering of the blocks.
     #' @param mixture Should the block proportions of each network be plotted as
     #' well?
-    #' @param net_id The id of the network to plot. Used to plot only on 
+    #' @param net_id The id of the network to plot. Used to plot only on
     #' network in "graphon" view.
     #' @param ... Further arguments to be passed
-    #' 
+    #'
     #' @return A plot, a ggplot2 object.
     plot = function(type = "graphon", ord = NULL, mixture = FALSE, net_id = NULL, ...) {
       if (is.null(ord)) ord <- order(diag(self$alpha), decreasing = TRUE)
