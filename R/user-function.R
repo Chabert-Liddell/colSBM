@@ -21,7 +21,7 @@
 #'
 #' @seealso [colSBM::clusterize_networks()], \code{\link[colSBM]{bmpop}},
 #' \code{\link[colSBM]{fitSimpleSBMPop}}, `browseVignettes("colSBM")`
-#'
+#' @import sbm
 #' @examples
 #' # Trivial example with Gnp networks:
 #' Net <- lapply(

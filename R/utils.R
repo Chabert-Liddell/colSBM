@@ -92,7 +92,8 @@ generate_unipartite_collection <- function(
       n = n[[m]],
       pi = pi,
       alpha = alpha,
-      distribution = distribution
+      distribution = distribution,
+      return_memberships = return_memberships
     )
   })
   return(out)
@@ -632,84 +633,4 @@ logit <- function(x) log(x / (1 - x))
 
 .rev_one_hot <- function(X) {
   return(as.vector(max.col(X)))
-}
-
-#' Reorder colBiSBM parameters
-#'
-#' @param model a fitBipartiteSBMPop object on which the reordering is performed
-#'
-#' @export
-reorder_parameters <- function(model) {
-  Z_label_switch <- function(Z, new_order) {
-    # Create a mapping of old labels to new labels
-    old_names <- names(Z)
-    label_map <- setNames(new_order, unique(Z))
-
-    # Use the mapping to replace labels in the vector
-    switched_labels <- label_map[Z]
-    names(switched_labels) <- old_names
-    return(switched_labels)
-  }
-  out_model <- model$clone()
-  if (all(out_model$Q == c(1, 1))) {
-    return(out_model)
-  }
-  mean_pi <- sapply(out_model$pi, function(pi) pi[[1]])
-  if (out_model$Q[1] > 1) {
-    mean_pi <- matrixStats::rowMeans2(mean_pi)
-  } else {
-    mean_pi <- 1
-  }
-  mean_rho <- sapply(out_model$pi, function(pi) pi[[2]])
-  if (out_model$Q[2] > 1) {
-    mean_rho <- matrixStats::rowMeans2(mean_rho)
-  } else {
-    mean_rho <- 1
-  }
-  # The row clustering are reordered according to their marginal distribution
-  prob1 <- as.vector(mean_rho %*% t(out_model$MAP$alpha))
-  p1 <- order(prob1, decreasing = TRUE)
-
-  # The col clustering are reordered according to their marginal distribution
-  prob2 <- as.vector(mean_pi %*% out_model$MAP$alpha)
-  p2 <- order(prob2, decreasing = TRUE)
-
-  # m independent
-  out_model$MAP$alpha <- out_model$MAP$alpha[p1, p2, drop = FALSE]
-  out_model$Calpha <- out_model$Calpha[p1, p2, drop = FALSE]
-  out_model$alpha <- out_model$alpha[p1, p2, drop = FALSE]
-
-  # m dependent
-  lapply(seq.int(out_model$M), function(m) {
-    # Reordering the parameters
-    out_model$Cpi[[1]][, m] <- out_model$Cpi[[1]][p1, m, drop = FALSE]
-    out_model$Cpi[[2]][, m] <- out_model$Cpi[[2]][p2, m, drop = FALSE]
-
-    out_model$pim[[m]][[1]] <- out_model$pim[[m]][[1]][p1, drop = FALSE]
-    out_model$pim[[m]][[2]] <- out_model$pim[[m]][[2]][p2, drop = FALSE]
-
-    out_model$pi[[m]][[1]] <- out_model$pi[[m]][[1]][p1, drop = FALSE]
-    out_model$pi[[m]][[2]] <- out_model$pi[[m]][[2]][p2, drop = FALSE]
-
-    out_model$emqr[m, , ] <- out_model$emqr[m, p1, p2, drop = FALSE]
-    out_model$nmqr[m, , ] <- out_model$nmqr[m, p1, p2, drop = FALSE]
-    out_model$alpham[[m]] <- matrix(out_model$alpham[[m]], out_model$Q[1], out_model$Q[2])[p1, p2, drop = FALSE]
-    out_model$tau[[m]][[1]] <- out_model$tau[[m]][[1]][, p1, drop = FALSE]
-    out_model$tau[[m]][[2]] <- out_model$tau[[m]][[2]][, p2, drop = FALSE]
-    out_model$Z[[m]][[1]] <- Z_label_switch(out_model$Z[[m]][[1]], p1)
-    out_model$Z[[m]][[2]] <- Z_label_switch(out_model$Z[[m]][[2]], p2)
-
-    # MAP parameters
-    # Work needed to relabel correctly!
-    out_model$MAP$Z[[m]][[1]] <- Z_label_switch(out_model$MAP$Z[[m]][[1]], p1)
-    out_model$MAP$Z[[m]][[2]] <- Z_label_switch(out_model$MAP$Z[[m]][[2]], p2)
-    out_model$MAP$emqr[m, , ] <- out_model$MAP$emqr[m, p1, p2, drop = FALSE]
-    out_model$MAP$nmqr[m, , ] <- out_model$MAP$nmqr[m, p1, p2, drop = FALSE]
-    out_model$MAP$alpham[[m]] <- matrix(out_model$MAP$alpham[[m]], out_model$Q[1], out_model$Q[2])[p1, p2, drop = FALSE]
-    out_model$MAP$pim[[m]][[1]] <- out_model$MAP$pim[[m]][[1]][p1, drop = FALSE]
-    out_model$MAP$pim[[m]][[2]] <- out_model$MAP$pim[[m]][[2]][p2, drop = FALSE]
-    out_model$MAP$pi[[m]][[1]] <- out_model$MAP$pi[[m]][[1]][p1, drop = FALSE]
-    out_model$MAP$pi[[m]][[2]] <- out_model$MAP$pi[[m]][[2]][p2, drop = FALSE]
-  })
-  return(out_model)
 }

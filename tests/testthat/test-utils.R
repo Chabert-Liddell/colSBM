@@ -253,6 +253,60 @@ test_that("Testing various wrong arguments for generating unipartite networks", 
   ))
 })
 
+test_that("Testing that all arguments work for generating unipartite networks", {
+  isNested <- function(l) {
+    stopifnot(is.list(l))
+    for (i in l) {
+      if (is.list(i)) {
+        return(TRUE)
+      }
+    }
+    return(FALSE)
+  }
+
+  n <- 10L
+  alpha <- matrix(c(1L, 1L, 1L, 1L), nrow = 2)
+  pi <- c(0.5, 0.5)
+
+  # Wrong M error
+  expect_error(colSBM::generate_unipartite_collection(
+    n = c(50, 50, 40),
+    pi = pi, alpha = alpha,
+    distribution = "bernoulli",
+    M = 2
+  ))
+
+
+  expect_false(
+    isNested(
+      colSBM::generate_unipartite_collection(
+        n = n,
+        pi = pi,
+        alpha = alpha,
+        M = 3L
+      )
+    )
+  )
+
+  expect_true(
+    isNested(
+      colSBM::generate_unipartite_collection(
+        n = n,
+        pi = pi,
+        alpha = alpha,
+        M = 3L,
+        return_memberships = TRUE
+      )
+    )
+  )
+
+  expect_no_error(colSBM::generate_unipartite_collection(
+    n = c(50, 50, 40),
+    pi = pi, alpha = alpha,
+    distribution = "bernoulli",
+    M = 3L
+  ))
+})
 
 test_that("Base case spectral biclustering", {
   X <- matrix(c(1, 0, 0, 1), byrow = TRUE, nrow = 2)
@@ -266,7 +320,7 @@ test_that("Base case spectral biclustering", {
 })
 
 test_that("Spectral clustering too many clusters works", {
-  X <- generate_unipartite_network(n = 10, pi = 1, alpha = 0.9)
+  X <- colSBM:::generate_unipartite_network(n = 10, pi = 1, alpha = 0.9)
   expect_message(
     colSBM:::spectral_clustering(X = X, K = 12),
   )
@@ -295,7 +349,7 @@ test_that("Base case hierarchical biclustering", {
 })
 
 test_that("Hierarchical biclustering works", {
-  X <- generate_bipartite_network(
+  X <- colSBM:::generate_bipartite_network(
     nr = 10, 10, pi = c(0.4, 0.6), rho = 1,
     alpha = matrix(c(0.9, 0.1), byrow = TRUE, nrow = 2)
   )
@@ -320,4 +374,12 @@ test_that("split_clust fails with a table", {
   Z <- c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
 
   expect_no_error(colSBM:::split_clust(X = X, Q = 2, Z = Z, is_bipartite = TRUE))
+})
+
+test_that("Helper functions work", {
+  expect_identical(colSBM:::logistic(Inf), 1)
+  expect_identical(colSBM:::logistic(-Inf), 0)
+
+  expect_identical(colSBM:::logit(0), -Inf)
+  expect_identical(colSBM:::logit(1), Inf)
 })

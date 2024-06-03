@@ -6,29 +6,22 @@ repos:
     hooks:
     -   id: style-files
         args: [--style_pkg=styler, --style_fun=tidyverse_style]    
-    -   id: roxygenize
-        # roxygen requires loading pkg -> add dependencies from DESCRIPTION
-        additional_dependencies:
-        - ape
-        - aricode
-        - cluster
-        - dplyr
-        - ggnewscale
-        - ggplot2
-        - gtools
-        - magrittr
-        - matrixStats
-        - parallel
-        - parallelly
-        - patchwork
-        - purrr
-        - R6
-        - reshape2
-        - sbm
-        - stats
-        - tibble
-        - tidyr
-        - utils
+    # -   id: roxygenize
+    #     # roxygen requires loading pkg -> add dependencies from DESCRIPTION
+    #     additional_dependencies:
+    #     - ape
+    #     - aricode
+    #     - dplyr
+    #     - ggnewscale
+    #     - ggplot2
+    #     - gtools
+    #     - matrixStats
+    #     - parallelly
+    #     - patchwork
+    #     - reshape2
+    #     - sbm
+    #     - tibble
+    #     - tidyr
     # codemeta must be above use-tidy-description when both are used
     # -   id: codemeta-description-updated
     -   id: use-tidy-description
