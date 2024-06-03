@@ -9,26 +9,26 @@ repos:
     -   id: roxygenize
         # roxygen requires loading pkg -> add dependencies from DESCRIPTION
         additional_dependencies:
-        -    ape
-        -    aricode
-        -    cluster
-        -    dplyr
-        -    ggnewscale
-        -    ggplot2
-        -    gtools
-        -    magrittr
-        -    matrixStats
-        -    parallel
-        -    parallelly
-        -    patchwork
-        -    purrr
-        -    R6
-        -    reshape2
-        -    sbm
-        -    stats
-        -    tibble
-        -    tidyr
-        -    utils
+        - ape
+        - aricode
+        - cluster
+        - dplyr
+        - ggnewscale
+        - ggplot2
+        - gtools
+        - magrittr
+        - matrixStats
+        - parallel
+        - parallelly
+        - patchwork
+        - purrr
+        - R6
+        - reshape2
+        - sbm
+        - stats
+        - tibble
+        - tidyr
+        - utils
     # codemeta must be above use-tidy-description when both are used
     # -   id: codemeta-description-updated
     -   id: use-tidy-description
