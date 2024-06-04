@@ -2214,11 +2214,7 @@ bisbmpop <- R6::R6Class(
           sep_BiSBM$best_fit
         },
         nb_cores = min(self$global_opts$nb_cores, self[["M"]]),
-        mc.silent = TRUE,
         backend = self$global_opts$backend
-        # mc.allow.recursive = TRUE,
-        # mc.retry = -1, # To prevent big crash
-        # mc.progress = FALSE
       )
 
       self$sep_BiSBM$BICL <- sapply(seq.int(self$M), function(m) {

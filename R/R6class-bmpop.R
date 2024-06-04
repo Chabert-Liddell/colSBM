@@ -175,9 +175,7 @@ bmpop <- R6::R6Class(
                 )
               )
             },
-            nb_cores = self$global_opts$nb_cores,
-            mc.share.copy = FALSE,
-            mc.silent = TRUE
+            nb_cores = self$global_opts$nb_cores
           )
       }
       self$ICL_sbm <- rep(-Inf, self$global_opts$Q_max)

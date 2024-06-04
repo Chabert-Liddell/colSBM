@@ -123,8 +123,7 @@ clusterize_networks <- function(netlist,
             )
           },
           backend = global_opts$backend,
-          nb_cores = nb_cores,
-          mc.silent = TRUE
+          nb_cores = nb_cores
         )
     }
     tmp_fits <-
