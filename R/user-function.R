@@ -405,7 +405,7 @@ estimate_colBiSBM <-
           return(tmp_fit)
         },
         backend = global_opts$backend,
-        nb_cores = min(nb_run, nb_cores)
+        nb_cores = nb_cores
       )
 
     # We choose the the bisbmpop to receive the best_fit in sense of the BICL
