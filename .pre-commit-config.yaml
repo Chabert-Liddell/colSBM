@@ -1,6 +1,10 @@
 # All available hooks: https://pre-commit.com/hooks.html
 # R specific hooks: https://github.com/lorenzwalthert/precommit
 repos:
+-   repo: https://github.com/sirosen/texthooks
+    rev: 0.6.6
+    hooks:
+    -   id: fix-spaces
 -   repo: https://github.com/lorenzwalthert/precommit
     rev: v0.4.2
     hooks:
