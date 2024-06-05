@@ -37,7 +37,7 @@ test_that("Generate bipartite collection with vectors for nc and nr", {
   expect_equal(length(increasingCol), M)
   expect_equal(lapply(increasingCol, nrow), as.list(nr))
   expect_equal(lapply(increasingCol, ncol), as.list(nc))
-  #  Wrong M
+  #  Wrong M
   expect_error(colSBM::generate_bipartite_collection(
     nr, nc, pir, pic, alpha,
     M + 1
@@ -108,7 +108,7 @@ test_that("Testing various wrong arguments for generating bipartite networks", {
   wrong_pi_sum <- c(0.5, 0.7)
   wrong_pi_value <- c(-0.5)
 
-  #  Wrong alpha
+  #  Wrong alpha
   expect_error(colSBM:::generate_bipartite_network(
     nr = nr, nc = nc,
     pi = pi, rho = pi, alpha = wrong_alpha_bernoulli,
@@ -141,7 +141,7 @@ test_that("Testing various wrong arguments for generating bipartite networks", {
     distribution = "bernoulli"
   ))
 
-  #  Wrong pi
+  #  Wrong pi
   expect_error(colSBM:::generate_bipartite_network(
     nr = nr, nc = nc,
     pi = wrong_pi_sum, rho = pi, alpha = alpha,
@@ -152,7 +152,7 @@ test_that("Testing various wrong arguments for generating bipartite networks", {
     pi = wrong_pi_value, rho = pi, alpha = alpha,
     distribution = "bernoulli"
   ))
-  #  Wrong rho
+  #  Wrong rho
   expect_error(colSBM:::generate_bipartite_network(
     nr = nr, nc = nc,
     pi = pi, rho = wrong_pi_sum, alpha = alpha,
@@ -194,7 +194,7 @@ test_that("Testing various wrong arguments for generating unipartite networks", 
   wrong_pi_sum <- c(0.5, 0.7)
   wrong_pi_value <- c(-0.5)
 
-  #  Wrong alpha
+  #  Wrong alpha
   expect_error(colSBM:::generate_unipartite_network(
     n = n,
     pi = pi, alpha = wrong_alpha_bernoulli,
@@ -228,7 +228,7 @@ test_that("Testing various wrong arguments for generating unipartite networks", 
     distribution = "bernoulli"
   ))
 
-  #  Wrong pi
+  #  Wrong pi
   expect_error(colSBM:::generate_unipartite_network(
     n = n,
     pi = wrong_pi_sum, alpha = alpha,
