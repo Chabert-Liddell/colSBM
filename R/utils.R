@@ -26,7 +26,7 @@ generate_unipartite_network <- function(
   cluster_memberships <- rmultinom(n, size = 1, prob = pi)
   node_node_interaction_parameter <- t(cluster_memberships) %*% alpha %*% cluster_memberships
 
-  #  Here we switch on the distributions
+  # Here we switch on the distributions
   adjacency_matrix <- matrix(
     switch(distribution,
       "bernoulli" = {

@@ -11,7 +11,7 @@ test_that(
   }
 )
 
-#  Testing with parallel backend
+# Testing with parallel backend
 if (parallel_is_installed) {
   test_that(
     "colsbm_lapply with parallel backend works",
@@ -25,7 +25,7 @@ if (parallel_is_installed) {
   )
 }
 
-#  Testing with future backend
+# Testing with future backend
 if (future_is_installed) {
   library(future)
   library(future.apply)
@@ -50,7 +50,7 @@ if (future_is_installed) {
   )
 }
 
-#  Testing with bettermc backend
+# Testing with bettermc backend
 if (bettermc_is_installed) {
   library(bettermc)
 

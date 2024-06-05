@@ -372,7 +372,7 @@ fitBipartiteSBMPop <- R6::R6Class(
           )
         },
         "poisson" = {
-          #  Retrieving tau
+          # Retrieving tau
           tau_1 <- self$tau[[m]][[1]]
           tau_2 <- self$tau[[m]][[2]]
 
@@ -811,12 +811,12 @@ fitBipartiteSBMPop <- R6::R6Class(
     update_alpha = function(MAP = FALSE) {
       # For iid and pi-colSBM
       if (!MAP) {
-        #  Sums over the M networks (dims = 1)
+        # Sums over the M networks (dims = 1)
         alpha <- self$Calpha * colSums(self$emqr, dims = 1) / colSums(self$nmqr, dims = 1)
         alpha[is.nan(alpha)] <- 0
         self$alpha <- alpha
       } else {
-        #  Sums over the M networks (dims = 1)
+        # Sums over the M networks (dims = 1)
         alpha <- self$Calpha * colSums(self$MAP$emqr, dims = 1) / colSums(self$MAP$nmqr, dims = 1)
         alpha[is.nan(alpha)] <- 0
         self$MAP$alpha <- alpha
@@ -1526,9 +1526,9 @@ fitBipartiteSBMPop <- R6::R6Class(
                 type = "qual", palette = "Set2",
                 direction = -1
               ) +
-              #  Reversing net id to match row
+              # Reversing net id to match row
               ggplot2::scale_y_discrete(limits = rev) +
-              #  Reversing prop order to match the alpha
+              # Reversing prop order to match the alpha
               ggplot2::scale_x_reverse() +
               ggplot2::guides(fill = ggplot2::guide_legend(
                 ncol = self$Q[2] %/% 3 + 1,

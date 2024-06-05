@@ -1,4 +1,4 @@
-#  colSBM
+# colSBM
 test_that("colsbm-model not correct raises an error", {
   set.seed(1234L)
   expect_error(colSBM::estimate_colSBM(list(matrix(runif(100, 10, 10))),
@@ -61,7 +61,7 @@ test_that("Estimate network benefitting from joint modelisation with null nb_cor
   expect_identical(fit$best_fit$Q, 2L)
 })
 
-#  colBiSBM
+# colBiSBM
 test_that("colbisbm-model not correct raises an error", {
   set.seed(1234L)
   expect_error(colSBM::estimate_colBiSBM(

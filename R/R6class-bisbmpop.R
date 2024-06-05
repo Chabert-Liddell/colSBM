@@ -526,9 +526,9 @@ bisbmpop <- R6::R6Class(
           # one element list).
         },
         backend = ifelse(self[["global_opts"]][["full_parallelize"]],
-          self[["global_opts"]][["backend"]], #  If full_par, use mc backend
+          self[["global_opts"]][["backend"]], # If full_par, use mc backend
           "no_mc"
-        ), #  Else no parallelization
+        ), # Else no parallelization
         nb_cores = self[["global_opts"]][["nb_cores"]]
       )
       # If there is free_mixture it creates nestedness so we need to unlist
@@ -849,9 +849,9 @@ bisbmpop <- R6::R6Class(
           # one element list).
         },
         backend = ifelse(self[["global_opts"]][["full_parallelize"]],
-          self[["global_opts"]][["backend"]], #  If full_par, use mc backend
+          self[["global_opts"]][["backend"]], # If full_par, use mc backend
           "no_mc"
-        ), #  Else no parallelization
+        ), # Else no parallelization
         nb_cores = self[["global_opts"]][["nb_cores"]]
       )
 
@@ -2164,9 +2164,9 @@ bisbmpop <- R6::R6Class(
 
       lapply(seq.int(self$global_opts$Q1_max), function(q1) {
         lapply(seq.int(self$global_opts$Q2_max), function(q2) {
-          #  current_model can in fact be a list we clean it
+          # current_model can in fact be a list we clean it
           if (is.list(self$model_list[[q1, q2]])) {
-            #  The first element is selected
+            # The first element is selected
             self$model_list[[q1, q2]] <- self$model_list[[q1, q2]][[1]]
           }
           current_model <- self$model_list[[q1, q2]]

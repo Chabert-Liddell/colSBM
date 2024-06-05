@@ -80,7 +80,7 @@ test_that("SBM : If directed is missing can compute it", {
       norm = "L2",
     )
   )
-  #  Mixed
+  # Mixed
   # Directed
   expect_no_error(
     colSBM::dist_bmpop_max(
@@ -109,7 +109,7 @@ test_that("SBM : If pi is missing can compute anyway only with alpha", {
       norm = "L2",
     )
   )
-  #  Mixed
+  # Mixed
   # Directed
   expect_no_error(
     colSBM::dist_bmpop_max(
@@ -120,7 +120,7 @@ test_that("SBM : If pi is missing can compute anyway only with alpha", {
   )
 })
 
-#  colBiSBM
+# colBiSBM
 test_that("BiSBM : Distance for same parameters is zero", {
   expect_identical(
     colSBM::dist_bisbmpop_max(
@@ -195,7 +195,7 @@ test_that("BiSBM : If pi or rho is missing can compute anyway only with alpha", 
       norm = "L2",
     )
   )
-  #  Mixed
+  # Mixed
   # Directed
   expect_no_error(
     colSBM::dist_bisbmpop_max(

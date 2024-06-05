@@ -414,7 +414,7 @@ clusterize_bipartite_networks <- function(netlist,
                                           fit_opts = list(),
                                           fit_init = NULL,
                                           full_inference = FALSE) {
-  #  Adding default global_opts
+  # Adding default global_opts
   switch(colsbm_model,
     "iid" = {
       free_mixture_row <- FALSE
