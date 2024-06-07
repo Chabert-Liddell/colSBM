@@ -330,6 +330,18 @@ estimate_colBiSBM <-
     if (!is.list(netlist)) {
       netlist <- list(netlist)
     }
+
+    # Check if distribution is allowed
+    stopifnot(
+      "Distribution must be either 'bernoulli' or 'poisson'" =
+        distribution %in% c("bernoulli", "poisson"),
+      "Network list must be binary matrices if 'bernoulli' distribution is selected" =
+        (distribution == "bernoulli" & all(sapply(
+          netlist,
+          function(net) setequal(unique(net), c(0, 1))
+        )))
+    )
+
     # go is used to temporarily store the default global_opts
     go <- list(
       Q1_min = 1L,
@@ -368,15 +380,6 @@ estimate_colBiSBM <-
     }
 
     start_time <- Sys.time()
-    # To warn the user about the verbosity and nb_cores
-    if (global_opts$verbosity >= 3 &&
-      global_opts$nb_cores > 1) {
-      cat(
-        "\nDue to the parallelization, the message logs",
-        "might be in confusing order.",
-        " You may want to use only one core for readability"
-      )
-    }
 
     if (is.null(net_id)) {
       net_id <- seq_along(netlist)

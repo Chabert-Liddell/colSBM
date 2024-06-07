@@ -85,6 +85,22 @@ test_that("Estimate colBiSBM does not accept incorrect nb_cores", {
   ))
 })
 
+test_that("Estimate colBiSBM does not non binary data for bernoulli distribution", {
+  set.seed(1234L)
+  expect_error(colSBM::estimate_colBiSBM(
+    netlist = list(
+      matrix(as.numeric(rpois(100, lambda = 5)), nrow = 10),
+      matrix(as.numeric(rpois(100, lambda = 5)), nrow = 10)
+    ),
+    distribution = "bernoulli",
+    colsbm_model = "iid",
+    global_opts = list(
+      nb_cores = 1L,
+      verbosity = 0L
+    )
+  ))
+})
+
 test_that("Estimate colBiSBM runs without problems with verbosity", {
   set.seed(1234L)
   expect_no_error(colSBM::estimate_colBiSBM(
