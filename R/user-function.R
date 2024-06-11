@@ -252,8 +252,8 @@ estimate_colSBM <-
 #'  estimation. Available: "fp"
 #' * `verbosity` an integer to choose the level of verbosity of the fit
 #'  procedure. Defaults to 0. Available: 0,1
-#' * `approx_pois` a boolean which determines if an approximation is used
-#'  for the poisson distribution. Defaults to TRUE.
+#' * `max_vem_steps` an integer settings the number of Varitional
+#' Expectation-Maximization steps to perform. Defaults to 200.
 #' * `minibatch` a boolean settings wether to use a "minibatch" like
 #' approach. If set to TRUE during the VEM the networks will be optimized in
 #' random orders. If set to FALSE they are optimized in the lexicographical
@@ -342,6 +342,18 @@ estimate_colBiSBM <-
         )))
     )
 
+    # Fit options
+    fo <- list(
+      algo_ve = "fp",
+      max_vem_steps = 20L,
+      minibatch = TRUE,
+      verbosity = 0L
+    )
+
+    fo <- utils::modifyList(fo, fit_opts)
+    fit_opts <- fo
+
+    # Global options
     # go is used to temporarily store the default global_opts
     go <- list(
       Q1_min = 1L,
@@ -358,6 +370,7 @@ estimate_colBiSBM <-
       verbosity = 1L,
       nb_cores = 1L
     )
+
     go <- utils::modifyList(go, global_opts)
     global_opts <- go
     if (is.null(global_opts$nb_cores)) {

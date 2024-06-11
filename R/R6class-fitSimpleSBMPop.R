@@ -951,7 +951,7 @@ fitSimpleSBMPop <- R6::R6Class(
       }
       invisible(pi)
     },
-    #' Computes the alpha per network, known as the alpĥam
+    #' Computes the alpha per network, known as the alpham
     #'
     #' @param m The number of the network in the netlist
     #' @param map A boolean wether to use the MAP parameters or not, defaults to

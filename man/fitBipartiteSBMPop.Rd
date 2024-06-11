@@ -468,7 +468,7 @@ FALSE}
 }
 \subsection{Returns}{
 the pi and stores the values
-Computes the alpha per network, known as the alpĥam
+Computes the alpha per network, known as the alpham
 }
 }
 \if{html}{\out{<hr>}}
@@ -631,7 +631,11 @@ Perform the whole initialization and VEM algorithm
 \if{latex}{\out{\hypertarget{method-fitBipartiteSBMPop-optimize}{}}}
 \subsection{Method \code{optimize()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$optimize(max_step = 20, tol = 0.001, ...)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$optimize(
+  max_step = self$fit_opts$max_vem_steps,
+  tol = 0.001,
+  ...
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{

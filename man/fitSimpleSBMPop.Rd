@@ -662,7 +662,7 @@ FALSE}
 }
 \subsection{Returns}{
 nothing; stores the values
-Computes the alpha per network, known as the alpĥam
+Computes the alpha per network, known as the alpham
 }
 }
 \if{html}{\out{<hr>}}

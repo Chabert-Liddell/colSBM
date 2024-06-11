@@ -234,9 +234,9 @@ fitBipartiteSBMPop <- R6::R6Class(
       # Setting default fit options
       self$fit_opts <- list(
         algo_ve = "fp",
-        approx_pois = TRUE,
+        max_vem_steps = 200L,
         minibatch = TRUE,
-        verbosity = 1
+        verbosity = 1L
       )
       # If the user provided custom fit options they are applied here
       self$fit_opts <- utils::modifyList(self$fit_opts, fit_opts)
@@ -781,7 +781,7 @@ fitBipartiteSBMPop <- R6::R6Class(
       }
       invisible(pi)
     },
-    #' Computes the alpha per network, known as the alpĥam
+    #' Computes the alpha per network, known as the alpham
     #'
     #' @param m The number of the network in the netlist
     #' @param MAP A boolean wether to use the MAP parameters or not, defaults to
@@ -1129,7 +1129,7 @@ fitBipartiteSBMPop <- R6::R6Class(
     #' @param ... Other parameters
     #'
     #' @return nothing
-    optimize = function(max_step = 20, tol = 1e-3, ...) {
+    optimize = function(max_step = self$fit_opts$max_vem_steps, tol = 1e-3, ...) {
       if (all(self$Q == c(1, 1))) {
         self$tau <- lapply(
           seq(self$M),
@@ -1209,6 +1209,10 @@ fitBipartiteSBMPop <- R6::R6Class(
               print(self$alpha)
             }
           }
+        }
+
+        if (step >= max_step) {
+          warning("The VEM failed to converge in ", max_step, " for Q = ", toString(self$Q))
         }
 
         # Here we stock the number of steps needed to converge
