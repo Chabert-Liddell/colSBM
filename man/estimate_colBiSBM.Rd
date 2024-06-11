@@ -88,9 +88,9 @@ Expectation Maximization algorithm.
 estimation. Available: "fp"
 \item \code{verbosity} an integer to choose the level of verbosity of the fit
 procedure. Defaults to 0. Available: 0,1
-\item \code{max_vem_steps} an integer settings the number of Varitional
+\item \code{max_vem_steps} an integer setting the number of Varitional
 Expectation-Maximization steps to perform. Defaults to 200.
-\item \code{minibatch} a boolean settings wether to use a "minibatch" like
+\item \code{minibatch} a boolean setting wether to use a "minibatch" like
 approach. If set to TRUE during the VEM the networks will be optimized in
 random orders. If set to FALSE they are optimized in the lexicographical
 order. Default to TRUE.
