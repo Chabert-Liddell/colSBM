@@ -5,17 +5,24 @@
 \title{Extract the best partition from the list of model given by the function
 \code{clusterize_bipartite_networks()}.}
 \usage{
-extract_best_bipartite_partition(l)
+extract_best_bipartite_partition(l, unnest = TRUE)
 }
 \arguments{
 \item{l}{A list of model obtained from the function
 \code{clusterize_bipartite_networks()}}
+
+\item{unnest}{A boolean specifying if the returned object should be un-nested
+(and thus loose exploration clustering structure) or not. Default to TRUE.}
 }
 \value{
 A list of model giving the best partition.
 }
 \description{
 Extract the best partition from the list of model given by the function
+\code{clusterize_bipartite_networks()}.
+}
+\details{
+This function recursively explores the nested list returned by
 \code{clusterize_bipartite_networks()}.
 }
 \examples{

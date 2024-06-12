@@ -658,6 +658,11 @@ clusterize_bipartite_networks <- function(netlist,
 #'
 #' @param l A list of model obtained from the function
 #' `clusterize_bipartite_networks()`
+#' @param unnest A boolean specifying if the returned object should be un-nested
+#' (and thus loose exploration clustering structure) or not. Default to TRUE.
+#'
+#' @details This function recursively explores the nested list returned by
+#' `clusterize_bipartite_networks()`.
 #'
 #' @return A list of model giving the best partition.
 #' @export
@@ -686,7 +691,7 @@ clusterize_bipartite_networks <- function(netlist,
 #' )
 #' best_bipartite_partition <- extract_best_bipartite_partition(cl_separated)
 #' }
-extract_best_bipartite_partition <- function(l) {
+extract_best_bipartite_partition <- function(l, unnest = TRUE) {
   if (inherits(l, "fitBipartiteSBMPop")) {
     return(l)
   }
@@ -697,8 +702,12 @@ extract_best_bipartite_partition <- function(l) {
   if (length(l) == 2) {
     return(l[[2]])
   }
-  return(list(
+  out <- list(
     extract_best_bipartite_partition(l[[2]]),
     extract_best_bipartite_partition(l[[3]])
-  ))
+  )
+  if (unnest) {
+    out <- unlist(out)
+  }
+  return(out)
 }
