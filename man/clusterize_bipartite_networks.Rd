@@ -52,7 +52,7 @@ mesoscale structures
 }
 \details{
 The best partition could be extract with the function
-\code{extract_best_bipartite_partition()}. The object of the list are fitBipartiteSBMPop
+\code{extract_best_partition()}. The object of the list are fitBipartiteSBMPop
 object, so it is a model for a given number of blocks Q1, Q2.
 
 This functions make call to \code{estimate_colBiSBM} but uses the
@@ -83,6 +83,6 @@ cl_separated <- clusterize_bipartite_networks(
 }
 }
 \seealso{
-\code{\link[=extract_best_bipartite_partition]{extract_best_bipartite_partition()}}, \code{\link[=estimate_colBiSBM]{estimate_colBiSBM()}},
+\code{\link[=extract_best_partition]{extract_best_partition()}}, \code{\link[=estimate_colBiSBM]{estimate_colBiSBM()}},
 \code{\link[colSBM]{fitBipartiteSBMPop}}, \code{browseVignettes("colSBM")}
 }

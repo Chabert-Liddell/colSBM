@@ -2,20 +2,23 @@
 % Please edit documentation in R/estimatepopbm.R
 \name{extract_best_partition}
 \alias{extract_best_partition}
-\title{Extract the best partition from the list of model given by the function
-\code{clusterize_networks()}.}
+\title{Extract the best partition from the list of model given by the functions
+\code{clusterize_networks()} or \code{clusterize_bipartite_networks()}.}
 \usage{
-extract_best_partition(l)
+extract_best_partition(l, unnest = TRUE)
 }
 \arguments{
 \item{l}{A list of models obtained from the function  \code{clusterize_networks()}}
+
+\item{unnest}{A boolean specifying if the returned object should be un-nested
+(and thus loose exploration clustering structure) or not. Default to TRUE.}
 }
 \value{
 A list of models giving the best partition.
 }
 \description{
-Extract the best partition from the list of model given by the function
-\code{clusterize_networks()}.
+Extract the best partition from the list of model given by the functions
+\code{clusterize_networks()} or \code{clusterize_bipartite_networks()}.
 }
 \examples{
 

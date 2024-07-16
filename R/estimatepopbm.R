@@ -303,10 +303,13 @@ clusterize_networks <- function(netlist,
 
 
 
-#' Extract the best partition from the list of model given by the function
-#' `clusterize_networks()`.
+#' Extract the best partition from the list of model given by the functions
+#' `clusterize_networks()` or `clusterize_bipartite_networks()`.
 #'
 #' @param l A list of models obtained from the function  `clusterize_networks()`
+#' @param unnest A boolean specifying if the returned object should be un-nested
+#' (and thus loose exploration clustering structure) or not. Default to TRUE.
+#'
 #'
 #' @return A list of models giving the best partition.
 #' @export
@@ -331,21 +334,25 @@ clusterize_networks <- function(netlist,
 #' )
 #' best_partition <- extract_best_partition(cl)
 #' }
-extract_best_partition <- function(l) {
-  if (inherits(l, "fitSimpleSBMPop")) {
+extract_best_partition <- function(l, unnest = TRUE) {
+  if (inherits(l, "fitSimpleSBMPop") || inherits(l, "fitBipartiteSBMPop")) {
     return(l)
   }
-  stopifnot(inherits(l[[1]], "fitSimpleSBMPop"))
+  stopifnot("Provided clustering contains incorrect fit objects ! Should be fitSimpleSBMPop or fitBipartiteSBMPop" = (inherits(l[[1]], "fitSimpleSBMPop") || inherits(l[[1]], "fitBipartiteSBMPop")))
   if (length(l) == 1) {
     return(l[[1]])
   }
   if (length(l) == 2) {
     return(l[[2]])
   }
-  return(list(
+  out <- list(
     extract_best_partition(l[[2]]),
     extract_best_partition(l[[3]])
-  ))
+  )
+  if (unnest && is.list(out)) {
+    out <- unlist(out)
+  }
+  return(out)
 }
 
 
@@ -372,14 +379,14 @@ extract_best_partition <- function(l) {
 #' the collection of networks.
 #'
 #' @details The best partition could be extract with the function
-#' `extract_best_bipartite_partition()`. The object of the list are fitBipartiteSBMPop
+#' `extract_best_partition()`. The object of the list are fitBipartiteSBMPop
 #' object, so it is a model for a given number of blocks Q1, Q2.
 #'
 #' This functions make call to `estimate_colBiSBM` but uses the
 #' \code{full_parallelize} with TRUE to leverage cluster computation power.
 #' @export
 #'
-#' @seealso [colSBM::extract_best_bipartite_partition()], [colSBM::estimate_colBiSBM()],
+#' @seealso [colSBM::extract_best_partition()], [colSBM::estimate_colBiSBM()],
 #' \code{\link[colSBM]{fitBipartiteSBMPop}}, `browseVignettes("colSBM")`
 #'
 #' @examples
@@ -653,61 +660,59 @@ clusterize_bipartite_networks <- function(netlist,
   invisible(list_model_binary)
 }
 
-#' Extract the best partition from the list of model given by the function
-#' `clusterize_bipartite_networks()`.
+#' Convert to tree
 #'
-#' @param l A list of model obtained from the function
-#' `clusterize_bipartite_networks()`
-#' @param unnest A boolean specifying if the returned object should be un-nested
-#' (and thus loose exploration clustering structure) or not. Default to TRUE.
+#' @importFrom ape read.tree
+#' @importFrom stringr str_replace_all
 #'
-#' @details This function recursively explores the nested list returned by
-#' `clusterize_bipartite_networks()`.
+#' @param clustering A nested list given by one of the clusterize function from
+#' which to extract the clustering tree.
+#' @param invalid_char_to_replace_regex A regex string used by
+#' `stringr::str_replace_all()` to clean net_ids before they are processed.
+#' @param net_id_width An integer to truncate long net_id and prevent messy
+#' plots. Defaults to 20.
 #'
-#' @return A list of model giving the best partition.
+#' @return A tree object from the ape package
+#'
 #' @export
 #'
-#' @examples
-#' alpha1 <- matrix(c(0.8, 0.1, 0.2, 0.7), byrow = TRUE, nrow = 2)
-#' alpha2 <- matrix(c(0.8, 0.5, 0.5, 0.2), byrow = TRUE, nrow = 2)
-#' first_collection <- generate_bipartite_collection(
-#'   nr = 50, nc = 25,
-#'   pi = c(0.5, 0.5), rho = c(0.5, 0.5),
-#'   alpha = alpha1, M = 2
-#' )
-#' second_collection <- generate_bipartite_collection(
-#'   nr = 50, nc = 25,
-#'   pi = c(0.5, 0.5), rho = c(0.5, 0.5),
-#'   alpha = alpha2, M = 2
-#' )
+#' @details
+#' This function converts the nested list given by the clusterize functions
+#' in Newick tree format that is read by `ape::read.tree`.
 #'
-#' netlist <- append(first_collection, second_collection)
-#'
-#' \dontrun{
-#' cl_separated <- clusterize_bipartite_networks(
-#'   netlist = netlist,
-#'   colsbm_model = "iid",
-#'   global_opts = list(nb_cores = parallelly::availableCores(omit = 1L))
-#' )
-#' best_bipartite_partition <- extract_best_bipartite_partition(cl_separated)
-#' }
-extract_best_bipartite_partition <- function(l, unnest = TRUE) {
-  if (inherits(l, "fitBipartiteSBMPop")) {
-    return(l)
+#' The code is adapted from this StackOverflow answer :
+#' https://stackoverflow.com/questions/45091691/convert-a-nested-list-in-dendrogram-tree-with-r
+extract_clustering_tree <- function(
+    clustering,
+    invalid_char_to_replace_regex = "\\(|\\)",
+    net_id_width = 20L) {
+  partition <- extract_best_partition(clustering, unnest = FALSE)
+  if ((
+    inherits(partition, "fitBipartiteSBMPop") ||
+      inherits(partition, "fitSimpleSBMPop")) &&
+    !is.list(partition)) {
+    partition <- list(partition)
   }
-  stopifnot(inherits(l[[1]], "fitBipartiteSBMPop"))
-  if (length(l) == 1) {
-    return(l[[1]])
-  }
-  if (length(l) == 2) {
-    return(l[[2]])
-  }
-  out <- list(
-    extract_best_bipartite_partition(l[[2]]),
-    extract_best_bipartite_partition(l[[3]])
+  net_id_clustering <- rapply(partition,
+    function(collection) {
+      collection[["net_id"]]
+    },
+    how = "list"
   )
-  if (unnest) {
-    out <- unlist(out)
-  }
-  return(out)
+
+  net_id_clustering <- rapply(net_id_clustering, function(vec_net_id) {
+    vec_net_id <- stringr::str_replace_all(vec_net_id, invalid_char_to_replace_regex, "")
+    vec_net_id <- stringr::str_trunc(string = vec_net_id, width = net_id_width)
+  }, how = "list")
+
+  newick_str <- paste0(lapply(net_id_clustering, function(y) paste0("(", paste0(y, collapse = ","), ")")), collapse = ",")
+
+  # remove unwanted characters
+  newick_str <- gsub('\"|c|list| ', "", newick_str)
+  newick_str <- paste0("(", newick_str, ");")
+
+  # remove brackets from single term list object
+  newick_str <- stringr::str_replace_all(newick_str, "\\([a-z]*\\)", function(x) gsub("^\\(|\\)$", "", x))
+
+  return(ape::read.tree(text = newick_str))
 }

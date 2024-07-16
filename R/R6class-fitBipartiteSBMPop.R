@@ -1200,9 +1200,9 @@ fitBipartiteSBMPop <- R6::R6Class(
           vb <- self$compute_vbound()
           self$vbound <- c(self$vbound, vb)
           step <- step + 1
-          step_condition <- step < max_step &
+          step_condition <- (step < max_step &
             (self$vbound[length(self$vbound)] -
-              self$vbound[length(self$vbound) - 1] > tol)
+              self$vbound[length(self$vbound) - 1] > tol))
           if (step %% 5 == 0) {
             if (self$fit_opts$verbosity >= 1) {
               print(paste0(step, ": ", vb))

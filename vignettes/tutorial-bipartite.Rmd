@@ -188,15 +188,16 @@ net_clust <- clusterize_bipartite_networks(
     backend = "no_mc",
     Q1_max = 9L,
     Q2_max = 9L
-  ) # Max number of clusters
+  ), # Max number of clusters
+  fit_opts = list(max_vem_steps = 500L)
 )
 ```
 
 ```{r}
-best_partition <- unlist(extract_best_bipartite_partition(net_clust))
+best_partition <- extract_best_partition(net_clust)
 ```
 
-We obtain a list of `r length(unlist(best_partition))` tested collections. The lists are nested and reflect the
+We obtain a list of `r length(best_partition)` tested collections. The lists are nested and reflect the
 sequential steps of clustering.
 The extraction of the best partition below reveals that our `r length(sim_net)`
 simulated networks are considered as being part of the same collection and that

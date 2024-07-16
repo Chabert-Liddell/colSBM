@@ -34,6 +34,7 @@ Imports:
     reshape2,
     sbm,
     stats,
+    stringr,
     tibble,
     tidyr,
     utils
@@ -53,4 +54,5 @@ Encoding: UTF-8
 Language: en-US
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
+URL: https://chabert-liddel.github.io/colSBM
