@@ -345,7 +345,7 @@ estimate_colBiSBM <-
     # Fit options
     fo <- list(
       algo_ve = "fp",
-      max_vem_steps = 20L,
+      max_vem_steps = 200L,
       minibatch = TRUE,
       verbosity = 0L
     )
