@@ -85,7 +85,7 @@ test_that("Estimate colBiSBM does not accept incorrect nb_cores", {
   ))
 })
 
-test_that("Estimate colBiSBM does not non binary data for bernoulli distribution", {
+test_that("Estimate colBiSBM does not authorize non binary data for bernoulli distribution", {
   set.seed(1234L)
   expect_error(colSBM::estimate_colBiSBM(
     netlist = list(
@@ -118,7 +118,7 @@ test_that("Estimate colBiSBM runs without problems with verbosity", {
   ))
 })
 
-test_that("Estimate colBiSBM runs with pi, rho and pirho", {
+test_that("Estimate colBiSBM runs with pi, rho and pirho. With and without NA", {
   set.seed(1234L)
   pirho_collection <- colSBM::generate_bipartite_collection(
     nr = 50,
@@ -135,6 +135,22 @@ test_that("Estimate colBiSBM runs with pi, rho and pirho", {
     ),
     M = 3L,
     model = "pirho"
+  )
+  pirho_collection_na <- pirho_collection
+  NA_index <- sample.int(length(pirho_collection_na[[1]]), size = 20)
+  pirho_collection_na[[1]][NA_index] <- NA
+  expect_no_error(
+    fit_iid <- colSBM::estimate_colBiSBM(
+      netlist = pirho_collection_na,
+      colsbm_model = "iid",
+      nb_run = 10L,
+      global_opts = list(
+        nb_cores = 2L,
+        verbosity = 0L,
+        Q1_max = 10L,
+        Q2_max = 10L
+      )
+    )
   )
   expect_no_error(
     fit_iid <- colSBM::estimate_colBiSBM(

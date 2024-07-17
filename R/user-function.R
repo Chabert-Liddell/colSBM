@@ -338,7 +338,9 @@ estimate_colBiSBM <-
       "Network list must be binary matrices if 'bernoulli' distribution is selected" =
         (distribution == "bernoulli" & all(sapply(
           netlist,
-          function(net) setequal(unique(net), c(0, 1))
+          function(net) {
+            setequal(unique(net), c(0, 1)) || setequal(unique(net), c(0, 1, NA))
+          }
         )))
     )
 
