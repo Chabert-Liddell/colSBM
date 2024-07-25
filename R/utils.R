@@ -285,12 +285,10 @@ generate_bipartite_collection <- function(
 #'
 #' @return A vector : The clusters labels
 spectral_clustering <- function(X, K) {
+  X <- as.matrix(X)
+  n <- nrow(X)
   if (K == 1) {
     return(rep(1L, nrow(X)))
-  }
-  n <- nrow(X)
-  if (n < 3) {
-    return(rep(1, n))
   }
   X[X == -1] <- NA
   isolated <- which(rowSums(X, na.rm = TRUE) == 0)
@@ -299,14 +297,11 @@ spectral_clustering <- function(X, K) {
   if (!isSymmetric.matrix(X)) {
     X <- 1 * ((X + t(X)) > 0) # .5 * (X + t(X))
   }
+  if (nrow(X) < 3) {
+    return(rep(1, n))
+  }
   D_moins1_2 <- diag(1 / sqrt(rowSums(X, na.rm = TRUE) + 1))
   X[is.na(X)] <- mean(X, na.rm = TRUE)
-  if (inherits(try({
-    D_moins1_2 %*% X %*% D_moins1_2
-  }), "try-error")) {
-    print(D_moins1_2)
-    print(X)
-  }
   Labs <- D_moins1_2 %*% X %*% D_moins1_2
   specabs <- eigen(Labs, symmetric = TRUE)
   if (K >= nrow(X)) {
