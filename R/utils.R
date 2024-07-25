@@ -285,7 +285,6 @@ generate_bipartite_collection <- function(
 #'
 #' @return A vector : The clusters labels
 spectral_clustering <- function(X, K) {
-  X <- as.matrix(X)
   if (K == 1) {
     return(rep(1L, nrow(X)))
   }
