@@ -301,6 +301,12 @@ spectral_clustering <- function(X, K) {
   }
   D_moins1_2 <- diag(1 / sqrt(rowSums(X, na.rm = TRUE) + 1))
   X[is.na(X)] <- mean(X, na.rm = TRUE)
+  if (inherits(try({
+    D_moins1_2 %*% X %*% D_moins1_2
+  }), "try-error")) {
+    print(D_moins1_2)
+    print(X)
+  }
   Labs <- D_moins1_2 %*% X %*% D_moins1_2
   specabs <- eigen(Labs, symmetric = TRUE)
   if (K >= nrow(X)) {
