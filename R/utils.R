@@ -285,6 +285,7 @@ generate_bipartite_collection <- function(
 #'
 #' @return A vector : The clusters labels
 spectral_clustering <- function(X, K) {
+  X <- as.matrix(X)
   if (K == 1) {
     return(rep(1L, nrow(X)))
   }
@@ -296,7 +297,7 @@ spectral_clustering <- function(X, K) {
   isolated <- which(rowSums(X, na.rm = TRUE) == 0)
   connected <- setdiff(seq(n), isolated)
   X <- X[connected, connected]
-  if (!isSymmetric(X)) {
+  if (!isSymmetric.matrix(X)) {
     X <- 1 * ((X + t(X)) > 0) # .5 * (X + t(X))
   }
   D_moins1_2 <- diag(1 / sqrt(rowSums(X, na.rm = TRUE) + 1))
