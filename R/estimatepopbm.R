@@ -662,7 +662,7 @@ clusterize_bipartite_networks <- function(netlist,
 
 #' Convert to tree
 #'
-#' @importFrom ape read.tree
+#' @importFrom phylogram read.dendrogram
 #' @importFrom stringr str_replace_all
 #'
 #' @param clustering A nested list given by one of the clusterize function from
@@ -672,17 +672,17 @@ clusterize_bipartite_networks <- function(netlist,
 #' @param net_id_width An integer to truncate long net_id and prevent messy
 #' plots. Defaults to 20.
 #'
-#' @return A tree object from the ape package
+#' @return A dendrogram object
 #'
 #' @export
 #'
 #' @details
 #' This function converts the nested list given by the clusterize functions
-#' in Newick tree format that is read by `ape::read.tree`.
+#' in Newick tree format that is read by `phylogram::read.dendrogram`.
 #'
 #' The code is adapted from this StackOverflow answer :
 #' https://stackoverflow.com/questions/45091691/convert-a-nested-list-in-dendrogram-tree-with-r
-extract_clustering_tree <- function(
+extract_clustering_dendrogram <- function(
     clustering,
     invalid_char_to_replace_regex = "\\(|\\)",
     net_id_width = 20L) {
@@ -714,5 +714,5 @@ extract_clustering_tree <- function(
   # remove brackets from single term list object
   newick_str <- stringr::str_replace_all(newick_str, "\\([a-z]*\\)", function(x) gsub("^\\(|\\)$", "", x))
 
-  return(ape::read.tree(text = newick_str))
+  return(phylogram::read.dendrogram(text = newick_str))
 }

@@ -221,7 +221,6 @@ bisbmpop <- R6::R6Class(
         )
       }
       self$fit_opts <- list(
-        approx_pois = FALSE,
         algo_ve = "fp",
         minibatch = TRUE,
         verbosity = 0

@@ -84,7 +84,6 @@ fitBipartiteSBMPop <- R6::R6Class(
     #  verbosity = NULL,
     #' @field penalty  The penalty computed based on the number of parameters
     penalty = NULL,
-    # approx_pois = NULL,
     #' @field Z  The clusters memberships, a list of size M of two matrices : 1
     #' for rows clusters memberships and 2 for columns clusters memberships
     Z = NULL,
@@ -109,7 +108,10 @@ fitBipartiteSBMPop <- R6::R6Class(
     #' @field clustering_is_complete A boolean used to know if the model real
     #' blocks match the expected blocks.
     clustering_is_complete = TRUE,
-
+    #' @field tested_taus A vector of taus values for taus given by init_clust
+    tested_taus = list(),
+    #' @field tested_taus_vbound A vector of vbound values for taus given by init_clust
+    tested_taus_vbound = vector(),
     #' @description
     #' Initializes the fitBipartiteSBMPop object
     #'
@@ -152,7 +154,6 @@ fitBipartiteSBMPop <- R6::R6Class(
                           greedy_exploration_starting_point = NULL,
                           fit_opts = list(
                             algo_ve = "fp",
-                            approx_pois = TRUE,
                             minibatch = TRUE,
                             verbosity = 1
                           )) {
@@ -770,9 +771,12 @@ fitBipartiteSBMPop <- R6::R6Class(
           pi1 <- rowSums(pi1) / sum(pi1)
 
           # And columns
-          pi2 <- matrix(self$n[[2]] * vapply(seq(self$M), function(m) {
-            self$MAP$pim[[m]][[2]]
-          }, FUN.VALUE = rep(.1, self$Q[2])), ncol = self$M, nrow = self$Q[2])
+          pi2 <- matrix(self$n[[2]] * vapply(seq(self$M),
+            function(m) {
+              self$MAP$pim[[m]][[2]]
+            },
+            FUN.VALUE = rep(.1, self$Q[2])
+          ), ncol = self$M, nrow = self$Q[2])
 
           pi2 <- rowSums(pi2) / sum(pi2)
 
@@ -824,12 +828,39 @@ fitBipartiteSBMPop <- R6::R6Class(
       invisible(alpha)
     },
 
+    #' @description The goal of this function is to test different values of tau
+    #' and select the best one in the sense of the BICL (or vbound) ?
+    #'
+    #' @param taus_list List of possible taus for which to provide a ranking
+    #'
+    #' @return A vector with the order of the taus in regard of vbound
+    taus_order = function(taus_list) {
+      vbound_per_taus <- sapply(seq_len(length(taus_list)), function(id) {
+        # The taus are set
+        self$tau <- taus_list[[id]]
+
+        # We update the mqr
+        lapply(seq(self$M), self$update_mqr)
+
+        # We then compute the parameters
+        self$m_step()
+
+        # Obtain the vbound
+        vbound <- self$compute_vbound()
+        return(vbound)
+      })
+      # We store it to check later
+      self$tested_taus_vbound <- vbound_per_taus
+      return(order(vbound_per_taus, decreasing = TRUE))
+    },
+
     #' @description Initialize clusters
     #'
     #' @importFrom gtools rdirichlet
     #' @return nothing; stores
     init_clust = function() {
-      self$tau <-
+      nb_inits <- 5L
+      tested_taus <- lapply(seq(1L, nb_inits), function(id) {
         switch(self$init_method,
           # TODO later : adapt init_clust "random" to bipartite
           "random" = lapply(
@@ -908,7 +939,11 @@ fitBipartiteSBMPop <- R6::R6Class(
             FUN = function(m) {
               # The .one_hot performs a one hot encoding of the spectral clustering performed
 
-              biclustering <- spectral_biclustering(self$nonNAs[[m]] * self$A[[m]], self$Q)
+              biclustering <- spectral_biclustering(
+                self$nonNAs[[m]] *
+                  self$A[[m]],
+                self$Q
+              )
               row_clustering <- biclustering$row_clustering
               col_clustering <- biclustering$col_clustering
 
@@ -942,11 +977,11 @@ fitBipartiteSBMPop <- R6::R6Class(
               # p2 <- sample.int(self$Q[[2]], prob = prob2)
 
               if (ncol(tau_1) != 1) {
-                p1 <- order(prob1)
+                p1 <- sample.int(self$Q[[1]], prob = prob1) # order(prob1)
               }
 
-              if (ncol(tau_2)) {
-                p2 <- order(prob2)
+              if (ncol(tau_2) != 1) {
+                p2 <- sample.int(self$Q[[2]], prob = prob2) # order(prob2)
               }
 
               # Tau, emqr and nmqr are reordered accordingly
@@ -1025,7 +1060,15 @@ fitBipartiteSBMPop <- R6::R6Class(
           )
           # TODO add a "given_tau" init method
         )
-      lapply(seq(self$M), function(m) self$update_alpham(m))
+      })
+      self$tested_taus <- tested_taus
+
+      # With our proposed taus we
+      taus_order_vec <- self$taus_order(tested_taus)
+
+      # We keep the best taus tested
+      self$tau <- tested_taus[[taus_order_vec[[1]]]]
+      lapply(seq(self$M), self$update_alpham)
     },
     #' The M step of the VEM
     #'
@@ -1040,7 +1083,6 @@ fitBipartiteSBMPop <- R6::R6Class(
       # browser()
       # lapply(seq_along(self$pi), function(m) self$update_pi(m, MAP = MAP))
       self$update_pi(MAP = MAP)
-
       self$update_alpha(MAP = MAP)
     },
     #' An optimization version for the VE step of the VEM but currently a

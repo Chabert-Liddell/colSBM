@@ -9,7 +9,7 @@ reference:
       - "`estimate_colSBM`"
       - "`dist_bmpop_max`"
       - "`extract_best_partition`"
-      - "`extract_clustering_tree`"
+      - "`extract_clustering_dendrogram`"
       - "`adjust_colBiSBM`"
       - "`clusterize_bipartite_networks`"
       - "`dist_bisbmpop_max`"

@@ -111,6 +111,8 @@ of the clusters that contains at least one point. Used for safety checks.}
 
 \item{\code{clustering_is_complete}}{A boolean used to know if the model real
 blocks match the expected blocks.}
+
+\item{\code{tested_taus}}{A vector of vbound values for taus given by init_clust}
 }
 \if{html}{\out{</div>}}
 }
@@ -156,6 +158,7 @@ parameters}
 \item \href{#method-fitBipartiteSBMPop-update_pi}{\code{fitBipartiteSBMPop$update_pi()}}
 \item \href{#method-fitBipartiteSBMPop-update_alpham}{\code{fitBipartiteSBMPop$update_alpham()}}
 \item \href{#method-fitBipartiteSBMPop-update_alpha}{\code{fitBipartiteSBMPop$update_alpha()}}
+\item \href{#method-fitBipartiteSBMPop-taus_order}{\code{fitBipartiteSBMPop$taus_order()}}
 \item \href{#method-fitBipartiteSBMPop-init_clust}{\code{fitBipartiteSBMPop$init_clust()}}
 \item \href{#method-fitBipartiteSBMPop-m_step}{\code{fitBipartiteSBMPop$m_step()}}
 \item \href{#method-fitBipartiteSBMPop-ve_step}{\code{fitBipartiteSBMPop$ve_step()}}
@@ -190,7 +193,7 @@ Initializes the fitBipartiteSBMPop object
   init_method = "spectral",
   weight = NULL,
   greedy_exploration_starting_point = NULL,
-  fit_opts = list(algo_ve = "fp", approx_pois = TRUE, minibatch = TRUE, verbosity = 1)
+  fit_opts = list(algo_ve = "fp", minibatch = TRUE, verbosity = 1)
 )}\if{html}{\out{</div>}}
 }
 
@@ -512,6 +515,27 @@ FALSE}
 }
 \subsection{Returns}{
 the alpha and stores the values
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-fitBipartiteSBMPop-taus_order"></a>}}
+\if{latex}{\out{\hypertarget{method-fitBipartiteSBMPop-taus_order}{}}}
+\subsection{Method \code{taus_order()}}{
+The goal of this function is to test different values of tau
+and select the best one in the sense of the BICL (or vbound) ?
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$taus_order(taus_list)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{taus_list}}{List of possible taus for which to provide a ranking}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A vector with the order of the taus in regard of vbound
 }
 }
 \if{html}{\out{<hr>}}

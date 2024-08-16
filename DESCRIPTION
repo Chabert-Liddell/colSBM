@@ -29,6 +29,7 @@ Imports:
     parallel,
     parallelly,
     patchwork,
+    phylogram,
     purrr,
     R6,
     reshape2,
