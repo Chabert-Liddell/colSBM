@@ -112,7 +112,9 @@ of the clusters that contains at least one point. Used for safety checks.}
 \item{\code{clustering_is_complete}}{A boolean used to know if the model real
 blocks match the expected blocks.}
 
-\item{\code{tested_taus}}{A vector of vbound values for taus given by init_clust}
+\item{\code{tested_taus}}{A vector of taus values for taus given by init_clust}
+
+\item{\code{tested_taus_vbound}}{A vector of vbound values for taus given by init_clust}
 }
 \if{html}{\out{</div>}}
 }

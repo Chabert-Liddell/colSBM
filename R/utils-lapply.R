@@ -22,18 +22,17 @@ colsbm_lapply <- function(X, FUN, backend = "parallel",
     stop("Invalid backend. Choose 'parallel', 'future', 'bettermc' or 'no_mc'.")
   }
   if (backend == "future") {
-    if (!isNamespaceLoaded("future.apply")) {
-      stop("The 'future.apply' package must be loaded and configured with a plan
-           outside this function.")
-    }
-    result <- future.apply::future_lapply(X, FUN, ..., future.seed = NULL)
+    stopifnot(
+      "The 'future.apply' package must be installed and configured with a plan outside this function." = requireNamespace("future.apply", quietly = TRUE)
+    )
+    result <- future.apply::future_lapply(X, FUN, ..., future.seed = TRUE)
     return(result)
   }
 
   if (backend == "parallel") {
-    if (!isNamespaceLoaded("parallel")) {
-      stop("The 'parallel' package must be loaded to use this backend.")
-    }
+    stopifnot(
+      "The 'parallel' package must be installed to use this backend." = requireNamespace("parallel", quietly = TRUE)
+    )
     if (toupper(Sys.info()["sysname"]) == "WINDOWS") {
       cl <- parallel::makeCluster(nb_cores)
       result <- parallel::parLapply(cl, X, FUN, ...)
@@ -48,9 +47,9 @@ colsbm_lapply <- function(X, FUN, backend = "parallel",
   }
 
   if (backend == "bettermc") {
-    if (!isNamespaceLoaded("bettermc")) {
-      stop("The 'bettermc' package must be loaded to use this backend.")
-    }
+    stopifnot(
+      "The 'bettermc' package must be installed to use this backend." = requireNamespace("bettermc", quietly = TRUE)
+    )
     result <- bettermc::mclapply(X, FUN, mc.cores = nb_cores)
     return(result)
   }
