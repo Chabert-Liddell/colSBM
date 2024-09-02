@@ -165,7 +165,7 @@ bisbmpop <- R6::R6Class(
         max_pass = 10L,
         verbosity = 0L,
         nb_cores = 1L,
-        backend = "parallel",
+        backend = "future",
         compare_stored = TRUE
       )
       self$global_opts <- utils::modifyList(self$global_opts, global_opts)

@@ -364,7 +364,7 @@ estimate_colBiSBM <-
       Q2_max = floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2),
       nb_init = 10L,
       nb_models = 5L,
-      backend = "parallel",
+      backend = "future",
       full_parallelize = FALSE,
       depth = 1L,
       plot_details = 1L,

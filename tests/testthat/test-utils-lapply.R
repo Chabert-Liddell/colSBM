@@ -49,21 +49,3 @@ if (future_is_installed) {
     }
   )
 }
-
-# Testing with bettermc backend
-if (bettermc_is_installed) {
-  library(bettermc)
-
-  test_that(
-    "colsbm_lapply with bettermc backend works",
-    {
-      expect_equal(
-        colsbm_lapply(
-          X = seq(1, M), function(i) i,
-          backend = "bettermc",
-          nb_cores = 2L
-        ), expected_out_list
-      )
-    }
-  )
-}

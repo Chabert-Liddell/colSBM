@@ -1,12 +1,15 @@
 # colSBM 0.4.0
+
 * Adding `colBiSBM`, supporting bipartite collections
-* Changing parallelization support, using a `colsbm_lapply` generic function that the user can customize with their own backend (parallel, bettermc, future)
+* Changing parallelization support, using a `colsbm_lapply` generic function that the user can customize with their own backend (parallel, future)
 * Adding `dorebipartite` a new dataset containing a bipartite collection dataset
 
 # colSBM 0.3.0
+
 * Improved generic `plot()` functions
 
 # colSBM 0.2.1
+
 * BREAKING CHANGE: emission distribution arguments are now named "distribution"
 instead of "model"
 * Fixed an error in `extract_best_partition()`
@@ -23,11 +26,12 @@ instead of "model"
 
 # colSBM 0.1.0
 
-## Breaking changes:
+## Breaking changes
 
 * Changed the name of `EstimateBMPOP()` to `clusterize_networks()`
 * Most internal functions are not exported anymore
 
 ## Cosmetic changes
+
 * Cleaned documentation and user functions
 * Added a `NEWS.md` file to track changes to the package.

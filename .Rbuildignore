@@ -18,4 +18,6 @@
 ^docs$
 ^pkgdown$
 ^references\.bib$
+^renv$
+^renv\.lock$
 ^tests/testthat\.R$

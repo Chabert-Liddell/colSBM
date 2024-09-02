@@ -3,8 +3,8 @@
 #'
 #' @param X The data
 #' @param FUN The function to use in parallel
-#' @param backend One of c("future", "parallel", "bettermc")
-#' @param nb_cores Number of parallel cores for parallel or bettermc
+#' @param backend One of c("future", "parallel")
+#' @param nb_cores Number of parallel cores for parallel
 #' @param ...
 #'
 #' @return A list on which the FUN was applied with specified backend and
@@ -13,13 +13,14 @@
 #' @noMd
 #'
 #' @examples
+#' future::plan(future::multisession)
 #' X <- seq(1, 5)
-#' colsbm_lapply(X, backend = "parallel", nb_cores = 2L)
-colsbm_lapply <- function(X, FUN, backend = "parallel",
+#' colsbm_lapply(X, backend = "future", nb_cores = 2L)
+colsbm_lapply <- function(X, FUN, backend = "future",
                           nb_cores = parallelly::availableCores(omit = 1L),
                           ...) {
-  if (!(backend %in% c("future", "parallel", "bettermc", "no_mc"))) {
-    stop("Invalid backend. Choose 'parallel', 'future', 'bettermc' or 'no_mc'.")
+  if (!(backend %in% c("future", "parallel", "no_mc"))) {
+    stop("Invalid backend. Choose 'parallel', 'future' or 'no_mc'.")
   }
   if (backend == "future") {
     stopifnot(
@@ -46,13 +47,6 @@ colsbm_lapply <- function(X, FUN, backend = "parallel",
     return(result)
   }
 
-  if (backend == "bettermc") {
-    stopifnot(
-      "The 'bettermc' package must be installed to use this backend." = requireNamespace("bettermc", quietly = TRUE)
-    )
-    result <- bettermc::mclapply(X, FUN, mc.cores = nb_cores)
-    return(result)
-  }
   if (backend == "no_mc") {
     result <- lapply(X, FUN)
     return(result)
