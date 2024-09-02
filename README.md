@@ -16,15 +16,15 @@ colSBM is an R package which implements methods for clustering and
 inferring the mesoscale structure for collection of networks. In
 particular, it allows to:
 
--   Find a common mesoscale structure in a collection of networks by
+  - Find a common mesoscale structure in a collection of networks by
     using a Stochastic Block Model (SBM) extension for the joint
     modeling of collection of networks.
 
--   Provide a clustering of the nodes of each networks. Classifies
+  - Provide a clustering of the nodes of each networks. Classifies
     networks in groups of networks with similar mesoscale structures.
 
 Mathematical details of the methods as well as simulation studies and
-applications can be found in Chabert-Liddell, Barbillon, and Donnet
+applications can be find in Chabert-Liddell, Barbillon, and Donnet
 (2022) .
 
 ## Installation
@@ -39,9 +39,9 @@ devtools::install_github("Chabert-Liddell/colSBM")
 
 # References
 
-<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="refs" class="references hanging-indent">
 
-<div id="ref-collection" class="csl-entry">
+<div id="ref-collection">
 
 Chabert-Liddell, Saint-Clair, Pierre Barbillon, and Sophie Donnet. 2022.
 “Learning Common Structures in a Collection of Networks. An Application
