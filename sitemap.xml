@@ -1,63 +1,23 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://Chabert-Liddel.github.io/colSBM/404.html</loc>
-  </url>
-  <url>
-    <loc>https://Chabert-Liddel.github.io/colSBM/LICENSE-text.html</loc>
-  </url>
-  <url>
-    <loc>https://Chabert-Liddel.github.io/colSBM/LICENSE.html</loc>
-  </url>
-  <url>
-    <loc>https://Chabert-Liddel.github.io/colSBM/articles/index.html</loc>
-  </url>
-  <url>
-    <loc>https://Chabert-Liddel.github.io/colSBM/articles/tutorial.html</loc>
-  </url>
-  <url>
-    <loc>https://Chabert-Liddel.github.io/colSBM/authors.html</loc>
-  </url>
-  <url>
-    <loc>https://Chabert-Liddel.github.io/colSBM/index.html</loc>
-  </url>
-  <url>
-    <loc>https://Chabert-Liddel.github.io/colSBM/news/index.html</loc>
-  </url>
-  <url>
-    <loc>https://Chabert-Liddel.github.io/colSBM/reference/bmpop.html</loc>
-  </url>
-  <url>
-    <loc>https://Chabert-Liddel.github.io/colSBM/reference/clusterize_networks.html</loc>
-  </url>
-  <url>
-    <loc>https://Chabert-Liddel.github.io/colSBM/reference/colSBM-package.html</loc>
-  </url>
-  <url>
-    <loc>https://Chabert-Liddel.github.io/colSBM/reference/dist_bmpop_max.html</loc>
-  </url>
-  <url>
-    <loc>https://Chabert-Liddel.github.io/colSBM/reference/estimate_colSBM.html</loc>
-  </url>
-  <url>
-    <loc>https://Chabert-Liddel.github.io/colSBM/reference/extract_best_partition.html</loc>
-  </url>
-  <url>
-    <loc>https://Chabert-Liddel.github.io/colSBM/reference/fitSimpleSBMPop.html</loc>
-  </url>
-  <url>
-    <loc>https://Chabert-Liddel.github.io/colSBM/reference/foodwebs.html</loc>
-  </url>
-  <url>
-    <loc>https://Chabert-Liddel.github.io/colSBM/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>https://Chabert-Liddel.github.io/colSBM/reference/pipe.html</loc>
-  </url>
-  <url>
-    <loc>https://Chabert-Liddel.github.io/colSBM/reference/plot.bmpop.html</loc>
-  </url>
-  <url>
-    <loc>https://Chabert-Liddel.github.io/colSBM/reference/plot.fitSimpleSBMPop.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>https://Chabert-Liddel.github.io/colSBM/404.html</loc></url>
+<url><loc>https://Chabert-Liddel.github.io/colSBM/LICENSE-text.html</loc></url>
+<url><loc>https://Chabert-Liddel.github.io/colSBM/LICENSE.html</loc></url>
+<url><loc>https://Chabert-Liddel.github.io/colSBM/articles/index.html</loc></url>
+<url><loc>https://Chabert-Liddel.github.io/colSBM/articles/tutorial.html</loc></url>
+<url><loc>https://Chabert-Liddel.github.io/colSBM/authors.html</loc></url>
+<url><loc>https://Chabert-Liddel.github.io/colSBM/index.html</loc></url>
+<url><loc>https://Chabert-Liddel.github.io/colSBM/news/index.html</loc></url>
+<url><loc>https://Chabert-Liddel.github.io/colSBM/reference/bmpop.html</loc></url>
+<url><loc>https://Chabert-Liddel.github.io/colSBM/reference/clusterize_networks.html</loc></url>
+<url><loc>https://Chabert-Liddel.github.io/colSBM/reference/colSBM-package.html</loc></url>
+<url><loc>https://Chabert-Liddel.github.io/colSBM/reference/dist_bmpop_max.html</loc></url>
+<url><loc>https://Chabert-Liddel.github.io/colSBM/reference/estimate_colSBM.html</loc></url>
+<url><loc>https://Chabert-Liddel.github.io/colSBM/reference/extract_best_partition.html</loc></url>
+<url><loc>https://Chabert-Liddel.github.io/colSBM/reference/fitSimpleSBMPop.html</loc></url>
+<url><loc>https://Chabert-Liddel.github.io/colSBM/reference/foodwebs.html</loc></url>
+<url><loc>https://Chabert-Liddel.github.io/colSBM/reference/index.html</loc></url>
+<url><loc>https://Chabert-Liddel.github.io/colSBM/reference/pipe.html</loc></url>
+<url><loc>https://Chabert-Liddel.github.io/colSBM/reference/plot.bmpop.html</loc></url>
+<url><loc>https://Chabert-Liddel.github.io/colSBM/reference/plot.fitSimpleSBMPop.html</loc></url>
 </urlset>
+
