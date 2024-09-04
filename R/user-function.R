@@ -252,12 +252,19 @@ estimate_colSBM <-
 #'  estimation. Available: "fp"
 #' * `verbosity` an integer to choose the level of verbosity of the fit
 #'  procedure. Defaults to 0. Available: 0,1
-#' * `max_vem_steps` an integer setting the number of Varitional
-#' Expectation-Maximization steps to perform. Defaults to 200.
+#' * `max_vem_steps` an integer setting the number of Variational
+#' Expectation-Maximization steps to perform. Defaults to 1000.
 #' * `minibatch` a boolean setting wether to use a "minibatch" like
 #' approach. If set to TRUE during the VEM the networks will be optimized in
 #' random orders. If set to FALSE they are optimized in the lexicographical
 #' order. Default to TRUE.
+#' * `tolerance` a numeric, controlling the tolerance for which a criterion is
+#' considered converged. Default to 1e-6.
+#' `greedy_exploration_max_steps` the maximum number of iteration of
+#' greedy exploration to perform. Defaults to 50.
+#' `greedy_exploration_max_steps_without_improvement` an integer indicating
+#' for which number of steps the best model must not change to be end greedy
+#' exploration. Defaults to 5.
 #'
 #' @return A bisbmpop object listing a collection of models for the collection.
 #' of networks
@@ -347,9 +354,10 @@ estimate_colBiSBM <-
     # Fit options
     fo <- list(
       algo_ve = "fp",
-      max_vem_steps = 200L,
+      max_vem_steps = 1000L,
       minibatch = TRUE,
-      verbosity = 0L
+      verbosity = 0L,
+      tolerance = 1e-6
     )
 
     fo <- utils::modifyList(fo, fit_opts)

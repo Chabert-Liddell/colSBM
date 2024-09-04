@@ -112,6 +112,11 @@ fitBipartiteSBMPop <- R6::R6Class(
     tested_taus = list(),
     #' @field tested_taus_vbound A vector of vbound values for taus given by init_clust
     tested_taus_vbound = vector(),
+    #' @field has_converged A boolean, indicating wether the current fit object
+    #' VEM converged or not
+    has_converged = FALSE,
+
+
     #' @description
     #' Initializes the fitBipartiteSBMPop object
     #'
@@ -235,9 +240,12 @@ fitBipartiteSBMPop <- R6::R6Class(
       # Setting default fit options
       self$fit_opts <- list(
         algo_ve = "fp",
-        max_vem_steps = 200L,
+        max_vem_steps = 1000L,
         minibatch = TRUE,
-        verbosity = 1L
+        verbosity = 0,
+        tolerance = 1e-6,
+        greedy_exploration_max_steps = 50,
+        greedy_exploration_max_steps_without_improvement = 5
       )
       # If the user provided custom fit options they are applied here
       self$fit_opts <- utils::modifyList(self$fit_opts, fit_opts)
@@ -552,12 +560,11 @@ fitBipartiteSBMPop <- R6::R6Class(
     #'
     #' @param m The number of the network in the netlist
     #' @param d The dimension to update
-    #' @param max_iter The maximum number of iterations to perform, defaults
-    #' to 1
-    #' @param tol The tolerance for which to stop iterating
+    #' @param tol The tolerance for which to stop iterating. Defaults to
+    #' self$fit_opts$tolerance
     #'
     #' @return The new tau values
-    fixed_point_tau = function(m, d, max_iter = 1, tol = 1e-3) {
+    fixed_point_tau = function(m, d, tol = self$fit_opts$tolerance) {
       # Just 1 step is necessary because tau1 depends only on tau2
       condition <- TRUE
       it <- 0
@@ -1074,12 +1081,12 @@ fitBipartiteSBMPop <- R6::R6Class(
     #'
     #' @param MAP A boolean wether to use the MAP parameters or not, defaults to
     #' FALSE
-    #' @param max_iter The maximum number of iterations, default to 2
-    #' @param tol The tolerance for which to stop iterating defaults to 1e-3
+    #' @param tol The tolerance for which to stop iterating defaults to
+    #' self$fit_opts$tolerance
     #' @param ... Other parameters
     #'
     #' @return nothing; stores values
-    m_step = function(MAP = FALSE, max_iter = 2, tol = 1e-3, ...) {
+    m_step = function(MAP = FALSE, tol = self$fit_opts$tolerance, ...) {
       # browser()
       # lapply(seq_along(self$pi), function(m) self$update_pi(m, MAP = MAP))
       self$update_pi(MAP = MAP)
@@ -1090,11 +1097,12 @@ fitBipartiteSBMPop <- R6::R6Class(
     #'
     #' @param m The number of the network in the netlist
     #' @param max_iter The maximum number of iterations, default to 2
-    #' @param tol The tolerance for which to stop iterating defaults to 1e-3
+    #' @param tol The tolerance for which to stop iterating defaults to
+    #' self$fit_opts$tolerance
     #' @param ... Other parameters
     #'
     #' @return nothing; stores values
-    ve_step = function(m, max_iter = 2, tol = 1e-3, ...) {
+    ve_step = function(m, max_iter = 2, tol = self$fit_opts$tolerance, ...) {
       # Place holder for gradient ascent or other optimization methods
     },
     #' Updates the mqr quantities
@@ -1167,11 +1175,12 @@ fitBipartiteSBMPop <- R6::R6Class(
     #' Perform the whole initialization and VEM algorithm
     #'
     #' @param max_step The maximum number of steps to perform optimization
-    #' @param tol The tolerance for which to stop iterating, default to 1e-3
+    #' @param tol The tolerance for which to stop iterating, default to
+    #' self$fit_opts$tolerance
     #' @param ... Other parameters
     #'
     #' @return nothing
-    optimize = function(max_step = self$fit_opts$max_vem_steps, tol = 1e-3, ...) {
+    optimize = function(max_step = self$fit_opts$max_vem_steps, tol = self$fit_opts$tolerance, ...) {
       if (all(self$Q == c(1, 1))) {
         self$tau <- lapply(
           seq(self$M),
@@ -1208,6 +1217,7 @@ fitBipartiteSBMPop <- R6::R6Class(
           emqr = self$emqr,
           nmqr = self$nmqr
         )
+        self$has_converged <- TRUE
       } else {
         # If there is more than one cluster
         self$init_clust()
@@ -1255,6 +1265,8 @@ fitBipartiteSBMPop <- R6::R6Class(
 
         if (step >= max_step) {
           warning("The VEM failed to converge in ", max_step, " for Q = ", toString(self$Q))
+        } else {
+          self$has_converged <- TRUE
         }
 
         # Here we stock the number of steps needed to converge

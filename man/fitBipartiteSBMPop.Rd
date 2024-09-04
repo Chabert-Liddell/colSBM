@@ -115,6 +115,9 @@ blocks match the expected blocks.}
 \item{\code{tested_taus}}{A vector of taus values for taus given by init_clust}
 
 \item{\code{tested_taus_vbound}}{A vector of vbound values for taus given by init_clust}
+
+\item{\code{has_converged}}{A boolean, indicating wether the current fit object
+VEM converged or not}
 }
 \if{html}{\out{</div>}}
 }
@@ -410,7 +413,7 @@ Method to update tau values
 \subsection{Method \code{fixed_point_tau()}}{
 Not really a fixed point as tau^1 depends only tau^2.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$fixed_point_tau(m, d, max_iter = 1, tol = 0.001)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$fixed_point_tau(m, d, tol = self$fit_opts$tolerance)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -420,10 +423,8 @@ Not really a fixed point as tau^1 depends only tau^2.
 
 \item{\code{d}}{The dimension to update}
 
-\item{\code{max_iter}}{The maximum number of iterations to perform, defaults
-to 1}
-
-\item{\code{tol}}{The tolerance for which to stop iterating}
+\item{\code{tol}}{The tolerance for which to stop iterating. Defaults to
+self$fit_opts$tolerance}
 }
 \if{html}{\out{</div>}}
 }
@@ -559,7 +560,7 @@ The M step of the VEM
 \if{latex}{\out{\hypertarget{method-fitBipartiteSBMPop-m_step}{}}}
 \subsection{Method \code{m_step()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$m_step(MAP = FALSE, max_iter = 2, tol = 0.001, ...)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$m_step(MAP = FALSE, tol = self$fit_opts$tolerance, ...)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -568,9 +569,8 @@ The M step of the VEM
 \item{\code{MAP}}{A boolean wether to use the MAP parameters or not, defaults to
 FALSE}
 
-\item{\code{max_iter}}{The maximum number of iterations, default to 2}
-
-\item{\code{tol}}{The tolerance for which to stop iterating defaults to 1e-3}
+\item{\code{tol}}{The tolerance for which to stop iterating defaults to
+self$fit_opts$tolerance}
 
 \item{\code{...}}{Other parameters}
 }
@@ -587,7 +587,7 @@ placeholder
 \if{latex}{\out{\hypertarget{method-fitBipartiteSBMPop-ve_step}{}}}
 \subsection{Method \code{ve_step()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$ve_step(m, max_iter = 2, tol = 0.001, ...)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$ve_step(m, max_iter = 2, tol = self$fit_opts$tolerance, ...)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -597,7 +597,8 @@ placeholder
 
 \item{\code{max_iter}}{The maximum number of iterations, default to 2}
 
-\item{\code{tol}}{The tolerance for which to stop iterating defaults to 1e-3}
+\item{\code{tol}}{The tolerance for which to stop iterating defaults to
+self$fit_opts$tolerance}
 
 \item{\code{...}}{Other parameters}
 }
@@ -659,7 +660,7 @@ Perform the whole initialization and VEM algorithm
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$optimize(
   max_step = self$fit_opts$max_vem_steps,
-  tol = 0.001,
+  tol = self$fit_opts$tolerance,
   ...
 )}\if{html}{\out{</div>}}
 }
@@ -669,7 +670,8 @@ Perform the whole initialization and VEM algorithm
 \describe{
 \item{\code{max_step}}{The maximum number of steps to perform optimization}
 
-\item{\code{tol}}{The tolerance for which to stop iterating, default to 1e-3}
+\item{\code{tol}}{The tolerance for which to stop iterating, default to
+self$fit_opts$tolerance}
 
 \item{\code{...}}{Other parameters}
 }

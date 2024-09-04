@@ -62,13 +62,11 @@ use_pkgdown_travis()
 
 # Generate SSH keypair
 key <- openssl::rsa_keygen()
-pub_key <- tic:::get_public_key(key)
-private_key <- tic:::encode_private_key(key)
+
 
 # Go to the GitHub repository page - then Settings > Deploy keys,
 # add the public key there (check the box for write-access).
 title <- "travis+tic"
-public_key <- travis:::create_key_data(pub_key, title)
 
 # Go to the Travis repository page - then More Options > Settings.
 # Add an environment-variable named id_rsa. Paste your clipboard-contents into its value.

@@ -223,7 +223,10 @@ bisbmpop <- R6::R6Class(
       self$fit_opts <- list(
         algo_ve = "fp",
         minibatch = TRUE,
-        verbosity = 0
+        verbosity = 0,
+        tolerance = 1e-6,
+        greedy_exploration_max_steps = 50,
+        greedy_exploration_max_steps_without_improvement = 5
       )
       self$fit_opts <- utils::modifyList(self$fit_opts, fit_opts)
     },
@@ -1045,8 +1048,8 @@ bisbmpop <- R6::R6Class(
     #'
     #' @return c(Q1_mode, Q2_mode) which indicates the Q1 and Q2
     #' for which the BICL was maximal.
-    greedy_exploration = function(starting_point, max_iter = 12,
-                                  max_step_without_improvement = 2) {
+    greedy_exploration = function(starting_point, max_iter = self$fit_opts$greedy_exploration_max_steps,
+                                  max_step_without_improvement = self$fit_opts$greedy_exploration_max_steps_without_improvement) {
       # Initialize
       current_Q1 <- starting_point[1]
       current_Q2 <- starting_point[2]
@@ -1227,7 +1230,9 @@ bisbmpop <- R6::R6Class(
         # We increase the step
         step <- step + 1
       }
-
+      if (step >= max_iter) {
+        warning("The greedy exploration did not find a mode in ", max_iter, " steps")
+      }
       self$exploration_order_list[[index_in_exploration_order_list]] <- self$exploration_order_list[[index_in_exploration_order_list]][-1]
 
       # Return the coordinates of the max BICL that has been found
@@ -1627,7 +1632,6 @@ bisbmpop <- R6::R6Class(
       self$burn_in()
       improved <- TRUE
       nb_pass <- 0
-      tolerance <- 10e-3
       self$store_criteria_and_best_fit()
       Q <- which(self$BICL == max(self$BICL), arr.ind = TRUE)
       current_max_BICL <- self$model_list[[Q[1], Q[2]]]$BICL
@@ -1655,7 +1659,7 @@ bisbmpop <- R6::R6Class(
 
         # Improvement criterion
         has_the_mode_moved <- all(Q != self$best_fit$Q)
-        self$improved <- (self$best_fit$BICL - current_max_BICL) > tolerance ||
+        self$improved <- (self$best_fit$BICL - current_max_BICL) > self$fit_opts$tolerance ||
           has_the_mode_moved
 
         # We now set the new Q and check if the fit is better

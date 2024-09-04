@@ -238,8 +238,9 @@ and storing the models discovered along the way
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{bisbmpop$greedy_exploration(
   starting_point,
-  max_iter = 12,
-  max_step_without_improvement = 2
+  max_iter = self$fit_opts$greedy_exploration_max_steps,
+  max_step_without_improvement =
+    self$fit_opts$greedy_exploration_max_steps_without_improvement
 )}\if{html}{\out{</div>}}
 }
 
