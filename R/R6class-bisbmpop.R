@@ -158,7 +158,6 @@ bisbmpop <- R6::R6Class(
         Q2_min = 1L,
         Q2_max = floor(log(sum(self$n[[2]]))) + 2,
         spectral_init = TRUE,
-        full_parallelize = FALSE,
         nb_models = 5L,
         depth = 1L, # By default we set a small depth
         plot_details = 1L,
@@ -527,10 +526,7 @@ bisbmpop <- R6::R6Class(
           q_th_models # The list of models is returned (if no free_mixture it's a
           # one element list).
         },
-        backend = ifelse(self[["global_opts"]][["full_parallelize"]],
-          self[["global_opts"]][["backend"]], # If full_par, use mc backend
-          "no_mc"
-        ), # Else no parallelization
+        backend = self[["global_opts"]][["backend"]],
         nb_cores = self[["global_opts"]][["nb_cores"]]
       )
       # If there is free_mixture it creates nestedness so we need to unlist
@@ -850,10 +846,7 @@ bisbmpop <- R6::R6Class(
           q_th_models # The list of models is returned (if no free_mixture it's a
           # one element list).
         },
-        backend = ifelse(self[["global_opts"]][["full_parallelize"]],
-          self[["global_opts"]][["backend"]], # If full_par, use mc backend
-          "no_mc"
-        ), # Else no parallelization
+        backend = self[["global_opts"]][["backend"]],
         nb_cores = self[["global_opts"]][["nb_cores"]]
       )
 

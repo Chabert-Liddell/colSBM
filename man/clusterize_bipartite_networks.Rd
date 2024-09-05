@@ -55,8 +55,7 @@ The best partition could be extract with the function
 \code{extract_best_partition()}. The object of the list are fitBipartiteSBMPop
 object, so it is a model for a given number of blocks Q1, Q2.
 
-This functions make call to \code{estimate_colBiSBM} but uses the
-\code{full_parallelize} with TRUE to leverage cluster computation power.
+This functions make call to \code{estimate_colBiSBM}.
 }
 \examples{
 alpha1 <- matrix(c(0.8, 0.1, 0.2, 0.7), byrow = TRUE, nrow = 2)
