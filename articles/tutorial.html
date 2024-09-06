@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">colSBM</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,7 +33,8 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/tutorial.html">Tutorial on food webs</a></li>
+<li><a class="dropdown-item" href="../articles/tutorial-bipartite.html">Tutorial on plant pollinator data</a></li>
+    <li><a class="dropdown-item" href="../articles/tutorial.html">Tutorial on food webs</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -65,7 +66,7 @@
     
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">colSBM</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://chabert-liddel.github.io/colSBM">colSBM</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"foodwebs"</span><span class="op">)</span></span></code></pre></div>
 <div class="section level2">
@@ -77,26 +78,28 @@ first
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>3</mn><annotation encoding="application/x-tex">3</annotation></semantics></math>
 networks, using the iid-colSBM model.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># global_opts = list(nb_cores = 1L, </span></span>
-<span><span class="co">#                    nb_models = 5L, </span></span>
+<code class="sourceCode R"><span><span class="co"># global_opts = list(nb_cores = 1L,</span></span>
+<span><span class="co">#                    nb_models = 5L,</span></span>
 <span><span class="co">#                    nb_init = 10L,</span></span>
 <span><span class="co">#                    depth = 2L,</span></span>
-<span><span class="co">#                    verbosity = 1, </span></span>
+<span><span class="co">#                    verbosity = 1,</span></span>
 <span><span class="co">#                    spectral_init = FALSE,</span></span>
-<span><span class="co">#                    Q_max = 8L, </span></span>
+<span><span class="co">#                    Q_max = 8L,</span></span>
 <span><span class="co">#                    plot_details = 1)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span></span>
-<span><span class="va">res_fw_iid</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimate_colSBM.html">estimate_colSBM</a></span><span class="op">(</span>netlist <span class="op">=</span> <span class="va">foodwebs</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>, <span class="co"># A list of networks</span></span>
-<span>                              colsbm_model <span class="op">=</span> <span class="st">"iid"</span>, <span class="co"># The name of the model</span></span>
-<span>                              directed <span class="op">=</span> <span class="cn">TRUE</span>, <span class="co"># Foodwebs are directed networks</span></span>
-<span>                              net_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">foodwebs</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>, <span class="co"># Name of the networks</span></span>
-<span>                              nb_run <span class="op">=</span> <span class="fl">1L</span>, <span class="co"># Number of runs of the algorithm</span></span>
-<span>                              global_opts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>verbosity <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>                                                 plot_details <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>                                                 Q_max <span class="op">=</span> <span class="fl">8</span><span class="op">)</span> <span class="co">#Max number of clusters</span></span>
-<span>                              <span class="op">)</span></span>
-<span><span class="co">#&gt; Please install the progress-package in order to get a progress bar.</span></span></code></pre></div>
+<span><span class="va">res_fw_iid</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimate_colSBM.html">estimate_colSBM</a></span><span class="op">(</span></span>
+<span>  netlist <span class="op">=</span> <span class="va">foodwebs</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>, <span class="co"># A list of networks</span></span>
+<span>  colsbm_model <span class="op">=</span> <span class="st">"iid"</span>, <span class="co"># The name of the model</span></span>
+<span>  directed <span class="op">=</span> <span class="cn">TRUE</span>, <span class="co"># Foodwebs are directed networks</span></span>
+<span>  net_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">foodwebs</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>, <span class="co"># Name of the networks</span></span>
+<span>  nb_run <span class="op">=</span> <span class="fl">1L</span>, <span class="co"># Number of runs of the algorithm</span></span>
+<span>  global_opts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    verbosity <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>    plot_details <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>    Q_max <span class="op">=</span> <span class="fl">8</span></span>
+<span>  <span class="op">)</span> <span class="co"># Max number of clusters</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p>We can look at how the variational bound and the model selection
 criteria evolve with the number of clusters. Here, the BICL criterion
 selects Q = 5 blocks.</p>
@@ -115,7 +118,7 @@ selects Q = 5 blocks.</p>
 <span><span class="co">#&gt; Fitted Collection of Simple SBM -- bernoulli variant for 3 networks </span></span>
 <span><span class="co">#&gt; =====================================================================</span></span>
 <span><span class="co">#&gt; Dimension = ( 105 58 71 ) - ( 5 ) blocks.</span></span>
-<span><span class="co">#&gt; BICL =  -1966.708  -- #Empty blocks :  0  </span></span>
+<span><span class="co">#&gt; BICL =  -1966.999  -- #Empty blocks :  0  </span></span>
 <span><span class="co">#&gt; =====================================================================</span></span>
 <span><span class="co">#&gt; * Useful fields </span></span>
 <span><span class="co">#&gt;   $distribution, $nb_nodes, $nb_clusters, $support, $Z </span></span>
@@ -127,22 +130,22 @@ selects Q = 5 blocks.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">best_fit</span><span class="op">$</span><span class="va">parameters</span></span>
 <span><span class="co">#&gt; $alpha</span></span>
-<span><span class="co">#&gt;              [,1]         [,2]         [,3]        [,4]        [,5]</span></span>
-<span><span class="co">#&gt; [1,] 3.019627e-08 7.858798e-01 9.703644e-10 0.659739949 0.786278524</span></span>
-<span><span class="co">#&gt; [2,] 4.335113e-10 1.633906e-07 9.663590e-11 0.031797788 0.015685965</span></span>
-<span><span class="co">#&gt; [3,] 1.472313e-09 1.658829e-01 7.995086e-11 0.007426416 0.075207262</span></span>
-<span><span class="co">#&gt; [4,] 1.528065e-10 1.298130e-05 8.175460e-12 0.010801998 0.009948964</span></span>
-<span><span class="co">#&gt; [5,] 2.846969e-09 5.003266e-03 3.475313e-10 0.190028448 0.181494324</span></span>
+<span><span class="co">#&gt;              [,1]        [,2]         [,3]         [,4]         [,5]</span></span>
+<span><span class="co">#&gt; [1,] 2.045995e-04 0.654004854 7.872244e-01 1.019399e-09 7.976874e-01</span></span>
+<span><span class="co">#&gt; [2,] 7.547256e-06 0.007953472 6.055094e-03 6.413325e-12 1.116853e-05</span></span>
+<span><span class="co">#&gt; [3,] 2.703080e-05 0.143400957 7.534554e-02 2.381464e-10 3.577233e-03</span></span>
+<span><span class="co">#&gt; [4,] 1.014393e-06 0.007758361 9.118897e-02 8.019048e-11 1.825920e-01</span></span>
+<span><span class="co">#&gt; [5,] 4.187670e-06 0.010907266 3.094711e-06 7.262520e-12 1.470198e-08</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $pi</span></span>
 <span><span class="co">#&gt; $pi[[1]]</span></span>
-<span><span class="co">#&gt; [1] 0.02564104 0.16912045 0.45167555 0.29220994 0.06135302</span></span>
+<span><span class="co">#&gt; [1] 0.02575797 0.28631455 0.10692669 0.45375528 0.12724551</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $pi[[2]]</span></span>
-<span><span class="co">#&gt; [1] 0.02564104 0.16912045 0.45167555 0.29220994 0.06135302</span></span>
+<span><span class="co">#&gt; [1] 0.02575797 0.28631455 0.10692669 0.45375528 0.12724551</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $pi[[3]]</span></span>
-<span><span class="co">#&gt; [1] 0.02564104 0.16912045 0.45167555 0.29220994 0.06135302</span></span>
+<span><span class="co">#&gt; [1] 0.02575797 0.28631455 0.10692669 0.45375528 0.12724551</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $delta</span></span>
@@ -156,243 +159,243 @@ selects Q = 5 blocks.</p>
 <span><span class="co">#&gt;      Unidentified sp1 FW_009   Terrestrial plant material </span></span>
 <span><span class="co">#&gt;                            1                            1 </span></span>
 <span><span class="co">#&gt;    Terrestrial invertebrates        Achnanthes lanceolata </span></span>
-<span><span class="co">#&gt;                            5                            3 </span></span>
+<span><span class="co">#&gt;                            3                            4 </span></span>
 <span><span class="co">#&gt;              Batrachospermum         Calothrix sp1 FW_009 </span></span>
-<span><span class="co">#&gt;                            3                            3 </span></span>
+<span><span class="co">#&gt;                            4                            4 </span></span>
 <span><span class="co">#&gt;         Cocconeis placentula         Cosmarium sp1 FW_009 </span></span>
-<span><span class="co">#&gt;                            3                            3 </span></span>
+<span><span class="co">#&gt;                            4                            4 </span></span>
 <span><span class="co">#&gt;        Cyclotella sp1 FW_009              Cymbella aspera </span></span>
-<span><span class="co">#&gt;                            3                            3 </span></span>
+<span><span class="co">#&gt;                            4                            4 </span></span>
 <span><span class="co">#&gt;           Cymbella cuspidata               Cymbella kappi </span></span>
-<span><span class="co">#&gt;                            3                            3 </span></span>
+<span><span class="co">#&gt;                            4                            4 </span></span>
 <span><span class="co">#&gt;              Cymbella tumida              Diatoma heimale </span></span>
-<span><span class="co">#&gt;                            3                            3 </span></span>
+<span><span class="co">#&gt;                            4                            4 </span></span>
 <span><span class="co">#&gt;              Epithemia sorex            Epithemia turgida </span></span>
-<span><span class="co">#&gt;                            3                            3 </span></span>
+<span><span class="co">#&gt;                            4                            4 </span></span>
 <span><span class="co">#&gt;           Eunotia serpentina      Unidentified sp2 FW_009 </span></span>
-<span><span class="co">#&gt;                            3                            3 </span></span>
+<span><span class="co">#&gt;                            4                            4 </span></span>
 <span><span class="co">#&gt;           Euntoia pectinalis        Fragilaria sp1 FW_009 </span></span>
-<span><span class="co">#&gt;                            3                            3 </span></span>
+<span><span class="co">#&gt;                            4                            4 </span></span>
 <span><span class="co">#&gt;        Fragilaria vaucheriae         Frustulia rhomboides </span></span>
-<span><span class="co">#&gt;                            3                            3 </span></span>
+<span><span class="co">#&gt;                            4                            4 </span></span>
 <span><span class="co">#&gt;        Gomphoneis herculeana       Gomphonema accuminatum </span></span>
-<span><span class="co">#&gt;                            3                            3 </span></span>
+<span><span class="co">#&gt;                            4                            4 </span></span>
 <span><span class="co">#&gt;        Gomphonema angustatum         Gomphonema truncatum </span></span>
-<span><span class="co">#&gt;                            3                            3 </span></span>
+<span><span class="co">#&gt;                            4                            4 </span></span>
 <span><span class="co">#&gt;      Unidentified sp3 FW_009             Melosira varians </span></span>
-<span><span class="co">#&gt;                            3                            3 </span></span>
+<span><span class="co">#&gt;                            4                            4 </span></span>
 <span><span class="co">#&gt;            Navicula avenacea           Navicula dicephala </span></span>
-<span><span class="co">#&gt;                            3                            3 </span></span>
+<span><span class="co">#&gt;                            4                            4 </span></span>
 <span><span class="co">#&gt;              Nitzschia dubia        Oedogonium sp1 FW_009 </span></span>
-<span><span class="co">#&gt;                            3                            3 </span></span>
+<span><span class="co">#&gt;                            4                            4 </span></span>
 <span><span class="co">#&gt;        Phormidium sp1 FW_009         Pinnularia mesolepta </span></span>
-<span><span class="co">#&gt;                            3                            3 </span></span>
+<span><span class="co">#&gt;                            4                            4 </span></span>
 <span><span class="co">#&gt;           Pinnularia viridis    Pleaurotaenium sp1 FW_009 </span></span>
-<span><span class="co">#&gt;                            3                            3 </span></span>
+<span><span class="co">#&gt;                            4                            4 </span></span>
 <span><span class="co">#&gt;         Rhoicospenia curvata        Rhopalodia sp1 FW_009 </span></span>
-<span><span class="co">#&gt;                            3                            3 </span></span>
+<span><span class="co">#&gt;                            4                            4 </span></span>
 <span><span class="co">#&gt;       Schizothrix sp1 FW_009       Staurastrum sp1 FW_009 </span></span>
-<span><span class="co">#&gt;                            3                            3 </span></span>
+<span><span class="co">#&gt;                            4                            4 </span></span>
 <span><span class="co">#&gt;            Surirella elegans             Surirella tenera </span></span>
-<span><span class="co">#&gt;                            3                            3 </span></span>
+<span><span class="co">#&gt;                            4                            4 </span></span>
 <span><span class="co">#&gt;                 Synedra ulna        Tabellaria fenestrata </span></span>
-<span><span class="co">#&gt;                            3                            3 </span></span>
+<span><span class="co">#&gt;                            4                            4 </span></span>
 <span><span class="co">#&gt;        Tabellaria flocculosa          Ulothrix sp1 FW_009 </span></span>
-<span><span class="co">#&gt;                            3                            3 </span></span>
+<span><span class="co">#&gt;                            4                            4 </span></span>
 <span><span class="co">#&gt;      Unidentified sp4 FW_009      Unidentified sp5 FW_009 </span></span>
-<span><span class="co">#&gt;                            3                            3 </span></span>
+<span><span class="co">#&gt;                            4                            4 </span></span>
 <span><span class="co">#&gt;        Acroneuria sp1 FW_009          Aelosoma sp1 FW_009 </span></span>
-<span><span class="co">#&gt;                            4                            5 </span></span>
+<span><span class="co">#&gt;                            2                            3 </span></span>
 <span><span class="co">#&gt;         Alloperla sp1 FW_009         Anepeorus sp1 FW_009 </span></span>
-<span><span class="co">#&gt;                            4                            4 </span></span>
+<span><span class="co">#&gt;                            2                            2 </span></span>
 <span><span class="co">#&gt;             Antocha saxicola                       Baetis </span></span>
-<span><span class="co">#&gt;                            2                            2 </span></span>
+<span><span class="co">#&gt;                            5                            3 </span></span>
 <span><span class="co">#&gt;               Boyeria vinosa Bryophaenocladius sp1 FW_009 </span></span>
-<span><span class="co">#&gt;                            4                            2 </span></span>
+<span><span class="co">#&gt;                            2                            3 </span></span>
 <span><span class="co">#&gt;        Chauliodes sp1 FW_009            Chimarra atterima </span></span>
-<span><span class="co">#&gt;                            4                            5 </span></span>
+<span><span class="co">#&gt;                            2                            3 </span></span>
 <span><span class="co">#&gt;      Unidentified sp6 FW_009     Conchapelopia sp1 FW_009 </span></span>
-<span><span class="co">#&gt;                            2                            4 </span></span>
+<span><span class="co">#&gt;                            5                            3 </span></span>
 <span><span class="co">#&gt;       Cryptolabis sp1 FW_009         Cyrnellus sp1 FW_009 </span></span>
-<span><span class="co">#&gt;                            4                            4 </span></span>
+<span><span class="co">#&gt;                            2                            2 </span></span>
 <span><span class="co">#&gt;     Dicrotendipes sp1 FW_009          Diplectrona modesta </span></span>
-<span><span class="co">#&gt;                            2                            2 </span></span>
+<span><span class="co">#&gt;                            3                            5 </span></span>
 <span><span class="co">#&gt;             Ectopria nervosa   Endochironomous sp1 FW_009 </span></span>
-<span><span class="co">#&gt;                            2                            5 </span></span>
+<span><span class="co">#&gt;                            5                            3 </span></span>
 <span><span class="co">#&gt;       Ephemerella sp1 FW_009  Eukieferiella pseudomontana </span></span>
-<span><span class="co">#&gt;                            4                            4 </span></span>
+<span><span class="co">#&gt;                            2                            3 </span></span>
 <span><span class="co">#&gt;   Eukiefferiella 'dark' type        Glossosoma sp1 FW_009 </span></span>
-<span><span class="co">#&gt;                            2                            4 </span></span>
-<span><span class="co">#&gt;          Gyraulus sp1 FW_009            Haploperla brevis </span></span>
-<span><span class="co">#&gt;                            2                            4 </span></span>
-<span><span class="co">#&gt;          Hexatoma sp1 FW_009                Hydrophilidae </span></span>
-<span><span class="co">#&gt;                            4                            4 </span></span>
-<span><span class="co">#&gt;  Hydropsyche sp1 FW_009arana            Larsia sp1 FW_009 </span></span>
-<span><span class="co">#&gt;                            5                            4 </span></span>
-<span><span class="co">#&gt;        Leucrocuta sp1 FW_009           Leuctra sp1 FW_009 </span></span>
-<span><span class="co">#&gt;                            2                            2 </span></span>
-<span><span class="co">#&gt;      Unidentified sp7 FW_009      Metriocnemus sp1 FW_009 </span></span>
 <span><span class="co">#&gt;                            5                            2 </span></span>
+<span><span class="co">#&gt;          Gyraulus sp1 FW_009            Haploperla brevis </span></span>
+<span><span class="co">#&gt;                            5                            2 </span></span>
+<span><span class="co">#&gt;          Hexatoma sp1 FW_009                Hydrophilidae </span></span>
+<span><span class="co">#&gt;                            2                            2 </span></span>
+<span><span class="co">#&gt;  Hydropsyche sp1 FW_009arana            Larsia sp1 FW_009 </span></span>
+<span><span class="co">#&gt;                            3                            2 </span></span>
+<span><span class="co">#&gt;        Leucrocuta sp1 FW_009           Leuctra sp1 FW_009 </span></span>
+<span><span class="co">#&gt;                            5                            3 </span></span>
+<span><span class="co">#&gt;      Unidentified sp7 FW_009      Metriocnemus sp1 FW_009 </span></span>
+<span><span class="co">#&gt;                            3                            3 </span></span>
 <span><span class="co">#&gt;         Micrasema sp1 FW_009        Ochthebius sp1 FW_009 </span></span>
-<span><span class="co">#&gt;                            4                            4 </span></span>
+<span><span class="co">#&gt;                            2                            2 </span></span>
 <span><span class="co">#&gt;      Ophiogomphus sp1 FW_009  Paraleptophlebia sp1 FW_009 </span></span>
-<span><span class="co">#&gt;                            4                            4 </span></span>
+<span><span class="co">#&gt;                            2                            2 </span></span>
 <span><span class="co">#&gt;  Paranyctiophylax sp1 FW_009     Polycentropus sp1 FW_009 </span></span>
-<span><span class="co">#&gt;                            4                            4 </span></span>
+<span><span class="co">#&gt;                            2                            2 </span></span>
 <span><span class="co">#&gt;         Probezzia sp1 FW_009        Promoresia sp1 FW_009 </span></span>
-<span><span class="co">#&gt;                            4                            2 </span></span>
+<span><span class="co">#&gt;                            2                            3 </span></span>
 <span><span class="co">#&gt;         Psephenus sp1 FW_009 Pseudolimnolphila sp1 FW_009 </span></span>
-<span><span class="co">#&gt;                            2                            4 </span></span>
+<span><span class="co">#&gt;                            5                            2 </span></span>
 <span><span class="co">#&gt;       Rhyacophila sp1 FW_009          Simulium sp1 FW_009 </span></span>
-<span><span class="co">#&gt;                            4                            2 </span></span>
+<span><span class="co">#&gt;                            2                            5 </span></span>
 <span><span class="co">#&gt;        Sphaerium occidentale     Stempelinella sp1 FW_009 </span></span>
-<span><span class="co">#&gt;                            2                            2 </span></span>
+<span><span class="co">#&gt;                            5                            5 </span></span>
 <span><span class="co">#&gt;            Stenelmis crenata         Stenelmis sp1 FW_009 </span></span>
-<span><span class="co">#&gt;                            2                            2 </span></span>
+<span><span class="co">#&gt;                            5                            5 </span></span>
 <span><span class="co">#&gt;           Suwalia sp1 FW_009        Tallaperla sp1 FW_009 </span></span>
-<span><span class="co">#&gt;                            4                            5 </span></span>
+<span><span class="co">#&gt;                            2                            3 </span></span>
 <span><span class="co">#&gt;           Tanytarsus Genus A     Tricorythodes sp1 FW_009 </span></span>
-<span><span class="co">#&gt;                            4                            4 </span></span>
+<span><span class="co">#&gt;                            2                            2 </span></span>
 <span><span class="co">#&gt;        Notropis heterolepsis                  Brook trout </span></span>
-<span><span class="co">#&gt;                            4                            4 </span></span>
+<span><span class="co">#&gt;                            2                            2 </span></span>
 <span><span class="co">#&gt;           Orcnocetes virilis       Rhinichthys cataractae </span></span>
-<span><span class="co">#&gt;                            4                            4 </span></span>
+<span><span class="co">#&gt;                            2                            2 </span></span>
 <span><span class="co">#&gt;            Cambarus bartonii </span></span>
-<span><span class="co">#&gt;                            4 </span></span>
+<span><span class="co">#&gt;                            2 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [[2]]</span></span>
 <span><span class="co">#&gt;     Unidentified sp1 FW_012_01      Terrestrial invertebrates </span></span>
-<span><span class="co">#&gt;                              1                              5 </span></span>
+<span><span class="co">#&gt;                              1                              4 </span></span>
 <span><span class="co">#&gt;                 Plant material          Achnanthes lanceolata </span></span>
-<span><span class="co">#&gt;                              1                              3 </span></span>
+<span><span class="co">#&gt;                              1                              4 </span></span>
 <span><span class="co">#&gt;         Achnanthes minutissima      Audouinella sp1 FW_012_01 </span></span>
-<span><span class="co">#&gt;                              3                              3 </span></span>
+<span><span class="co">#&gt;                              4                              4 </span></span>
 <span><span class="co">#&gt;                Batrachospermum               Blue-green algae </span></span>
-<span><span class="co">#&gt;                              3                              3 </span></span>
+<span><span class="co">#&gt;                              4                              4 </span></span>
 <span><span class="co">#&gt;                      Calothrix               Cymbella cistula </span></span>
-<span><span class="co">#&gt;                              3                              3 </span></span>
+<span><span class="co">#&gt;                              4                              4 </span></span>
 <span><span class="co">#&gt;               Cymbella mulleri                Diatoma heimale </span></span>
-<span><span class="co">#&gt;                              3                              3 </span></span>
+<span><span class="co">#&gt;                              4                              4 </span></span>
 <span><span class="co">#&gt;                Epithemia sorex              Epithemia turgida </span></span>
-<span><span class="co">#&gt;                              3                              3 </span></span>
+<span><span class="co">#&gt;                              4                              4 </span></span>
 <span><span class="co">#&gt;             Eunotia pectinalis          Eunotia sp1 FW_012_01 </span></span>
-<span><span class="co">#&gt;                              3                              3 </span></span>
+<span><span class="co">#&gt;                              4                              4 </span></span>
 <span><span class="co">#&gt;           Frustulia rhomboides          Gomphoneis herculeana </span></span>
-<span><span class="co">#&gt;                              3                              3 </span></span>
+<span><span class="co">#&gt;                              4                              4 </span></span>
 <span><span class="co">#&gt;          Gomphonema intricatum       Gomphonema sp1 FW_012_01 </span></span>
-<span><span class="co">#&gt;                              3                              3 </span></span>
+<span><span class="co">#&gt;                              4                              4 </span></span>
 <span><span class="co">#&gt;             Meridion circulare              Navicula avenacea </span></span>
-<span><span class="co">#&gt;                              3                              3 </span></span>
+<span><span class="co">#&gt;                              4                              4 </span></span>
 <span><span class="co">#&gt;                  Pleurotaenium          Rhoicosphenia curvata </span></span>
-<span><span class="co">#&gt;                              3                              3 </span></span>
+<span><span class="co">#&gt;                              4                              4 </span></span>
 <span><span class="co">#&gt;                  Stigeoclonium                   Synedra ulna </span></span>
-<span><span class="co">#&gt;                              3                              3 </span></span>
+<span><span class="co">#&gt;                              4                              4 </span></span>
 <span><span class="co">#&gt;                       Ulothrix     Unidentified sp2 FW_012_01 </span></span>
-<span><span class="co">#&gt;                              3                              3 </span></span>
+<span><span class="co">#&gt;                              4                              4 </span></span>
 <span><span class="co">#&gt;                       Aelosoma    Brachycentrus sp1 FW_012_01 </span></span>
-<span><span class="co">#&gt;                              5                              2 </span></span>
+<span><span class="co">#&gt;                              3                              5 </span></span>
 <span><span class="co">#&gt;               Cambarus bartoni       Chauliodes sp1 FW_012_01 </span></span>
-<span><span class="co">#&gt;                              4                              4 </span></span>
+<span><span class="co">#&gt;                              2                              2 </span></span>
 <span><span class="co">#&gt;         Cordulegaster maculata        Dicranota sp1 FW_012_01 </span></span>
-<span><span class="co">#&gt;                              4                              4 </span></span>
+<span><span class="co">#&gt;                              2                              2 </span></span>
 <span><span class="co">#&gt;             Ectopria thoracica                 Epeorus dispar </span></span>
-<span><span class="co">#&gt;                              2                              2 </span></span>
+<span><span class="co">#&gt;                              5                              5 </span></span>
 <span><span class="co">#&gt;       Glossosoma sp1 FW_012_01      Homoplectra sp1 FW_012_01 </span></span>
-<span><span class="co">#&gt;                              4                              4 </span></span>
+<span><span class="co">#&gt;                              2                              3 </span></span>
 <span><span class="co">#&gt;       Hudsonimya sp1 FW_012_01      Hydropsyche sp1 FW_012_01 </span></span>
-<span><span class="co">#&gt;                              4                              5 </span></span>
+<span><span class="co">#&gt;                              2                              3 </span></span>
 <span><span class="co">#&gt;       Leucrocuta sp1 FW_012_01          Leuctra sp1 FW_012_01 </span></span>
-<span><span class="co">#&gt;                              2                              4 </span></span>
-<span><span class="co">#&gt;       Lumbriculiid oligochaete Parametriocnemus sp1 FW_012_01 </span></span>
 <span><span class="co">#&gt;                              5                              2 </span></span>
+<span><span class="co">#&gt;       Lumbriculiid oligochaete Parametriocnemus sp1 FW_012_01 </span></span>
+<span><span class="co">#&gt;                              3                              5 </span></span>
 <span><span class="co">#&gt;     Neureclipsis sp1 FW_012_01     Ophiogomphus sp1 FW_012_01 </span></span>
-<span><span class="co">#&gt;                              2                              4 </span></span>
+<span><span class="co">#&gt;                              5                              2 </span></span>
 <span><span class="co">#&gt;        Palpomyia sp1 FW_012_01        Palpomyia sp2 FW_012_01 </span></span>
-<span><span class="co">#&gt;                              4                              4 </span></span>
-<span><span class="co">#&gt;       Promoresia sp1 FW_012_01        Psephenus sp1 FW_012_01 </span></span>
 <span><span class="co">#&gt;                              2                              2 </span></span>
+<span><span class="co">#&gt;       Promoresia sp1 FW_012_01        Psephenus sp1 FW_012_01 </span></span>
+<span><span class="co">#&gt;                              5                              5 </span></span>
 <span><span class="co">#&gt;        Soliperla sp1 FW_012_01                Stenelmis adult </span></span>
-<span><span class="co">#&gt;                              4                              4 </span></span>
+<span><span class="co">#&gt;                              2                              2 </span></span>
 <span><span class="co">#&gt;        Stenelmis sp1 FW_012_01          Suwalia sp1 FW_012_01 </span></span>
-<span><span class="co">#&gt;                              4                              4 </span></span>
+<span><span class="co">#&gt;                              2                              2 </span></span>
 <span><span class="co">#&gt;               Tallaperla maria        Thaumalea sp1 FW_012_01 </span></span>
-<span><span class="co">#&gt;                              4                              2 </span></span>
+<span><span class="co">#&gt;                              2                              5 </span></span>
 <span><span class="co">#&gt;             Tipula abdominalis                     Salamander </span></span>
-<span><span class="co">#&gt;                              2                              4 </span></span>
+<span><span class="co">#&gt;                              5                              2 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [[3]]</span></span>
 <span><span class="co">#&gt;    Unidentified sp1 FW_012_02            Terrestrial plants </span></span>
 <span><span class="co">#&gt;                             1                             1 </span></span>
 <span><span class="co">#&gt;              Terrestrial bugs Achnanthes inflata var. elata </span></span>
-<span><span class="co">#&gt;                             3                             3 </span></span>
+<span><span class="co">#&gt;                             4                             4 </span></span>
 <span><span class="co">#&gt;         Achnanthes lanceolata           Achnanthes linearis </span></span>
-<span><span class="co">#&gt;                             3                             3 </span></span>
+<span><span class="co">#&gt;                             4                             4 </span></span>
 <span><span class="co">#&gt;        Achnanthes minutissima           Auodinella hermanii </span></span>
-<span><span class="co">#&gt;                             3                             3 </span></span>
+<span><span class="co">#&gt;                             4                             4 </span></span>
 <span><span class="co">#&gt;              Blue Green algae                     Calothrix </span></span>
-<span><span class="co">#&gt;                             3                             3 </span></span>
+<span><span class="co">#&gt;                             4                             4 </span></span>
 <span><span class="co">#&gt;          Cocconeis placentula                Cymbella kappi </span></span>
-<span><span class="co">#&gt;                             3                             3 </span></span>
+<span><span class="co">#&gt;                             4                             4 </span></span>
 <span><span class="co">#&gt;              Cymbella mulleri               Diatoma heimale </span></span>
-<span><span class="co">#&gt;                             3                             3 </span></span>
+<span><span class="co">#&gt;                             4                             4 </span></span>
 <span><span class="co">#&gt;             Epithemia turgida              Eunotia meisteri </span></span>
-<span><span class="co">#&gt;                             3                             3 </span></span>
+<span><span class="co">#&gt;                             4                             4 </span></span>
 <span><span class="co">#&gt;            Eunotia pectinalis         Fragilaria vaucheriae </span></span>
-<span><span class="co">#&gt;                             3                             3 </span></span>
+<span><span class="co">#&gt;                             4                             4 </span></span>
 <span><span class="co">#&gt;          Frustulia rhomboides         Gomphoneis herculeana </span></span>
-<span><span class="co">#&gt;                             3                             3 </span></span>
+<span><span class="co">#&gt;                             4                             4 </span></span>
 <span><span class="co">#&gt;        Gomphonema accuminatum         Gomphonema angustatum </span></span>
-<span><span class="co">#&gt;                             3                             3 </span></span>
+<span><span class="co">#&gt;                             4                             4 </span></span>
 <span><span class="co">#&gt;         Gomphonema intricatum         Gomphonema tennuellum </span></span>
-<span><span class="co">#&gt;                             3                             3 </span></span>
+<span><span class="co">#&gt;                             4                             4 </span></span>
 <span><span class="co">#&gt;                  Marssoniella             Navicula avenacea </span></span>
-<span><span class="co">#&gt;                             3                             3 </span></span>
+<span><span class="co">#&gt;                             4                             4 </span></span>
 <span><span class="co">#&gt;        Navicula cryptocephala               Navicula mutica </span></span>
-<span><span class="co">#&gt;                             3                             3 </span></span>
+<span><span class="co">#&gt;                             4                             4 </span></span>
 <span><span class="co">#&gt;        Navicula sp1 FW_012_02            Pinnularia viridis </span></span>
-<span><span class="co">#&gt;                             3                             3 </span></span>
+<span><span class="co">#&gt;                             4                             4 </span></span>
 <span><span class="co">#&gt;         Rhoicosphenia curvata                    Rhopalodia </span></span>
-<span><span class="co">#&gt;                             3                             3 </span></span>
+<span><span class="co">#&gt;                             4                             4 </span></span>
 <span><span class="co">#&gt;         Surirella brebbisonii             Surirella elegans </span></span>
-<span><span class="co">#&gt;                             3                             3 </span></span>
+<span><span class="co">#&gt;                             4                             4 </span></span>
 <span><span class="co">#&gt;                   Synechoccus                  Synedra ulna </span></span>
-<span><span class="co">#&gt;                             3                             3 </span></span>
+<span><span class="co">#&gt;                             4                             4 </span></span>
 <span><span class="co">#&gt;                      Ulothrix    Unidentified sp2 FW_012_02 </span></span>
-<span><span class="co">#&gt;                             3                             3 </span></span>
+<span><span class="co">#&gt;                             4                             4 </span></span>
 <span><span class="co">#&gt;       Aeolosoma sp1 FW_012_02                 Ajax longipes </span></span>
-<span><span class="co">#&gt;                             5                             4 </span></span>
+<span><span class="co">#&gt;                             3                             2 </span></span>
 <span><span class="co">#&gt;               Amphinemura wui           Anchytarsus bicolor </span></span>
-<span><span class="co">#&gt;                             2                             4 </span></span>
+<span><span class="co">#&gt;                             5                             2 </span></span>
 <span><span class="co">#&gt;                        Baetis                    Hudsonimya </span></span>
-<span><span class="co">#&gt;                             2                             4 </span></span>
+<span><span class="co">#&gt;                             5                             2 </span></span>
 <span><span class="co">#&gt;                    Cricotopus                     Dicranota </span></span>
-<span><span class="co">#&gt;                             2                             4 </span></span>
+<span><span class="co">#&gt;                             5                             2 </span></span>
 <span><span class="co">#&gt;  Eukieffidrella pseudomontana           Diplectrona modesta </span></span>
-<span><span class="co">#&gt;                             4                             4 </span></span>
+<span><span class="co">#&gt;                             2                             2 </span></span>
 <span><span class="co">#&gt;                       Dixella                  Dolophilodes </span></span>
-<span><span class="co">#&gt;                             4                             4 </span></span>
+<span><span class="co">#&gt;                             2                             2 </span></span>
 <span><span class="co">#&gt;            Ectopria thoracica                Epeorus dispar </span></span>
-<span><span class="co">#&gt;                             2                             2 </span></span>
+<span><span class="co">#&gt;                             5                             5 </span></span>
 <span><span class="co">#&gt;                  Fatigia pele        Hexatoma sp1 FW_012_02 </span></span>
-<span><span class="co">#&gt;                             4                             4 </span></span>
-<span><span class="co">#&gt;                       Leuctra             Oligo Lumbr. Blue </span></span>
 <span><span class="co">#&gt;                             2                             2 </span></span>
+<span><span class="co">#&gt;                       Leuctra             Oligo Lumbr. Blue </span></span>
+<span><span class="co">#&gt;                             3                             3 </span></span>
 <span><span class="co">#&gt;            Oligo. Lumbr. Pink                  Ophiogomphus </span></span>
-<span><span class="co">#&gt;                             4                             4 </span></span>
+<span><span class="co">#&gt;                             3                             2 </span></span>
 <span><span class="co">#&gt;             Paraleptophelebia                      Pericoma </span></span>
-<span><span class="co">#&gt;                             4                             2 </span></span>
+<span><span class="co">#&gt;                             2                             5 </span></span>
 <span><span class="co">#&gt;                       Pilaria      Pentaneuri sp1 FW_012_02 </span></span>
-<span><span class="co">#&gt;                             4                             2 </span></span>
+<span><span class="co">#&gt;                             2                             3 </span></span>
 <span><span class="co">#&gt;       Polycentropus maculatus                     Stenelmis </span></span>
-<span><span class="co">#&gt;                             4                             2 </span></span>
+<span><span class="co">#&gt;                             2                             5 </span></span>
 <span><span class="co">#&gt;              Tallaperla maria                     Tanyderid </span></span>
-<span><span class="co">#&gt;                             4                             4 </span></span>
+<span><span class="co">#&gt;                             2                             2 </span></span>
 <span><span class="co">#&gt;                 Conchapelopia                        Tipula </span></span>
-<span><span class="co">#&gt;                             4                             4 </span></span>
+<span><span class="co">#&gt;                             2                             2 </span></span>
 <span><span class="co">#&gt;              Wormaldia moesta                      Crayfish </span></span>
-<span><span class="co">#&gt;                             4                             4 </span></span>
+<span><span class="co">#&gt;                             2                             2 </span></span>
 <span><span class="co">#&gt;                    Salamander </span></span>
-<span><span class="co">#&gt;                             4</span></span></code></pre></div>
+<span><span class="co">#&gt;                             2</span></span></code></pre></div>
 <ul>
 <li>The prediction for each dyads in the networks, here for network
 number 3. If your goal is dyad prediction, then you should use
@@ -402,52 +405,56 @@ number 3. If your goal is dyad prediction, then you should use
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">best_fit</span><span class="op">$</span><span class="va">pred_dyads</span><span class="op">[[</span><span class="fl">3</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span>
 <span><span class="co">#&gt;                               Unidentified sp1 FW_012_02 Terrestrial plants</span></span>
-<span><span class="co">#&gt; Unidentified sp1 FW_012_02                  0.000000e+00       3.242817e-08</span></span>
-<span><span class="co">#&gt; Terrestrial plants                          3.242817e-08       0.000000e+00</span></span>
-<span><span class="co">#&gt; Terrestrial bugs                            1.458535e-09       1.458535e-09</span></span>
-<span><span class="co">#&gt; Achnanthes inflata var. elata               1.720842e-09       1.720842e-09</span></span>
-<span><span class="co">#&gt; Achnanthes lanceolata                       1.720829e-09       1.720829e-09</span></span>
-<span><span class="co">#&gt; Achnanthes linearis                         1.720829e-09       1.720829e-09</span></span>
-<span><span class="co">#&gt; Achnanthes minutissima                      1.720829e-09       1.720829e-09</span></span>
-<span><span class="co">#&gt; Auodinella hermanii                         1.521392e-09       1.521392e-09</span></span>
-<span><span class="co">#&gt; Blue Green algae                            1.720829e-09       1.720829e-09</span></span>
-<span><span class="co">#&gt; Calothrix                                   1.720950e-09       1.720950e-09</span></span>
+<span><span class="co">#&gt; Unidentified sp1 FW_012_02                  0.000000e+00       2.046018e-04</span></span>
+<span><span class="co">#&gt; Terrestrial plants                          2.046018e-04       0.000000e+00</span></span>
+<span><span class="co">#&gt; Terrestrial bugs                            3.266636e-06       3.266636e-06</span></span>
+<span><span class="co">#&gt; Achnanthes inflata var. elata               1.023083e-06       1.023083e-06</span></span>
+<span><span class="co">#&gt; Achnanthes lanceolata                       1.014993e-06       1.014993e-06</span></span>
+<span><span class="co">#&gt; Achnanthes linearis                         1.014738e-06       1.014738e-06</span></span>
+<span><span class="co">#&gt; Achnanthes minutissima                      1.016412e-06       1.016412e-06</span></span>
+<span><span class="co">#&gt; Auodinella hermanii                         2.339017e-06       2.339017e-06</span></span>
+<span><span class="co">#&gt; Blue Green algae                            1.015086e-06       1.015086e-06</span></span>
+<span><span class="co">#&gt; Calothrix                                   1.106559e-06       1.106559e-06</span></span>
 <span><span class="co">#&gt;                               Terrestrial bugs Achnanthes inflata var. elata</span></span>
-<span><span class="co">#&gt; Unidentified sp1 FW_012_02         0.118691521                  1.282868e-05</span></span>
-<span><span class="co">#&gt; Terrestrial plants                 0.118691521                  1.282868e-05</span></span>
-<span><span class="co">#&gt; Terrestrial bugs                   0.000000000                  8.618775e-07</span></span>
-<span><span class="co">#&gt; Achnanthes inflata var. elata      0.001788595                  0.000000e+00</span></span>
-<span><span class="co">#&gt; Achnanthes lanceolata              0.001788185                  9.952017e-07</span></span>
-<span><span class="co">#&gt; Achnanthes linearis                0.001788185                  9.952016e-07</span></span>
-<span><span class="co">#&gt; Achnanthes minutissima             0.001788184                  9.952016e-07</span></span>
-<span><span class="co">#&gt; Auodinella hermanii                0.001811382                  8.893870e-07</span></span>
-<span><span class="co">#&gt; Blue Green algae                   0.001788185                  9.952017e-07</span></span>
-<span><span class="co">#&gt; Calothrix                          0.001792375                  9.954391e-07</span></span>
+<span><span class="co">#&gt; Unidentified sp1 FW_012_02         0.121088033                  4.531901e-05</span></span>
+<span><span class="co">#&gt; Terrestrial plants                 0.121088033                  4.531901e-05</span></span>
+<span><span class="co">#&gt; Terrestrial bugs                   0.000000000                  4.525853e-06</span></span>
+<span><span class="co">#&gt; Achnanthes inflata var. elata      0.005987599                  0.000000e+00</span></span>
+<span><span class="co">#&gt; Achnanthes lanceolata              0.005983016                  5.117200e-06</span></span>
+<span><span class="co">#&gt; Achnanthes linearis                0.005982871                  5.117149e-06</span></span>
+<span><span class="co">#&gt; Achnanthes minutissima             0.005983818                  5.117480e-06</span></span>
+<span><span class="co">#&gt; Auodinella hermanii                0.005133356                  4.208144e-06</span></span>
+<span><span class="co">#&gt; Blue Green algae                   0.005983068                  5.117218e-06</span></span>
+<span><span class="co">#&gt; Calothrix                          0.006035075                  5.130186e-06</span></span>
 <span><span class="co">#&gt;                               Achnanthes lanceolata</span></span>
-<span><span class="co">#&gt; Unidentified sp1 FW_012_02             1.312743e-08</span></span>
-<span><span class="co">#&gt; Terrestrial plants                     1.312743e-08</span></span>
-<span><span class="co">#&gt; Terrestrial bugs                       1.090349e-09</span></span>
-<span><span class="co">#&gt; Achnanthes inflata var. elata          1.277824e-09</span></span>
+<span><span class="co">#&gt; Unidentified sp1 FW_012_02             7.141368e-08</span></span>
+<span><span class="co">#&gt; Terrestrial plants                     7.141368e-08</span></span>
+<span><span class="co">#&gt; Terrestrial bugs                       7.256724e-09</span></span>
+<span><span class="co">#&gt; Achnanthes inflata var. elata          8.223344e-09</span></span>
 <span><span class="co">#&gt; Achnanthes lanceolata                  0.000000e+00</span></span>
-<span><span class="co">#&gt; Achnanthes linearis                    1.277806e-09</span></span>
-<span><span class="co">#&gt; Achnanthes minutissima                 1.277806e-09</span></span>
-<span><span class="co">#&gt; Auodinella hermanii                    1.133119e-09</span></span>
-<span><span class="co">#&gt; Blue Green algae                       1.277807e-09</span></span>
-<span><span class="co">#&gt; Calothrix                              1.277979e-09</span></span></code></pre></div>
+<span><span class="co">#&gt; Achnanthes linearis                    8.221291e-09</span></span>
+<span><span class="co">#&gt; Achnanthes minutissima                 8.221812e-09</span></span>
+<span><span class="co">#&gt; Auodinella hermanii                    6.757226e-09</span></span>
+<span><span class="co">#&gt; Blue Green algae                       8.221399e-09</span></span>
+<span><span class="co">#&gt; Calothrix                              8.241566e-09</span></span></code></pre></div>
 <p>We can also plot the networks individually, with the groups reordered
 by trophic levels:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu">gtools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gtools/man/combinations.html" class="external-link">permutations</a></span><span class="op">(</span><span class="va">best_fit</span><span class="op">$</span><span class="va">Q</span>, <span class="va">best_fit</span><span class="op">$</span><span class="va">Q</span><span class="op">)</span></span>
 <span><span class="va">ind</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.min.html" class="external-link">which.min</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span><span class="op">)</span>, </span>
-<span>    <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> </span>
-<span>      <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/crossprod.html" class="external-link">tcrossprod</a></span><span class="op">(</span><span class="va">best_fit</span><span class="op">$</span><span class="va">pi</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span> <span class="op">*</span> <span class="va">best_fit</span><span class="op">$</span><span class="va">alpha</span> <span class="op">)</span><span class="op">[</span><span class="va">p</span><span class="op">[</span><span class="va">x</span>,<span class="op">]</span>,<span class="va">p</span><span class="op">[</span><span class="va">x</span>,<span class="op">]</span><span class="op">]</span><span class="op">[</span></span>
-<span>        <span class="fu"><a href="https://rdrr.io/r/base/lower.tri.html" class="external-link">upper.tri</a></span><span class="op">(</span><span class="va">best_fit</span><span class="op">$</span><span class="va">alpha</span><span class="op">)</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">ord</span> <span class="op">&lt;-</span> <span class="va">p</span><span class="op">[</span><span class="va">ind</span>,<span class="op">]</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res_fw_iid</span><span class="op">$</span><span class="va">best_fit</span>, type <span class="op">=</span> <span class="st">"block"</span>, net_id <span class="op">=</span> <span class="fl">1</span>, ord <span class="op">=</span> <span class="va">ord</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
+<span>      <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/crossprod.html" class="external-link">tcrossprod</a></span><span class="op">(</span><span class="va">best_fit</span><span class="op">$</span><span class="va">pi</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span> <span class="op">*</span> <span class="va">best_fit</span><span class="op">$</span><span class="va">alpha</span><span class="op">)</span><span class="op">[</span><span class="va">p</span><span class="op">[</span><span class="va">x</span>, <span class="op">]</span>, <span class="va">p</span><span class="op">[</span><span class="va">x</span>, <span class="op">]</span><span class="op">]</span><span class="op">[</span></span>
+<span>        <span class="fu"><a href="https://rdrr.io/r/base/lower.tri.html" class="external-link">upper.tri</a></span><span class="op">(</span><span class="va">best_fit</span><span class="op">$</span><span class="va">alpha</span><span class="op">)</span></span>
+<span>      <span class="op">]</span><span class="op">)</span></span>
+<span>    <span class="op">}</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">ord</span> <span class="op">&lt;-</span> <span class="va">p</span><span class="op">[</span><span class="va">ind</span>, <span class="op">]</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res_fw_iid</span><span class="op">$</span><span class="va">best_fit</span>, type <span class="op">=</span> <span class="st">"block"</span>, net_id <span class="op">=</span> <span class="fl">1</span>, ord <span class="op">=</span> <span class="va">ord</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res_fw_iid</span><span class="op">$</span><span class="va">best_fit</span>, type <span class="op">=</span> <span class="st">"block"</span>, net_id <span class="op">=</span> <span class="fl">2</span>, ord <span class="op">=</span> <span class="va">ord</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res_fw_iid</span><span class="op">$</span><span class="va">best_fit</span>, type <span class="op">=</span> <span class="st">"block"</span>, net_id <span class="op">=</span> <span class="fl">3</span>, ord <span class="op">=</span> <span class="va">ord</span><span class="op">)</span> </span></code></pre></div>
+<span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res_fw_iid</span><span class="op">$</span><span class="va">best_fit</span>, type <span class="op">=</span> <span class="st">"block"</span>, net_id <span class="op">=</span> <span class="fl">3</span>, ord <span class="op">=</span> <span class="va">ord</span><span class="op">)</span></span></code></pre></div>
 <p><img src="tutorial_files/figure-html/plot-block-1.png" width="700"></p>
 <p>Or make different plots to exhibit the mesoscale structure:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
@@ -468,36 +475,43 @@ by trophic levels:</p>
 that looks alike foodwebs.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span></span>
-<span><span class="va">alpha</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.05</span>, <span class="fl">.01</span>, <span class="fl">.01</span>, <span class="fl">.01</span>,</span>
-<span>                  <span class="fl">.3</span>, <span class="fl">.05</span>, <span class="fl">.01</span>, <span class="fl">.01</span>,</span>
-<span>                  <span class="fl">.5</span>, <span class="fl">.4</span>, <span class="fl">.05</span>, <span class="fl">.01</span>,</span>
-<span>                  <span class="fl">.1</span>, <span class="fl">.8</span>, <span class="fl">.1</span>, <span class="fl">.05</span><span class="op">)</span>, <span class="fl">4</span>, <span class="fl">4</span>, byrow <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">alpha</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>  <span class="fl">.05</span>, <span class="fl">.01</span>, <span class="fl">.01</span>, <span class="fl">.01</span>,</span>
+<span>  <span class="fl">.3</span>, <span class="fl">.05</span>, <span class="fl">.01</span>, <span class="fl">.01</span>,</span>
+<span>  <span class="fl">.5</span>, <span class="fl">.4</span>, <span class="fl">.05</span>, <span class="fl">.01</span>,</span>
+<span>  <span class="fl">.1</span>, <span class="fl">.8</span>, <span class="fl">.1</span>, <span class="fl">.05</span></span>
+<span><span class="op">)</span>, <span class="fl">4</span>, <span class="fl">4</span>, byrow <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">pi</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.1</span>, <span class="fl">.2</span>, <span class="fl">.6</span>, <span class="fl">.1</span><span class="op">)</span></span>
-<span><span class="va">sim_net</span> <span class="op">&lt;-</span> </span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">replicate</a></span><span class="op">(</span><span class="fl">3</span>, </span>
-<span>            <span class="op">{</span><span class="va">X</span> <span class="op">&lt;-</span> </span>
-<span>              <span class="fu">sbm</span><span class="fu">::</span><span class="fu"><a href="https://grosssbm.github.io/sbm/reference/sampleSimpleSBM.html" class="external-link">sampleSimpleSBM</a></span><span class="op">(</span><span class="fl">100</span>, blockProp <span class="op">=</span> <span class="va">pi</span>, connectParam <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mean <span class="op">=</span> <span class="va">alpha</span><span class="op">)</span>, </span>
-<span>                     directed <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span>            <span class="va">X</span><span class="op">$</span><span class="va">rNetwork</span></span>
-<span>            <span class="va">X</span><span class="op">$</span><span class="va">networkData</span><span class="op">}</span>, simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">sim_net</span> <span class="op">&lt;-</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">replicate</a></span><span class="op">(</span><span class="fl">3</span>,</span>
+<span>    <span class="op">{</span></span>
+<span>      <span class="va">X</span> <span class="op">&lt;-</span></span>
+<span>        <span class="fu">sbm</span><span class="fu">::</span><span class="fu"><a href="https://grosssbm.github.io/sbm/reference/sampleSimpleSBM.html" class="external-link">sampleSimpleSBM</a></span><span class="op">(</span><span class="fl">100</span>,</span>
+<span>          blockProp <span class="op">=</span> <span class="va">pi</span>, connectParam <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mean <span class="op">=</span> <span class="va">alpha</span><span class="op">)</span>,</span>
+<span>          directed <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>        <span class="op">)</span></span>
+<span>      <span class="va">X</span><span class="op">$</span><span class="va">rNetwork</span></span>
+<span>      <span class="va">X</span><span class="op">$</span><span class="va">networkData</span></span>
+<span>    <span class="op">}</span>,</span>
+<span>    simplify <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  <span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span></span>
-<span><span class="va">net_clust</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/clusterize_networks.html">clusterize_networks</a></span><span class="op">(</span>netlist <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">foodwebs</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>, <span class="va">sim_net</span><span class="op">)</span>, <span class="co"># A list of networks</span></span>
-<span>                              colsbm_model <span class="op">=</span> <span class="st">"iid"</span>, <span class="co"># The name of the model</span></span>
-<span>                              directed <span class="op">=</span> <span class="cn">TRUE</span>, <span class="co"># Foodwebs are directed networks</span></span>
-<span>                              net_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">foodwebs</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>, <span class="st">"sim1"</span>, <span class="st">"sim2"</span>, <span class="st">"sim3"</span><span class="op">)</span>, <span class="co"># Name of the networks</span></span>
-<span>                              nb_run <span class="op">=</span> <span class="fl">1L</span>, <span class="co"># Nmber of runs of the algorithm</span></span>
-<span>                              global_opts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>verbosity <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>                                                 plot_details <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>                                                 Q_max <span class="op">=</span> <span class="fl">9</span><span class="op">)</span> <span class="co">#Max number of clusters</span></span>
-<span>                              <span class="op">)</span></span>
-<span><span class="co">#&gt; Please install the progress-package in order to get a progress bar.</span></span>
-<span><span class="co">#&gt; Please install the progress-package in order to get a progress bar.</span></span>
-<span><span class="co">#&gt; Please install the progress-package in order to get a progress bar.</span></span>
-<span><span class="co">#&gt; Please install the progress-package in order to get a progress bar.</span></span>
-<span><span class="co">#&gt; Please install the progress-package in order to get a progress bar.</span></span>
-<span><span class="co">#&gt; Please install the progress-package in order to get a progress bar.</span></span>
-<span><span class="co">#&gt; Please install the progress-package in order to get a progress bar.</span></span></code></pre></div>
+<span></span>
+<span><span class="va">net_clust</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/clusterize_networks.html">clusterize_networks</a></span><span class="op">(</span></span>
+<span>  netlist <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">foodwebs</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>, <span class="va">sim_net</span><span class="op">)</span>, <span class="co"># A list of networks</span></span>
+<span>  colsbm_model <span class="op">=</span> <span class="st">"iid"</span>, <span class="co"># The name of the model</span></span>
+<span>  directed <span class="op">=</span> <span class="cn">TRUE</span>, <span class="co"># Foodwebs are directed networks</span></span>
+<span>  net_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">foodwebs</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>, <span class="st">"sim1"</span>, <span class="st">"sim2"</span>, <span class="st">"sim3"</span><span class="op">)</span>, <span class="co"># Name of the networks</span></span>
+<span>  nb_run <span class="op">=</span> <span class="fl">3L</span>, <span class="co"># Nmber of runs of the algorithm</span></span>
+<span>  global_opts <span class="op">=</span> <span class="co"># List of options</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>      verbosity <span class="op">=</span> <span class="fl">0</span>, <span class="co"># Verbosity level of the algorithm</span></span>
+<span>      plot_details <span class="op">=</span> <span class="fl">0</span>, <span class="co"># Monitoring plot of the algorithm</span></span>
+<span>      Q_max <span class="op">=</span> <span class="fl">9</span>, <span class="co"># Max number of clusters</span></span>
+<span>      backend <span class="op">=</span> <span class="st">"parallel"</span> <span class="co"># Backend for parallel computing</span></span>
+<span>    <span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p>We obtain a list of 3 models. The first one is for the full
 collection, and the second and third one are for the 3 foodwebs and the
 three collected networks. Here is a plot of the mesoscale structure
@@ -509,14 +523,19 @@ partition:</p>
 following:</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">net_clust</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>,</span>
-<span>    ord <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">net_clust</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">alpha</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">net_clust</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">pi</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span>  ord <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">net_clust</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">alpha</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">net_clust</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">pi</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p><img src="tutorial_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
 <p>but then we can compare the mesoscale structures of the 2 groups:</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">best_partition</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, type <span class="op">=</span> <span class="st">"graphon"</span>,</span>
-<span>     ord <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">best_partition</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">alpha</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">best_partition</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">pi</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>  <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">best_partition</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span>, type <span class="op">=</span> <span class="st">"graphon"</span>, </span>
-<span>       ord <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">best_partition</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">alpha</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">best_partition</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">pi</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">best_partition</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>,</span>
+<span>  type <span class="op">=</span> <span class="st">"graphon"</span>,</span>
+<span>  ord <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">best_partition</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">alpha</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">best_partition</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">pi</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">best_partition</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span>,</span>
+<span>    type <span class="op">=</span> <span class="st">"graphon"</span>,</span>
+<span>    ord <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">best_partition</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">alpha</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">best_partition</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">pi</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_layout.html" class="external-link">plot_layout</a></span><span class="op">(</span>guides <span class="op">=</span> <span class="st">"collect"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_annotation.html" class="external-link">plot_annotation</a></span><span class="op">(</span>tag_levels <span class="op">=</span> <span class="st">"1"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="tutorial_files/figure-html/plot-part-1.png" width="700"></p>
 </div>

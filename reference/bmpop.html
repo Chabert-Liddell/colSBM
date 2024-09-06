@@ -9,7 +9,7 @@ An R6 Class object, a collection of model for population of sbm netowrks"></head
 
     <a class="navbar-brand me-2" href="../index.html">colSBM</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -20,7 +20,8 @@ An R6 Class object, a collection of model for population of sbm netowrks"></head
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/tutorial.html">Tutorial on food webs</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/tutorial-bipartite.html">Tutorial on plant pollinator data</a></li>
+    <li><a class="dropdown-item" href="../articles/tutorial.html">Tutorial on food webs</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -45,13 +46,105 @@ An R6 Class object, a collection of model for population of sbm netowrks"></head
 
 
     <div class="section level2">
+    <h2 id="public-fields">Public fields<a class="anchor" aria-label="anchor" href="#public-fields"></a></h2>
+    <p></p><div class="r6-fields"><dl><dt><code>n</code></dt>
+<dd><p>A list of size M with the number of nodes per network</p></dd>
+
+
+<dt><code>A</code></dt>
+<dd><p>List of incidence Matrix of size <code>n \times n</code></p></dd>
+
+
+<dt><code>M</code></dt>
+<dd><p>Number of networks</p></dd>
+
+
+<dt><code>mask</code></dt>
+<dd><p>List of M masks, indicating NAs in the matrices. 1 for NA, 0 else</p></dd>
+
+
+<dt><code>directed</code></dt>
+<dd><p>A boolean indicating if the networks are directed or not</p></dd>
+
+
+<dt><code>distribution</code></dt>
+<dd><p>Emission distribution either : "poisson" or
+"bernoulli"</p></dd>
+
+
+<dt><code>net_id</code></dt>
+<dd><p>A vector containing the "ids" or names of the networks
+(if none given, they are set to their number in A list)</p></dd>
+
+
+<dt><code>model_list</code></dt>
+<dd><p>A list of size Q containing the best models</p></dd>
+
+
+<dt><code>global_opts</code></dt>
+<dd><p>A list of options for the model space exploration.
+See details for more information on which options are available.</p></dd>
+
+
+<dt><code>fit_opts</code></dt>
+<dd><p>A list of options specifically for fitting the models.</p></dd>
+
+
+<dt><code>fit_sbm</code></dt>
+<dd><p>Pre-fitted sbm objects</p></dd>
+
+
+<dt><code>Z_init</code></dt>
+<dd><p>A list of initializations for the Z memberships.</p></dd>
+
+
+<dt><code>free_density</code></dt>
+<dd><p>A boolean indicating if we consider free density or if
+all networks have the same density</p></dd>
+
+
+<dt><code>free_mixture</code></dt>
+<dd><p>A boolean signaling if there is free mixture</p></dd>
+
+
+<dt><code>ICL_sbm</code></dt>
+<dd><p>A list storing the ICL for each sbm fitted</p></dd>
+
+
+<dt><code>ICL</code></dt>
+<dd><p>A list of size Q storing the best ICL found for each Q</p></dd>
+
+
+<dt><code>BICL</code></dt>
+<dd><p>A list of size Q storing the best BICL found for each Q</p></dd>
+
+
+<dt><code>vbound</code></dt>
+<dd><p>A list of size Q storing the best vbound found for each Q</p></dd>
+
+
+<dt><code>best_fit</code></dt>
+<dd><p>A fitSimpleSBMPop object changing regularly to store
+the current best fit.</p></dd>
+
+
+<dt><code>logfactA</code></dt>
+<dd><p>A quantity used with the Poisson probability distribution</p></dd>
+
+
+<dt><code>improved</code></dt>
+<dd><p>A field use at each step to check if it has improved.</p></dd>
+
+
+</dl><p></p></div>
+    </div>
+    <div class="section level2">
     <h2 id="methods">Methods<a class="anchor" aria-label="anchor" href="#methods"></a></h2>
 
 <div class="section">
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
 
-<ul><li><p><a href="#method-bmpop-plot"><code>bmpop$plot()</code></a></p></li>
-<li><p><a href="#method-bmpop-new"><code>bmpop$new()</code></a></p></li>
+<ul><li><p><a href="#method-bmpop-new"><code>bmpop$new()</code></a></p></li>
 <li><p><a href="#method-bmpop-optimize_sbm"><code>bmpop$optimize_sbm()</code></a></p></li>
 <li><p><a href="#method-bmpop-optimize_from_sbm"><code>bmpop$optimize_from_sbm()</code></a></p></li>
 <li><p><a href="#method-bmpop-optimize_spectral"><code>bmpop$optimize_spectral()</code></a></p></li>
@@ -64,21 +157,13 @@ An R6 Class object, a collection of model for population of sbm netowrks"></head
 <li><p><a href="#method-bmpop-choose_models"><code>bmpop$choose_models()</code></a></p></li>
 <li><p><a href="#method-bmpop-show"><code>bmpop$show()</code></a></p></li>
 <li><p><a href="#method-bmpop-print"><code>bmpop$print()</code></a></p></li>
+<li><p><a href="#method-bmpop-plot"><code>bmpop$plot()</code></a></p></li>
 <li><p><a href="#method-bmpop-clone"><code>bmpop$clone()</code></a></p></li>
-</ul></div><p></p><hr><a id="method-bmpop-plot"></a><div class="section">
-<h3 id="method-plot-">Method <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code><a class="anchor" aria-label="anchor" href="#method-plot-"></a></h3>
-
-<div class="section">
-<h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">bmpop</span><span class="op">$</span><span class="fu">plot</span><span class="op">(</span>type <span class="op">=</span> <span class="st">"trace"</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-
-</div><p></p><hr><a id="method-bmpop-new"></a><div class="section">
+</ul></div><p></p><hr><a id="method-bmpop-new"></a><div class="section">
 <h3 id="method-new-">Method <code>new()</code><a class="anchor" aria-label="anchor" href="#method-new-"></a></h3>
-
-<div class="section">
-<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
+<p>Create a new instance of the bisbmpop object</p>
+<p>This class is generally called via the user function <code>estimate_colBiSBM</code></p><div class="section">
+<h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va"><a href="../reference/bmpop.html">bmpop</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  netlist <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  net_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -93,66 +178,231 @@ An R6 Class object, a collection of model for population of sbm netowrks"></head
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>netlist</code></dt>
+<dd><p>The list of M networks</p></dd>
+
+
+<dt><code>net_id</code></dt>
+<dd><p>A list of name for the networks, defaults to 1 to M if not
+provided</p></dd>
+
+
+<dt><code>directed</code></dt>
+<dd><p>A boolean indicating if the networks are directed or not</p></dd>
+
+
+<dt><code>distribution</code></dt>
+<dd><p>The emission distribution either "bernoulli" or
+"poisson"</p></dd>
+
+
+<dt><code>free_density</code></dt>
+<dd><p>If we account for different density between networks</p></dd>
+
+
+<dt><code>free_mixture</code></dt>
+<dd><p>A boolean indicating if there is free mixture</p></dd>
+
+
+<dt><code>fit_sbm</code></dt>
+<dd><p>The pre-fitted SBM</p></dd>
+
+
+<dt><code>Z_init</code></dt>
+<dd><p>A list providing a clustering of the nodes</p></dd>
+
+
+<dt><code>global_opts</code></dt>
+<dd><p>A list of global options used by the algorithm. See
+details of the user function for more information.</p></dd>
+
+
+<dt><code>fit_opts</code></dt>
+<dd><p>A list of fit options used by the algorithm. See
+details of the user function for more information.</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
+<p>A new 'sbmpop' object.
+Fit a list of SBM if fit_sbm == TRUE</p>
+</div>
 
 </div><p></p><hr><a id="method-bmpop-optimize_sbm"></a><div class="section">
 <h3 id="method-optimize-sbm-">Method <code>optimize_sbm()</code><a class="anchor" aria-label="anchor" href="#method-optimize-sbm-"></a></h3>
 
 <div class="section">
-<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">bmpop</span><span class="op">$</span><span class="fu">optimize_sbm</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p>nothing; but stores the values
+Fit the colSBM mode using sbm as initializations</p>
+</div>
 
 </div><p></p><hr><a id="method-bmpop-optimize_from_sbm"></a><div class="section">
 <h3 id="method-optimize-from-sbm-">Method <code>optimize_from_sbm()</code><a class="anchor" aria-label="anchor" href="#method-optimize-from-sbm-"></a></h3>
 
 <div class="section">
-<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">bmpop</span><span class="op">$</span><span class="fu">optimize_from_sbm</span><span class="op">(</span><span class="va">index</span>, <span class="va">Q</span>, <span class="va">nb_clusters</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>index</code></dt>
+<dd><p>The sequence of networks number going from 1 to M</p></dd>
+
+
+<dt><code>Q</code></dt>
+<dd><p>The number of clusters</p></dd>
+
+
+<dt><code>nb_clusters</code></dt>
+<dd><p>A subindex for model list, in practice always 1</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<p>bmpop object
+Fit the colSBM mode using spectral decompositions as initializations</p>
+</div>
 
 </div><p></p><hr><a id="method-bmpop-optimize_spectral"></a><div class="section">
 <h3 id="method-optimize-spectral-">Method <code>optimize_spectral()</code><a class="anchor" aria-label="anchor" href="#method-optimize-spectral-"></a></h3>
 
 <div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">bmpop</span><span class="op">$</span><span class="fu">optimize_spectral</span><span class="op">(</span><span class="va">index</span>, <span class="va">Q</span>, <span class="va">nb_clusters</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>index</code></dt>
+<dd><p>The sequence of networks number going from 1 to M</p></dd>
+
+
+<dt><code>Q</code></dt>
+<dd><p>The number of clusters</p></dd>
+
+
+<dt><code>nb_clusters</code></dt>
+<dd><p>A subindex for model list, in practice always 1</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<p>bmpop object
+Fit a colSBM model using a given initialization provided with Z for
+a specific network</p>
+</div>
 
 </div><p></p><hr><a id="method-bmpop-optimize_init"></a><div class="section">
 <h3 id="method-optimize-init-">Method <code>optimize_init()</code><a class="anchor" aria-label="anchor" href="#method-optimize-init-"></a></h3>
 
 <div class="section">
-<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">bmpop</span><span class="op">$</span><span class="fu">optimize_init</span><span class="op">(</span><span class="va">index</span>, <span class="va">Z</span>, <span class="va">Q</span>, <span class="va">nb_clusters</span>, Cpi <span class="op">=</span> <span class="cn">NULL</span>, Calpha <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>index</code></dt>
+<dd><p>The sequence of networks number going from 1 to M</p></dd>
+
+
+<dt><code>Z</code></dt>
+<dd><p>The provided initialization</p></dd>
+
+
+<dt><code>Q</code></dt>
+<dd><p>The number of clusters</p></dd>
+
+
+<dt><code>nb_clusters</code></dt>
+<dd><p>A subindex for model list, in practice always 1</p></dd>
+
+
+<dt><code>Cpi</code></dt>
+<dd><p>A list of size M containing the support for the possibly
+absent blocks, defaults to NULL</p></dd>
+
+
+<dt><code>Calpha</code></dt>
+<dd><p>A list of size M containing the support for the possibly
+absent interaction parameter, defaults to NULL</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<p>bmpop object
+Fit the whole colSBM mode using a given initialization provided with a
+given Z_init</p>
+</div>
 
 </div><p></p><hr><a id="method-bmpop-optimize_from_zinit"></a><div class="section">
 <h3 id="method-optimize-from-zinit-">Method <code>optimize_from_zinit()</code><a class="anchor" aria-label="anchor" href="#method-optimize-from-zinit-"></a></h3>
 
 <div class="section">
-<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">bmpop</span><span class="op">$</span><span class="fu">optimize_from_zinit</span><span class="op">(</span><span class="va">index</span>, <span class="va">Q</span>, <span class="va">nb_clusters</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>index</code></dt>
+<dd><p>The sequence of networks number going from 1 to M</p></dd>
+
+
+<dt><code>Q</code></dt>
+<dd><p>The number of clusters</p></dd>
+
+
+<dt><code>nb_clusters</code></dt>
+<dd><p>A subindex for model list, in practice always 1</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<p>bmpop object
+Burn-in method that performs the initialization
+necessary to next begin the search and model selection</p>
+</div>
 
 </div><p></p><hr><a id="method-bmpop-burn_in"></a><div class="section">
 <h3 id="method-burn-in-">Method <code>burn_in()</code><a class="anchor" aria-label="anchor" href="#method-burn-in-"></a></h3>
 
 <div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">bmpop</span><span class="op">$</span><span class="fu">burn_in</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<p>nothing; but stores the values
+This forward pass split the clusters found previously and reallocate the
+nodes to the new clusters</p>
+</div>
 
 </div><p></p><hr><a id="method-bmpop-forward_pass"></a><div class="section">
 <h3 id="method-forward-pass-">Method <code>forward_pass()</code><a class="anchor" aria-label="anchor" href="#method-forward-pass-"></a></h3>
 
 <div class="section">
-<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">bmpop</span><span class="op">$</span><span class="fu">forward_pass</span><span class="op">(</span></span>
 <span>  Q_min <span class="op">=</span> <span class="va">self</span><span class="op">$</span><span class="va">global_opts</span><span class="op">$</span><span class="va">Q_min</span>,</span>
 <span>  Q_max <span class="op">=</span> <span class="va">self</span><span class="op">$</span><span class="va">global_opts</span><span class="op">$</span><span class="va">Q_max</span>,</span>
@@ -161,12 +411,39 @@ An R6 Class object, a collection of model for population of sbm netowrks"></head
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>Q_min</code></dt>
+<dd><p>The minimal number of clusters, defaults to the global
+options Q_min parameter</p></dd>
+
+
+<dt><code>Q_max</code></dt>
+<dd><p>The max number of clusters, defaults to the global
+options Q_max parameter</p></dd>
+
+
+<dt><code>index</code></dt>
+<dd><p>The sequence of networks number going from 1 to M</p></dd>
+
+
+<dt><code>nb_clusters</code></dt>
+<dd><p>A subindex for model list, in practice always 1</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
+<p>Q - 1
+This backward pass merges the clusters found previously</p>
+</div>
 
 </div><p></p><hr><a id="method-bmpop-backward_pass"></a><div class="section">
 <h3 id="method-backward-pass-">Method <code>backward_pass()</code><a class="anchor" aria-label="anchor" href="#method-backward-pass-"></a></h3>
 
 <div class="section">
-<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">bmpop</span><span class="op">$</span><span class="fu">backward_pass</span><span class="op">(</span></span>
 <span>  Q_min <span class="op">=</span> <span class="va">self</span><span class="op">$</span><span class="va">global_opts</span><span class="op">$</span><span class="va">Q_min</span>,</span>
 <span>  Q_max <span class="op">=</span> <span class="va">self</span><span class="op">$</span><span class="va">global_opts</span><span class="op">$</span><span class="va">Q_max</span>,</span>
@@ -175,42 +452,134 @@ An R6 Class object, a collection of model for population of sbm netowrks"></head
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>Q_min</code></dt>
+<dd><p>The minimal number of clusters, defaults to the global
+options Q_min parameter</p></dd>
+
+
+<dt><code>Q_max</code></dt>
+<dd><p>The max number of clusters, defaults to the global
+options Q_max parameter</p></dd>
+
+
+<dt><code>index</code></dt>
+<dd><p>The sequence of networks number going from 1 to M</p></dd>
+
+
+<dt><code>nb_clusters</code></dt>
+<dd><p>A subindex for model list, in practice always 1</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
+<p>Q + 1
+The optimization method</p>
+</div>
 
 </div><p></p><hr><a id="method-bmpop-optimize"></a><div class="section">
 <h3 id="method-optimize-">Method <code><a href="https://rdrr.io/r/stats/optimize.html" class="external-link">optimize()</a></code><a class="anchor" aria-label="anchor" href="#method-optimize-"></a></h3>
-
-<div class="section">
-<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
+<p>This method performs the burn in and the steps of moving window with
+cluster splitting (forward pass) and merging (backward pass) around the mode found.</p><div class="section">
+<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">bmpop</span><span class="op">$</span><span class="fu">optimize</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
+<p>nothing; but stores the values
+Performs the model selection based on the BICL criterion</p>
+</div>
 
 </div><p></p><hr><a id="method-bmpop-choose_models"></a><div class="section">
 <h3 id="method-choose-models-">Method <code>choose_models()</code><a class="anchor" aria-label="anchor" href="#method-choose-models-"></a></h3>
 
 <div class="section">
-<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
+<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">bmpop</span><span class="op">$</span><span class="fu">choose_models</span><span class="op">(</span><span class="va">models</span>, <span class="va">Q</span>, index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="va">self</span><span class="op">$</span><span class="va">M</span><span class="op">)</span>, nb_clusters <span class="op">=</span> <span class="fl">1L</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>models</code></dt>
+<dd><p>The list of models in which to choose the best</p></dd>
+
+
+<dt><code>Q</code></dt>
+<dd><p>The value of Q for which the model selection is performed</p></dd>
+
+
+<dt><code>index</code></dt>
+<dd><p>The sequence of networks number going from 1 to M</p></dd>
+
+
+<dt><code>nb_clusters</code></dt>
+<dd><p>A subindex for model list, in practice always 1</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
+<p>The best models
+The message printed when one prints the object</p>
+</div>
 
 </div><p></p><hr><a id="method-bmpop-show"></a><div class="section">
 <h3 id="method-show-">Method <code>show()</code><a class="anchor" aria-label="anchor" href="#method-show-"></a></h3>
 
 <div class="section">
-<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
+<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">bmpop</span><span class="op">$</span><span class="fu">show</span><span class="op">(</span>type <span class="op">=</span> <span class="st">"Fitted Collection of Simple SBM"</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>type</code></dt>
+<dd><p>The title above the message.
+The print method</p></dd>
+
+
+</dl><p></p></div>
+</div>
 
 </div><p></p><hr><a id="method-bmpop-print"></a><div class="section">
 <h3 id="method-print-">Method <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code><a class="anchor" aria-label="anchor" href="#method-print-"></a></h3>
 
 <div class="section">
-<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
+<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">bmpop</span><span class="op">$</span><span class="fu">print</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
+<p>nothing; print to console
+Plot method</p>
+</div>
+
+</div><p></p><hr><a id="method-bmpop-plot"></a><div class="section">
+<h3 id="method-plot-">Method <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code><a class="anchor" aria-label="anchor" href="#method-plot-"></a></h3>
+
+<div class="section">
+<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">bmpop</span><span class="op">$</span><span class="fu">plot</span><span class="op">(</span>type <span class="op">=</span> <span class="st">"trace"</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>type</code></dt>
+<dd><p>the type of the plot</p></dd>
+
+
+<dt><code>...</code></dt>
+<dd></dd>
+
+
+</dl><p></p></div>
+</div>
 
 </div><p></p><hr><a id="method-bmpop-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
@@ -220,7 +589,7 @@ An R6 Class object, a collection of model for population of sbm netowrks"></head
 </div>
 
 <div class="section">
-<h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
+<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

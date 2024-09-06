@@ -13,7 +13,7 @@ once $optimize() is done"></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">colSBM</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -24,7 +24,8 @@ once $optimize() is done"></head><body>
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/tutorial.html">Tutorial on food webs</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/tutorial-bipartite.html">Tutorial on plant pollinator data</a></li>
+    <li><a class="dropdown-item" href="../articles/tutorial.html">Tutorial on food webs</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -51,13 +52,231 @@ once $optimize() is done</p>
 
 
     <div class="section level2">
+    <h2 id="public-fields">Public fields<a class="anchor" aria-label="anchor" href="#public-fields"></a></h2>
+    <p></p><div class="r6-fields"><dl><dt><code>n</code></dt>
+<dd><p>A list of size M with the number of nodes per network</p></dd>
+
+
+<dt><code>M</code></dt>
+<dd><p>Number of networks</p></dd>
+
+
+<dt><code>A</code></dt>
+<dd><p>List of incidence matrices of size <code>n \times n</code></p></dd>
+
+
+<dt><code>mask</code></dt>
+<dd><p>List of M masks, indicating NAs in the matrices. 1 for NA, 0 else</p></dd>
+
+
+<dt><code>nb_inter</code></dt>
+<dd><p>A vector of length M the number of unique non NA entries</p></dd>
+
+
+<dt><code>directed</code></dt>
+<dd><p>A boolean indicating if the networks are directed or not</p></dd>
+
+
+<dt><code>Q</code></dt>
+<dd><p>An integer indicating the number of blocks</p></dd>
+
+
+<dt><code>tau</code></dt>
+<dd><p>List of length M, variational parameters <code>n[m]xQ[m]</code> matrices</p></dd>
+
+
+<dt><code>alpha</code></dt>
+<dd><p>Matrix of size QxQ, connection parameters</p></dd>
+
+
+<dt><code>delta</code></dt>
+<dd><p>Vector of M,  density parameters with <code>delta[1] = 1</code></p></dd>
+
+
+<dt><code>pi</code></dt>
+<dd><p>List of M vectors of size Q, the mixture parameters</p></dd>
+
+
+<dt><code>e</code></dt>
+<dd><p>Vector of size M, the sum of unique entries</p></dd>
+
+
+<dt><code>emqr</code></dt>
+<dd><p>List of M QxQ matrix, the sum of edges between q and r in m</p></dd>
+
+
+<dt><code>nmqr</code></dt>
+<dd><p>List of M QxQ matrix, the number of entries between q and r in m</p></dd>
+
+
+<dt><code>pim</code></dt>
+<dd><p>List of M vectors of size Q, the mixture parameters (pi_tilde)</p></dd>
+
+
+<dt><code>alpham</code></dt>
+<dd><p>list of M QxQ matrix, the classic sbm parameters (alpha_tilde)</p></dd>
+
+
+<dt><code>free_mixture</code></dt>
+<dd><p>A boolean indicating if the model is with free
+mixture</p></dd>
+
+
+<dt><code>free_density</code></dt>
+<dd><p>A boolean indicating if the model is with free
+density</p></dd>
+
+
+<dt><code>weight</code></dt>
+<dd><p>A vector of size M for weighted likelihood</p></dd>
+
+
+<dt><code>distribution</code></dt>
+<dd><p>The emission distribution, either bernoulli or
+poisson</p></dd>
+
+
+<dt><code>Cpi</code></dt>
+<dd><p>A list of matrices of size Q x M containing TRUE (1)
+or FALSE (0) if the cluster is represented in the network m</p></dd>
+
+
+<dt><code>Calpha</code></dt>
+<dd><p>The corresponding support on the connectivity parameters
+computed with Cpi.</p></dd>
+
+
+<dt><code>mloss</code></dt>
+<dd><p>Loss on the M step of the VEM</p></dd>
+
+
+<dt><code>vloss</code></dt>
+<dd><p>Loss on the VE step of the VEM</p></dd>
+
+
+<dt><code>vbound</code></dt>
+<dd><p>The variational bound</p></dd>
+
+
+<dt><code>net_id</code></dt>
+<dd><p>A vector containing the "ids" or names of the networks
+(if none given, they are set to their number in A list)</p></dd>
+
+
+<dt><code>df_mixture</code></dt>
+<dd><p>The degrees of freedom for mixture parameters pi,used
+to compute penalty</p></dd>
+
+
+<dt><code>df_connect</code></dt>
+<dd><p>The degrees of freedom for connection parameters
+alpha,used to compute penalty</p></dd>
+
+
+<dt><code>df_density</code></dt>
+<dd><p>The degrees of freedom for density parameters delta,
+used to compute penalty</p></dd>
+
+
+<dt><code>logfactA</code></dt>
+<dd><p>A quantity used with the Poisson probability distribution</p></dd>
+
+
+<dt><code>init_method</code></dt>
+<dd><p>The initialization method used for the first clustering</p></dd>
+
+
+<dt><code>penalty</code></dt>
+<dd><p>The penalty computed based on the number of parameters</p></dd>
+
+
+<dt><code>Z</code></dt>
+<dd><p>The clusters memberships, a list of size M of two matrices : 1
+for rows clusters memberships and 2 for columns clusters memberships</p></dd>
+
+
+<dt><code>map</code></dt>
+<dd><p>Maximum a posteriori</p></dd>
+
+
+<dt><code>map_parameters</code></dt>
+<dd><p>MAP params</p></dd>
+
+
+<dt><code>ICL</code></dt>
+<dd><p>Stores the ICL of the model</p></dd>
+
+
+<dt><code>penalty_clustering</code></dt>
+<dd><p>Unused attribute</p></dd>
+
+
+<dt><code>BICL</code></dt>
+<dd><p>Stores the BICL of the model</p></dd>
+
+
+<dt><code>net_clustering</code></dt>
+<dd><p>Unused parameter</p></dd>
+
+
+<dt><code>counter_merge</code></dt>
+<dd><p>A counter for the merge (backward) steps</p></dd>
+
+
+<dt><code>counter_split</code></dt>
+<dd><p>A counter for the splitting (forward) steps</p></dd>
+
+
+<dt><code>fit_opts</code></dt>
+<dd><p>Fit parameters, used to determine the fitting method/</p></dd>
+
+
+</dl><p></p></div>
+    </div>
+    <div class="section level2">
+    <h2 id="active-bindings">Active bindings<a class="anchor" aria-label="anchor" href="#active-bindings"></a></h2>
+    <p></p><div class="r6-active-bindings"><dl><dt><code>dircoef</code></dt>
+<dd><p>The coefficients used change if the network is directed
+or not</p></dd>
+
+
+<dt><code>nb_nodes</code></dt>
+<dd><p>Returns n a list of the number of nodes per network</p></dd>
+
+
+<dt><code>nb_clusters</code></dt>
+<dd><p>Returns Q an integer with the number of blocks</p></dd>
+
+
+<dt><code>support</code></dt>
+<dd><p>Returns the Cpi, a list of M boolean matrices indicating
+which blocks are populated</p></dd>
+
+
+<dt><code>memberships</code></dt>
+<dd><p>Returns the tau, the probabilities of memberships
+"a posteriori", after seeing the data</p></dd>
+
+
+<dt><code>parameters</code></dt>
+<dd><p>Returns the list of parameters of the model, alpha, pi
+and delta</p></dd>
+
+
+<dt><code>pred_dyads</code></dt>
+<dd><p>Predicted dyads from the estimated probabilities and
+parameters</p></dd>
+
+
+</dl><p></p></div>
+    </div>
+    <div class="section level2">
     <h2 id="methods">Methods<a class="anchor" aria-label="anchor" href="#methods"></a></h2>
 
 <div class="section">
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
 
-<ul><li><p><a href="#method-fitSimpleSBMPop-plot"><code>fitSimpleSBMPop$plot()</code></a></p></li>
-<li><p><a href="#method-fitSimpleSBMPop-new"><code>fitSimpleSBMPop$new()</code></a></p></li>
+<ul><li><p><a href="#method-fitSimpleSBMPop-new"><code>fitSimpleSBMPop$new()</code></a></p></li>
 <li><p><a href="#method-fitSimpleSBMPop-compute_map"><code>fitSimpleSBMPop$compute_map()</code></a></p></li>
 <li><p><a href="#method-fitSimpleSBMPop-objective"><code>fitSimpleSBMPop$objective()</code></a></p></li>
 <li><p><a href="#method-fitSimpleSBMPop-vb_tau_alpha"><code>fitSimpleSBMPop$vb_tau_alpha()</code></a></p></li>
@@ -89,27 +308,12 @@ once $optimize() is done</p>
 <li><p><a href="#method-fitSimpleSBMPop-optimize"><code>fitSimpleSBMPop$optimize()</code></a></p></li>
 <li><p><a href="#method-fitSimpleSBMPop-show"><code>fitSimpleSBMPop$show()</code></a></p></li>
 <li><p><a href="#method-fitSimpleSBMPop-print"><code>fitSimpleSBMPop$print()</code></a></p></li>
+<li><p><a href="#method-fitSimpleSBMPop-plot"><code>fitSimpleSBMPop$plot()</code></a></p></li>
 <li><p><a href="#method-fitSimpleSBMPop-clone"><code>fitSimpleSBMPop$clone()</code></a></p></li>
-</ul></div><p></p><hr><a id="method-fitSimpleSBMPop-plot"></a><div class="section">
-<h3 id="method-plot-">Method <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code><a class="anchor" aria-label="anchor" href="#method-plot-"></a></h3>
-
-<div class="section">
-<h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">plot</span><span class="op">(</span></span>
-<span>  type <span class="op">=</span> <span class="st">"graphon"</span>,</span>
-<span>  ord <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  mixture <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  net_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  <span class="va">...</span></span>
-<span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-
-</div><p></p><hr><a id="method-fitSimpleSBMPop-new"></a><div class="section">
+</ul></div><p></p><hr><a id="method-fitSimpleSBMPop-new"></a><div class="section">
 <h3 id="method-new-">Method <code>new()</code><a class="anchor" aria-label="anchor" href="#method-new-"></a></h3>
-
-<div class="section">
-<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
+<p>Initializes the fitBipartiteSBMPop object</p><div class="section">
+<h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va"><a href="../reference/fitSimpleSBMPop.html">fitSimpleSBMPop</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  A <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  Q <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -129,174 +333,487 @@ once $optimize() is done</p>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>A</code></dt>
+<dd><p>List of incidence Matrix of size <code>n[[2]][m]xn[[2]][m]</code></p></dd>
+
+
+<dt><code>Q</code></dt>
+<dd><p>The number of blocks</p></dd>
+
+
+<dt><code>Z</code></dt>
+<dd><p>The block memberships, a list of size M of two matrices : 1
+for rows clusters memberships and 2 for columns clusters memberships</p></dd>
+
+
+<dt><code>mask</code></dt>
+<dd><p>List of M masks, indicating NAs in the matrices. 1 for NA, 0 else</p></dd>
+
+
+<dt><code>net_id</code></dt>
+<dd><p>A vector containing the "ids" or names of the networks
+(if none given, they are set to their number in A list)</p></dd>
+
+
+<dt><code>distribution</code></dt>
+<dd><p>Emission distribution either : "poisson" or
+"bernoulli"</p></dd>
+
+
+<dt><code>free_mixture</code></dt>
+<dd><p>A boolean indicating if there is a free mixture</p></dd>
+
+
+<dt><code>free_density</code></dt>
+<dd><p>A boolean indicating if there is a free_density</p></dd>
+
+
+<dt><code>directed</code></dt>
+<dd><p>A boolean specifying if the networks are directed or not</p></dd>
+
+
+<dt><code>init_method</code></dt>
+<dd><p>The initialization method used for the first clustering</p></dd>
+
+
+<dt><code>weight</code></dt>
+<dd><p>A vector of size M for weighted likelihood</p></dd>
+
+
+<dt><code>Cpi</code></dt>
+<dd><p>A list of matrices of size Qd x M containing TRUE (1)
+or FALSE (0) if the d-th dimension cluster is represented
+in the network m</p></dd>
+
+
+<dt><code>Calpha</code></dt>
+<dd><p>The corresponding support on the connectivity parameters
+computed with Cpi.</p></dd>
+
+
+<dt><code>logfactA</code></dt>
+<dd><p>A quantity used with the Poisson probability distribution</p></dd>
+
+
+<dt><code>fit_opts</code></dt>
+<dd><p>Fit parameters, used to determine the fitting method/
+Method to compute the maximum a posteriori for Z clustering</p></dd>
+
+
+<dt><code>greedy_exploration_starting_point</code></dt>
+<dd><p>Stores the coordinates Q1 &amp; Q2
+from the greedy exploration to  keep track of the starting_point</p></dd>
+
+
+</dl><p></p></div>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-compute_map"></a><div class="section">
 <h3 id="method-compute-map-">Method <code>compute_map()</code><a class="anchor" aria-label="anchor" href="#method-compute-map-"></a></h3>
 
 <div class="section">
-<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">compute_map</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
+<p>nothing; stores the values
+Objective function</p>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-objective"></a><div class="section">
 <h3 id="method-objective-">Method <code>objective()</code><a class="anchor" aria-label="anchor" href="#method-objective-"></a></h3>
 
 <div class="section">
-<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">objective</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p>The evaluation of the function
+Computes the portion of the vbound with tau and alpha</p>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-vb_tau_alpha"></a><div class="section">
 <h3 id="method-vb-tau-alpha-">Method <code>vb_tau_alpha()</code><a class="anchor" aria-label="anchor" href="#method-vb-tau-alpha-"></a></h3>
 
 <div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">vb_tau_alpha</span><span class="op">(</span><span class="va">m</span>, map <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>m</code></dt>
+<dd><p>The id of the network for which to compute</p></dd>
+
+
+<dt><code>map</code></dt>
+<dd><p>Wether to use the MAP parameters or not, a boolean, defaults
+to FALSE.</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<p>The computed quantity.</p>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-vb_tau_pi"></a><div class="section">
 <h3 id="method-vb-tau-pi-">Method <code>vb_tau_pi()</code><a class="anchor" aria-label="anchor" href="#method-vb-tau-pi-"></a></h3>
 
 <div class="section">
-<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">vb_tau_pi</span><span class="op">(</span><span class="va">m</span>, map <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>m</code></dt>
+<dd><p>The id of the network for which to compute</p></dd>
+
+
+<dt><code>map</code></dt>
+<dd><p>Wether to use the MAP parameters or not, a boolean, defaults
+to FALSE.</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<p>The computed quantity.
+Computes the entropy of the model</p>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-entropy_tau"></a><div class="section">
 <h3 id="method-entropy-tau-">Method <code>entropy_tau()</code><a class="anchor" aria-label="anchor" href="#method-entropy-tau-"></a></h3>
 
 <div class="section">
-<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">entropy_tau</span><span class="op">(</span><span class="va">m</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>m</code></dt>
+<dd><p>The id of the network for which to compute</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<p>The computed quantity.
+Objective function for the variational bound regarding
+the alpha and delta parameters.</p>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-fn_vb_alpha_delta"></a><div class="section">
 <h3 id="method-fn-vb-alpha-delta-">Method <code>fn_vb_alpha_delta()</code><a class="anchor" aria-label="anchor" href="#method-fn-vb-alpha-delta-"></a></h3>
 
 <div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">fn_vb_alpha_delta</span><span class="op">(</span><span class="va">par</span>, <span class="va">emqr</span>, <span class="va">nmqr</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>par</code></dt>
+<dd><p>The parameters, alpha and delta combined in one big vector.</p></dd>
+
+
+<dt><code>emqr</code></dt>
+<dd><p>List of M QxQ matrix, the sum of edges between q and r in m</p></dd>
+
+
+<dt><code>nmqr</code></dt>
+<dd><p>List of M QxQ matrix, the number of entries between q and r
+in m</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<p>The evaluation of the function
+Gradient of the objective function for the variational bound regarding
+the alpha and delta parameters.</p>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-gr_vb_alpha_delta"></a><div class="section">
 <h3 id="method-gr-vb-alpha-delta-">Method <code>gr_vb_alpha_delta()</code><a class="anchor" aria-label="anchor" href="#method-gr-vb-alpha-delta-"></a></h3>
 
 <div class="section">
-<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">gr_vb_alpha_delta</span><span class="op">(</span><span class="va">par</span>, <span class="va">emqr</span>, <span class="va">nmqr</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>par</code></dt>
+<dd><p>The parameters, alpha and delta combined in one big vector.</p></dd>
+
+
+<dt><code>emqr</code></dt>
+<dd><p>List of M QxQ matrix, the sum of edges between q and r in m</p></dd>
+
+
+<dt><code>nmqr</code></dt>
+<dd><p>List of M QxQ matrix, the number of entries between q and r
+in m</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<p>The evaluation of the function
+Constraint</p>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-eval_g0_vb_alpha_delta"></a><div class="section">
 <h3 id="method-eval-g-vb-alpha-delta-">Method <code>eval_g0_vb_alpha_delta()</code><a class="anchor" aria-label="anchor" href="#method-eval-g-vb-alpha-delta-"></a></h3>
 
 <div class="section">
-<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">eval_g0_vb_alpha_delta</span><span class="op">(</span><span class="va">par</span>, <span class="va">emqr</span>, <span class="va">nmqr</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>par</code></dt>
+<dd><p>The parameters, alpha and delta combined in one big vector.</p></dd>
+
+
+<dt><code>emqr</code></dt>
+<dd><p>List of M QxQ matrix, the sum of edges between q and r in m</p></dd>
+
+
+<dt><code>nmqr</code></dt>
+<dd><p>List of M QxQ matrix, the number of entries between q and r
+in m</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
+<p>The evaluation of the function
+Jacobian of the constraint</p>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-eval_jac_g0_vb_alpha_delta"></a><div class="section">
 <h3 id="method-eval-jac-g-vb-alpha-delta-">Method <code>eval_jac_g0_vb_alpha_delta()</code><a class="anchor" aria-label="anchor" href="#method-eval-jac-g-vb-alpha-delta-"></a></h3>
 
 <div class="section">
-<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
+<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">eval_jac_g0_vb_alpha_delta</span><span class="op">(</span><span class="va">par</span>, <span class="va">emqr</span>, <span class="va">nmqr</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>par</code></dt>
+<dd><p>The parameters, alpha and delta combined in one big vector.</p></dd>
+
+
+<dt><code>emqr</code></dt>
+<dd><p>List of M QxQ matrix, the sum of edges between q and r in m</p></dd>
+
+
+<dt><code>nmqr</code></dt>
+<dd><p>List of M QxQ matrix, the number of entries between q and r
+in m</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
+<p>The evaluation of the function
+Updates the alpha and delta parameters</p>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-update_alpha_delta"></a><div class="section">
 <h3 id="method-update-alpha-delta-">Method <code>update_alpha_delta()</code><a class="anchor" aria-label="anchor" href="#method-update-alpha-delta-"></a></h3>
 
 <div class="section">
-<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
+<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">update_alpha_delta</span><span class="op">(</span>map <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>map</code></dt>
+<dd><p>Wether to use the MAP parameters or not, a boolean, defaults
+to FALSE.</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
+<p>nothing; but stores the values
+Computes the variational bound (vbound)</p>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-compute_vbound"></a><div class="section">
 <h3 id="method-compute-vbound-">Method <code>compute_vbound()</code><a class="anchor" aria-label="anchor" href="#method-compute-vbound-"></a></h3>
 
 <div class="section">
-<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
+<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">compute_vbound</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
+<p>The variational bound for the model.
+Computes the penalty for the model</p>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-compute_penalty"></a><div class="section">
 <h3 id="method-compute-penalty-">Method <code>compute_penalty()</code><a class="anchor" aria-label="anchor" href="#method-compute-penalty-"></a></h3>
 
 <div class="section">
-<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
+<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">compute_penalty</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
+<p>the computed penalty using the formulae.
+Computes the ICL criterion</p>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-compute_icl"></a><div class="section">
 <h3 id="method-compute-icl-">Method <code>compute_icl()</code><a class="anchor" aria-label="anchor" href="#method-compute-icl-"></a></h3>
 
 <div class="section">
-<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
+<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">compute_icl</span><span class="op">(</span>map <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>map</code></dt>
+<dd><p>Wether to use the MAP parameters or not, a boolean, defaults
+to FALSE.</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
+<p>The ICL for the model.
+Computes the BICL criterion</p>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-compute_BICL"></a><div class="section">
 <h3 id="method-compute-bicl-">Method <code>compute_BICL()</code><a class="anchor" aria-label="anchor" href="#method-compute-bicl-"></a></h3>
 
 <div class="section">
-<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
+<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">compute_BICL</span><span class="op">(</span>map <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>map</code></dt>
+<dd><p>Wether to use the MAP parameters or not, a boolean, defaults
+to FALSE.</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a></h4>
+<p>The ICL for the model.
+Computes the exact ICL criterion</p>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-compute_exact_icl"></a><div class="section">
 <h3 id="method-compute-exact-icl-">Method <code>compute_exact_icl()</code><a class="anchor" aria-label="anchor" href="#method-compute-exact-icl-"></a></h3>
 
 <div class="section">
-<h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
+<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">compute_exact_icl</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="returns-14">Returns<a class="anchor" aria-label="anchor" href="#returns-14"></a></h4>
+<p>The exact ICL for the model.
+Computes the exact ICL criterion for iid</p>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-compute_exact_icl_iid"></a><div class="section">
 <h3 id="method-compute-exact-icl-iid-">Method <code>compute_exact_icl_iid()</code><a class="anchor" aria-label="anchor" href="#method-compute-exact-icl-iid-"></a></h3>
 
 <div class="section">
-<h4 id="usage-17">Usage<a class="anchor" aria-label="anchor" href="#usage-17"></a></h4>
+<h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">compute_exact_icl_iid</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="returns-15">Returns<a class="anchor" aria-label="anchor" href="#returns-15"></a></h4>
+<p>The exact ICL for the iid model.
+Updates the MAP parameters</p>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-update_map_parameters"></a><div class="section">
 <h3 id="method-update-map-parameters-">Method <code>update_map_parameters()</code><a class="anchor" aria-label="anchor" href="#method-update-map-parameters-"></a></h3>
 
 <div class="section">
-<h4 id="usage-18">Usage<a class="anchor" aria-label="anchor" href="#usage-18"></a></h4>
+<h4 id="usage-17">Usage<a class="anchor" aria-label="anchor" href="#usage-17"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">update_map_parameters</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="returns-16">Returns<a class="anchor" aria-label="anchor" href="#returns-16"></a></h4>
+<p>nothing; but stores the values
+Method to update tau values with a fixed-point algorithm</p>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-fixed_point_tau"></a><div class="section">
 <h3 id="method-fixed-point-tau-">Method <code>fixed_point_tau()</code><a class="anchor" aria-label="anchor" href="#method-fixed-point-tau-"></a></h3>
 
 <div class="section">
-<h4 id="usage-19">Usage<a class="anchor" aria-label="anchor" href="#usage-19"></a></h4>
+<h4 id="usage-18">Usage<a class="anchor" aria-label="anchor" href="#usage-18"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">fixed_point_tau</span><span class="op">(</span><span class="va">m</span>, max_iter <span class="op">=</span> <span class="fl">1</span>, tol <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>m</code></dt>
+<dd><p>The number of the network in the netlist</p></dd>
+
+
+<dt><code>max_iter</code></dt>
+<dd><p>The maximum number of iterations to perform, defaults
+to 1</p></dd>
+
+
+<dt><code>tol</code></dt>
+<dd><p>The tolerance for which to stop iterating defaults to 1e-2</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-17">Returns<a class="anchor" aria-label="anchor" href="#returns-17"></a></h4>
+<p>The new tau values
+Fixed point to update alpha and delta</p>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-fixed_point_alpha_delta"></a><div class="section">
 <h3 id="method-fixed-point-alpha-delta-">Method <code>fixed_point_alpha_delta()</code><a class="anchor" aria-label="anchor" href="#method-fixed-point-alpha-delta-"></a></h3>
 
 <div class="section">
-<h4 id="usage-20">Usage<a class="anchor" aria-label="anchor" href="#usage-20"></a></h4>
+<h4 id="usage-19">Usage<a class="anchor" aria-label="anchor" href="#usage-19"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">fixed_point_alpha_delta</span><span class="op">(</span></span>
 <span>  map <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  max_iter <span class="op">=</span> <span class="fl">50</span>,</span>
@@ -304,114 +821,340 @@ once $optimize() is done</p>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>map</code></dt>
+<dd><p>A boolean wether to use MAP parameters or not, defaults to
+FALSE</p></dd>
+
+
+<dt><code>max_iter</code></dt>
+<dd><p>The maximum number of iterations, default to 50</p></dd>
+
+
+<dt><code>tol</code></dt>
+<dd><p>The tolerance for which to stop iterating</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-18">Returns<a class="anchor" aria-label="anchor" href="#returns-18"></a></h4>
+<p>nothing; stores the values
+Computes the pi for the whole model</p>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-update_pi"></a><div class="section">
 <h3 id="method-update-pi-">Method <code>update_pi()</code><a class="anchor" aria-label="anchor" href="#method-update-pi-"></a></h3>
 
 <div class="section">
-<h4 id="usage-21">Usage<a class="anchor" aria-label="anchor" href="#usage-21"></a></h4>
+<h4 id="usage-20">Usage<a class="anchor" aria-label="anchor" href="#usage-20"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">update_pi</span><span class="op">(</span><span class="va">m</span>, map <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>m</code></dt>
+<dd><p>The number of the network in the netlist</p></dd>
+
+
+<dt><code>map</code></dt>
+<dd><p>A boolean wether to use the MAP parameters or not, defaults to
+FALSE</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-19">Returns<a class="anchor" aria-label="anchor" href="#returns-19"></a></h4>
+<p>the pi and stores the values
+Computes the pi per network, known as the pim</p>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-update_pim"></a><div class="section">
 <h3 id="method-update-pim-">Method <code>update_pim()</code><a class="anchor" aria-label="anchor" href="#method-update-pim-"></a></h3>
 
 <div class="section">
-<h4 id="usage-22">Usage<a class="anchor" aria-label="anchor" href="#usage-22"></a></h4>
+<h4 id="usage-21">Usage<a class="anchor" aria-label="anchor" href="#usage-21"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">update_pim</span><span class="op">(</span><span class="va">m</span>, map <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>m</code></dt>
+<dd><p>The number of the network in the netlist</p></dd>
+
+
+<dt><code>map</code></dt>
+<dd><p>A boolean wether to use the MAP parameters or not, defaults to
+FALSE</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-20">Returns<a class="anchor" aria-label="anchor" href="#returns-20"></a></h4>
+<p>nothing; stores the values
+Computes the alpha per network, known as the alpham</p>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-update_alpham"></a><div class="section">
 <h3 id="method-update-alpham-">Method <code>update_alpham()</code><a class="anchor" aria-label="anchor" href="#method-update-alpham-"></a></h3>
 
 <div class="section">
-<h4 id="usage-23">Usage<a class="anchor" aria-label="anchor" href="#usage-23"></a></h4>
+<h4 id="usage-22">Usage<a class="anchor" aria-label="anchor" href="#usage-22"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">update_alpham</span><span class="op">(</span><span class="va">m</span>, map <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-15">Arguments<a class="anchor" aria-label="anchor" href="#arguments-15"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>m</code></dt>
+<dd><p>The number of the network in the netlist</p></dd>
+
+
+<dt><code>map</code></dt>
+<dd><p>A boolean wether to use the MAP parameters or not, defaults to
+FALSE</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-21">Returns<a class="anchor" aria-label="anchor" href="#returns-21"></a></h4>
+<p>the alpham and stores the values
+Computes the alpha for the whole model</p>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-update_alpha"></a><div class="section">
 <h3 id="method-update-alpha-">Method <code>update_alpha()</code><a class="anchor" aria-label="anchor" href="#method-update-alpha-"></a></h3>
 
 <div class="section">
-<h4 id="usage-24">Usage<a class="anchor" aria-label="anchor" href="#usage-24"></a></h4>
+<h4 id="usage-23">Usage<a class="anchor" aria-label="anchor" href="#usage-23"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">update_alpha</span><span class="op">(</span>map <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-16">Arguments<a class="anchor" aria-label="anchor" href="#arguments-16"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>map</code></dt>
+<dd><p>A boolean wether to use the MAP parameters or not, defaults to
+FALSE</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-22">Returns<a class="anchor" aria-label="anchor" href="#returns-22"></a></h4>
+<p>the alpha and stores the values</p>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-init_clust"></a><div class="section">
 <h3 id="method-init-clust-">Method <code>init_clust()</code><a class="anchor" aria-label="anchor" href="#method-init-clust-"></a></h3>
-
-<div class="section">
-<h4 id="usage-25">Usage<a class="anchor" aria-label="anchor" href="#usage-25"></a></h4>
+<p>Initialize clusters</p><div class="section">
+<h4 id="usage-24">Usage<a class="anchor" aria-label="anchor" href="#usage-24"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">init_clust</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-make_permutation"></a><div class="section">
 <h3 id="method-make-permutation-">Method <code>make_permutation()</code><a class="anchor" aria-label="anchor" href="#method-make-permutation-"></a></h3>
-
-<div class="section">
-<h4 id="usage-26">Usage<a class="anchor" aria-label="anchor" href="#usage-26"></a></h4>
+<p>TODO Remove</p><div class="section">
+<h4 id="usage-25">Usage<a class="anchor" aria-label="anchor" href="#usage-25"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">make_permutation</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-m_step"></a><div class="section">
 <h3 id="method-m-step-">Method <code>m_step()</code><a class="anchor" aria-label="anchor" href="#method-m-step-"></a></h3>
-
-<div class="section">
-<h4 id="usage-27">Usage<a class="anchor" aria-label="anchor" href="#usage-27"></a></h4>
+<p>The M step of the VEM</p><div class="section">
+<h4 id="usage-26">Usage<a class="anchor" aria-label="anchor" href="#usage-26"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">m_step</span><span class="op">(</span>map <span class="op">=</span> <span class="cn">FALSE</span>, max_iter <span class="op">=</span> <span class="fl">100</span>, tol <span class="op">=</span> <span class="fl">0.001</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-17">Arguments<a class="anchor" aria-label="anchor" href="#arguments-17"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>map</code></dt>
+<dd><p>A boolean wether to use the MAP parameters or not, defaults to
+FALSE</p></dd>
+
+
+<dt><code>max_iter</code></dt>
+<dd><p>The maximum number of iterations, default to 2</p></dd>
+
+
+<dt><code>tol</code></dt>
+<dd><p>The tolerance for which to stop iterating defaults to 1e-3</p></dd>
+
+
+<dt><code>...</code></dt>
+<dd><p>Other parameters</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-23">Returns<a class="anchor" aria-label="anchor" href="#returns-23"></a></h4>
+<p>nothing; stores values
+An optimization version for the VE step of the VEM but currently a
+placeholder</p>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-ve_step"></a><div class="section">
 <h3 id="method-ve-step-">Method <code>ve_step()</code><a class="anchor" aria-label="anchor" href="#method-ve-step-"></a></h3>
 
 <div class="section">
-<h4 id="usage-28">Usage<a class="anchor" aria-label="anchor" href="#usage-28"></a></h4>
+<h4 id="usage-27">Usage<a class="anchor" aria-label="anchor" href="#usage-27"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">ve_step</span><span class="op">(</span><span class="va">m</span>, max_iter <span class="op">=</span> <span class="fl">20</span>, tol <span class="op">=</span> <span class="fl">0.001</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-18">Arguments<a class="anchor" aria-label="anchor" href="#arguments-18"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>m</code></dt>
+<dd><p>The number of the network in the netlist</p></dd>
+
+
+<dt><code>max_iter</code></dt>
+<dd><p>The maximum number of iterations, default to 2</p></dd>
+
+
+<dt><code>tol</code></dt>
+<dd><p>The tolerance for which to stop iterating defaults to 1e-3</p></dd>
+
+
+<dt><code>...</code></dt>
+<dd><p>Other parameters</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-24">Returns<a class="anchor" aria-label="anchor" href="#returns-24"></a></h4>
+<p>nothing; stores values
+Updates the mqr quantities</p>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-update_mqr"></a><div class="section">
 <h3 id="method-update-mqr-">Method <code>update_mqr()</code><a class="anchor" aria-label="anchor" href="#method-update-mqr-"></a></h3>
-
-<div class="section">
-<h4 id="usage-29">Usage<a class="anchor" aria-label="anchor" href="#usage-29"></a></h4>
+<p>Namely, it updates the emqr and nmqr.</p><div class="section">
+<h4 id="usage-28">Usage<a class="anchor" aria-label="anchor" href="#usage-28"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">update_mqr</span><span class="op">(</span><span class="va">m</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-19">Arguments<a class="anchor" aria-label="anchor" href="#arguments-19"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>m</code></dt>
+<dd><p>The number of the network in the netlist
+Perform the whole initialization and VEM algorithm</p></dd>
+
+
+</dl><p></p></div>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-optimize"></a><div class="section">
 <h3 id="method-optimize-">Method <code><a href="https://rdrr.io/r/stats/optimize.html" class="external-link">optimize()</a></code><a class="anchor" aria-label="anchor" href="#method-optimize-"></a></h3>
 
 <div class="section">
-<h4 id="usage-30">Usage<a class="anchor" aria-label="anchor" href="#usage-30"></a></h4>
+<h4 id="usage-29">Usage<a class="anchor" aria-label="anchor" href="#usage-29"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">optimize</span><span class="op">(</span>max_step <span class="op">=</span> <span class="va">self</span><span class="op">$</span><span class="va">fit_opts</span><span class="op">$</span><span class="va">max_step</span>, tol <span class="op">=</span> <span class="fl">0.001</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-20">Arguments<a class="anchor" aria-label="anchor" href="#arguments-20"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>max_step</code></dt>
+<dd><p>The maximum number of steps to perform optimization</p></dd>
+
+
+<dt><code>tol</code></dt>
+<dd><p>The tolerance for which to stop iterating, default to 1e-3</p></dd>
+
+
+<dt><code>...</code></dt>
+<dd><p>Other parameters</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-25">Returns<a class="anchor" aria-label="anchor" href="#returns-25"></a></h4>
+<p>nothing; stores values
+The message printed when one prints the object</p>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-show"></a><div class="section">
 <h3 id="method-show-">Method <code>show()</code><a class="anchor" aria-label="anchor" href="#method-show-"></a></h3>
 
 <div class="section">
-<h4 id="usage-31">Usage<a class="anchor" aria-label="anchor" href="#usage-31"></a></h4>
+<h4 id="usage-30">Usage<a class="anchor" aria-label="anchor" href="#usage-30"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">show</span><span class="op">(</span>type <span class="op">=</span> <span class="st">"Fitted Collection of Simple SBM"</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-21">Arguments<a class="anchor" aria-label="anchor" href="#arguments-21"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>type</code></dt>
+<dd><p>The title above the message.
+The print method</p></dd>
+
+
+</dl><p></p></div>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-print"></a><div class="section">
 <h3 id="method-print-">Method <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code><a class="anchor" aria-label="anchor" href="#method-print-"></a></h3>
 
 <div class="section">
-<h4 id="usage-32">Usage<a class="anchor" aria-label="anchor" href="#usage-32"></a></h4>
+<h4 id="usage-31">Usage<a class="anchor" aria-label="anchor" href="#usage-31"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">print</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="returns-26">Returns<a class="anchor" aria-label="anchor" href="#returns-26"></a></h4>
+<p>nothing; print to console
+Plot method</p>
+</div>
+
+</div><p></p><hr><a id="method-fitSimpleSBMPop-plot"></a><div class="section">
+<h3 id="method-plot-">Method <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code><a class="anchor" aria-label="anchor" href="#method-plot-"></a></h3>
+
+<div class="section">
+<h4 id="usage-32">Usage<a class="anchor" aria-label="anchor" href="#usage-32"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">plot</span><span class="op">(</span></span>
+<span>  type <span class="op">=</span> <span class="st">"graphon"</span>,</span>
+<span>  ord <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  mixture <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  net_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-22">Arguments<a class="anchor" aria-label="anchor" href="#arguments-22"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>type</code></dt>
+<dd><p>The type of the plot. Could be "graphon", "meso" or "block".</p></dd>
+
+
+<dt><code>ord</code></dt>
+<dd><p>A reordering of the blocks.</p></dd>
+
+
+<dt><code>mixture</code></dt>
+<dd><p>Should the block proportions of each network be plotted as
+well?</p></dd>
+
+
+<dt><code>net_id</code></dt>
+<dd><p>The id of the network to plot. Used to plot only on
+network in "graphon" view.</p></dd>
+
+
+<dt><code>...</code></dt>
+<dd><p>Further arguments to be passed</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-27">Returns<a class="anchor" aria-label="anchor" href="#returns-27"></a></h4>
+<p>A plot, a ggplot2 object.</p>
+</div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
@@ -421,7 +1164,7 @@ once $optimize() is done</p>
 </div>
 
 <div class="section">
-<h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
+<h4 id="arguments-23">Arguments<a class="anchor" aria-label="anchor" href="#arguments-23"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

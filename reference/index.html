@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">colSBM</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -18,7 +18,8 @@
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/tutorial.html">Tutorial on food webs</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/tutorial-bipartite.html">Tutorial on plant pollinator data</a></li>
+    <li><a class="dropdown-item" href="../articles/tutorial.html">Tutorial on food webs</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -68,7 +69,49 @@
           <code><a href="extract_best_partition.html">extract_best_partition()</a></code>
 
         </dt>
-        <dd>Extract the best partition from the list of model given by the function <code><a href="../reference/clusterize_networks.html">clusterize_networks()</a></code>.</dd>
+        <dd>Extract the best partition from the list of model given by the functions <code><a href="../reference/clusterize_networks.html">clusterize_networks()</a></code> or <code><a href="../reference/clusterize_bipartite_networks.html">clusterize_bipartite_networks()</a></code>.</dd>
+      </dl><dl><dt>
+
+          <code><a href="extract_clustering_dendrogram.html">extract_clustering_dendrogram()</a></code>
+
+        </dt>
+        <dd>Convert to tree</dd>
+      </dl><dl><dt>
+
+          <code><a href="adjust_colBiSBM.html">adjust_colBiSBM()</a></code>
+
+        </dt>
+        <dd>Adjust a colBiSBM on a given point</dd>
+      </dl><dl><dt>
+
+          <code><a href="clusterize_bipartite_networks.html">clusterize_bipartite_networks()</a></code>
+
+        </dt>
+        <dd>Partition of a collection of bipartite networks based on their common mesoscale structures</dd>
+      </dl><dl><dt>
+
+          <code><a href="dist_bisbmpop_max.html">dist_bisbmpop_max()</a></code>
+
+        </dt>
+        <dd>Compute the dissimilarity between 2 mesoscale structures for bipartite SBM</dd>
+      </dl><dl><dt>
+
+          <code><a href="estimate_colBiSBM.html">estimate_colBiSBM()</a></code>
+
+        </dt>
+        <dd>Estimate a colBiSBM on a collection of networks</dd>
+      </dl><dl><dt>
+
+          <code><a href="generate_bipartite_collection.html">generate_bipartite_collection()</a></code>
+
+        </dt>
+        <dd>Generate collection of bipartite networks</dd>
+      </dl><dl><dt>
+
+          <code><a href="generate_unipartite_collection.html">generate_unipartite_collection()</a></code>
+
+        </dt>
+        <dd>Generate collection of unipartite</dd>
       </dl></div><div class="section level2">
       <h2 id="colsbm-r-class-objects">colSBM R6 class objects<a class="anchor" aria-label="anchor" href="#colsbm-r-class-objects"></a></h2>
 
@@ -92,6 +135,18 @@
 
         </dt>
         <dd>An R6 Class object, a fitted population of netowrks sbm once $optimize() is done</dd>
+      </dl><dl><dt>
+
+          <code><a href="bisbmpop.html">bisbmpop</a></code>
+
+        </dt>
+        <dd>An R6 Class object, a collection of model for population of BiSBM networks</dd>
+      </dl><dl><dt>
+
+          <code><a href="fitBipartiteSBMPop.html">fitBipartiteSBMPop</a></code>
+
+        </dt>
+        <dd>The method to plot the fitBipartite objects</dd>
       </dl></div><div class="section level2">
       <h2 id="generic-methods">Generic methods<a class="anchor" aria-label="anchor" href="#generic-methods"></a></h2>
 
@@ -115,6 +170,18 @@
 
         </dt>
         <dd>Plot the trace of the different criteria in function of the number of clusters</dd>
+      </dl><dl><dt>
+
+          <code><a href="plot.fitBipartiteSBMPop.html">plot(<i>&lt;fitBipartiteSBMPop&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Plot matrix summaries of the collection mesoscale structure</dd>
+      </dl><dl><dt>
+
+          <code><a href="plot.bisbmpop.html">plot(<i>&lt;bisbmpop&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Plot the state-space exploration plot for a bipartite collection object</dd>
       </dl></div><div class="section level2">
       <h2 id="data">Data<a class="anchor" aria-label="anchor" href="#data"></a></h2>
 
@@ -132,6 +199,12 @@
 
         </dt>
         <dd>A collection of 8 food webs</dd>
+      </dl><dl><dt>
+
+          <code><a href="dorebipartite.html">dorebipartite</a></code>
+
+        </dt>
+        <dd>A collection of 15 plant-pollinator bipartite networks</dd>
       </dl></div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
