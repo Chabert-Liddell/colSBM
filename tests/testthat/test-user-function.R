@@ -207,3 +207,50 @@ test_that("Estimate colBiSBM runs with pi, rho and pirho. With and without NA", 
     Q = c(1L, 1L)
   ))
 })
+
+
+test_that("Check that LBM and colBiSBM with one network return the same", {
+  set.seed(1234)
+  testNet <- colSBM:::generate_bipartite_network(
+    nr = 60L, nc = 60L,
+    pi = c(0.3, 0.7),
+    rho = c(0.45, 0.55),
+    alpha = matrix(c(
+      0.8, 0.4,
+      0.2, 0.05
+    ), nrow = 2L)
+  )
+  init_lbm <- sbm::estimateBipartiteSBM(
+    netMat = testNet,
+    model = "bernoulli",
+    estimOptions = list(
+      verbosity = 0L,
+      plot = 0L,
+      nbcores = 1L
+    )
+  )
+  lbm <- fitBipartiteSBMPop[["new"]](
+    A = list(testNet),
+    Q = init_lbm[["nbBlocks"]],
+    distribution = "bernoulli",
+    free_mixture_row = FALSE,
+    free_mixture_col = FALSE,
+    init_method = "given",
+    Z = list(init_lbm[["memberships"]]),
+    fit_opts = list(verbosity = 0L)
+  )
+  lbm[["optimize"]]()
+
+  colBiSBM <- estimate_colBiSBM(
+    netlist = list(testNet), colsbm_model = "iid",
+    nb_run = 1L,
+    global_opts = list(verbosity = 0L, backend = "no_mc")
+  )
+
+  collbm <- colBiSBM[["best_fit"]]
+
+  expect_equal(unname(lbm[["ICL"]]), collbm[["ICL"]], tolerance = 1e-3)
+  expect_equal(unname(lbm[["entropy"]]), collbm[["entropy"]], tolerance = 1e-3)
+  expect_identical(unname(lbm[["penalty"]]), collbm[["penalty"]])
+  expect_equal(unname(lbm[["BICL"]]), collbm[["BICL"]], tolerance = 1e-3)
+})
