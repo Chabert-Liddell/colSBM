@@ -65,18 +65,22 @@ so it is a model for a given number of blocks Q.
 \examples{
 
 #' # Trivial example with Gnp networks:
-Net <- lapply(list(.7, .7, .2, .2),
-              function(p) {
-               A <- matrix(0, 15, 15 )
-               A[lower.tri(A)][sample(15*14/2, size = round(p*15*14/2))] <- 1
-               A <- A + t(A)
-              })
-\dontrun{cl <- clusterized_networks(Net,
-                           colsbm_model = "iid",
-                           directed = FALSE,
-                           distribution = "bernoulli",
-                           nb_run = 1
-                           )}
+Net <- lapply(
+  list(.7, .7, .2, .2),
+  function(p) {
+    A <- matrix(0, 15, 15)
+    A[lower.tri(A)][sample(15 * 14 / 2, size = round(p * 15 * 14 / 2))] <- 1
+    A <- A + t(A)
+  }
+)
+\dontrun{
+cl <- clusterize_networks(Net,
+  colsbm_model = "iid",
+  directed = FALSE,
+  distribution = "bernoulli",
+  nb_run = 1
+)
+}
 }
 \seealso{
 \code{\link[=extract_best_partition]{extract_best_partition()}}, \code{\link[=estimate_colSBM]{estimate_colSBM()}},

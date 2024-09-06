@@ -26,3 +26,23 @@ A plot, a ggplot2 object.
 \description{
 Plot matrix summaries of the collection mesoscale structure
 }
+\examples{
+# Trivial example with Gnp networks:
+Net <- lapply(
+  list(.7, .7, .2, .2),
+  function(p) {
+    A <- matrix(0, 15, 15)
+    A[lower.tri(A)][sample(15 * 14 / 2, size = round(p * 15 * 14 / 2))] <- 1
+    A <- A + t(A)
+  }
+)
+\dontrun{
+cl <- estimate_colSBM(Net,
+  colsbm_model = "delta",
+  directed = FALSE,
+  distribution = "bernoulli",
+  nb_run = 1
+)
+plot(cl$best_fit)
+}
+}

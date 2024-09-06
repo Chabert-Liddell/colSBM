@@ -1,48 +1,56 @@
 Package: colSBM
 Title: Stochastic Block Model for Collection of Networks
-Version: 0.3.0
-Authors@R: 
-    c(person(given = "Saint-Clair",
-           family = "Chabert-Liddell",
-           role = c("aut", "cre"),
-           email = "academic@chabert-liddell.com",
+Version: 0.4.0
+Authors@R: c(
+    person("Saint-Clair", "Chabert-Liddell", , "academic@chabert-liddell.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-5604-7308")),
-       person(given = "Louis", 
-           family = "Lacoste", 
-           role = c("aut")))
-Description: Finds a common mesoscale structure in a collection of networks by 
-    using a Stochastic Block Model (SBM) extension for the joint modeling of 
-    collection of networks. Provides a clustering of the nodes of each networks.
-    Classifies networks in groups of networks with similar mesoscale structures.
+    person("Louis", "Lacoste", role = "aut")
+  )
+Description: Finds a common mesoscale structure in a collection of
+    networks by using a Stochastic Block Model (SBM) extension for the
+    joint modeling of collection of networks as described in
+    <arXiv:2206.00560>.  Provides a clustering of the nodes of each
+    networks.  Classifies networks in sub-collections of networks with
+    similar mesoscale structures.
 License: MIT + file LICENSE
-Encoding: UTF-8
-LazyData: true
-Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
-Imports: 
+Depends:
+    R (>= 2.10)
+Imports:
     ape,
-    bettermc,
+    aricode,
     cluster,
     dplyr,
+    ggnewscale,
     ggplot2,
     gtools,
     magrittr,
+    matrixStats,
+    parallel,
+    parallelly,
     patchwork,
+    phylogram,
     purrr,
+    R6,
+    reshape2,
     sbm,
     stats,
+    stringr,
+    tibble,
     tidyr,
     utils
-Suggests: 
-    knitr,
+Suggests:
     covr,
-    testthat (>= 3.0.0),
+    future.apply,
+    knitr,
     rmarkdown,
-    spelling
-Remotes:
-    gfkse/bettermc
+    spelling,
+    testthat (>= 3.0.0)
+VignetteBuilder: 
+    knitr
 Config/testthat/edition: 3
-Depends: 
-    R (>= 2.10)
-VignetteBuilder: knitr
+Encoding: UTF-8
 Language: en-US
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+URL: https://chabert-liddel.github.io/colSBM

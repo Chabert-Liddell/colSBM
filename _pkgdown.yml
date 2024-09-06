@@ -1,22 +1,35 @@
-url: https://Chabert-Liddel.github.io/colSBM
+url: https://chabert-liddel.github.io/colSBM
 template:
   bootstrap: 5
   bootswatch: sandstone
 reference:
-- title: User functions
-  contents:
-  - '`clusterize_networks`'
-  - '`estimate_colSBM`'
-  - '`dist_bmpop_max`'
-  - '`extract_best_partition`'
-- title: colSBM R6 class objects
-  contents:
-  - bmpop
-  - fitSimpleSBMPop
-- title: Generic methods
-  contents:
-  - '`plot.fitSimpleSBMPop`'
-  - '`plot.bmpop`'
-- title: "Data"
-  contents:
-  - foodwebs
+  - title: User functions
+    contents:
+      - "`clusterize_networks`"
+      - "`estimate_colSBM`"
+      - "`dist_bmpop_max`"
+      - "`extract_best_partition`"
+      - "`extract_clustering_dendrogram`"
+      - "`adjust_colBiSBM`"
+      - "`clusterize_bipartite_networks`"
+      - "`dist_bisbmpop_max`"
+      - "`estimate_colBiSBM`"
+      - "`generate_bipartite_collection`"
+      - "`generate_unipartite_collection`"
+
+  - title: colSBM R6 class objects
+    contents:
+      - bmpop
+      - fitSimpleSBMPop
+      - bisbmpop
+      - fitBipartiteSBMPop
+  - title: Generic methods
+    contents:
+      - "`plot.fitSimpleSBMPop`"
+      - "`plot.bmpop`"
+      - "`plot.fitBipartiteSBMPop`"
+      - "`plot.bisbmpop`"
+  - title: "Data"
+    contents:
+      - foodwebs
+      - dorebipartite

@@ -8,10 +8,61 @@ An R6 Class object, a collection of model for population of sbm netowrks
 
 An R6 Class object, a collection of model for population of sbm netowrks
 }
+\section{Public fields}{
+\if{html}{\out{<div class="r6-fields">}}
+\describe{
+\item{\code{n}}{A list of size M with the number of nodes per network}
+
+\item{\code{A}}{List of incidence Matrix of size \verb{n \\times n}}
+
+\item{\code{M}}{Number of networks}
+
+\item{\code{mask}}{List of M masks, indicating NAs in the matrices. 1 for NA, 0 else}
+
+\item{\code{directed}}{A boolean indicating if the networks are directed or not}
+
+\item{\code{distribution}}{Emission distribution either : "poisson" or
+"bernoulli"}
+
+\item{\code{net_id}}{A vector containing the "ids" or names of the networks
+(if none given, they are set to their number in A list)}
+
+\item{\code{model_list}}{A list of size Q containing the best models}
+
+\item{\code{global_opts}}{A list of options for the model space exploration.
+See details for more information on which options are available.}
+
+\item{\code{fit_opts}}{A list of options specifically for fitting the models.}
+
+\item{\code{fit_sbm}}{Pre-fitted sbm objects}
+
+\item{\code{Z_init}}{A list of initializations for the Z memberships.}
+
+\item{\code{free_density}}{A boolean indicating if we consider free density or if
+all networks have the same density}
+
+\item{\code{free_mixture}}{A boolean signaling if there is free mixture}
+
+\item{\code{ICL_sbm}}{A list storing the ICL for each sbm fitted}
+
+\item{\code{ICL}}{A list of size Q storing the best ICL found for each Q}
+
+\item{\code{BICL}}{A list of size Q storing the best BICL found for each Q}
+
+\item{\code{vbound}}{A list of size Q storing the best vbound found for each Q}
+
+\item{\code{best_fit}}{A fitSimpleSBMPop object changing regularly to store
+the current best fit.}
+
+\item{\code{logfactA}}{A quantity used with the Poisson probability distribution}
+
+\item{\code{improved}}{A field use at each step to check if it has improved.}
+}
+\if{html}{\out{</div>}}
+}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-bmpop-plot}{\code{bmpop$plot()}}
 \item \href{#method-bmpop-new}{\code{bmpop$new()}}
 \item \href{#method-bmpop-optimize_sbm}{\code{bmpop$optimize_sbm()}}
 \item \href{#method-bmpop-optimize_from_sbm}{\code{bmpop$optimize_from_sbm()}}
@@ -25,22 +76,17 @@ An R6 Class object, a collection of model for population of sbm netowrks
 \item \href{#method-bmpop-choose_models}{\code{bmpop$choose_models()}}
 \item \href{#method-bmpop-show}{\code{bmpop$show()}}
 \item \href{#method-bmpop-print}{\code{bmpop$print()}}
+\item \href{#method-bmpop-plot}{\code{bmpop$plot()}}
 \item \href{#method-bmpop-clone}{\code{bmpop$clone()}}
 }
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-bmpop-plot"></a>}}
-\if{latex}{\out{\hypertarget{method-bmpop-plot}{}}}
-\subsection{Method \code{plot()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{bmpop$plot(type = "trace", ...)}\if{html}{\out{</div>}}
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-bmpop-new"></a>}}
 \if{latex}{\out{\hypertarget{method-bmpop-new}{}}}
 \subsection{Method \code{new()}}{
+Create a new instance of the bisbmpop object
+
+This class is generally called via the user function \code{estimate_colBiSBM}
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{bmpop$new(
   netlist = NULL,
@@ -56,6 +102,39 @@ An R6 Class object, a collection of model for population of sbm netowrks
 )}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{netlist}}{The list of M networks}
+
+\item{\code{net_id}}{A list of name for the networks, defaults to 1 to M if not
+provided}
+
+\item{\code{directed}}{A boolean indicating if the networks are directed or not}
+
+\item{\code{distribution}}{The emission distribution either "bernoulli" or
+"poisson"}
+
+\item{\code{free_density}}{If we account for different density between networks}
+
+\item{\code{free_mixture}}{A boolean indicating if there is free mixture}
+
+\item{\code{fit_sbm}}{The pre-fitted SBM}
+
+\item{\code{Z_init}}{A list providing a clustering of the nodes}
+
+\item{\code{global_opts}}{A list of global options used by the algorithm. See
+details of the user function for more information.}
+
+\item{\code{fit_opts}}{A list of fit options used by the algorithm. See
+details of the user function for more information.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A new 'sbmpop' object.
+Fit a list of SBM if fit_sbm == TRUE
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-bmpop-optimize_sbm"></a>}}
@@ -65,6 +144,10 @@ An R6 Class object, a collection of model for population of sbm netowrks
 \if{html}{\out{<div class="r">}}\preformatted{bmpop$optimize_sbm()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+nothing; but stores the values
+Fit the colSBM mode using sbm as initializations
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-bmpop-optimize_from_sbm"></a>}}
@@ -74,6 +157,21 @@ An R6 Class object, a collection of model for population of sbm netowrks
 \if{html}{\out{<div class="r">}}\preformatted{bmpop$optimize_from_sbm(index, Q, nb_clusters)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{index}}{The sequence of networks number going from 1 to M}
+
+\item{\code{Q}}{The number of clusters}
+
+\item{\code{nb_clusters}}{A subindex for model list, in practice always 1}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+bmpop object
+Fit the colSBM mode using spectral decompositions as initializations
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-bmpop-optimize_spectral"></a>}}
@@ -83,6 +181,22 @@ An R6 Class object, a collection of model for population of sbm netowrks
 \if{html}{\out{<div class="r">}}\preformatted{bmpop$optimize_spectral(index, Q, nb_clusters)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{index}}{The sequence of networks number going from 1 to M}
+
+\item{\code{Q}}{The number of clusters}
+
+\item{\code{nb_clusters}}{A subindex for model list, in practice always 1}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+bmpop object
+Fit a colSBM model using a given initialization provided with Z for
+a specific network
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-bmpop-optimize_init"></a>}}
@@ -92,6 +206,30 @@ An R6 Class object, a collection of model for population of sbm netowrks
 \if{html}{\out{<div class="r">}}\preformatted{bmpop$optimize_init(index, Z, Q, nb_clusters, Cpi = NULL, Calpha = NULL)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{index}}{The sequence of networks number going from 1 to M}
+
+\item{\code{Z}}{The provided initialization}
+
+\item{\code{Q}}{The number of clusters}
+
+\item{\code{nb_clusters}}{A subindex for model list, in practice always 1}
+
+\item{\code{Cpi}}{A list of size M containing the support for the possibly
+absent blocks, defaults to NULL}
+
+\item{\code{Calpha}}{A list of size M containing the support for the possibly
+absent interaction parameter, defaults to NULL}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+bmpop object
+Fit the whole colSBM mode using a given initialization provided with a
+given Z_init
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-bmpop-optimize_from_zinit"></a>}}
@@ -101,6 +239,22 @@ An R6 Class object, a collection of model for population of sbm netowrks
 \if{html}{\out{<div class="r">}}\preformatted{bmpop$optimize_from_zinit(index, Q, nb_clusters)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{index}}{The sequence of networks number going from 1 to M}
+
+\item{\code{Q}}{The number of clusters}
+
+\item{\code{nb_clusters}}{A subindex for model list, in practice always 1}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+bmpop object
+Burn-in method that performs the initialization
+necessary to next begin the search and model selection
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-bmpop-burn_in"></a>}}
@@ -110,6 +264,11 @@ An R6 Class object, a collection of model for population of sbm netowrks
 \if{html}{\out{<div class="r">}}\preformatted{bmpop$burn_in()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+nothing; but stores the values
+This forward pass split the clusters found previously and reallocate the
+nodes to the new clusters
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-bmpop-forward_pass"></a>}}
@@ -124,6 +283,25 @@ An R6 Class object, a collection of model for population of sbm netowrks
 )}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{Q_min}}{The minimal number of clusters, defaults to the global
+options Q_min parameter}
+
+\item{\code{Q_max}}{The max number of clusters, defaults to the global
+options Q_max parameter}
+
+\item{\code{index}}{The sequence of networks number going from 1 to M}
+
+\item{\code{nb_clusters}}{A subindex for model list, in practice always 1}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Q - 1
+This backward pass merges the clusters found previously
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-bmpop-backward_pass"></a>}}
@@ -138,15 +316,40 @@ An R6 Class object, a collection of model for population of sbm netowrks
 )}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{Q_min}}{The minimal number of clusters, defaults to the global
+options Q_min parameter}
+
+\item{\code{Q_max}}{The max number of clusters, defaults to the global
+options Q_max parameter}
+
+\item{\code{index}}{The sequence of networks number going from 1 to M}
+
+\item{\code{nb_clusters}}{A subindex for model list, in practice always 1}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Q + 1
+The optimization method
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-bmpop-optimize"></a>}}
 \if{latex}{\out{\hypertarget{method-bmpop-optimize}{}}}
 \subsection{Method \code{optimize()}}{
+This method performs the burn in and the steps of moving window with
+cluster splitting (forward pass) and merging (backward pass) around the mode found.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{bmpop$optimize()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+nothing; but stores the values
+Performs the model selection based on the BICL criterion
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-bmpop-choose_models"></a>}}
@@ -156,6 +359,23 @@ An R6 Class object, a collection of model for population of sbm netowrks
 \if{html}{\out{<div class="r">}}\preformatted{bmpop$choose_models(models, Q, index = seq(self$M), nb_clusters = 1L)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{models}}{The list of models in which to choose the best}
+
+\item{\code{Q}}{The value of Q for which the model selection is performed}
+
+\item{\code{index}}{The sequence of networks number going from 1 to M}
+
+\item{\code{nb_clusters}}{A subindex for model list, in practice always 1}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The best models
+The message printed when one prints the object
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-bmpop-show"></a>}}
@@ -165,6 +385,14 @@ An R6 Class object, a collection of model for population of sbm netowrks
 \if{html}{\out{<div class="r">}}\preformatted{bmpop$show(type = "Fitted Collection of Simple SBM")}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{type}}{The title above the message.
+The print method}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-bmpop-print"></a>}}
@@ -174,6 +402,28 @@ An R6 Class object, a collection of model for population of sbm netowrks
 \if{html}{\out{<div class="r">}}\preformatted{bmpop$print()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+nothing; print to console
+Plot method
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-bmpop-plot"></a>}}
+\if{latex}{\out{\hypertarget{method-bmpop-plot}{}}}
+\subsection{Method \code{plot()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{bmpop$plot(type = "trace", ...)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{type}}{the type of the plot}
+
+\item{\code{...}}{}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-bmpop-clone"></a>}}

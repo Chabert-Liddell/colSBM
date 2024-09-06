@@ -1,4 +1,3 @@
-
 ### CREATE PACKAGE
 use_package_doc()
 use_roxygen_md()
@@ -12,7 +11,6 @@ use_package("sbm")
 use_package("ape")
 use_package("stats")
 use_package("utils")
-use_package("bettermc")
 use_package("ggplot2")
 use_package("purrr")
 use_package("dplyr")
@@ -22,7 +20,7 @@ use_pipe()
 use_package("cluster")
 
 ### ADD R FUNCTIONS AND THEIR DOCUMENTATION
-#use_r("name_of_r_file")
+# use_r("name_of_r_file")
 # Code > Insert Roxygen Skeleton (Ctrl+Alt+Shift+R)
 use_data_raw()
 use_r("data")
@@ -51,7 +49,7 @@ edit_r_environ()
 # GITHUB_PAT=<GENERATED PAT>
 git_vaccinate()
 
-[travis::travis_set_pat() | BUT NEEDS MORE PERMISSIONS]
+# [travis::travis_set_pat() | BUT NEEDS MORE PERMISSIONS]
 
 ### SETTING A WEBPAGE FOR YOUR PACKAGE
 use_pkgdown()
@@ -64,13 +62,11 @@ use_pkgdown_travis()
 
 # Generate SSH keypair
 key <- openssl::rsa_keygen()
-pub_key <- tic:::get_public_key(key)
-private_key <- tic:::encode_private_key(key)
+
 
 # Go to the GitHub repository page - then Settings > Deploy keys,
 # add the public key there (check the box for write-access).
 title <- "travis+tic"
-public_key <- travis:::create_key_data(pub_key, title)
 
 # Go to the Travis repository page - then More Options > Settings.
 # Add an environment-variable named id_rsa. Paste your clipboard-contents into its value.
@@ -83,10 +79,10 @@ private_key
 # Go to the GitHub repository page - then Settings > Deploy keys, add the public key there (check the box for write-access).
 # Go to the Travis repository page - then More Options > Settings. Add an environment-variable named id_rsa. Paste your clipboard-contents into its value. Make sure you are not displaying the value in the log. Save.
 
-[OR travis::use_travis_deploy() | TOO MANY PERMISSIONS]
+# [OR travis::use_travis_deploy() | TOO MANY PERMISSIONS]
 
 ### ADD TEST COVERAGE REPORTS
-use_coverage(type="codecov")
+use_coverage(type = "codecov")
 # Go to the codecov repository page - then Add a repository > 'repo_name' > Copy Token. Then go to the Travis repository page - then More Options > Settings. Add an environment-variable named CODECOV_TOKEN. Paste your clipboard-contents into its value.
 
 

@@ -38,3 +38,17 @@ If weight is "max" then the weight of each block is computed as
 penalize to a greater extent the difference in block proportion between
 structure.
 }
+\examples{
+pi <- list(c(0.5, 0.5), c(0.1, 0.9))
+alpha <- list(
+  matrix(c(
+    0.9, 0.1,
+    0.1, 0.05
+  ), byrow = TRUE, nrow = 2),
+  matrix(c(
+    0.9, 0.1,
+    0.1, 0.05
+  ), byrow = TRUE, nrow = 2)
+)
+dist_bmpop_max(pi, alpha)
+}

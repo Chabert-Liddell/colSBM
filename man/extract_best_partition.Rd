@@ -2,18 +2,42 @@
 % Please edit documentation in R/estimatepopbm.R
 \name{extract_best_partition}
 \alias{extract_best_partition}
-\title{Extract the best partition from the list of model given by the function
-\code{clusterize_networks()}.}
+\title{Extract the best partition from the list of model given by the functions
+\code{clusterize_networks()} or \code{clusterize_bipartite_networks()}.}
 \usage{
-extract_best_partition(l)
+extract_best_partition(l, unnest = TRUE)
 }
 \arguments{
 \item{l}{A list of models obtained from the function  \code{clusterize_networks()}}
+
+\item{unnest}{A boolean specifying if the returned object should be un-nested
+(and thus loose exploration clustering structure) or not. Default to TRUE.}
 }
 \value{
 A list of models giving the best partition.
 }
 \description{
-Extract the best partition from the list of model given by the function
-\code{clusterize_networks()}.
+Extract the best partition from the list of model given by the functions
+\code{clusterize_networks()} or \code{clusterize_bipartite_networks()}.
+}
+\examples{
+
+#' # Trivial example with Gnp networks:
+Net <- lapply(
+  list(.7, .7, .2, .2),
+  function(p) {
+    A <- matrix(0, 15, 15)
+    A[lower.tri(A)][sample(15 * 14 / 2, size = round(p * 15 * 14 / 2))] <- 1
+    A <- A + t(A)
+  }
+)
+\dontrun{
+cl <- clusterize_networks(Net,
+  colsbm_model = "iid",
+  directed = FALSE,
+  distribution = "bernoulli",
+  nb_run = 1
+)
+best_partition <- extract_best_partition(cl)
+}
 }
