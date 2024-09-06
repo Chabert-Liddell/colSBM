@@ -61,6 +61,8 @@ fitBipartiteSBMPop <- R6::R6Class(
     vloss = NULL,
     #' @field vbound The variational bound
     vbound = NULL,
+    #' @field entropy The entropy of the variational distribution
+    entropy = NULL,
     #' @field net_id A vector containing the "ids" or names of the networks
     #' (if none given, they are set to their number in A list)
     net_id = NULL,
@@ -428,7 +430,10 @@ fitBipartiteSBMPop <- R6::R6Class(
     compute_vbound = function() {
       sum(vapply(
         seq_along(self$A),
-        function(m) self$entropy_tau(m) + self$vb_tau_pi(m) + self$vb_tau_alpha(m),
+        function(m) {
+          self$entropy_tau(m) +
+            self$vb_tau_pi(m) + self$vb_tau_alpha(m)
+        },
         FUN.VALUE = .1
       ))
     },
@@ -504,6 +509,19 @@ fitBipartiteSBMPop <- R6::R6Class(
       }
       return(ICL)
     },
+
+    #' Computes the entropy of the variational distribution
+    #'
+    #' @return The entropy of the variational distribution computed during VEM
+    compute_entropy = function() {
+      self$entropy <- sum(vapply(
+        seq_along(self$A),
+        self$entropy_tau,
+        FUN.VALUE = 0.1
+      ))
+      return(self$entropy)
+    },
+
     #' Computes the BICL criterion
     #' @param MAP Wether to use the MAP parameters or not, a boolean, defaults
     #' to FALSE.
@@ -1295,6 +1313,7 @@ fitBipartiteSBMPop <- R6::R6Class(
         }
       }
 
+      self$compute_entropy()
       self$compute_BICL()
       if (self$BICL == Inf | self$BICL == -Inf) {
         stop("Infinite BICL !")

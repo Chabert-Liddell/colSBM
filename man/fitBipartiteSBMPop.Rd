@@ -66,6 +66,8 @@ on the columns}
 
 \item{\code{vbound}}{The variational bound}
 
+\item{\code{entropy}}{The entropy of the variational distribution}
+
 \item{\code{net_id}}{A vector containing the "ids" or names of the networks
 (if none given, they are set to their number in A list)}
 
@@ -156,6 +158,7 @@ parameters}
 \item \href{#method-fitBipartiteSBMPop-compute_vbound}{\code{fitBipartiteSBMPop$compute_vbound()}}
 \item \href{#method-fitBipartiteSBMPop-compute_penalty}{\code{fitBipartiteSBMPop$compute_penalty()}}
 \item \href{#method-fitBipartiteSBMPop-compute_icl}{\code{fitBipartiteSBMPop$compute_icl()}}
+\item \href{#method-fitBipartiteSBMPop-compute_entropy}{\code{fitBipartiteSBMPop$compute_entropy()}}
 \item \href{#method-fitBipartiteSBMPop-compute_BICL}{\code{fitBipartiteSBMPop$compute_BICL()}}
 \item \href{#method-fitBipartiteSBMPop-update_MAP_parameters}{\code{fitBipartiteSBMPop$update_MAP_parameters()}}
 \item \href{#method-fitBipartiteSBMPop-fixed_point_tau}{\code{fitBipartiteSBMPop$fixed_point_tau()}}
@@ -370,6 +373,19 @@ to FALSE.}
 }
 \subsection{Returns}{
 The ICL for the model.
+Computes the entropy of the variational distribution
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-fitBipartiteSBMPop-compute_entropy"></a>}}
+\if{latex}{\out{\hypertarget{method-fitBipartiteSBMPop-compute_entropy}{}}}
+\subsection{Method \code{compute_entropy()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$compute_entropy()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+The entropy of the variational distribution computed during VEM
 Computes the BICL criterion
 }
 }
