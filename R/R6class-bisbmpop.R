@@ -2184,6 +2184,8 @@ bisbmpop <- R6::R6Class(
     },
     #' Computation of the separated Bi SBM
     #'
+    #' @importFrom sbm estimateBipartiteSBM
+    #'
     #' @description
     #' This method performs the computation of BiSBM for each of the
     #' network in the netlist.
@@ -2194,23 +2196,57 @@ bisbmpop <- R6::R6Class(
       # TODO See if I can parallelize
       self$sep_BiSBM$models <- colsbm_lapply(seq.int(self$M),
         function(m) {
-          sep_BiSBM <- bisbmpop$new(
-            netlist = list(self$A[[m]]),
-            distribution = self$distribution,
-            free_mixture_row = FALSE,
-            free_mixture_col = FALSE,
-            global_opts = list(
-              verbosity = 0,
-              plot_details = 0,
-              nb_cores = self$global_opts$nb_cores
-            ),
-            fit_opts = self$fit_opts
-          )
-          sep_BiSBM$optimize()
-          sep_BiSBM$best_fit
+          # Init with sbm
+          # sbm::estimateBipartiteSBM()
+          # fitBipartiteSBMPop$new(A = list(testNet), Q = lbm$nbBlocks, free_mixture_row = FALSE, free_mixture_col = FALSE, init_method = "given", distribution = lbm$modelName, Z = list(lbm$memberships))
+
+          # Checking if we can use sbm estimateBipartiteSBM
+          if (self$distribution %in% c("bernoulli", "poisson")) {
+            init_lbm <- sbm::estimateBipartiteSBM(
+              netMat = self[["A"]][[m]],
+              model = self[["distribution"]],
+              estimOptions = list(
+                verbosity = 0L,
+                plot = 0L,
+                nbCores = self[["global_opts"]][["nb_cores"]]
+              )
+            )
+
+            # Using lbm as init we fit the model with our VEM
+            sep_BiSBM <- fitBipartiteSBMPop$new(
+              A = list(self[["A"]][[m]]),
+              Q = init_lbm[["nbBlocks"]],
+              free_mixture_row = FALSE,
+              free_mixture_col = FALSE,
+              init_method = "given",
+              distribution = init_lbm[["modelName"]],
+              Z = list(init_lbm[["memberships"]]),
+              fit_opts = self$fit_opts
+            )
+            sep_BiSBM$optimize()
+            # As this is the fitBipartite object we don't need to extract
+            # best_fit
+            sep_BiSBM
+          } else {
+            # If sbm doesn't have the distribution we perform our own search
+            sep_BiSBM <- bisbmpop$new(
+              netlist = list(self$A[[m]]),
+              distribution = self$distribution,
+              free_mixture_row = FALSE,
+              free_mixture_col = FALSE,
+              global_opts = list(
+                verbosity = 0,
+                plot_details = 0,
+                nb_cores = 1L
+              ),
+              fit_opts = self$fit_opts
+            )
+            sep_BiSBM$optimize()
+            sep_BiSBM$best_fit
+          }
         },
-        nb_cores = min(self$global_opts$nb_cores, self[["M"]]),
-        backend = self$global_opts$backend
+        nb_cores = min(self[["global_opts"]][["nb_cores"]], self[["M"]]),
+        backend = self[["global_opts"]][["backend"]]
       )
 
       self$sep_BiSBM$BICL <- sapply(seq.int(self$M), function(m) {
