@@ -4,7 +4,8 @@ Version: 0.4.0
 Authors@R: c(
     person("Saint-Clair", "Chabert-Liddell", , "academic@chabert-liddell.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-5604-7308")),
-    person("Louis", "Lacoste", role = "aut")
+    person("Louis", "Lacoste", email = "louis.lacoste@agroparistech.fr", role = "aut", 
+    comment = c(ORCID = "0009-0004-0178-9821"))
   )
 Description: Finds a common mesoscale structure in a collection of
     networks by using a Stochastic Block Model (SBM) extension for the

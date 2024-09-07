@@ -17,10 +17,10 @@ knitr::opts_chunk$set(
 # colSBM
 
 <!-- badges: start -->
-[![](https://img.shields.io/badge/devel%20version-0.1.0-green.svg)](https://github.com/colSBM)
+[![](https://img.shields.io/badge/devel%20version-`r packageVersion("colSBM")`-green.svg)](https://github.com/Chabert-Liddell/colSBM)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![](https://img.shields.io/github/last-commit/Chabert-Liddell/colSBM.svg)](https://github.com/Chabert-Liddell/colSBM/commits/main)
-[![](https://img.shields.io/badge/doi-10.48550/arXiv.2206.00560-yellow.svg)](https://doi.org/10.48550/arXiv.2206.00560)
+[![](https://badgen.net/badge/DOI/10.1214%2F23-AOAS1831/yellow)](https://doi.org/10.1214/23-AOAS1831)
 <!-- badges: end -->
 
 colSBM is an R package which implements methods for clustering and inferring the
