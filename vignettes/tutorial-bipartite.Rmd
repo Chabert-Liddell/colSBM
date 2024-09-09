@@ -173,6 +173,7 @@ sim_net <-
 
 
 ```{r results=FALSE, warning=FALSE}
+set.seed(1234L)
 net_clust <- clusterize_bipartite_networks(
   netlist = c(dorebipartite[7L:10L], sim_net), # A list of networks
   colsbm_model = "iid", # The name of the model
