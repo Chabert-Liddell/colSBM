@@ -658,6 +658,54 @@ clusterize_bipartite_networks <- function(netlist,
   invisible(list_model_binary)
 }
 
+#' Build distance matrix
+#'
+#' @param collection A bmpop or bisbmpop object on which to build the
+#' distance matrix
+#'
+#' @return A matrix of size $M\times M$ containing the distance matrix between
+#' the networks.
+build_distance_matrix <- function(collection) {
+  stopifnot("Can't build the distance matrix, this is not a bmpop or bisbmpop object" = (inherits(collection, "bisbmpop") | inherits(collection, "bmpop")))
+  if (inherits(collection, "bisbmpop")) {
+    dist_matrix <- build_distance_matrix.bisbmpop(collection)
+  }
+  if (inherits(collection, "bmpop")) {
+    dist_matrix <- build_distance_matrix.bmpop(collection)
+  }
+  return(dist_matrix)
+}
+
+build_distance_matrix.bisbmpop <- function(collection) {
+  dist_matrix <- matrix(0,
+    nrow = collection$M,
+    ncol = collection$M
+  )
+
+  for (i in seq_len(nrow(dist_matrix))) {
+    for (j in seq_len(i)) { # On itère uniquement jusqu'à i pour ne calculer qu'une moitié de la matrice
+      pis <- lapply(collection$best_fit$pim[c(i, j)], function(list) list[[1]])
+      rhos <- lapply(collection$best_fit$pim[c(i, j)], function(list) list[[2]])
+
+      # Calculer la distance uniquement pour la moitié supérieure
+      dist_value <- dist_bisbmpop_max(
+        pi = pis, rho = rhos,
+        alpha = collection$best_fit$alpham[c(i, j)]
+      )
+
+      # Remplir la valeur symétrique
+      dist_matrix[i, j] <- dist_value
+      dist_matrix[j, i] <- dist_value # Symétrie
+    }
+  }
+
+  return(dist_matrix)
+}
+
+build_distance_matrix.bmpop <- function(collection) {
+  stop("Needs to be implemented")
+}
+
 #' Convert to tree
 #'
 #' @importFrom phylogram read.dendrogram
