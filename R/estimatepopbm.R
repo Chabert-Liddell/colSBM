@@ -658,52 +658,99 @@ clusterize_bipartite_networks <- function(netlist,
   invisible(list_model_binary)
 }
 
-#' Build distance matrix
+#' Builds a dissimilarity matrix between networks of the collections
 #'
 #' @param collection A bmpop or bisbmpop object on which to build the
-#' distance matrix
+#' dissimilarity matrix
 #'
-#' @return A matrix of size $M\times M$ containing the distance matrix between
-#' the networks.
-build_distance_matrix <- function(collection) {
+#' @param weight The weighting to apply to the block proportions. One of "max"
+#' or "mean", defaults to "max".
+#'
+#' @param norm The norm to use, either one of "L1" or "L2". Defaults to "L2".
+#'
+#' @return A matrix of size $M\times M$ containing the dissimilarity matrix
+#' between the networks.
+build_dissimilarity_matrix <- function(
+    collection,
+    weight = "max",
+    norm = "L2") {
   stopifnot("Can't build the distance matrix, this is not a bmpop or bisbmpop object" = (inherits(collection, "bisbmpop") | inherits(collection, "bmpop")))
   if (inherits(collection, "bisbmpop")) {
-    dist_matrix <- build_distance_matrix.bisbmpop(collection)
+    dist_matrix <- build_dissimilarity_matrix.bisbmpop(collection,
+      weight = weight,
+      norm = norm
+    )
   }
   if (inherits(collection, "bmpop")) {
-    dist_matrix <- build_distance_matrix.bmpop(collection)
+    dist_matrix <- build_dissimilarity_matrix.bmpop(collection,
+      weight = weight,
+      norm = norm
+    )
   }
   return(dist_matrix)
 }
 
-build_distance_matrix.bisbmpop <- function(collection) {
+#' Builds a dissimilarity matrix between networks of the collections
+#' @inheritParams build_dissimilarity_matrix
+build_dissimilarity_matrix.bisbmpop <- function(
+    collection,
+    weight = "max",
+    norm = "L2") {
   dist_matrix <- matrix(0,
     nrow = collection$M,
     ncol = collection$M
   )
 
   for (i in seq_len(nrow(dist_matrix))) {
-    for (j in seq_len(i)) { # On itère uniquement jusqu'à i pour ne calculer qu'une moitié de la matrice
+    for (j in seq_len(i)) {
       pis <- lapply(collection$best_fit$pim[c(i, j)], function(list) list[[1]])
       rhos <- lapply(collection$best_fit$pim[c(i, j)], function(list) list[[2]])
 
-      # Calculer la distance uniquement pour la moitié supérieure
       dist_value <- dist_bisbmpop_max(
         pi = pis, rho = rhos,
-        alpha = collection$best_fit$alpham[c(i, j)]
+        alpha = collection$best_fit$alpham[c(i, j)],
+        weight = weight,
+        norm = norm
       )
 
-      # Remplir la valeur symétrique
       dist_matrix[i, j] <- dist_value
-      dist_matrix[j, i] <- dist_value # Symétrie
+      dist_matrix[j, i] <- dist_value
     }
   }
 
   return(dist_matrix)
 }
 
-build_distance_matrix.bmpop <- function(collection) {
-  stop("Needs to be implemented")
+#' Builds a dissimilarity matrix between networks of the collections
+#' @inheritParams build_dissimilarity_matrix
+build_dissimilarity_matrix.bmpop <- function(
+    collection,
+    weight = "max",
+    norm = "L2") {
+  dist_matrix <- matrix(0,
+    nrow = collection$M,
+    ncol = collection$M
+  )
+
+  for (i in seq_len(nrow(dist_matrix))) {
+    for (j in seq_len(i)) {
+      pis <- lapply(collection$best_fit$pim[c(i, j)], function(list) list)
+
+      dist_value <- dist_bmpop_max(
+        pi = pis,
+        alpha = collection$best_fit$alpham[c(i, j)],
+        delta = collection$best_fit$delta[c(i, j)],
+        directed = collection$directed,
+        weight = weight,
+        norm = norm
+      )
+
+      dist_matrix[i, j] <- dist_value
+      dist_matrix[j, i] <- dist_value
+    }
+  }
+
+  return(dist_matrix)
 }
 
 #' Convert to tree
