@@ -1024,6 +1024,72 @@ fitBipartiteSBMPop <- R6::R6Class(
               list(tau_1, tau_2)
             }
           ),
+          "spectral_pam" = lapply(
+            X = seq_along(self$A),
+            FUN = function(m) {
+              # The .one_hot performs a one hot encoding of the spectral clustering performed
+
+              biclustering <- spectral_biclustering(
+                self$nonNAs[[m]] *
+                  self$A[[m]],
+                self$Q, 
+                clustering_method = "pam"
+              )
+              row_clustering <- biclustering$row_clustering
+              col_clustering <- biclustering$col_clustering
+
+              # Tau for the rows
+              tau_1 <- .one_hot(row_clustering, self$Q[[1]])
+              tau_1[tau_1 < 1e-6] <- 1e-6
+              tau_1[tau_1 > 1 - 1e-6] <- 1 - 1e-6
+              tau_1 <- tau_1 / .rowSums(tau_1, self$n[[1]][m], self$Q[[1]])
+
+              # Tau for the columns
+              tau_2 <- .one_hot(col_clustering, self$Q[[2]])
+              tau_2[tau_2 < 1e-6] <- 1e-6
+              tau_2[tau_2 > 1 - 1e-6] <- 1 - 1e-6
+              tau_2 <- tau_2 / .rowSums(tau_2, self$n[[2]][m], self$Q[[2]])
+
+              self$emqr[m, , ] <- t(tau_1) %*% (self$A[[m]] * (self$nonNAs[[m]])) %*% tau_2
+              self$nmqr[m, , ] <- t(tau_1) %*% (self$nonNAs[[m]]) %*% tau_2
+
+              # Permuter avec un ordre favorisant plus fortement
+              # les plus gros clusters mais de manière stochastique
+              # colSums sur les tau1 et tau2 pour obtenir les pi1 et pi2
+              a <- self$emqr[m, , ] / self$nmqr[m, , ] # ? estimate of the alpha
+              pi1 <- .colSums(tau_1, self$n[[1]][m], self$Q[[1]]) / sum(tau_1)
+              pi2 <- .colSums(tau_2, self$n[[2]][m], self$Q[[2]]) / sum(tau_2)
+
+              prob1 <- as.vector(pi2 %*% t(a))
+              prob2 <- as.vector(pi1 %*% a)
+              # p1 and p2 contain the clustering ordered using the highest probabilities first
+              # But it is still sampled and random according to the probabilities
+              # p1 <- sample.int(self$Q[[1]], prob = prob1)
+              # p2 <- sample.int(self$Q[[2]], prob = prob2)
+
+              if (ncol(tau_1) != 1) {
+                p1 <- sample.int(self$Q[[1]], prob = prob1) # order(prob1)
+              }
+
+              if (ncol(tau_2) != 1) {
+                p2 <- sample.int(self$Q[[2]], prob = prob2) # order(prob2)
+              }
+
+              # Tau, emqr and nmqr are reordered accordingly
+              if (ncol(tau_1) != 1) {
+                tau_1 <- tau_1[, p1]
+                self$emqr[m, , ] <- self$emqr[m, p1, ]
+                self$nmqr[m, , ] <- self$nmqr[m, p1, ]
+              }
+              if (ncol(tau_2) != 1) {
+                tau_2 <- tau_2[, p2]
+                self$emqr[m, , ] <- self$emqr[m, , p2]
+                self$nmqr[m, , ] <- self$nmqr[m, , p2]
+              }
+
+              list(tau_1, tau_2)
+            }
+          ),
           "empty" = lapply(
             seq_along(self$Z),
             function(m) {
