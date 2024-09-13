@@ -279,12 +279,14 @@ generate_bipartite_collection <- function(
 #'
 #' @param X an Adjacency matrix
 #' @param K the number of clusters
+#' @param clustering_method The clustering method to perform. One of "kmeans" or
+#' "pam". Defaults to "kmeans"
 #'
 #' @noMd
 #' @noRd
 #'
 #' @return A vector : The clusters labels
-spectral_clustering <- function(X, K) {
+spectral_clustering <- function(X, K, clustering_method = "kmeans") {
   X <- as.matrix(X)
   n <- nrow(X)
   if (K == 1) {
@@ -318,20 +320,34 @@ spectral_clustering <- function(X, K) {
     U[is.infinite(U)] <- 0
     cl <- try(
       expr = {
-        stats::kmeans(U, K,
-          iter.max = 100,
-          nstart = 100
-        )$cluster
+        switch(clustering_method,
+          "pam" = {
+            cluster::pam(U, K, cluster.only = TRUE)
+          },
+          "kmeans" = {
+            stats::kmeans(U, K,
+              iter.max = 100,
+              nstart = 100
+            )$cluster
+          }
+        )
       },
       silent = TRUE
     )
     while (inherits(cl, "try-error")) {
       cl <- try(
         expr = {
-          stats::kmeans(U, K,
-            iter.max = 100,
-            nstart = 100
-          )$cluster
+          switch(
+            "pam" = {
+              cluster::pam(U, K, cluster.only = TRUE)
+            },
+            "kmeans" = {
+              stats::kmeans(U, K,
+                iter.max = 100,
+                nstart = 100
+              )$cluster
+            }
+          )
         },
         silent = TRUE
       )
@@ -362,13 +378,14 @@ spectral_clustering <- function(X, K) {
 #'
 #' @param X an Incidence matrix
 #' @param K the two numbers of clusters
+#' @param clustering_method One of "kmeans" or "pam". Defaults to "kmeans".
 #'
 #' @noMd
 #' @noRd
 #'
 #' @return A list of two vectors : The clusters labels.
 #' They are accessed using $row_clustering and $col_clustering
-spectral_biclustering <- function(X, K) {
+spectral_biclustering <- function(X, K, clustering_method = "kmeans") {
   # Trivial clustering : everyone is part of the cluster
   if (all(K == c(1, 1))) {
     return(list(
@@ -382,10 +399,18 @@ spectral_biclustering <- function(X, K) {
   K2 <- K[2] # Column clusters
 
   row_adjacency_matrix <- tcrossprod(X)
-  row_clustering <- spectral_clustering(row_adjacency_matrix, K1)
+  row_clustering <- spectral_clustering(
+    row_adjacency_matrix,
+    K1,
+    clustering_method
+  )
 
   col_adjacency_matrix <- crossprod(X)
-  col_clustering <- spectral_clustering(col_adjacency_matrix, K2)
+  col_clustering <- spectral_clustering(
+    col_adjacency_matrix,
+    K2,
+    clustering_method
+  )
 
   return(list(row_clustering = row_clustering, col_clustering = col_clustering))
 }
