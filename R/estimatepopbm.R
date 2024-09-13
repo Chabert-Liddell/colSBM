@@ -662,13 +662,8 @@ clusterize_bipartite_networks <- function(netlist,
 #'
 #' @param collection A bmpop or bisbmpop object on which to build the
 #' dissimilarity matrix
-#'
-#' @param weight The weighting to apply to the block proportions. One of "max"
-#' or "mean", defaults to "max".
-#'
-#' @param norm The norm to use, either one of "L1" or "L2". Defaults to "L2".
-#'
-#' @return A matrix of size $M\times M$ containing the dissimilarity matrix
+#' @inheritParams build_dissimilarity_matrix.bisbmpop
+#' @return A matrix of size \eqn{M * M} containing the dissimilarity matrix
 #' between the networks.
 build_dissimilarity_matrix <- function(
     collection,
@@ -687,11 +682,21 @@ build_dissimilarity_matrix <- function(
       norm = norm
     )
   }
-  return(dist_matrix)
+
+  dist_matrix <- as.dist(dist_matrix)
+
+  return()
 }
 
-#' Builds a dissimilarity matrix between networks of the collections
-#' @inheritParams build_dissimilarity_matrix
+#' Builds a dissimilarity matrix between networks of a bipartite collection
+#'
+#' @param collection A bisbmpop object containing a fitted collection.
+#'
+#' @param weight The weighting to apply to the block proportions. One of "max"
+#' or "mean", defaults to "max".
+#'
+#' @param norm The norm to use, either one of "L1" or "L2". Defaults to "L2".
+#'
 build_dissimilarity_matrix.bisbmpop <- function(
     collection,
     weight = "max",
@@ -721,8 +726,15 @@ build_dissimilarity_matrix.bisbmpop <- function(
   return(dist_matrix)
 }
 
-#' Builds a dissimilarity matrix between networks of the collections
-#' @inheritParams build_dissimilarity_matrix
+#' Builds a dissimilarity matrix between networks of a unipartite collection
+#'
+#' @param collection A bmpop object containing a fitted collection.
+#'
+#' @param weight The weighting to apply to the block proportions. One of "max"
+#' or "mean", defaults to "max".
+#'
+#' @param norm The norm to use, either one of "L1" or "L2". Defaults to "L2".
+#'
 build_dissimilarity_matrix.bmpop <- function(
     collection,
     weight = "max",
