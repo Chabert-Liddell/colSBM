@@ -1353,7 +1353,7 @@ bisbmpop <- R6::R6Class(
               free_mixture_row = FALSE, # There can't be free mixture with 1 net
               free_mixture_col = FALSE, # There can't be free mixture with 1 net
               distribution = self$distribution,
-              init_method = "spectral",
+              init_method = self[["fit_opts"]][["init_method"]],
               fit_opts = self$fit_opts
             )
           }
@@ -1395,7 +1395,7 @@ bisbmpop <- R6::R6Class(
               free_mixture_row = FALSE, # There can't be free mixture with 1 net
               free_mixture_col = FALSE, # There can't be free mixture with 1 net
               distribution = self$distribution,
-              init_method = "spectral",
+              init_method = self[["fit_opts"]][["init_method"]],
               fit_opts = self$fit_opts
             )
           }
@@ -1877,7 +1877,7 @@ bisbmpop <- R6::R6Class(
               Q = current_model_Q,
               free_mixture_row = self$free_mixture_row,
               free_mixture_col = self$free_mixture_col,
-              init_method = "spectral",
+              init_method = self[["fit_opts"]][["init_method"]],
               distribution = self$distribution,
               net_id = self$net_id,
               fit_opts = self$fit_opts
@@ -2045,7 +2045,7 @@ bisbmpop <- R6::R6Class(
               Q = current_model_Q,
               free_mixture_row = self$free_mixture_row,
               free_mixture_col = self$free_mixture_col,
-              init_method = "spectral",
+              init_method = self[["fit_opts"]][["init_method"]],
               distribution = self$distribution,
               net_id = self$net_id,
               fit_opts = self$fit_opts

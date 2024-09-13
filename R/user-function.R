@@ -245,6 +245,8 @@ estimate_colSBM <-
 #'
 #' * `algo_ve` a string to choose the algorithm to use for the variational
 #'  estimation. Available: "fp"
+#' * `init_method` a string to choose the initialization algorithm. Available
+#' are "spectral", "spectral_pam" and "hca".
 #' * `verbosity` an integer to choose the level of verbosity of the fit
 #'  procedure. Defaults to 0. Available: 0,1
 #' * `max_vem_steps` an integer setting the number of Variational
@@ -352,6 +354,7 @@ estimate_colBiSBM <-
       max_vem_steps = 1000L,
       minibatch = TRUE,
       verbosity = 0L,
+      init_method = "spectral",
       tolerance = 1e-6
     )
 
