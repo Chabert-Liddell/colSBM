@@ -1703,26 +1703,6 @@ bisbmpop <- R6::R6Class(
       Q1_mode <- center[[1]]
       Q2_mode <- center[[2]]
 
-      # Checking if the window's bound is in domain
-      if (!self$point_is_in_limits(c(Q1_mode - depth, Q2_mode - depth)) ||
-        !self$point_is_in_limits(c(Q1_mode + depth, Q2_mode + depth))) {
-        warning(paste0(
-          "\nThe window is (partially) out of domain !",
-          "\nTrying to go from (", toString(c(Q1_mode - depth, Q2_mode - depth)),
-          ") to (", toString(c(Q1_mode + depth, Q2_mode + depth)), ").",
-          "\nMax window should be :",
-          "\n(", toString(c(1, self$global_opts$Q2_max)),
-          ")---(", toString(c(self$global_opts$Q1_max, self$global_opts$Q2_max)),
-          ")",
-          "\n  ||       || ",
-          "\n(", toString(c(1, 1)),
-          ")---(",
-          toString(c(self$global_opts$Q1_max, 1)),
-          ")",
-          "\nThe window will work best on valid configurations"
-        ))
-      }
-
       if (self$global_opts$verbosity >= 3) {
         cat(
           "\nMoving window around (",
