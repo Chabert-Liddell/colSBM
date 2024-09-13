@@ -81,6 +81,8 @@ Expectation Maximization algorithm.
 \itemize{
 \item \code{algo_ve} a string to choose the algorithm to use for the variational
 estimation. Available: "fp"
+\item \code{init_method} a string to choose the initialization algorithm. Available
+are "spectral", "spectral_pam" and "hca".
 \item \code{verbosity} an integer to choose the level of verbosity of the fit
 procedure. Defaults to 0. Available: 0,1
 \item \code{max_vem_steps} an integer setting the number of Variational
