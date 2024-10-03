@@ -675,22 +675,24 @@ clusterize_bipartite_networks <- function(netlist,
 #'
 #' @param collection A bmpop or bisbmpop object on which to build the
 #' dissimilarity matrix
-#' @inheritParams build_dissimilarity_matrix.bisbmpop
+#' @inheritParams compute_dissimilarity_matrix.bisbmpop
 #' @return A matrix of size \eqn{M * M} containing the dissimilarity matrix
 #' between the networks.
-build_dissimilarity_matrix <- function(
+#'
+#' @export
+compute_dissimilarity_matrix <- function(
     collection,
     weight = "max",
     norm = "L2") {
   stopifnot("Can't build the distance matrix, this is not a bmpop or bisbmpop object" = (inherits(collection, "bisbmpop") | inherits(collection, "bmpop")))
   if (inherits(collection, "bisbmpop")) {
-    dist_matrix <- build_dissimilarity_matrix.bisbmpop(collection,
+    dist_matrix <- compute_dissimilarity_matrix.bisbmpop(collection,
       weight = weight,
       norm = norm
     )
   }
   if (inherits(collection, "bmpop")) {
-    dist_matrix <- build_dissimilarity_matrix.bmpop(collection,
+    dist_matrix <- compute_dissimilarity_matrix.bmpop(collection,
       weight = weight,
       norm = norm
     )
@@ -698,7 +700,7 @@ build_dissimilarity_matrix <- function(
 
   dist_matrix <- as.dist(dist_matrix)
 
-  return()
+  return(dist_matrix)
 }
 
 #' Builds a dissimilarity matrix between networks of a bipartite collection
@@ -710,7 +712,7 @@ build_dissimilarity_matrix <- function(
 #'
 #' @param norm The norm to use, either one of "L1" or "L2". Defaults to "L2".
 #'
-build_dissimilarity_matrix.bisbmpop <- function(
+compute_dissimilarity_matrix.bisbmpop <- function(
     collection,
     weight = "max",
     norm = "L2") {
@@ -748,7 +750,7 @@ build_dissimilarity_matrix.bisbmpop <- function(
 #'
 #' @param norm The norm to use, either one of "L1" or "L2". Defaults to "L2".
 #'
-build_dissimilarity_matrix.bmpop <- function(
+compute_dissimilarity_matrix.bmpop <- function(
     collection,
     weight = "max",
     norm = "L2") {
