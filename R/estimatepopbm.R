@@ -658,6 +658,19 @@ clusterize_bipartite_networks <- function(netlist,
   invisible(list_model_binary)
 }
 
+
+## Implement all of this in one big function (clusterize_networks)
+## That can be used for both types of colSBM
+# Reworked clustering procedure
+# 1. Fit the full collection (if separated preferred suggest a cut ?)
+# 2. Compute dissimilarity matrix
+# 3. Perform a cut based on diss matrix (let user choose the number of sub-partitions ?)
+# 4. Compute the sum of BICL and compare to the full collection
+# If the sum of BICL > BICL:
+# 5.a. Go back to step 2 for all sub collections
+# 5.b This partition is currently the best
+
+
 #' Builds a dissimilarity matrix between networks of the collections
 #'
 #' @param collection A bmpop or bisbmpop object on which to build the
