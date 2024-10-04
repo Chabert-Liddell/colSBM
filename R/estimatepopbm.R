@@ -671,12 +671,17 @@ clusterize_bipartite_networks <- function(netlist,
 # 5.b This partition is currently the best
 
 
-#' Builds a dissimilarity matrix between networks of the collections
+#' Computes a dissimilarity matrix between networks of the collections
 #'
 #' @param collection A bmpop or bisbmpop object on which to build the
 #' dissimilarity matrix
-#' @inheritParams compute_dissimilarity_matrix.bisbmpop
-#' @return A matrix of size \eqn{M * M} containing the dissimilarity matrix
+#'
+#' @param weight The weighting to apply to the block proportions. One of "max"
+#' or "mean", defaults to "max".
+#'
+#' @param norm The norm to use, either one of "L1" or "L2". Defaults to "L2".
+#'
+#'  @return A matrix of size \eqn{M * M} containing the dissimilarity matrix
 #' between the networks.
 #'
 #' @export
@@ -698,20 +703,10 @@ compute_dissimilarity_matrix <- function(
     )
   }
 
-  dist_matrix <- as.dist(dist_matrix)
-
   return(dist_matrix)
 }
 
-#' Builds a dissimilarity matrix between networks of a bipartite collection
-#'
-#' @param collection A bisbmpop object containing a fitted collection.
-#'
-#' @param weight The weighting to apply to the block proportions. One of "max"
-#' or "mean", defaults to "max".
-#'
-#' @param norm The norm to use, either one of "L1" or "L2". Defaults to "L2".
-#'
+#' @export
 compute_dissimilarity_matrix.bisbmpop <- function(
     collection,
     weight = "max",
@@ -741,15 +736,7 @@ compute_dissimilarity_matrix.bisbmpop <- function(
   return(dist_matrix)
 }
 
-#' Builds a dissimilarity matrix between networks of a unipartite collection
-#'
-#' @param collection A bmpop object containing a fitted collection.
-#'
-#' @param weight The weighting to apply to the block proportions. One of "max"
-#' or "mean", defaults to "max".
-#'
-#' @param norm The norm to use, either one of "L1" or "L2". Defaults to "L2".
-#'
+#' @export
 compute_dissimilarity_matrix.bmpop <- function(
     collection,
     weight = "max",
@@ -778,6 +765,77 @@ compute_dissimilarity_matrix.bmpop <- function(
   }
 
   return(dist_matrix)
+}
+
+#' Partition networks according to the dissimilarity matrix computed with
+#' `compute_dissimilarity_matrix`.
+#'
+#' @details This functions partition a provided networks list and outputs back
+#' a vector
+#'
+#' @param networks_list The list of networks to partition
+#' @param nb_groups An integer, the number of groups. Defaults to 2
+#'
+#' @return A vector, eventually named according to `networks_list` names.
+#'
+#' @export
+partition_networks_list_from_dissimilarity <- function(
+    networks_list,
+    dissimilarity_matrix,
+    nb_groups = 2L) {
+  # Check function for networks_list
+  check_networks_list <- function(networks_list,
+                                  arg = "networks_list",
+                                  call = rlang::caller_env()) {
+    rlang::check_required(networks_list, call = call)
+    if (!rlang::is_list(networks_list) |
+      rlang::is_empty(networks_list) |
+      !all(sapply(networks_list, is.matrix))) {
+      cli::cli_abort("{.arg {arg}} must be a list of matrices.", call = call)
+    }
+    if (rlang::has_length(x = networks_list, n = 1L)) {
+      cli::cli_abort("{.arg {arg}} should be of length at least 2, not 1.",
+        call = call
+      )
+    }
+  }
+  # Check function for dissimilarity matrix
+  check_dissimilarity_matrix <- function(dissimilarity_matrix,
+                                         arg = "dissimilarity_matrix",
+                                         call = rlang::caller_env()) {
+    rlang::check_required(dissimilarity_matrix, call = call)
+    if (!is.matrix(dissimilarity_matrix)) {
+      cli::cli_abort("{.arg {arg}} must be a dissimilarity matrix not of type {typeof(dissimilarity_matrix)}.",
+        call = call
+      )
+    }
+  }
+
+  check_networks_list(networks_list = networks_list)
+  check_dissimilarity_matrix(dissimilarity_matrix = dissimilarity_matrix)
+  M <- length(networks_list)
+
+  # Checking correspondance of args
+  if (nrow(dissimilarity_matrix) != M | ncol(dissimilarity_matrix) != M) {
+    cli::cli_abort("{.arg dissimilarity_matrix} is of size ({toString(dim(dissimilarity_matrix))}) where it should be ({toString(c(M,M))}) to match {.arg networks_list} length.", call = rlang::caller_env())
+  }
+
+
+  if (M >= 3L) {
+    # If there is more than 3 networks they are splitted using partition around
+    # K-medioids
+    cl <- cluster::pam(
+      x = sqrt(dissimilarity_matrix),
+      k = nb_groups,
+      diss = TRUE,
+      cluster.only = TRUE
+    )
+  } else {
+    cl <- c(1L, 2L)
+  }
+
+  names(cl) <- names(networks_list)
+  return(cl)
 }
 
 #' Convert to tree
