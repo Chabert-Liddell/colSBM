@@ -19,6 +19,7 @@ Depends:
 Imports:
     ape,
     aricode,
+    cli,
     cluster,
     dplyr,
     ggnewscale,
@@ -33,6 +34,7 @@ Imports:
     purrr,
     R6,
     reshape2,
+    rlang,
     sbm,
     stats,
     stringr,
