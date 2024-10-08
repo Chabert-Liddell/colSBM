@@ -202,7 +202,7 @@ estimate_colSBM <-
 #' "pirho".
 #' @param net_id A vector of string, the name of the networks.
 #' @param distribution A string, the emission distribution, either "bernoulli"
-#' (the default) or "poisson" (to be implemented)
+#' (the default) or "poisson".
 #' @param nb_run An integer, the number of run the algorithm do. Default to 3.
 #' @param global_opts Global options for the outer algorithm and the output.
 #' See details.
