@@ -783,41 +783,17 @@ partition_networks_list_from_dissimilarity <- function(
     networks_list,
     dissimilarity_matrix,
     nb_groups = 2L) {
-  # Check function for networks_list
-  check_networks_list <- function(networks_list,
-                                  arg = "networks_list",
-                                  call = rlang::caller_env()) {
-    rlang::check_required(networks_list, call = call)
-    if (!rlang::is_list(networks_list) |
-      rlang::is_empty(networks_list) |
-      !all(sapply(networks_list, is.matrix))) {
-      cli::cli_abort("{.arg {arg}} must be a list of matrices.", call = call)
-    }
-    if (rlang::has_length(x = networks_list, n = 1L)) {
-      cli::cli_abort("{.arg {arg}} should be of length at least 2, not 1.",
-        call = call
-      )
-    }
-  }
-  # Check function for dissimilarity matrix
-  check_dissimilarity_matrix <- function(dissimilarity_matrix,
-                                         arg = "dissimilarity_matrix",
-                                         call = rlang::caller_env()) {
-    rlang::check_required(dissimilarity_matrix, call = call)
-    if (!is.matrix(dissimilarity_matrix)) {
-      cli::cli_abort("{.arg {arg}} must be a dissimilarity matrix not of type {typeof(dissimilarity_matrix)}.",
-        call = call
-      )
-    }
-  }
-
-  check_networks_list(networks_list = networks_list)
-  check_dissimilarity_matrix(dissimilarity_matrix = dissimilarity_matrix)
+  # Sanity checks
+  check_networks_list(networks_list)
+  check_dissimilarity_matrix(dissimilarity_matrix)
   M <- length(networks_list)
 
   # Checking correspondance of args
   if (nrow(dissimilarity_matrix) != M | ncol(dissimilarity_matrix) != M) {
-    cli::cli_abort("{.arg dissimilarity_matrix} is of size ({toString(dim(dissimilarity_matrix))}) where it should be ({toString(c(M,M))}) to match {.arg networks_list} length.", call = rlang::caller_env())
+    cli::cli_abort(c("{.arg dissimilarity_matrix} has incorrect dimensions.",
+      "i" = "It should be ({toString(c(M,M))}) to match {.arg networks_list} length.",
+      "x" = "And it is of size ({toString(dim(dissimilarity_matrix))})"
+    ), call = rlang::caller_env())
   }
 
 
