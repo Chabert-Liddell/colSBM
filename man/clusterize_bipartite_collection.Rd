@@ -36,6 +36,9 @@ See details.}
 
 \item{fit_opts}{Fit options for the VEM algorithm. See details}
 
+\item{full_inference}{A boolean indicating if we should do the procedure
+until all networks are in their own partition.}
+
 \item{save_path}{A file path specifying where to save the current clustering.
 Useful for long running clustering. Defaults to
 \code{fs::file_temp(pattern = "clustering", ext = "Rds")}.}
