@@ -306,6 +306,19 @@ estimate_colBiSBM <-
            fit_opts = list(),
            Z_init = NULL,
            sep_BiSBM = NULL) {
+    # Sanity checks
+    check_networks_list(
+      networks_list = netlist,
+      min_length = 1L
+    )
+    check_bipartite_colsbm_models(
+      colsbm_model = colsbm_model
+    )
+    check_is_integer_over_thresh(
+      int = nb_run,
+      thresh = 1L
+    )
+
     switch(colsbm_model,
       "iid" = {
         free_mixture_row <- FALSE
@@ -322,11 +335,7 @@ estimate_colBiSBM <-
       "pirho" = {
         free_mixture_row <- TRUE
         free_mixture_col <- TRUE
-      },
-      stop(
-        "colsbm_model unknown.",
-        " Must be one of iid, pi, rho, pirho, delta or deltapi"
-      )
+      }
     )
     # Check if a netlist is provided, try to cast it if not
     if (!is.list(netlist)) {
