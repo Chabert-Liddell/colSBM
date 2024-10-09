@@ -551,9 +551,28 @@ F.bern <- function(X, alpha, tau) {
 
 rotate <- function(x) t(apply(x, 2, rev))
 
-#
+
 dist_param <- function(param, param_old) {
   sqrt(sum((param - param_old)**2))
+}
+
+#' A simple function that returns the default global options for the bipartite
+#' @noRd
+default_global_opts_bipartite <- function(netlist) {
+  list(
+    Q1_min = 1L,
+    Q2_min = 1L,
+    Q1_max = floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2),
+    Q2_max = floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2),
+    nb_init = 10L,
+    nb_models = 5L,
+    backend = "future",
+    depth = 1L,
+    plot_details = 1L,
+    max_pass = 10L,
+    verbosity = 1L,
+    nb_cores = 1L
+  )
 }
 
 #' Title
