@@ -103,3 +103,79 @@ check_unipartite_colsbm_models <- function(
     error_call = call
   )
 }
+
+#' Check colSBM emission distribution
+#' @noRd
+#' @param emission_distribution A character string specifying the emission distribution
+#' @param arg The name of the argument
+#' @param call The environment where the function was called
+#' @return The emission distribution
+check_colsbm_emission_distribution <- function(
+    emission_distribution,
+    arg = rlang::caller_arg(emission_distribution),
+    call = rlang::caller_env()) {
+  rlang::check_required(emission_distribution,
+    arg = arg,
+    call = call
+  )
+  rlang::arg_match(
+    arg = emission_distribution,
+    values = c("poisson", "bernoulli"),
+    error_arg = arg,
+    error_call = call
+  )
+}
+
+#' Check matrices match emission distribution
+#' @noRd
+#' @param networks_list A list of matrices
+#' @param emission_distribution A character string specifying the emission distribution
+#' @param arg The name of the argument
+#' @param call The environment where the function was called
+#' @return The list of matrices
+check_networks_list_match_emission_distribution <- function(
+    networks_list,
+    emission_distribution,
+    arg = rlang::caller_arg(networks_list),
+    distrib_arg = rlang::caller_arg(emission_distribution),
+    call = rlang::caller_env()) {
+  check_colsbm_emission_distribution(emission_distribution,
+    arg = distrib_arg,
+    call = call
+  )
+
+  switch(emission_distribution,
+    poisson = {
+      if (!all(sapply(networks_list, rlang::is_integerish, finite = TRUE))) {
+        cli::cli_abort(
+          c("For Poisson emission distribution, all matrices in {.arg {arg}} must have non-negative integer entries.",
+            "x" = "You've provided a {.obj_type_friendly {networks_list[[1]]}} with non integer entries."
+          ),
+          call = call
+        )
+      }
+      if (!all(sapply(networks_list, function(x) all(x >= 0)))) {
+        cli::cli_abort(
+          c("For Poisson emission distribution, all matrices in {.arg {arg}} must have non-negative integer entries.",
+            "x" = "You've provided a matrix with negative entries."
+          ),
+          call = call
+        )
+      }
+    },
+    bernoulli = {
+      if (!all(sapply(networks_list, function(x) all(rlang::is_integerish(x))))) {
+        cli::cli_abort(
+          c("Non integer entries in {.arg {arg}} are not allowed for Bernoulli emission distribution.",
+            "x" = "You've provided a matrix with non integer entries, {.obj_type_friendly {networks_list[[1]]}}."
+          )
+        )
+      }
+      if (!all(sapply(networks_list, function(x) all(x %in% c(0, 1))))) {
+        cli::cli_abort("All matrices in {.arg {arg}} must have entries that are either 0 or 1.",
+          call = call
+        )
+      }
+    }
+  )
+}

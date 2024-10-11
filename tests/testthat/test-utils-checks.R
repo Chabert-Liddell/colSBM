@@ -87,3 +87,61 @@ test_that("check_unipartite_colsbm_models() works correctly", {
   expect_no_error(check_unipartite_colsbm_models("delta"))
   expect_no_error(check_unipartite_colsbm_models("deltapi"))
 })
+
+# check_colsbm_emission_distribution
+test_that("check_colsbm_emission_distribution() detects empty input", {
+  expect_error(check_colsbm_emission_distribution(arg = NULL), "must be supplied")
+})
+
+test_that("check_colsbm_emission_distribution() detects incorrect choice", {
+  expect_error(check_colsbm_emission_distribution("a"), "must be one of")
+  expect_error(check_colsbm_emission_distribution(1), "must be a character vector")
+  expect_error(check_colsbm_emission_distribution(c("a", "b")), "must be one of")
+})
+
+test_that("check_colsbm_emission_distribution() works correctly", {
+  expect_no_error(check_colsbm_emission_distribution("bernoulli"))
+  expect_no_error(check_colsbm_emission_distribution("poisson"))
+})
+
+# check_networks_list_match_emission_distribution
+test_that("check_networks_list_match_emission_distribution() detects empty input", {
+  expect_error(check_networks_list_match_emission_distribution(arg = NULL, distrib_arg = NULL), "must be supplied")
+})
+
+test_that("check_networks_list_match_emission_distribution() detects incorrect choice", {
+  expect_error(check_networks_list_match_emission_distribution(networks_list = list(matrix(c(0, 1))), emission_distribution = "a"), "must be one of")
+})
+
+#  Bernoulli
+## Non matching networks matrices
+test_that("check_networks_list_match_emission_distribution() detects non matching networks matrices for bernoulli", {
+  expect_error(check_networks_list_match_emission_distribution(networks_list = list(matrix(c(0.5, 1))), emission_distribution = "bernoulli"), "Non integer entries")
+  expect_error(check_networks_list_match_emission_distribution(networks_list = list(matrix(c(0, 1.5))), emission_distribution = "bernoulli"), "Non integer entries")
+  expect_error(check_networks_list_match_emission_distribution(networks_list = list(matrix(c(0, 1, "0"))), emission_distribution = "bernoulli"), "Non integer entries")
+  expect_error(check_networks_list_match_emission_distribution(networks_list = list(matrix(c(0, 1, 2))), emission_distribution = "bernoulli"), "either 0 or 1")
+})
+
+## Matching networks matrices
+test_that("check_networks_list_match_emission_distribution() detects matching networks matrices for bernoulli", {
+  expect_no_error(check_networks_list_match_emission_distribution(networks_list = list(matrix(c(0, 1))), emission_distribution = "bernoulli"))
+  expect_no_error(check_networks_list_match_emission_distribution(networks_list = list(matrix(c(0, 1), c(1, 0))), emission_distribution = "bernoulli"))
+  expect_no_error(check_networks_list_match_emission_distribution(networks_list = list(matrix(c(0, 1), c(1, 0)), matrix(c(0, 1), c(1, 0))), emission_distribution = "bernoulli"))
+})
+
+
+# Poisson
+## Non matching networks matrices
+test_that("check_networks_list_match_emission_distribution() detects non matching networks matrices for poisson", {
+  expect_error(check_networks_list_match_emission_distribution(networks_list = list(matrix(c(0.5, 1))), emission_distribution = "poisson"), "non integer entries")
+  expect_error(check_networks_list_match_emission_distribution(networks_list = list(matrix(c(0, 1.5))), emission_distribution = "poisson"), "non integer entries")
+  expect_error(check_networks_list_match_emission_distribution(networks_list = list(matrix(c(0, 1, "0"))), emission_distribution = "poisson"), "non integer entries")
+  expect_error(check_networks_list_match_emission_distribution(networks_list = list(matrix(c(0, -1, 2))), emission_distribution = "poisson"), "with negative entries")
+})
+
+## Matching networks matrices
+test_that("check_networks_list_match_emission_distribution() detects matching networks matrices for poisson", {
+  expect_no_error(check_networks_list_match_emission_distribution(networks_list = list(matrix(c(0, 5))), emission_distribution = "poisson"))
+  expect_no_error(check_networks_list_match_emission_distribution(networks_list = list(matrix(c(0, 10), c(2, 3))), emission_distribution = "poisson"))
+  expect_no_error(check_networks_list_match_emission_distribution(networks_list = list(matrix(c(0, 1), c(1, 5)), matrix(c(0, 1), c(1, 0))), emission_distribution = "poisson"))
+})
