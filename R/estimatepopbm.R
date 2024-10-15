@@ -844,6 +844,10 @@ clusterize_bipartite_collection <- function(networks_list,
   check_networks_list(networks_list = networks_list)
   check_bipartite_colsbm_models(colsbm_model = colsbm_model)
   check_is_integer_over_thresh(nb_run, thresh = 1L)
+  check_colsbm_emission_distribution(emission_distribution = distribution)
+  check_networks_list_match_emission_distribution(networks_list = networks_list, emission_distribution = distribution)
+
+  global_opts <- utils::modifyList(default_global_opts_bipartite(netlist = networks_list), global_opts)
 
   # Starting the clustering
   cli::cli_h1(text = "Clustering on {.emph M = {length(networks_list)}} networks")
@@ -886,7 +890,8 @@ clusterize_bipartite_collection <- function(networks_list,
         netlist = current_partition_matrices[[idx]],
         colsbm_model = colsbm_model,
         distribution = distribution,
-        nb_run = nb_run
+        nb_run = nb_run,
+        global_opts = global_opts
       )
     })
     # Should the procedure continue
@@ -910,6 +915,7 @@ clusterize_bipartite_collection <- function(networks_list,
     }))
     step <- step + 1
   }
+  return(current_partition_fit)
 }
 
 #' Convert to tree
