@@ -20,7 +20,7 @@ Useful links:
 
 Authors:
 \itemize{
-  \item Louis Lacoste
+  \item Louis Lacoste \email{louis.lacoste@agroparistech.fr} (\href{https://orcid.org/0009-0004-0178-9821}{ORCID})
 }
 
 }
