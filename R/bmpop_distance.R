@@ -121,3 +121,178 @@ dist_bisbmpop_max <- function(
   }
   distance
 }
+
+#' Graphon distance for bipartite SBM
+#' @param pis A list of two probability vectors (row)
+#' @param rhos A list of two probability vectors (columns)
+#' @param alphas A list of two connectivity matrices
+#'
+#' @return The graphon distance between two mesoscale structure.
+#' @details The graphon distance is computed as the L2 norm between the
+#' graphons of the two structures. Please note that this does not take into
+#' account the possible permutation of the blocks.
+graphon_distance <- function(pis, rhos, alphas) {
+  # Extracting to pi1 and pi2
+  pi1 <- as.vector(pis[[1]])
+  pi2 <- as.vector(pis[[2]])
+
+  # Extracting to rho1 and rho2
+  rho1 <- rhos[[1]]
+  rho2 <- rhos[[2]]
+
+  # Extracting to alpha1 and alpha2
+  alpha1 <- matrix(alphas[[1]], nrow = length(pi1), ncol = length(rho1))
+  alpha2 <- matrix(alphas[[2]], nrow = length(pi2), ncol = length(rho2))
+  dimnames(alpha1) <- list(
+    paste0("row1.", seq_len(nrow(alpha1))),
+    paste0("col1.", seq_len(ncol(alpha1)))
+  )
+  dimnames(alpha2) <- list(
+    paste0("row2.", seq_len(nrow(alpha2))),
+    paste0("col2.", seq_len(ncol(alpha2)))
+  )
+
+  # Cumsums of pi1 pi2 rho1 rho2
+  pi1_cumsum <- c(0, cumsum(pi1))
+  names(pi1_cumsum) <- paste0("row1.", seq_len(length(pi1_cumsum)) - 1)
+  pi2_cumsum <- c(0, cumsum(pi2))
+  names(pi2_cumsum) <- paste0("row2.", seq_len(length(pi2_cumsum)) - 1)
+  rho1_cumsum <- c(0, cumsum(rho1))
+  names(rho1_cumsum) <- paste0("col1.", seq_len(length(rho1_cumsum)) - 1)
+  rho2_cumsum <- c(0, cumsum(rho2))
+  names(rho2_cumsum) <- paste0("col2.", seq_len(length(rho2_cumsum)) - 1)
+
+
+  min_pis <- outer(tail(pi1_cumsum, -1), tail(pi2_cumsum, -1), pmin)
+
+  max_pis <- outer(head(pi1_cumsum, -1), head(pi2_cumsum, -1), pmax)
+
+  # Here we compute the min(rho_l, rho_l')
+  min_rhos <- outer(tail(rho1_cumsum, -1), tail(rho2_cumsum, -1), pmin)
+  # Here we compute the max(rho_l-1, rho_l-1')
+  max_rhos <- outer(head(rho1_cumsum, -1), head(rho2_cumsum, -1), pmax)
+
+  # All possible surfaces
+  inter_surf <- outer(pmax(min_pis - max_pis, 0), t(pmax(min_rhos - max_rhos, 0)))
+  inter_surf <- aperm(inter_surf, c(1, 4, 2, 3)) # Adjusting dimensions
+
+  # All possible connectivity diffrences
+  diff_alpha <- outer(alpha1, alpha2, "-")
+
+  # Compute the distance
+  sum(inter_surf * (diff_alpha^2))
+}
+
+#' Graphon distance for bipartite SBM over all permutations of the blocks
+#' @param pis A list of two probability vectors (row)
+#' @param rhos A list of two probability vectors (columns)
+#' @param alphas A list of two connectivity matrices
+#'
+#' @return The graphon distance between two mesoscale structure.
+#' @details The graphon distance is computed as the L2 norm between the
+#' graphons of the two structures. This function takes into account the
+#' possible permutation of the blocks and returns the minimum distance.
+#'
+#' @export
+graphon_distance_all_permutations <- function(pis, rhos, alphas) {
+  # Extracting to pi1 and pi2
+  pi1 <- pis[[1]]
+  pi2 <- pis[[2]]
+
+  # Extracting to rho1 and rho2
+  rho1 <- rhos[[1]]
+  rho2 <- rhos[[2]]
+
+  # Extracting to alpha1 and alpha2
+  alpha1 <- alphas[[1]]
+  alpha2 <- alphas[[2]]
+
+  # Compute all possible permutations
+  perms_pi1 <- gtools::permutations(length(pi1), length(pi1), seq_along(pi1))
+  # Remove reversed
+  # perms_pi1 <- matrix(perms_pi1[perms_pi1[, 1] < perms_pi1[, ncol(perms_pi1)], ],
+  #   ncol = length(pi1)
+  # )
+  perms_pi2 <- gtools::permutations(length(pi2), length(pi2), seq_along(pi2))
+  # Remove reversed
+  # perms_pi2 <- matrix(perms_pi2[perms_pi2[, 1] < perms_pi2[, ncol(perms_pi2)], ],
+  #   ncol = length(pi2)
+  # )
+  perms_rho1 <- gtools::permutations(length(rho1), length(rho1), seq_along(rho1))
+  #  Remove reversed
+  # perms_rho1 <- matrix(perms_rho1[perms_rho1[, 1] < perms_rho1[, ncol(perms_rho1)], ],
+  #   ncol = length(rho1)
+  # )
+  perms_rho2 <- gtools::permutations(length(rho2), length(rho2), seq_along(rho2))
+  # Remove reversed
+  # perms_rho2 <- matrix(perms_rho2[perms_rho2[, 1] < perms_rho2[, ncol(perms_rho2)], ],
+  #   ncol = length(rho2)
+  # )
+
+  dist_tensor <- array(0, dim = c(nrow(perms_pi1), nrow(perms_pi2), nrow(perms_rho1), nrow(perms_rho2)))
+  dimnames(dist_tensor) <- list(
+    paste0("pi1.", seq_len(nrow(perms_pi1))),
+    paste0("pi2.", seq_len(nrow(perms_pi2))),
+    paste0("rho1.", seq_len(nrow(perms_rho1))),
+    paste0("rho2.", seq_len(nrow(perms_rho2)))
+  )
+  for (perm_pi1 in seq_len(nrow(perms_pi1))) {
+    for (perm_pi2 in seq_len(nrow(perms_pi2))) {
+      for (perm_rho1 in seq_len(nrow(perms_rho1))) {
+        for (perm_rho2 in seq_len(nrow(perms_rho2))) {
+          # Compute distance for current permutations
+          current_distance <- graphon_distance(
+            pis = list(pi1[perms_pi1[perm_pi1, ]], pi2[perms_pi2[perm_pi2, ]]),
+            rhos = list(rho1[perms_rho1[perm_rho1, ]], rho2[perms_rho2[perm_rho2, ]]),
+            alphas = list(
+              alpha1[perms_pi1[perm_pi1, ], perms_rho1[perm_rho1, ]],
+              alpha2[perms_pi2[perm_pi2, ], perms_rho2[perm_rho2, ]]
+            )
+          )
+          # Update minimum distance if needed
+          dist_tensor[perm_pi1, perm_pi2, perm_rho1, perm_rho2] <- current_distance
+        }
+      }
+    }
+  }
+  return(min(dist_tensor))
+}
+
+#' Graphon distance for bipartite SBM using identifiability
+#' properties of the graphons
+#' @param pis A list of two probability vectors (row)
+#' @param rhos A list of two probability vectors (columns)
+#' @param alphas A list of two connectivity matrices
+#'
+#' @return The graphon distance between two mesoscale structure.
+graphon_distance_marginals <- function(pis, rhos, alphas) {
+  # Extract pi and rho
+  pi1 <- as.vector(pis[[1]])
+  pi2 <- as.vector(pis[[2]])
+  rho1 <- as.vector(rhos[[1]])
+  rho2 <- as.vector(rhos[[2]])
+
+  # Extract alpha
+  alpha1 <- matrix(alphas[[1]], nrow = length(pi1), ncol = length(rho1))
+  alpha2 <- matrix(alphas[[2]], nrow = length(pi2), ncol = length(rho2))
+
+  # Compute order
+  row_marginal1 <- rho1 %*% t(alpha1)
+  row_marginal2 <- rho2 %*% t(alpha2)
+  col_marginal1 <- pi1 %*% alpha1
+  col_marginal2 <- pi2 %*% alpha2
+
+  row_order1 <- order(row_marginal1, decreasing = TRUE)
+  row_order2 <- order(row_marginal2, decreasing = TRUE)
+  col_order1 <- order(col_marginal1, decreasing = TRUE)
+  col_order2 <- order(col_marginal2, decreasing = TRUE)
+
+  # Reorder all parameters
+  pi1 <- pi1[row_order1]
+  pi2 <- pi2[row_order2]
+  rho1 <- rho1[col_order1]
+  rho2 <- rho2[col_order2]
+  alpha1 <- alpha1[row_order1, col_order1]
+  alpha2 <- alpha2[row_order2, col_order2]
+  return(graphon_distance(list(pi1, pi2), list(rho1, rho2), list(alpha1, alpha2)))
+}
