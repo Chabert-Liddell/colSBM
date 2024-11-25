@@ -265,7 +265,7 @@ graphon_distance_all_permutations <- function(pis, rhos, alphas) {
 #' @param alphas A list of two connectivity matrices
 #'
 #' @return The graphon distance between two mesoscale structure.
-graphon_distance_marginals <- function(pis, rhos, alphas) {
+dist_graphon_marginals <- function(pis, rhos, alphas) {
   # Extract pi and rho
   pi1 <- as.vector(pis[[1]])
   pi2 <- as.vector(pis[[2]])
@@ -277,15 +277,28 @@ graphon_distance_marginals <- function(pis, rhos, alphas) {
   alpha2 <- matrix(alphas[[2]], nrow = length(pi2), ncol = length(rho2))
 
   # Compute order
-  row_marginal1 <- rho1 %*% t(alpha1)
-  row_marginal2 <- rho2 %*% t(alpha2)
-  col_marginal1 <- pi1 %*% alpha1
-  col_marginal2 <- pi2 %*% alpha2
+  row_marginal1 <- as.vector(rho1 %*% t(alpha1))
+  row_marginal2 <- as.vector(rho2 %*% t(alpha2))
+  col_marginal1 <- as.vector(pi1 %*% alpha1)
+  col_marginal2 <- as.vector(pi2 %*% alpha2)
 
   row_order1 <- order(row_marginal1, decreasing = TRUE)
   row_order2 <- order(row_marginal2, decreasing = TRUE)
+
   col_order1 <- order(col_marginal1, decreasing = TRUE)
   col_order2 <- order(col_marginal2, decreasing = TRUE)
+
+  # # If there are ties, we need to reorder the columns too
+  # if (any(rle(row_order1)[["lengths"]] > 1L)) {
+  #   col_order1 <- order(col_marginal1, decreasing = TRUE)
+  # } else {
+  #   col_order1 <- seq_len(length(col_marginal1))
+  # }
+  # if (any(rle(row_order2)[["lengths"]] > 1L)) {
+  #   col_order2 <- order(col_marginal2, decreasing = TRUE)
+  # } else {
+  #   col_order2 <- seq_len(length(col_marginal2))
+  # }
 
   # Reorder all parameters
   pi1 <- pi1[row_order1]
