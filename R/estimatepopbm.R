@@ -658,6 +658,252 @@ clusterize_bipartite_networks <- function(netlist,
   invisible(list_model_binary)
 }
 
+#' Clusterize bipartite networks in a bottom up fashion with graphon distance
+#'
+#' @param netlist A list of matrices.
+#' @param colsbm_model Which colSBM to use, one of "iid", "pi", "rho", "pirho",
+#' "delta", "deltapi".
+#' @param net_id A vector of string, the name of the networks.
+#' @param distribution A string, the emission distribution, either "bernoulli"
+#' (the default) or "poisson"
+#' @param nb_run An integer, the number of run the algorithm do.
+#' @param global_opts Global options for the outer algorithm and the output
+#' @param fit_opts Fit options for the VEM algorithm
+#' @param fit_init Do not use!
+#' Optional fit init from where initializing the algorithm.
+#' @param full_inference The default "FALSE", the algorithm stop once splitting
+#' groups of networks does not improve the BICL criterion. If "TRUE", then
+#' continue to split groups until a trivial classification of one network per
+#' group.
+#'
+#' @export
+#'
+#' @import cli
+#' @import progressr
+#' @importFrom stats as.dist
+#'
+#' @return A list of models for the recursive partition of
+#' the collection of networks.
+clusterize_bipartite_networks_graphon <- function(
+    netlist,
+    colsbm_model,
+    net_id = NULL,
+    distribution = "bernoulli",
+    nb_run = 3L,
+    global_opts = list(),
+    fit_opts = list(),
+    fit_init = NULL,
+    full_inference = FALSE) {
+  cli::cli_h1("Beginning the clustering")
+  # Adding default global_opts
+  switch(colsbm_model,
+    "iid" = {
+      free_mixture_row <- FALSE
+      free_mixture_col <- FALSE
+    },
+    "pi" = {
+      free_mixture_row <- TRUE
+      free_mixture_col <- FALSE
+    },
+    "rho" = {
+      free_mixture_row <- FALSE
+      free_mixture_col <- TRUE
+    },
+    "pirho" = {
+      free_mixture_row <- TRUE
+      free_mixture_col <- TRUE
+    },
+    stop(
+      "colsbm_model unknown.",
+      " Must be one of iid, pi, rho, pirho, delta or deltapi"
+    )
+  )
+  # Check if a netlist is provided, try to cast it if not
+  if (!is.list(netlist)) {
+    netlist <- list(netlist)
+  }
+  if (is.null(net_id)) {
+    net_id <- seq_along(netlist)
+  }
+  # go is used to temporarily store the default global_opts
+  go <- list(
+    Q1_min = 1L,
+    Q2_min = 1L,
+    Q1_max = floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2),
+    Q2_max = floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2),
+    nb_init = 10L,
+    nb_models = 5L,
+    backend = "future",
+    depth = 1L,
+    plot_details = 0L,
+    max_pass = 10L,
+    verbosity = 1L,
+    nb_cores = 1L
+  )
+  go <- utils::modifyList(go, global_opts)
+  global_opts <- go
+  if (is.null(global_opts$nb_cores)) {
+    global_opts$nb_cores <- 1L
+  }
+  nb_cores <- global_opts$nb_cores
+  if (is.null(global_opts$backend)) {
+    global_opts$backend <- "parallel"
+  }
+  if (is.null(global_opts$Q1_max)) {
+    Q1_max <- floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2)
+  } else {
+    Q1_max <- global_opts$Q1_max
+  }
+  if (is.null(global_opts$Q2_max)) {
+    Q2_max <- floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2)
+  } else {
+    Q2_max <- global_opts$Q2_max
+  }
+
+  # Renaming netlist with net_id
+  netlist <- setNames(netlist, net_id)
+
+  # Initialize the list to store clusterings along the way
+  list_clustering <- list()
+  cli::cli_h2("Initialization - Fitting models on all networks")
+  # Fitting all submodels
+  p <- progressr::progressor(along = seq_along(netlist))
+  p(amount = 0)
+  list_clustering[[1]] <- colsbm_lapply(
+    seq_along(netlist),
+    function(m) {
+      cli::cli_h3("Fitting model on network{?s} {net_id[m]}")
+      p(amount = 0)
+      # Disable parallelization inside the parallelized function
+      inner_global_opts <- global_opts
+      inner_global_opts$nb_cores <- 1L
+      inner_global_opts$backend <- "no_mc"
+
+      fit <- bisbmpop$new(
+        netlist = list(netlist[[m]]),
+        net_id = net_id[m],
+        distribution = distribution,
+        free_mixture_row = free_mixture_row,
+        free_mixture_col = free_mixture_col,
+        global_opts = inner_global_opts,
+        fit_opts = fit_opts
+      )
+      fit$optimize()
+      message <- cli::pluralize("Finished fitting model on network{?s} {net_id[m]}")
+      cli::cli_alert_success(message)
+      p(message = message)
+      fit$best_fit
+    },
+    backend = global_opts$backend,
+    nb_cores = global_opts$nb_cores
+  )
+
+  # Clustering by agglomeration
+  ## Compute distances
+  dist_mat <- outer(list_clustering[[1]], list_clustering[[1]], Vectorize(function(fit1, fit2) {
+    param1 <- fit1$parameters
+    param2 <- fit2$parameters
+
+    dist_graphon_marginals(
+      pis = list(param1$pi[[1]], param2$pi[[1]]),
+      rhos = list(param1$rho[[1]], param2$rho[[1]]),
+      alphas = list(param1$alpha, param2$alpha)
+    )
+  }))
+
+  ## Perform agglomeration with hclust
+  clust <- stats::hclust(stats::as.dist(dist_mat), method = "ward.D2")
+
+  merging_labels <- stats::cutree(clust, length(list_clustering[[1]]) - 1)
+
+  new_netlist_list <-
+    split(netlist, stats::cutree(clust, length(list_clustering[[1]]) - 1))
+
+  new_net_id_list <-
+    split(net_id, stats::cutree(clust, length(list_clustering[[1]]) - 1))
+
+  bicl_increased <- TRUE
+  step <- 1L
+
+  merged_net_id <- net_id[merging_labels == which(table(merging_labels) > step)]
+  while ((full_inference || bicl_increased) &&
+    length(new_netlist_list) > 1L &&
+    step < length(netlist)) {
+    cli::cli_h2("Step {step} - Merging networks {merged_net_id}")
+    p <- progressr::progressor(along = seq_along(new_netlist_list))
+    list_clustering[[step + 1]] <- colsbm_lapply(
+      seq_along(new_netlist_list), function(m) {
+        cli::cli_h3("Fitting model on {names(new_netlist_list[[m]])}")
+        # Disable parallelization inside the parallelized function
+        inner_global_opts <- global_opts
+        inner_global_opts$nb_cores <- 1L
+        inner_global_opts$backend <- "no_mc"
+        p(amount = 0)
+        fit <- bisbmpop$new(
+          netlist = new_netlist_list[[m]],
+          net_id = as.vector(new_net_id_list[[m]]),
+          distribution = distribution,
+          free_mixture_row = free_mixture_row,
+          free_mixture_col = free_mixture_col,
+          global_opts = inner_global_opts,
+          fit_opts = fit_opts
+        )
+        fit$optimize()
+        message <- cli::pluralize("Finished fitting model on network{?s} {names(new_netlist_list[[m]])}")
+        cli::cli_alert_success(message)
+        p(message = message)
+        # TODO Find the fix
+        fit$best_fit$net_id <- as.vector(new_net_id_list[[m]])
+        fit$best_fit
+      },
+      backend = global_opts$backend,
+      nb_cores = global_opts$nb_cores
+    )
+    dist_mat <- outer(list_clustering[[step + 1]], list_clustering[[step + 1]], Vectorize(function(fit1, fit2) {
+      param1 <- fit1$parameters
+      param2 <- fit2$parameters
+
+      dist_graphon_marginals(
+        pis = list(param1$pi[[1]], param2$pi[[1]]),
+        rhos = list(param1$rho[[1]], param2$rho[[1]]),
+        alphas = list(param1$alpha, param2$alpha)
+      )
+    }))
+
+    ## Perform agglomeration with hclust
+    clust <- stats::hclust(as.dist(dist_mat), method = "ward.D2")
+    merging_labels <- stats::cutree(clust, length(list_clustering[[step + 1]]) - 1)
+
+
+    clustered_netlist_list <- rapply(list_clustering[[step + 1]], function(x) lapply(x$A, function(mat) mat), how = "list")
+
+    # Here we split the matrices
+    new_netlist_list <-
+      split(clustered_netlist_list, stats::cutree(clust, length(list_clustering[[step + 1]]) - 1))
+
+
+    # If there is a third level of list then we need to unnest the third level
+    new_netlist_list <- lapply(new_netlist_list, function(mat_list) {
+      if (is.list(mat_list) && length(mat_list) > 1L) {
+        if (any(sapply(mat_list, is.list))) {
+          unlist(mat_list, recursive = FALSE)
+        } else {
+          mat_list
+        }
+      } else {
+        unlist(mat_list, recursive = FALSE)
+      }
+    })
+
+    # Check if the BICL increased
+    bicl_increased <- sum(sapply(list_clustering[[step + 1]], function(fit) fit$BICL)) >
+      sum(sapply(list_clustering[[step]], function(fit) fit$BICL))
+    step <- step + 1L
+    merged_net_id <- lapply(new_netlist_list, names)[[which(table(merging_labels) > 1)]]
+  }
+  return(list_clustering)
+}
+
 #' Convert to tree
 #'
 #' @importFrom phylogram read.dendrogram

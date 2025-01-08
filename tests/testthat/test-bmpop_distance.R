@@ -214,3 +214,8 @@ test_that("BiSBM : If pi or rho is missing can compute anyway only with alpha", 
     )
   )
 })
+
+# Graphon distance
+## New parameters to account for LBM structure
+pi1 <- c(0.3, 0.6, 0.1)
+pi2 <- c(0.2, 0.3, 0.5)
