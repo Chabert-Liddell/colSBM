@@ -19,6 +19,7 @@ Depends:
 Imports:
     ape,
     aricode,
+    cli,
     cluster,
     dplyr,
     ggnewscale,
@@ -30,6 +31,7 @@ Imports:
     parallelly,
     patchwork,
     phylogram,
+    progressr,
     purrr,
     R6,
     reshape2,

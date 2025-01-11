@@ -8,11 +8,9 @@ properties of the graphons}
 dist_graphon_unipartite_marginals(pis, alphas)
 }
 \arguments{
-\item{pis}{A list of two probability vectors (row)}
+\item{pis}{A list of two probability vectors}
 
 \item{alphas}{A list of two connectivity matrices}
-
-\item{rhos}{A list of two probability vectors (columns)}
 }
 \value{
 The graphon distance between two mesoscale structure.

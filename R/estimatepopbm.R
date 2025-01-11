@@ -804,7 +804,7 @@ clusterize_bipartite_networks_graphon <- function(
     param1 <- fit1$parameters
     param2 <- fit2$parameters
 
-    dist_graphon_marginals(
+    dist_graphon_bipartite_marginals(
       pis = list(param1$pi[[1]], param2$pi[[1]]),
       rhos = list(param1$rho[[1]], param2$rho[[1]]),
       alphas = list(param1$alpha, param2$alpha)
@@ -863,7 +863,7 @@ clusterize_bipartite_networks_graphon <- function(
       param1 <- fit1$parameters
       param2 <- fit2$parameters
 
-      dist_graphon_marginals(
+      dist_graphon_bipartite_marginals(
         pis = list(param1$pi[[1]], param2$pi[[1]]),
         rhos = list(param1$rho[[1]], param2$rho[[1]]),
         alphas = list(param1$alpha, param2$alpha)

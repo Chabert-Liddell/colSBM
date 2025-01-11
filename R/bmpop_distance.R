@@ -474,8 +474,7 @@ dist_graphon_unipartite_all_permutations <- function(pis, alphas) {
 
 #' Graphon distance for bipartite SBM using identifiability
 #' properties of the graphons
-#' @param pis A list of two probability vectors (row)
-#' @param rhos A list of two probability vectors (columns)
+#' @param pis A list of two probability vectors
 #' @param alphas A list of two connectivity matrices
 #'
 #' @return The graphon distance between two mesoscale structure.
