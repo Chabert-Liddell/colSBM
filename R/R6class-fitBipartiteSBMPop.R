@@ -110,10 +110,6 @@ fitBipartiteSBMPop <- R6::R6Class(
     #' @field clustering_is_complete A boolean used to know if the model real
     #' blocks match the expected blocks.
     clustering_is_complete = TRUE,
-    #' @field tested_taus A vector of taus values for taus given by init_clust
-    tested_taus = list(),
-    #' @field tested_taus_vbound A vector of vbound values for taus given by init_clust
-    tested_taus_vbound = vector(),
     #' @field has_converged A boolean, indicating wether the current fit object
     #' VEM converged or not
     has_converged = FALSE,
@@ -401,12 +397,7 @@ fitBipartiteSBMPop <- R6::R6Class(
     #' to FALSE.
     #' @return The computed quantity.
     vb_tau_pi = function(m, MAP = FALSE) {
-      if (!MAP) {
-        sum(self$tau[[m]][[1]][, which(self$Cpi[[1]][, m])] %*%
-          matrix(log(self$pi[[m]][[1]][which(self$Cpi[[1]][, m])]))) +
-          sum(self$tau[[m]][[2]][, which(self$Cpi[[2]][, m])] %*%
-            matrix(log(self$pi[[m]][[2]][which(self$Cpi[[2]][, m])])))
-      } else {
+      if (MAP) {
         sum(.xlogy(
           tabulate(self$Z[[m]][[1]], self$Q[1]),
           self$MAP$pi[[m]][[1]]
@@ -415,6 +406,11 @@ fitBipartiteSBMPop <- R6::R6Class(
             tabulate(self$Z[[m]][[2]], self$Q[2]),
             self$MAP$pi[[m]][[2]]
           ))
+      } else {
+        sum(self$tau[[m]][[1]][, which(self$Cpi[[1]][, m])] %*%
+          matrix(log(self$pi[[m]][[1]][which(self$Cpi[[1]][, m])]))) +
+          sum(self$tau[[m]][[2]][, which(self$Cpi[[2]][, m])] %*%
+            matrix(log(self$pi[[m]][[2]][which(self$Cpi[[2]][, m])])))
       }
     },
     #' Computes the entropy of the model
@@ -583,13 +579,6 @@ fitBipartiteSBMPop <- R6::R6Class(
     #'
     #' @return The new tau values
     fixed_point_tau = function(m, d, tol = self$fit_opts$tolerance) {
-      # Just 1 step is necessary because tau1 depends only on tau2
-      condition <- TRUE
-      it <- 0
-      # reup_counter <- 0
-      self$vloss[[m]] <-
-        c(self$vloss[[m]], self$vb_tau_alpha(m) + self$vb_tau_pi(m) +
-          self$entropy_tau(m))
       tau_new <- switch(self$distribution,
         "bernoulli" = {
           tau_new <-
@@ -731,7 +720,32 @@ fitBipartiteSBMPop <- R6::R6Class(
       for (m in seq.int(self$M)) {
         self$update_pim(m, MAP)
       }
-      if (!MAP) {
+      if (MAP) {
+        if (self$free_mixture_row | self$free_mixture_col) {
+          # If free_mixture the pi are the pim
+          self$MAP$pi <- self$MAP$pim
+        } else {
+          # Otherwise we need to ponder based on the size for
+          # Rows
+          pi1 <- matrix(self$n[[1]] * vapply(seq(self$M), function(m) {
+            self$MAP$pim[[m]][[1]]
+          }, FUN.VALUE = rep(.1, self$Q[1])), ncol = self$M, nrow = self$Q[1])
+
+          pi1 <- rowSums(pi1) / sum(pi1)
+
+          # And columns
+          pi2 <- matrix(self$n[[2]] * vapply(seq(self$M),
+            function(m) {
+              self$MAP$pim[[m]][[2]]
+            },
+            FUN.VALUE = rep(.1, self$Q[2])
+          ), ncol = self$M, nrow = self$Q[2])
+
+          pi2 <- rowSums(pi2) / sum(pi2)
+
+          self$MAP$pi <- lapply(seq.int(self$M), function(m) list(pi1, pi2))
+        }
+      } else {
         if (self$free_mixture_row | self$free_mixture_col) {
           # TODO : Can remove  the outer OR if and else to use the below
           # If free_mixture the pi are the pim
@@ -782,31 +796,6 @@ fitBipartiteSBMPop <- R6::R6Class(
 
           self$pi <- lapply(seq.int(self$M), function(m) list(pi1, pi2))
         }
-      } else {
-        if (self$free_mixture_row | self$free_mixture_col) {
-          # If free_mixture the pi are the pim
-          self$MAP$pi <- self$MAP$pim
-        } else {
-          # Otherwise we need to ponder based on the size for
-          # Rows
-          pi1 <- matrix(self$n[[1]] * vapply(seq(self$M), function(m) {
-            self$MAP$pim[[m]][[1]]
-          }, FUN.VALUE = rep(.1, self$Q[1])), ncol = self$M, nrow = self$Q[1])
-
-          pi1 <- rowSums(pi1) / sum(pi1)
-
-          # And columns
-          pi2 <- matrix(self$n[[2]] * vapply(seq(self$M),
-            function(m) {
-              self$MAP$pim[[m]][[2]]
-            },
-            FUN.VALUE = rep(.1, self$Q[2])
-          ), ncol = self$M, nrow = self$Q[2])
-
-          pi2 <- rowSums(pi2) / sum(pi2)
-
-          self$MAP$pi <- lapply(seq.int(self$M), function(m) list(pi1, pi2))
-        }
       }
       invisible(pi)
     },
@@ -853,246 +842,210 @@ fitBipartiteSBMPop <- R6::R6Class(
       invisible(alpha)
     },
 
-    #' @description The goal of this function is to test different values of tau
-    #' and select the best one in the sense of the BICL (or vbound) ?
-    #'
-    #' @param taus_list List of possible taus for which to provide a ranking
-    #'
-    #' @return A vector with the order of the taus in regard of vbound
-    taus_order = function(taus_list) {
-      vbound_per_taus <- sapply(seq_len(length(taus_list)), function(id) {
-        # The taus are set
-        self$tau <- taus_list[[id]]
-
-        # We update the mqr
-        lapply(seq(self$M), self$update_mqr)
-
-        # We then compute the parameters
-        self$m_step()
-
-        # Obtain the vbound
-        vbound <- self$compute_vbound()
-        return(vbound)
-      })
-      # We store it to check later
-      self$tested_taus_vbound <- vbound_per_taus
-      return(order(vbound_per_taus, decreasing = TRUE))
-    },
-
     #' @description Initialize clusters
     #'
     #' @importFrom gtools rdirichlet
     #' @return nothing; stores
     init_clust = function() {
-      nb_inits <- 5L
-      tested_taus <- lapply(seq(1L, nb_inits), function(id) {
-        switch(self$init_method,
-          # TODO later : adapt init_clust "random" to bipartite
-          "random" = lapply(
-            X = seq_along(self$A),
-            FUN = function(m) {
-              tau_1 <- gtools::rdirichlet(self$n[[1]][m], rep(1, self$Q[[1]]))
-              tau_2 <- gtools::rdirichlet(self$n[[2]][m], rep(1, self$Q[[2]]))
-              self$emqr[m, , ] <- .tquadform(tau_tmp, self$A[[m]] * (self$nonNAs[[m]]))
-              self$nmqr[m, , ] <- .tquadform(tau_tmp, (self$nonNAs[[m]]))
-              a <- self$emqr[m, , ] / self$nmqr[m, , ]
-              prob <- self$Q * diag(a) #+ rowSums(a)
-              p <- sample.int(self$Q, prob = prob)
-              tau_tmp <- tau_tmp[, p]
-              self$emqr[m, , ] <- self$emqr[m, p, p]
-              self$nmqr[m, , ] <- self$nmqr[m, p, p]
-              tau_tmp
-            }
-          ),
-          "hca" = lapply(
-            X = seq_along(self$A),
-            FUN = function(m) {
-              # The .one_hot performs a one hot encoding of the spectral clustering performed
-              # DONE : Adapt this step to handle two taus
-              biclustering <- bipartite_hierarchic_clustering(self$nonNAs[[m]] * self$A[[m]], self$Q)
-              row_clustering <- biclustering$row_clustering
-              col_clustering <- biclustering$col_clustering
+      self$tau <- switch(self$init_method,
+        # TODO later : adapt init_clust "random" to bipartite
+        "random" = lapply(
+          X = seq_along(self$A),
+          FUN = function(m) {
+            tau_1 <- gtools::rdirichlet(self$n[[1]][m], rep(1, self$Q[[1]]))
+            tau_2 <- gtools::rdirichlet(self$n[[2]][m], rep(1, self$Q[[2]]))
+            self$emqr[m, , ] <- .tquadform(tau_tmp, self$A[[m]] * (self$nonNAs[[m]]))
+            self$nmqr[m, , ] <- .tquadform(tau_tmp, (self$nonNAs[[m]]))
+            a <- self$emqr[m, , ] / self$nmqr[m, , ]
+            prob <- self$Q * diag(a) #+ rowSums(a)
+            p <- sample.int(self$Q, prob = prob)
+            tau_tmp <- tau_tmp[, p]
+            self$emqr[m, , ] <- self$emqr[m, p, p]
+            self$nmqr[m, , ] <- self$nmqr[m, p, p]
+            tau_tmp
+          }
+        ),
+        "hca" = lapply(
+          X = seq_along(self$A),
+          FUN = function(m) {
+            # The .one_hot performs a one hot encoding of the spectral clustering performed
+            # DONE : Adapt this step to handle two taus
+            biclustering <- bipartite_hierarchic_clustering(self$nonNAs[[m]] * self$A[[m]], self$Q)
+            row_clustering <- biclustering$row_clustering
+            col_clustering <- biclustering$col_clustering
 
+            # Tau for the rows
+            tau_1 <- .one_hot(row_clustering, self$Q[[1]])
+            tau_1[tau_1 < 1e-6] <- 1e-6
+            tau_1[tau_1 > 1 - 1e-6] <- 1 - 1e-6
+            tau_1 <- tau_1 / .rowSums(tau_1, self$n[[1]][m], self$Q[[1]])
+
+            # Tau for the columns
+            tau_2 <- .one_hot(col_clustering, self$Q[[2]])
+            tau_2[tau_2 < 1e-6] <- 1e-6
+            tau_2[tau_2 > 1 - 1e-6] <- 1 - 1e-6
+            tau_2 <- tau_2 / .rowSums(tau_2, self$n[[2]][m], self$Q[[2]])
+
+            self$emqr[m, , ] <- t(tau_1) %*% (self$A[[m]] * (self$nonNAs[[m]])) %*% tau_2
+            self$nmqr[m, , ] <- t(tau_1) %*% (self$nonNAs[[m]]) %*% tau_2
+
+            # Permuter avec un ordre favorisant plus fortement
+            # les plus gros clusters mais de manière stochastique
+            # colSums sur les tau1 et tau2 pour obtenir les pi1 et pi2
+            a <- self$emqr[m, , ] / self$nmqr[m, , ] # ? estimate of the alpha
+            pi1 <- .colSums(tau_1, self$n[[1]][m], self$Q[[1]]) / sum(tau_1)
+            pi2 <- .colSums(tau_2, self$n[[2]][m], self$Q[[2]]) / sum(tau_2)
+
+            prob1 <- as.vector(pi2 %*% t(a))
+            prob2 <- as.vector(pi1 %*% a)
+            # p1 and p2 contain the clustering ordered using the highest probabilities first
+
+            p1 <- order(prob1)
+            p2 <- order(prob2)
+
+            # Tau, emqr and nmqr are reordered accordingly
+            if (ncol(tau_1) != 1) {
+              tau_1 <- tau_1[, p1]
+              self$emqr[m, , ] <- self$emqr[m, p1, ]
+              self$nmqr[m, , ] <- self$nmqr[m, p1, ]
+            }
+            if (ncol(tau_2) != 1) {
+              tau_2 <- tau_2[, p2]
+              self$emqr[m, , ] <- self$emqr[m, , p2]
+              self$nmqr[m, , ] <- self$nmqr[m, , p2]
+            }
+
+            # The output is tau[[m]][[1]] for tau_1 and tau[[m]][[2]] for tau_2
+            list(tau_1, tau_2)
+          }
+        ),
+        # DONE : adapt "spectral" clustering to bipartite with two clustering on the rows and columns
+        "spectral" = lapply(
+          X = seq_along(self$A),
+          FUN = function(m) {
+            # The .one_hot performs a one hot encoding of the spectral clustering performed
+
+            biclustering <- spectral_biclustering(
+              self$nonNAs[[m]] *
+                self$A[[m]],
+              self$Q
+            )
+            row_clustering <- biclustering$row_clustering
+            col_clustering <- biclustering$col_clustering
+
+            # Tau for the rows
+            tau_1 <- .one_hot(row_clustering, self$Q[[1]])
+            tau_1[tau_1 < 1e-6] <- 1e-6
+            tau_1[tau_1 > 1 - 1e-6] <- 1 - 1e-6
+            tau_1 <- tau_1 / .rowSums(tau_1, self$n[[1]][m], self$Q[[1]])
+
+            # Tau for the columns
+            tau_2 <- .one_hot(col_clustering, self$Q[[2]])
+            tau_2[tau_2 < 1e-6] <- 1e-6
+            tau_2[tau_2 > 1 - 1e-6] <- 1 - 1e-6
+            tau_2 <- tau_2 / .rowSums(tau_2, self$n[[2]][m], self$Q[[2]])
+
+            self$emqr[m, , ] <- t(tau_1) %*% (self$A[[m]] * (self$nonNAs[[m]])) %*% tau_2
+            self$nmqr[m, , ] <- t(tau_1) %*% (self$nonNAs[[m]]) %*% tau_2
+
+            # Permuter avec un ordre favorisant plus fortement
+            # les plus gros clusters mais de manière stochastique
+            # colSums sur les tau1 et tau2 pour obtenir les pi1 et pi2
+            a <- self$emqr[m, , ] / self$nmqr[m, , ] # ? estimate of the alpha
+            pi1 <- .colSums(tau_1, self$n[[1]][m], self$Q[[1]]) / sum(tau_1)
+            pi2 <- .colSums(tau_2, self$n[[2]][m], self$Q[[2]]) / sum(tau_2)
+
+            prob1 <- as.vector(pi2 %*% t(a))
+            prob2 <- as.vector(pi1 %*% a)
+            # p1 and p2 contain the clustering ordered using the highest probabilities first
+            # But it is still sampled and random according to the probabilities
+            # p1 <- sample.int(self$Q[[1]], prob = prob1)
+            # p2 <- sample.int(self$Q[[2]], prob = prob2)
+
+            if (ncol(tau_1) != 1) {
+              p1 <- sample.int(self$Q[[1]], prob = prob1) # order(prob1)
+            }
+
+            if (ncol(tau_2) != 1) {
+              p2 <- sample.int(self$Q[[2]], prob = prob2) # order(prob2)
+            }
+
+            # Tau, emqr and nmqr are reordered accordingly
+            if (ncol(tau_1) != 1) {
+              tau_1 <- tau_1[, p1]
+              self$emqr[m, , ] <- self$emqr[m, p1, ]
+              self$nmqr[m, , ] <- self$nmqr[m, p1, ]
+            }
+            if (ncol(tau_2) != 1) {
+              tau_2 <- tau_2[, p2]
+              self$emqr[m, , ] <- self$emqr[m, , p2]
+              self$nmqr[m, , ] <- self$nmqr[m, , p2]
+            }
+
+            list(tau_1, tau_2)
+          }
+        ),
+        "empty" = lapply(
+          seq_along(self$Z),
+          function(m) {
+            tau_1 <- matrix(self$tau[[m]][[1]],
+              nrow = self$n[[1]][m],
+              ncol = self$Q[1]
+            )
+            tau_1[, which(!self$Cpi[[1]][, m])] <- 0
+            tau_1[, which(self$Cpi[[1]][, m])] <-
+              .threshold(matrix(tau_1[, which(self$Cpi[[1]][, m])],
+                nrow = self$n[[1]][m]
+              ))
+
+            tau_2 <- matrix(self$tau[[m]][[2]],
+              nrow = self$n[[2]][m],
+              ncol = self$Q[2]
+            )
+            tau_2[, which(!self$Cpi[[2]][, m])] <- 0
+            tau_2[, which(self$Cpi[[2]][, m])] <-
+              .threshold(matrix(tau_2[, which(self$Cpi[[2]][, m])],
+                nrow = self$n[[2]][m]
+              ))
+
+            self$emqr[m, , ] <- t(tau_1) %*%
+              (self$A[[m]] * (self$nonNAs[[m]])) %*% tau_2
+            self$nmqr[m, , ] <- t(tau_1) %*% (self$nonNAs[[m]]) %*% tau_2
+            list(tau_1, tau_2)
+          }
+        ),
+        "given" = lapply(
+          X = seq_along(self$Z),
+          FUN = function(m) {
+            if (is.matrix(self$Z[[m]][[1]]) &&
+              is.matrix(self$Z[[m]][[2]]) &&
+              all(dim(self$Z[[m]][[1]]) == c(self$n[[1]][m], self$Q[1])) &&
+              all(dim(self$Z[[m]][[2]]) == c(self$n[[2]][m], self$Q[2]))) {
+              # If Z was already provided as a list of two matrices
+              tau_1 <- self$Z[[m]][[1]]
+              tau_2 <- self$Z[[m]][[2]]
+            } else {
               # Tau for the rows
-              tau_1 <- .one_hot(row_clustering, self$Q[[1]])
+              tau_1 <- .one_hot(self$Z[[m]][[1]], self$Q[[1]])
               tau_1[tau_1 < 1e-6] <- 1e-6
               tau_1[tau_1 > 1 - 1e-6] <- 1 - 1e-6
               tau_1 <- tau_1 / .rowSums(tau_1, self$n[[1]][m], self$Q[[1]])
 
               # Tau for the columns
-              tau_2 <- .one_hot(col_clustering, self$Q[[2]])
+              tau_2 <- .one_hot(self$Z[[m]][[2]], self$Q[[2]])
               tau_2[tau_2 < 1e-6] <- 1e-6
               tau_2[tau_2 > 1 - 1e-6] <- 1 - 1e-6
               tau_2 <- tau_2 / .rowSums(tau_2, self$n[[2]][m], self$Q[[2]])
 
+              # update_mqr(m)
               self$emqr[m, , ] <- t(tau_1) %*% (self$A[[m]] * (self$nonNAs[[m]])) %*% tau_2
               self$nmqr[m, , ] <- t(tau_1) %*% (self$nonNAs[[m]]) %*% tau_2
-
-              # Permuter avec un ordre favorisant plus fortement
-              # les plus gros clusters mais de manière stochastique
-              # colSums sur les tau1 et tau2 pour obtenir les pi1 et pi2
-              a <- self$emqr[m, , ] / self$nmqr[m, , ] # ? estimate of the alpha
-              pi1 <- .colSums(tau_1, self$n[[1]][m], self$Q[[1]]) / sum(tau_1)
-              pi2 <- .colSums(tau_2, self$n[[2]][m], self$Q[[2]]) / sum(tau_2)
-
-              prob1 <- as.vector(pi2 %*% t(a))
-              prob2 <- as.vector(pi1 %*% a)
-              # p1 and p2 contain the clustering ordered using the highest probabilities first
-
-              p1 <- order(prob1)
-              p2 <- order(prob2)
-
-              # Tau, emqr and nmqr are reordered accordingly
-              if (ncol(tau_1) != 1) {
-                tau_1 <- tau_1[, p1]
-                self$emqr[m, , ] <- self$emqr[m, p1, ]
-                self$nmqr[m, , ] <- self$nmqr[m, p1, ]
-              }
-              if (ncol(tau_2) != 1) {
-                tau_2 <- tau_2[, p2]
-                self$emqr[m, , ] <- self$emqr[m, , p2]
-                self$nmqr[m, , ] <- self$nmqr[m, , p2]
-              }
-
-              # The output is tau[[m]][[1]] for tau_1 and tau[[m]][[2]] for tau_2
-              list(tau_1, tau_2)
             }
-          ),
-          # DONE : adapt "spectral" clustering to bipartite with two clustering on the rows and columns
-          "spectral" = lapply(
-            X = seq_along(self$A),
-            FUN = function(m) {
-              # The .one_hot performs a one hot encoding of the spectral clustering performed
-
-              biclustering <- spectral_biclustering(
-                self$nonNAs[[m]] *
-                  self$A[[m]],
-                self$Q
-              )
-              row_clustering <- biclustering$row_clustering
-              col_clustering <- biclustering$col_clustering
-
-              # Tau for the rows
-              tau_1 <- .one_hot(row_clustering, self$Q[[1]])
-              tau_1[tau_1 < 1e-6] <- 1e-6
-              tau_1[tau_1 > 1 - 1e-6] <- 1 - 1e-6
-              tau_1 <- tau_1 / .rowSums(tau_1, self$n[[1]][m], self$Q[[1]])
-
-              # Tau for the columns
-              tau_2 <- .one_hot(col_clustering, self$Q[[2]])
-              tau_2[tau_2 < 1e-6] <- 1e-6
-              tau_2[tau_2 > 1 - 1e-6] <- 1 - 1e-6
-              tau_2 <- tau_2 / .rowSums(tau_2, self$n[[2]][m], self$Q[[2]])
-
-              self$emqr[m, , ] <- t(tau_1) %*% (self$A[[m]] * (self$nonNAs[[m]])) %*% tau_2
-              self$nmqr[m, , ] <- t(tau_1) %*% (self$nonNAs[[m]]) %*% tau_2
-
-              # Permuter avec un ordre favorisant plus fortement
-              # les plus gros clusters mais de manière stochastique
-              # colSums sur les tau1 et tau2 pour obtenir les pi1 et pi2
-              a <- self$emqr[m, , ] / self$nmqr[m, , ] # ? estimate of the alpha
-              pi1 <- .colSums(tau_1, self$n[[1]][m], self$Q[[1]]) / sum(tau_1)
-              pi2 <- .colSums(tau_2, self$n[[2]][m], self$Q[[2]]) / sum(tau_2)
-
-              prob1 <- as.vector(pi2 %*% t(a))
-              prob2 <- as.vector(pi1 %*% a)
-              # p1 and p2 contain the clustering ordered using the highest probabilities first
-              # But it is still sampled and random according to the probabilities
-              # p1 <- sample.int(self$Q[[1]], prob = prob1)
-              # p2 <- sample.int(self$Q[[2]], prob = prob2)
-
-              if (ncol(tau_1) != 1) {
-                p1 <- sample.int(self$Q[[1]], prob = prob1) # order(prob1)
-              }
-
-              if (ncol(tau_2) != 1) {
-                p2 <- sample.int(self$Q[[2]], prob = prob2) # order(prob2)
-              }
-
-              # Tau, emqr and nmqr are reordered accordingly
-              if (ncol(tau_1) != 1) {
-                tau_1 <- tau_1[, p1]
-                self$emqr[m, , ] <- self$emqr[m, p1, ]
-                self$nmqr[m, , ] <- self$nmqr[m, p1, ]
-              }
-              if (ncol(tau_2) != 1) {
-                tau_2 <- tau_2[, p2]
-                self$emqr[m, , ] <- self$emqr[m, , p2]
-                self$nmqr[m, , ] <- self$nmqr[m, , p2]
-              }
-
-              list(tau_1, tau_2)
-            }
-          ),
-          "empty" = lapply(
-            seq_along(self$Z),
-            function(m) {
-              tau_1 <- matrix(self$tau[[m]][[1]],
-                nrow = self$n[[1]][m],
-                ncol = self$Q[1]
-              )
-              tau_1[, which(!self$Cpi[[1]][, m])] <- 0
-              tau_1[, which(self$Cpi[[1]][, m])] <-
-                .threshold(matrix(tau_1[, which(self$Cpi[[1]][, m])],
-                  nrow = self$n[[1]][m]
-                ))
-
-              tau_2 <- matrix(self$tau[[m]][[2]],
-                nrow = self$n[[2]][m],
-                ncol = self$Q[2]
-              )
-              tau_2[, which(!self$Cpi[[2]][, m])] <- 0
-              tau_2[, which(self$Cpi[[2]][, m])] <-
-                .threshold(matrix(tau_2[, which(self$Cpi[[2]][, m])],
-                  nrow = self$n[[2]][m]
-                ))
-
-              self$emqr[m, , ] <- t(tau_1) %*%
-                (self$A[[m]] * (self$nonNAs[[m]])) %*% tau_2
-              self$nmqr[m, , ] <- t(tau_1) %*% (self$nonNAs[[m]]) %*% tau_2
-              list(tau_1, tau_2)
-            }
-          ),
-          "given" = lapply(
-            X = seq_along(self$Z),
-            FUN = function(m) {
-              if (is.matrix(self$Z[[m]][[1]]) &&
-                is.matrix(self$Z[[m]][[2]]) &&
-                all(dim(self$Z[[m]][[1]]) == c(self$n[[1]][m], self$Q[1])) &&
-                all(dim(self$Z[[m]][[2]]) == c(self$n[[2]][m], self$Q[2]))) {
-                # If Z was already provided as a list of two matrices
-                tau_1 <- self$Z[[m]][[1]]
-                tau_2 <- self$Z[[m]][[2]]
-              } else {
-                # Tau for the rows
-                tau_1 <- .one_hot(self$Z[[m]][[1]], self$Q[[1]])
-                tau_1[tau_1 < 1e-6] <- 1e-6
-                tau_1[tau_1 > 1 - 1e-6] <- 1 - 1e-6
-                tau_1 <- tau_1 / .rowSums(tau_1, self$n[[1]][m], self$Q[[1]])
-
-                # Tau for the columns
-                tau_2 <- .one_hot(self$Z[[m]][[2]], self$Q[[2]])
-                tau_2[tau_2 < 1e-6] <- 1e-6
-                tau_2[tau_2 > 1 - 1e-6] <- 1 - 1e-6
-                tau_2 <- tau_2 / .rowSums(tau_2, self$n[[2]][m], self$Q[[2]])
-
-                # update_mqr(m)
-                self$emqr[m, , ] <- t(tau_1) %*% (self$A[[m]] * (self$nonNAs[[m]])) %*% tau_2
-                self$nmqr[m, , ] <- t(tau_1) %*% (self$nonNAs[[m]]) %*% tau_2
-              }
-              return(list(tau_1, tau_2))
-            }
-          )
-          # TODO add a "given_tau" init method
+            return(list(tau_1, tau_2))
+          }
         )
-      })
-      self$tested_taus <- tested_taus
-
-      # With our proposed taus we
-      taus_order_vec <- self$taus_order(tested_taus)
-
-      # We keep the best taus tested
-      self$tau <- tested_taus[[taus_order_vec[[1]]]]
+        # TODO add a "given_tau" init method
+      )
       lapply(seq(self$M), self$update_alpham)
     },
     #' The M step of the VEM
