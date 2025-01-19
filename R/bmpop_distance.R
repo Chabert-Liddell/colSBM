@@ -312,6 +312,26 @@ dist_graphon_bipartite_marginals <- function(pis, rhos, alphas) {
   return(graphon_distance_bipartite(list(pi1, pi2), list(rho1, rho2), list(alpha1, alpha2)))
 }
 
+matrix_distance_graphon_bipartite <- function(parameters_list) {
+  M <- length(parameters_list)
+  dist_matrix <- matrix(0, nrow = M, ncol = M)
+  for (m1 in seq(1, M)) {
+    for (m2 in seq(1, m1)) {
+      dist_matrix[m1, m2] <- dist_graphon_bipartite_marginals(pis = list(
+        parameters_list[[m1]]$pi[[1]],
+        parameters_list[[m2]]$pi[[1]]
+      ), rhos = list(
+        parameters_list[[m1]]$rho[[1]],
+        parameters_list[[m2]]$rho[[1]]
+      ), alphas = list(
+        parameters_list[[m1]]$alpha[[1]],
+        parameters_list[[m2]]$alpha[[1]]
+      ))
+    }
+  }
+  return(t(dist_matrix) + dist_matrix)
+}
+
 #' Graphon distance for bipartite SBM using symmetrization
 #'
 #' @param pis A list of two probability vectors (row)

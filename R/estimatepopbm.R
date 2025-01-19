@@ -776,9 +776,17 @@ clusterize_bipartite_networks_graphon <- function(
       net_id = net_id[[m]],
       distribution = distribution,
       global_opts = global_opts,
-      fit_opts = fit_opts
+      fit_opts = fit_opts,
+      nb_run = 1L
     )
+  }, future.seed = TRUE)
+
+  # Compute distance and clusterize accordingly
+  parameters_list <- lapply(seq_along(separated_fits), function(m) {
+    separated_fits[[m]]$best_fit$parameters
   })
+  dist_matrix <- matrix_distance_graphon_bipartite(parameters_list = parameters_list)
+  clustering <- cluster::pam(x = dist_matrix, k = 2L, cluster.only = TRUE)
 }
 
 #' Convert to tree
