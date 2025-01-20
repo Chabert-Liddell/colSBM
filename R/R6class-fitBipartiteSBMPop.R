@@ -1202,11 +1202,21 @@ fitBipartiteSBMPop <- R6::R6Class(
       if (all(self$Q == c(1, 1))) {
         self$tau <- lapply(
           seq(self$M),
-          function(m) list(matrix(1, self$n[[1]][m], 1), matrix(1, self$n[[2]][m], 1))
+          function(m) {
+            out <- list(row = matrix(1, self$n[[1]][m], 1), col = matrix(1, self$n[[2]][m], 1))
+            rownames(out[["row"]]) <- rownames(self$A[[m]])
+            rownames(out[["col"]]) <- colnames(self$A[[m]])
+            return(out)
+          }
         )
         self$Z <- lapply(
           seq(self$M),
-          function(m) list(rep(1, self$n[[1]][m]), rep(1, self$n[[2]][m]))
+          function(m) {
+            list(
+              row = setNames(rep(1, self$n[[1]][m]), nm = rownames(self$A[[m]])),
+              col = setNames(rep(1, self$n[[2]][m]), nm = colnames(self$A[[m]]))
+            )
+          }
         )
         self$pi <- lapply(
           seq(self$M),
@@ -1214,7 +1224,7 @@ fitBipartiteSBMPop <- R6::R6Class(
         )
         lapply(
           seq(self$M),
-          function(m) self$update_mqr(m)
+          self$update_mqr
         )
 
         self$alpha <- matrix(sum(self$emqr) / sum(self$nmqr), 1, 1)
@@ -1235,6 +1245,8 @@ fitBipartiteSBMPop <- R6::R6Class(
           emqr = self$emqr,
           nmqr = self$nmqr
         )
+        vb <- self$compute_vbound()
+        self$vbound <- c(self$vbound, vb)
         self$has_converged <- TRUE
       } else {
         # If there is more than one cluster
