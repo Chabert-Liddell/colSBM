@@ -769,7 +769,7 @@ clusterize_bipartite_networks_graphon <- function(
   netlist <- setNames(netlist, net_id)
 
   # Fitting model for each network
-  separated_fits <- future.apply::future_lapply(seq_along(netlist), function(m) {
+  fits <- future.apply::future_lapply(seq_along(netlist), function(m) {
     estimate_colBiSBM(
       netlist = list(netlist[[m]]),
       colsbm_model = colsbm_model,
@@ -781,12 +781,116 @@ clusterize_bipartite_networks_graphon <- function(
     )
   }, future.seed = TRUE)
 
+  Z_clust <- lapply(seq_along(fits), function(m) {
+    unlist(fits[[m]]$best_fit$Z, recursive = FALSE)
+  })
+
   # Compute distance and clusterize accordingly
-  parameters_list <- lapply(seq_along(separated_fits), function(m) {
-    separated_fits[[m]]$best_fit$parameters
+  parameters_list <- lapply(seq_along(fits), function(m) {
+    fits[[m]]$best_fit$parameters
   })
   dist_matrix <- matrix_distance_graphon_bipartite(parameters_list = parameters_list)
   clustering <- cluster::pam(x = dist_matrix, k = 2L, cluster.only = TRUE)
+
+  clustered_fits <- lapply(unique(clustering), function(k) {
+    cluster_fits <- fits[clustering == k]
+  })
+
+  matrices_list <- lapply(clustered_fits, function(fits) {
+    setNames(rapply(fits$A, function(mat) {
+      mat
+    }, how = "list"), fits$net_id)
+  })
+
+  lapply(matrices_list, function(matlist) {
+    estimate_colBiSBM(
+      netlist = matlist,
+      colsbm_model = colsbm_model,
+      net_id = names(matlist),
+      distribution = distribution,
+      global_opts = global_opts,
+      fit_opts = fit_opts,
+      nb_run = 1L
+    )
+  })
+}
+
+clusterize_bipartite_networks_graphon <- function(
+    netlist,
+    colsbm_model,
+    net_id = NULL,
+    distribution = "bernoulli",
+    nb_run = 3L,
+    global_opts = list(),
+    fit_opts = list(),
+    fit_init = NULL,
+    full_inference = FALSE) {
+  # Initialiser les collections de départ avec un objet bisbmpop par réseau
+  collections <- lapply(seq_along(netlist), function(i) {
+    col <- bisbmpop$new(
+      netlist = list(netlist[[i]]),
+      net_id = c(net_id[[i]]),
+      distribution = distribution,
+      global_opts = global_opts,
+      fit_opts = fit_opts
+    )
+    col$optimize()
+    col
+  })
+
+  compute_bicl_partition <- function(collections) {
+    return(sum(sapply(collections, function(col) col$best_fit$BICL)))
+  }
+
+  # Historique des fusions
+  bicl_history <- c(compute_bicl_partition(collections))
+  fusion_history <- list(collections)
+
+  # Fonction pour calculer les distances de graphon entre toutes les paires de collections
+  compute_distances <- function(collections) {
+    M <- length(collections)
+    dist_matrix <- matrix(Inf, nrow = M, ncol = M)
+    for (i in seq_len(M)) {
+      for (j in seq_len(i - 1)) {
+        dist_matrix[i, j] <- dist_graphon_bipartite_marginals(
+          pis = list(collections[[i]]$best_fit$parameters$pi[[1]], collections[[j]]$best_fit$parameters$pi[[1]]),
+          rhos = list(collections[[i]]$best_fit$parameters$rho[[1]], collections[[j]]$best_fit$parameters$rho[[1]]),
+          alphas = list(collections[[i]]$best_fit$parameters$alpha[[1]], collections[[j]]$best_fit$parameters$alpha[[1]])
+        )
+      }
+    }
+    return(dist_matrix)
+  }
+
+  # Boucle pour fusionner les collections jusqu'à ce qu'il ne reste qu'une seule collection
+  while (length(collections) > 1) {
+    dist_matrix <- compute_distances(collections)
+    # Ici on pourra extraire l'ordre des distances croissantes pour tester
+    # plusieurs fusions
+    min_dist <- min(dist_matrix)
+    indices <- which(dist_matrix == min_dist, arr.ind = TRUE)
+    i <- indices[1, 1]
+    j <- indices[1, 2]
+
+    # Fusionner les collections i et j
+    new_collection <- bisbmpop$new(
+      netlist = c(collections[[i]]$A, collections[[j]]$A),
+      net_id = c(collections[[i]]$net_id, collections[[j]]$net_id),
+      distribution = distribution,
+      global_opts = global_opts,
+      fit_opts = fit_opts
+    )
+    new_collection$optimize()
+
+    # Mettre à jour les collections
+    collections <- collections[-c(i, j)]
+    collections <- c(collections, list(new_collection))
+    bicl_history <- c(bicl_history, compute_bicl_partition(collections))
+    # Ajouter à l'historique des fusions
+    fusion_history <- c(fusion_history, list(collections))
+  }
+
+  return(fusion_history)
 }
 
 #' Convert to tree
