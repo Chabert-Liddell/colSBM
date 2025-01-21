@@ -113,7 +113,8 @@ test_that("Estimate colBiSBM runs without problems with verbosity", {
       nb_cores = 2L,
       verbosity = 4L,
       Q1_max = NULL,
-      Q2_max = NULL
+      Q2_max = NULL,
+      backend = "no_mc"
     )
   ))
 })
