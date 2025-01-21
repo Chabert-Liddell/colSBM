@@ -10,6 +10,7 @@ clusterize_bipartite_networks_graphon(
   net_id = NULL,
   distribution = "bernoulli",
   nb_run = 3L,
+  fusions_per_step = 5L,
   global_opts = list(),
   fit_opts = list(),
   fit_init = NULL,
@@ -27,7 +28,9 @@ clusterize_bipartite_networks_graphon(
 \item{distribution}{A string, the emission distribution, either "bernoulli"
 (the default) or "poisson"}
 
-\item{nb_run}{An integer, the number of run the algorithm do.}
+\item{nb_run}{An integer, the number of run the algorithm do. Defaults to 5.}
+
+\item{fusions_per_step}{The number of fusions to try at each step.}
 
 \item{global_opts}{Global options for the outer algorithm and the output}
 
