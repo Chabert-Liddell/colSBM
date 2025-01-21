@@ -1,13 +1,31 @@
+library("future.apply")
+library("progressr")
+handlers(global = TRUE)
+handlers("cli")
+plan(tweak(multisession, workers = 8))
+
 devtools::load_all()
 
+
 data(dorebipartite)
-netlist <- dorebipartite[1:3]
+netlist <- dorebipartite[1:5]
 colsbm_model <- "iid"
 net_id <- NULL
 distribution <- "bernoulli"
 nb_run <- 3L
-global_opts <- list()
+global_opts <- list(backend = "no_mc")
 fit_opts <- list()
+fusions_per_step <- 5L
+
+bbb <- clusterize_bipartite_networks_graphon(
+    netlist,
+    colsbm_model,
+    net_id,
+    distribution,
+    nb_run,
+    global_opts,
+    fit_opts
+)
 
 nr <- 75
 nc <- 75
@@ -159,3 +177,13 @@ incidence_matrices <- append(
 )
 
 netids <- rep(c("as", "cp", "dis"), each = 3)
+
+aaa <- clusterize_bipartite_networks_graphon(
+    incidence_matrices,
+    colsbm_model = "iid",
+    net_id = netids,
+    distribution,
+    nb_run,
+    global_opts,
+    fit_opts
+)

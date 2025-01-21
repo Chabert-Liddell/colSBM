@@ -666,7 +666,8 @@ clusterize_bipartite_networks <- function(netlist,
 #' @param net_id A vector of string, the name of the networks.
 #' @param distribution A string, the emission distribution, either "bernoulli"
 #' (the default) or "poisson"
-#' @param nb_run An integer, the number of run the algorithm do.
+#' @param nb_run An integer, the number of run the algorithm do. Defaults to 5.
+#' @param fusions_per_step The number of fusions to try at each step.
 #' @param global_opts Global options for the outer algorithm and the output
 #' @param fit_opts Fit options for the VEM algorithm
 #' @param fit_init Do not use!
@@ -690,11 +691,11 @@ clusterize_bipartite_networks_graphon <- function(
     net_id = NULL,
     distribution = "bernoulli",
     nb_run = 3L,
+    fusions_per_step = 5L,
     global_opts = list(),
     fit_opts = list(),
     fit_init = NULL,
     full_inference = FALSE) {
-  cli::cli_h1("Beginning the clustering")
   # Adding default global_opts
   # TODO Extract all these checks utils
   switch(colsbm_model,
@@ -765,68 +766,11 @@ clusterize_bipartite_networks_graphon <- function(
     Q2_max <- global_opts$Q2_max
   }
 
-  # Renaming netlist with net_id
-  netlist <- setNames(netlist, net_id)
-
-  # Fitting model for each network
-  fits <- future.apply::future_lapply(seq_along(netlist), function(m) {
-    estimate_colBiSBM(
-      netlist = list(netlist[[m]]),
-      colsbm_model = colsbm_model,
-      net_id = net_id[[m]],
-      distribution = distribution,
-      global_opts = global_opts,
-      fit_opts = fit_opts,
-      nb_run = 1L
-    )
-  }, future.seed = TRUE)
-
-  Z_clust <- lapply(seq_along(fits), function(m) {
-    unlist(fits[[m]]$best_fit$Z, recursive = FALSE)
-  })
-
-  # Compute distance and clusterize accordingly
-  parameters_list <- lapply(seq_along(fits), function(m) {
-    fits[[m]]$best_fit$parameters
-  })
-  dist_matrix <- matrix_distance_graphon_bipartite(parameters_list = parameters_list)
-  clustering <- cluster::pam(x = dist_matrix, k = 2L, cluster.only = TRUE)
-
-  clustered_fits <- lapply(unique(clustering), function(k) {
-    cluster_fits <- fits[clustering == k]
-  })
-
-  matrices_list <- lapply(clustered_fits, function(fits) {
-    setNames(rapply(fits$A, function(mat) {
-      mat
-    }, how = "list"), fits$net_id)
-  })
-
-  lapply(matrices_list, function(matlist) {
-    estimate_colBiSBM(
-      netlist = matlist,
-      colsbm_model = colsbm_model,
-      net_id = names(matlist),
-      distribution = distribution,
-      global_opts = global_opts,
-      fit_opts = fit_opts,
-      nb_run = 1L
-    )
-  })
-}
-
-clusterize_bipartite_networks_graphon <- function(
-    netlist,
-    colsbm_model,
-    net_id = NULL,
-    distribution = "bernoulli",
-    nb_run = 3L,
-    global_opts = list(),
-    fit_opts = list(),
-    fit_init = NULL,
-    full_inference = FALSE) {
   # Initialiser les collections de départ avec un objet bisbmpop par réseau
-  collections <- lapply(seq_along(netlist), function(i) {
+  cli::cli_h1("Beginning the clustering")
+  cli::cli_h2("Fitting separated BiSBM models")
+  p <- progressr::progressor(along = netlist)
+  collections <- future.apply::future_lapply(seq_along(netlist), function(i) {
     col <- bisbmpop$new(
       netlist = list(netlist[[i]]),
       net_id = c(net_id[[i]]),
@@ -835,14 +779,16 @@ clusterize_bipartite_networks_graphon <- function(
       fit_opts = fit_opts
     )
     col$optimize()
+    p(sprintf("Fitted network %s", net_id[[i]]))
     col
-  })
+  }, future.seed = TRUE)
 
   compute_bicl_partition <- function(collections) {
     return(sum(sapply(collections, function(col) col$best_fit$BICL)))
   }
 
   # Historique des fusions
+  cli::cli_alert_info("Fully separated BIC-L is {.val {compute_bicl_partition(collections)}}")
   bicl_history <- c(compute_bicl_partition(collections))
   fusion_history <- list(collections)
 
@@ -862,15 +808,51 @@ clusterize_bipartite_networks_graphon <- function(
     return(dist_matrix)
   }
 
+  # Function to generate and sort pairs of indices based on distance matrix
+  generate_sorted_pairs <- function(dist_matrix) {
+    M <- nrow(dist_matrix)
+    pairs <- which(lower.tri(dist_matrix), arr.ind = TRUE)
+    distances <- dist_matrix[lower.tri(dist_matrix)]
+    sorted_indices <- order(distances)
+    sorted_pairs <- pairs[sorted_indices, ]
+    return(sorted_pairs)
+  }
+
+  max_steps <- length(collections) - 1
+  step <- 1
   # Boucle pour fusionner les collections jusqu'à ce qu'il ne reste qu'une seule collection
   while (length(collections) > 1) {
+    cli::cli_h2("Step {step}/{max_steps}")
+    cli::cli_alert_info("Computing distances between collections")
     dist_matrix <- compute_distances(collections)
-    # Ici on pourra extraire l'ordre des distances croissantes pour tester
+    sorted_pairs <- generate_sorted_pairs(dist_matrix)
+    sorted_pairs <- sorted_pairs[seq(1, min(fusions_per_step, nrow(sorted_pairs))), ]
+    candidates_collections <- lapply(seq_len(nrow(sorted_pairs)), function(k) {
+      i <- sorted_pairs[k, 1]
+      j <- sorted_pairs[k, 2]
+
+      cli::cli_alert_info("Try merging{qty({collections[[i]]$net_id})} network{?s} {.val {collections[[i]]$net_id}} with{qty({collections[[j]]$net_id})} network{?s} {.val {collections[[j]]$net_id}}")
+
+      candidate_collection <- bisbmpop$new(
+        netlist = c(collections[[i]]$A, collections[[j]]$A),
+        net_id = c(collections[[i]]$net_id, collections[[j]]$net_id),
+        distribution = distribution,
+        global_opts = global_opts,
+        fit_opts = fit_opts
+      )
+      candidate_collection$optimize()
+      candidate_collection
+    })
+    which.max(sapply(seq_along(candidates_collections), function(i) candidates_collections[[i]]$best_fit$BICL))
+
     # plusieurs fusions
     min_dist <- min(dist_matrix)
     indices <- which(dist_matrix == min_dist, arr.ind = TRUE)
     i <- indices[1, 1]
     j <- indices[1, 2]
+
+    cli::cli_alert_info("Merging{qty({collections[[i]]$net_id})} network{?s} {.val {collections[[i]]$net_id}} with{qty({collections[[j]]$net_id})} network{?s} {.val {collections[[j]]$net_id}}")
+
 
     # Fusionner les collections i et j
     new_collection <- bisbmpop$new(
@@ -882,13 +864,21 @@ clusterize_bipartite_networks_graphon <- function(
     )
     new_collection$optimize()
 
+    cli::cli_alert_success("Optimization of the new collection with network{?s} {new_collection$net_id} completed")
+
+
     # Mettre à jour les collections
     collections <- collections[-c(i, j)]
     collections <- c(collections, list(new_collection))
     bicl_history <- c(bicl_history, compute_bicl_partition(collections))
+    cli::cli_alert_info("Current collection BIC-L is {.val {compute_bicl_partition(collections)}}")
     # Ajouter à l'historique des fusions
     fusion_history <- c(fusion_history, list(collections))
+    step <- step + 1
+    cli::cli_alert_info("Collections updated, {length(collections)} remaining")
   }
+
+  cli::cli_h1("Clustering of bipartite networks completed")
 
   return(fusion_history)
 }
