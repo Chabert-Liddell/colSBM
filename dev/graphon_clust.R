@@ -1,21 +1,25 @@
 library("future.apply")
+library("future.callr")
 library("progressr")
 handlers(global = TRUE)
 handlers("cli")
-plan(tweak(multisession, workers = 8))
+# plan(tweak("callr", workers = 5L))
+plan("sequential")
+options(future.globals.maxSize = Inf)
 
 devtools::load_all()
 
 
 data(dorebipartite)
-netlist <- dorebipartite[1:5]
+netlist <- dorebipartite
 colsbm_model <- "iid"
 net_id <- NULL
 distribution <- "bernoulli"
 nb_run <- 3L
-global_opts <- list(backend = "no_mc")
+global_opts <- list(backend = "future")
 fit_opts <- list()
 fusions_per_step <- 5L
+full_inference <- TRUE
 
 bbb <- clusterize_bipartite_networks_graphon(
     netlist,
@@ -24,16 +28,17 @@ bbb <- clusterize_bipartite_networks_graphon(
     distribution,
     nb_run,
     global_opts,
-    fit_opts
+    fit_opts,
+    full_inference = full_inference
 )
 
-nr <- 75
-nc <- 75
+nr <- 120L
+nc <- 120L
 
 current_model <- "iid"
 pi <- matrix(c(0.2, 0.3, 0.5), nrow = 1, byrow = TRUE)
 rho <- matrix(c(0.2, 0.3, 0.5), nrow = 1, byrow = TRUE)
-eps <- 0.3
+eps <- 0.4
 
 alpha_assortative <- matrix(0.3, nrow = 3, ncol = 3) +
     matrix(
@@ -178,12 +183,72 @@ incidence_matrices <- append(
 
 netids <- rep(c("as", "cp", "dis"), each = 3)
 
-aaa <- clusterize_bipartite_networks_graphon(
-    incidence_matrices,
-    colsbm_model = "iid",
-    net_id = netids,
-    distribution,
-    nb_run,
-    global_opts,
-    fit_opts
-)
+
+netlist <- incidence_matrices
+net_id <- netids
+
+
+fits_lbm <- lapply(seq(7, 9), function(id) {
+    sbm::estimateBipartiteSBM(netMat = netlist[[id]], model = "bernoulli", estimOptions = list(verbosity = 1L))
+})
+
+fit_as <- sbm::estimateBipartiteSBM(netMat = netlist[[1]], model = "bernoulli", estimOptions = list(verbosity = 1L))
+
+fit_cp <- sbm::estimateBipartiteSBM(netMat = netlist[[4]], model = "bernoulli", estimOptions = list(verbosity = 1L))
+
+fits_lbm[[4]] <- fit_as
+fits_lbm[[5]] <- fit_cp
+
+pis <- lapply(fits_lbm, function(fit) {
+    return(fit$blockProp$row)
+})
+rhos <- lapply(fits_lbm, function(fit) {
+    return(fit$blockProp$col)
+})
+alphas <- lapply(fits_lbm, function(fit) {
+    return(fit$connectParam$mean)
+})
+
+dist_graphon_bipartite_all_permutations(pis = pis[c(1, 2)], rhos = rhos[c(1, 2)], alphas = alphas[c(1, 2)])
+dist_graphon_bipartite_marginals(pis = pis[c(1, 2)], rhos = rhos[c(1, 2)], alphas = alphas[c(1, 2)])
+
+# 2 and 3
+dist_graphon_bipartite_all_permutations(pis = pis[c(2, 3)], rhos = rhos[c(2, 3)], alphas = alphas[c(2, 3)])
+dist_graphon_bipartite_marginals(pis = pis[c(2, 3)], rhos = rhos[c(2, 3)], alphas = alphas[c(2, 3)])
+
+# 1 and 3
+dist_graphon_bipartite_all_permutations(pis = pis[c(1, 3)], rhos = rhos[c(1, 3)], alphas = alphas[c(1, 3)])
+dist_graphon_bipartite_marginals(pis = pis[c(1, 3)], rhos = rhos[c(1, 3)], alphas = alphas[c(1, 3)])
+
+# 1 and as
+dist_graphon_bipartite_all_permutations(pis = pis[c(1, 4)], rhos = rhos[c(1, 4)], alphas = alphas[c(1, 4)])
+dist_graphon_bipartite_marginals(pis = pis[c(1, 4)], rhos = rhos[c(1, 4)], alphas = alphas[c(1, 4)])
+
+# 2 and as
+dist_graphon_bipartite_all_permutations(pis = pis[c(2, 4)], rhos = rhos[c(2, 4)], alphas = alphas[c(2, 4)])
+dist_graphon_bipartite_marginals(pis = pis[c(2, 4)], rhos = rhos[c(2, 4)], alphas = alphas[c(2, 4)])
+
+# 3 and as
+dist_graphon_bipartite_all_permutations(pis = pis[c(3, 4)], rhos = rhos[c(3, 4)], alphas = alphas[c(3, 4)])
+dist_graphon_bipartite_marginals(pis = pis[c(3, 4)], rhos = rhos[c(3, 4)], alphas = alphas[c(3, 4)])
+
+# 1 and cp
+dist_graphon_bipartite_all_permutations(pis = pis[c(1, 5)], rhos = rhos[c(1, 5)], alphas = alphas[c(1, 5)])
+dist_graphon_bipartite_marginals(pis = pis[c(1, 5)], rhos = rhos[c(1, 5)], alphas = alphas[c(1, 5)])
+
+# 2 and cp
+dist_graphon_bipartite_all_permutations(pis = pis[c(2, 5)], rhos = rhos[c(2, 5)], alphas = alphas[c(2, 5)])
+dist_graphon_bipartite_marginals(pis = pis[c(2, 5)], rhos = rhos[c(2, 5)], alphas = alphas[c(2, 5)])
+
+# 3 and cp
+dist_graphon_bipartite_all_permutations(pis = pis[c(3, 5)], rhos = rhos[c(3, 5)], alphas = alphas[c(3, 5)])
+dist_graphon_bipartite_marginals(pis = pis[c(3, 5)], rhos = rhos[c(3, 5)], alphas = alphas[c(3, 5)])
+# aaa <- clusterize_bipartite_networks_graphon(
+#     incidence_matrices,
+#     colsbm_model = "iid",
+#     net_id = netids,
+#     distribution,
+#     nb_run,
+#     global_opts,
+#     fit_opts
+# )
