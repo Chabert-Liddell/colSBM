@@ -751,7 +751,6 @@ clusterize_bipartite_networks_graphon <- function(
   if (is.null(global_opts$nb_cores)) {
     global_opts$nb_cores <- 1L
   }
-  nb_cores <- global_opts$nb_cores
   if (is.null(global_opts$backend)) {
     global_opts$backend <- "parallel"
   }
@@ -825,7 +824,7 @@ clusterize_bipartite_networks_graphon <- function(
   has_bicl_increased <- TRUE
   # Loop to merge collections
   while (length(collections) > 1 & (has_bicl_increased || full_inference)) {
-    cli::cli_h2("Step {step}/{max_steps}")
+    cli::cli_h2("Step {.val {step}} on a max of {.val {max_steps}} step{?s}")
     cli::cli_alert_info("Computing distances between collections")
     dist_matrix <- compute_distances(collections)
     sorted_pairs <- generate_sorted_pairs(dist_matrix)
