@@ -3,15 +3,15 @@ library("future.callr")
 library("progressr")
 handlers(global = TRUE)
 handlers("cli")
-# plan(tweak("callr", workers = 5L))
-plan("sequential")
+plan(list(tweak("callr", workers = 5L), tweak("callr", workers = 3L)))
+# plan("sequential")
 options(future.globals.maxSize = Inf)
 
 devtools::load_all()
 
 
 data(dorebipartite)
-netlist <- dorebipartite
+netlist <- dorebipartite[1:4]
 colsbm_model <- "iid"
 net_id <- NULL
 distribution <- "bernoulli"
@@ -63,9 +63,9 @@ alpha_core_periphery <- matrix(0.3, nrow = 3, ncol = 3) +
 alpha_disassortative <- matrix(0.3, nrow = 3, ncol = 3) +
     matrix(
         c(
-            -0.5 * eps, eps, eps,
+            -0.5 * eps, eps, 1.5 * eps,
             eps, -0.5 * eps, eps,
-            eps, eps, -0.5 * eps
+            1.5 * eps, eps, -0.5 * eps
         ),
         nrow = 3, byrow = TRUE
     )
@@ -243,12 +243,12 @@ dist_graphon_bipartite_marginals(pis = pis[c(2, 5)], rhos = rhos[c(2, 5)], alpha
 # 3 and cp
 dist_graphon_bipartite_all_permutations(pis = pis[c(3, 5)], rhos = rhos[c(3, 5)], alphas = alphas[c(3, 5)])
 dist_graphon_bipartite_marginals(pis = pis[c(3, 5)], rhos = rhos[c(3, 5)], alphas = alphas[c(3, 5)])
-# aaa <- clusterize_bipartite_networks_graphon(
-#     incidence_matrices,
-#     colsbm_model = "iid",
-#     net_id = netids,
-#     distribution,
-#     nb_run,
-#     global_opts,
-#     fit_opts
-# )
+aaa <- clusterize_bipartite_networks_graphon(
+    incidence_matrices,
+    colsbm_model = "iid",
+    net_id = netids,
+    distribution,
+    nb_run,
+    global_opts,
+    fit_opts
+)
