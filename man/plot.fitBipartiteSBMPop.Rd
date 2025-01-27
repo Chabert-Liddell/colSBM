@@ -10,8 +10,9 @@
   oRow = NULL,
   oCol = NULL,
   mixture = FALSE,
+  net_id = 1L,
   values = FALSE,
-  net_id = 1,
+  values_min = 0.1,
   ...
 )
 }
@@ -27,10 +28,10 @@
 \item{mixture}{Should the block proportions of each network be plotted as
 well?}
 
+\item{net_id}{Use to plot only on network in "graphon" view.}
+
 \item{values}{Wether or not to plot values on the alpha, pi and rho
 representation.}
-
-\item{net_id}{Use to plot only on network in "graphon" view.}
 
 \item{...}{Further argument to be passed}
 }
