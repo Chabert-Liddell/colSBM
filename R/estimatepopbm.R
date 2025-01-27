@@ -666,8 +666,9 @@ clusterize_bipartite_networks <- function(netlist,
 #' @param net_id A vector of string, the name of the networks.
 #' @param distribution A string, the emission distribution, either "bernoulli"
 #' (the default) or "poisson"
-#' @param nb_run An integer, the number of run the algorithm do. Defaults to 5.
-#' @param fusions_per_step The number of fusions to try at each step.
+#' @param nb_run An integer, the number of run the algorithm do. Defaults to 3.
+#' @param fusions_per_step The number of fusions to try at each step. Defaults
+#' to 5.
 #' @param global_opts Global options for the outer algorithm and the output
 #' @param fit_opts Fit options for the VEM algorithm
 #' @param fit_init Do not use!
