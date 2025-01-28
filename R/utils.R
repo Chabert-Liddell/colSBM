@@ -277,14 +277,17 @@ generate_bipartite_collection <- function(
 #'
 #' @importFrom stats kmeans
 #'
-#' @param X an Adjacency matrix
+#' @param X an adjacency matrix
 #' @param K the number of clusters
-#'
-#' @noMd
-#' @noRd
+#' @param kmeans.nstart the number of random starts for the kmeans algorithm.
+#' Defaults to 400. Ensures consistency of the results.
+#' @param kmeans.iter.max the maximum number of iterations for the kmeans
+#' algorithm. Defaults to 50.
 #'
 #' @return A vector : The clusters labels
-spectral_clustering <- function(X, K) {
+#'
+#' @return A vector : The clusters labels
+spectral_clustering <- function(X, K, kmeans.nstart = 400L, kmeans.iter.max = 50L) {
   X <- as.matrix(X)
   n <- nrow(X)
   if (K == 1) {
@@ -319,8 +322,8 @@ spectral_clustering <- function(X, K) {
     cl <- try(
       expr = {
         stats::kmeans(U, K,
-          iter.max = 100,
-          nstart = 100
+          iter.max = kmeans.iter.max,
+          nstart = kmeans.nstart
         )$cluster
       },
       silent = TRUE
@@ -329,8 +332,8 @@ spectral_clustering <- function(X, K) {
       cl <- try(
         expr = {
           stats::kmeans(U, K,
-            iter.max = 100,
-            nstart = 100
+            iter.max = kmeans.iter.max,
+            nstart = kmeans.nstart
           )$cluster
         },
         silent = TRUE
@@ -339,13 +342,6 @@ spectral_clustering <- function(X, K) {
   } else {
     cl <- rep(1, nrow(X))
   }
-  # index <- rev(order(abs(specabs$values)))[1:K]
-  # U <- specabs$vectors[, index]
-  # U <- U / rowSums(U**2)**(1 / 2)
-  # U[is.na(U)] <- 0
-  # U[is.nan(U)] <- 0
-  # U[is.infinite(U)] <- 0
-  # cl <- stats::kmeans(U, K, iter.max = 100, nstart = 100)$cluster
   clustering <- rep(1, n)
   clustering[connected] <- cl
   clustering[isolated] <- which.min(rowsum(rowSums(X, na.rm = TRUE), cl))
@@ -360,32 +356,41 @@ spectral_clustering <- function(X, K) {
 #'
 #' Relies on the spectral_clustering function defined above
 #'
-#' @param X an Incidence matrix
-#' @param K the two numbers of clusters
+#' @param A a bipartite adjacency matrix
+#' @param Q the two numbers of clusters
+#' @inheritParams spectral_clustering
 #'
-#' @noMd
-#' @noRd
+#' @return A list of two vectors : The clusters labels. They are accessed using
+#' $row_clustering and $col_clustering
 #'
 #' @return A list of two vectors : The clusters labels.
 #' They are accessed using $row_clustering and $col_clustering
-spectral_biclustering <- function(X, K) {
+spectral_biclustering <- function(A, Q, kmeans.nstart = 400L, kmeans.iter.max = 50L) {
   # Trivial clustering : everyone is part of the cluster
-  if (all(K == c(1, 1))) {
+  if (all(Q == c(1, 1))) {
     return(list(
-      row_clustering = rep(1, nrow(X)),
-      col_clustering = rep(1, ncol(X))
+      row_clustering = rep(1, nrow(A)),
+      col_clustering = rep(1, ncol(A))
     ))
   }
 
   # Extracts the number of clusters
-  K1 <- K[1] # Row clusters
-  K2 <- K[2] # Column clusters
+  K1 <- Q[1] # Row clusters
+  K2 <- Q[2] # Column clusters
 
-  row_adjacency_matrix <- tcrossprod(X)
-  row_clustering <- spectral_clustering(row_adjacency_matrix, K1)
+  row_adjacency_matrix <- tcrossprod(A)
+  row_clustering <- spectral_clustering(row_adjacency_matrix,
+    K1,
+    kmeans.nstart = kmeans.nstart,
+    kmeans.iter.max = kmeans.iter.max
+  )
 
-  col_adjacency_matrix <- crossprod(X)
-  col_clustering <- spectral_clustering(col_adjacency_matrix, K2)
+  col_adjacency_matrix <- crossprod(A)
+  col_clustering <- spectral_clustering(col_adjacency_matrix,
+    K2,
+    kmeans.nstart = kmeans.nstart,
+    kmeans.iter.max = kmeans.iter.max
+  )
 
   return(list(row_clustering = row_clustering, col_clustering = col_clustering))
 }
