@@ -355,13 +355,11 @@ extract_best_partition <- function(l, unnest = TRUE) {
   return(out)
 }
 
-
 #' Partition of a collection of bipartite networks based on their common
 #' mesoscale structures
 #'
 #' @param netlist A list of matrices.
-#' @param colsbm_model Which colSBM to use, one of "iid", "pi", "rho", "pirho",
-#' "delta", "deltapi".
+#' @param colsbm_model Which colBiSBM to use, one of "iid", "pi", "rho", "pirho",
 #' @param net_id A vector of string, the name of the networks.
 #' @param distribution A string, the emission distribution, either "bernoulli"
 #' (the default) or "poisson"
@@ -374,6 +372,12 @@ extract_best_partition <- function(l, unnest = TRUE) {
 #' groups of networks does not improve the BICL criterion. If "TRUE", then
 #' continue to split groups until a trivial classification of one network per
 #' group.
+#' @param verbose A boolean, should the function be verbose or not. Default to
+#' TRUE.
+#'
+#' @importFrom future.apply future_lapply
+#' @import cli
+#' @importFrom utils modifyList
 #'
 #' @return A list of models for the recursive partition of
 #' the collection of networks.
@@ -419,7 +423,8 @@ clusterize_bipartite_networks <- function(netlist,
                                           global_opts = list(),
                                           fit_opts = list(),
                                           fit_init = NULL,
-                                          full_inference = FALSE) {
+                                          full_inference = FALSE,
+                                          verbose = TRUE) {
   # Adding default global_opts
   switch(colsbm_model,
     "iid" = {
@@ -482,10 +487,11 @@ clusterize_bipartite_networks <- function(netlist,
     Q2_max <- global_opts$Q2_max
   }
 
-
-  if (global_opts$verbosity >= 1) {
-    cat(paste0("\n=== Fitting the full (M = ", length(netlist), ") collection ===\n"))
+  # Fit the initial model on the full collection
+  if (verbose) {
+    cli::cli_h1("Fitting the full collection")
   }
+
   my_bisbmpop <- estimate_colBiSBM(
     netlist = netlist,
     colsbm_model = colsbm_model,
@@ -496,168 +502,97 @@ clusterize_bipartite_networks <- function(netlist,
     fit_opts = fit_opts
   )
 
-  recursive_clustering <- function(fit) {
-    # If there is only one network base case reached
+  clustering_queue <- list(my_bisbmpop)
+  list_model_binary <- list()
+
+  if (verbose) {
+    cli::cli_h1("Beginning clustering")
+  }
+  # Process the clustering queue
+  while (length(clustering_queue) > 0) {
+    fit <- clustering_queue[[1]]
+    clustering_queue <- clustering_queue[-1]
+
+    # If the collection contains only one network, add it to the final list
     if (fit$best_fit$M == 1) {
-      return(fit$best_fit)
+      list_model_binary <- append(list_model_binary, list(fit$best_fit))
+      next
     }
 
-    # Builds a distance matrix, m vs m'
-    # FIXME Could I build only the triangular matrix ? Symmetry ?
-    dist_bm <- diag(0, fit$best_fit$M)
-    for (i in seq_len(nrow(dist_bm))) {
-      for (j in seq_len(ncol(dist_bm))) {
-        fit_free_pi_rho <- fit$best_fit$pi[c(i, j)]
-        fit_pi_rho <- fit$best_fit$pim[c(i, j)]
+    # Compute the dissimilarity matrix
+    dist_bm <- compute_dissimilarity_matrix(collection = fit)
+    # Partition the networks based on the dissimilarity matrix
+    cl <- partition_networks_list_from_dissimilarity(
+      networks_list = fit$A,
+      dissimilarity_matrix = dist_bm,
+      nb_groups = 2L
+    )
 
-        # Handling free mixture on the rows
-        if (fit$free_mixture_row) {
-          fit_pi <- lapply(
-            seq_along(fit_pi_rho),
-            function(m) fit_free_pi_rho[[m]][[1]]
-          )
-        } else {
-          # We select the parameters for the two networks
-          fit_pi <- lapply(
-            seq_along(fit_pi_rho),
-            function(m) fit_pi_rho[[m]][[1]]
-          )
-        }
-
-        # Handling free mixture on the cols
-        if (fit$free_mixture_col) {
-          fit_rho <- lapply(
-            seq_along(fit_pi_rho),
-            function(m) fit_free_pi_rho[[m]][[2]]
-          )
-        } else {
-          fit_rho <- lapply(
-            seq_along(fit_pi_rho),
-            function(m) fit_pi_rho[[m]][[2]]
-          )
-        }
-
-        # Computing the distance
-        dist_bm[i, j] <-
-          dist_bisbmpop_max(
-            pi = fit_pi,
-            rho = fit_rho,
-            alpha = fit$best_fit$alpham[c(i, j)],
-            delta = fit$best_fit$delta[c(i, j)], weight = "max"
-          )
-      }
+    if (verbose) {
+      cli::cli_h2("Trying to split the collection of {.val {fit$net_id}}")
     }
-
-    # Compute the clusters of networks
-    if (fit$M >= 3) {
-      # If there is more than 3 networks they are splitted using K-medioids
-      cl <- cluster::pam(x = sqrt(dist_bm), k = 2, diss = TRUE)$clustering
-    } else {
-      cl <- c(1, 2)
-    }
-    # cl is a vector of size M, containing the networks clusters memberships
-    fits <- # Contains two new collections
-      colsbm_lapply(
-        c(1, 2), # Go over the two new clusters of networks (ie collections)
-        function(k) {
-          Z_init <- lapply(
-            seq_along(fit$model_list),
-            # Go over the Q1xQ2 models
-            function(q) {
-              if (!is.null(fit$model_list[[q]])) {
-                return(fit$model_list[[q]]$Z[cl == k])
-              } else {
-                return(NULL)
-              }
+    # Fit models for the sub-collections
+    fits <- future.apply::future_lapply(
+      c(1, 2),
+      function(k) {
+        Z_init <- lapply(
+          seq_along(fit$model_list),
+          function(q) {
+            if (!is.null(fit$model_list[[q]])) {
+              return(fit$model_list[[q]]$Z[cl == k])
+            } else {
+              return(NULL)
             }
-          )
-          # Reshaping the Z_init to be bi-dimensional
-          dim(Z_init) <- c(fit$global_opts$Q1_max, fit$global_opts$Q2_max)
-
-          # cl == k, is a bool vector with TRUE, if network m
-          # is a member of cluster k
-          # Here there are the min between sum(cl == k), ie the number of
-          # networks part of the cluster that are fitted vs nb_run
-          if (global_opts$verbosity >= 1) {
-            cat(
-              "\nFitting a sub collection with :",
-              toString(fit$net_id[cl == k]), "\n"
-            )
           }
-
-          # Preparing the next sep_BiSBM to save time
-          filtered_sep_BiSBM <- vector("list")
-          filtered_sep_BiSBM$model <- fit$sep_BiSBM$model[cl == k]
-          filtered_sep_BiSBM$BICL <- fit$sep_BiSBM$BICL[cl == k]
-          filtered_sep_BiSBM$Z <- fit$sep_BiSBM$Z[cl == k]
-
-          return(
-            estimate_colBiSBM(
-              netlist = fit$A[cl == k],
-              colsbm_model = colsbm_model,
-              net_id = fit$net_id[cl == k],
-              distribution = distribution,
-              nb_run = min(sum(cl == k), nb_run),
-              Z_init = Z_init, # TODO Change this parameter name, cause all Q
-              global_opts = global_opts,
-              fit_opts = fit_opts,
-              sep_BiSBM = filtered_sep_BiSBM
-            )
-          )
-        },
-        nb_cores = global_opts$nb_cores,
-        backend = global_opts$backend
-      )
-    # Fully recursive (like a top down HCA)
-    if (full_inference) {
-      return(append(
-        list(fit$best_fit),
-        # New recursion over the 2 new fits
-        colsbm_lapply(
-          c(1, 2),
-          function(s) {
-            recursive_clustering(fits[[s]])
-          },
-          nb_cores = global_opts$nb_cores,
-          backend = global_opts$backend
         )
-      ))
-    } else {
-      # Here the recursion stops once the BICL doesn't improve
-      if (fits[[1]]$best_fit$BICL + fits[[2]]$best_fit$BICL >
-        fit$best_fit$BICL) {
-        return(append(
-          list(fit$best_fit),
-          # New recursion over the 2 new fits
-          colsbm_lapply(
-            c(1, 2),
-            function(s) {
-              recursive_clustering(fits[[s]])
-            },
-            nb_cores = global_opts$nb_cores,
-            backend = global_opts$backend
+        dim(Z_init) <- c(fit$global_opts$Q1_max, fit$global_opts$Q2_max)
+
+        if (verbose) {
+          cli::cli_alert_info("Fitting a sub collection with : {.val {fit$net_id[cl == k]}}")
+        }
+
+        filtered_sep_BiSBM <- vector("list")
+        filtered_sep_BiSBM$model <- fit$sep_BiSBM$model[cl == k]
+        filtered_sep_BiSBM$BICL <- fit$sep_BiSBM$BICL[cl == k]
+        filtered_sep_BiSBM$Z <- fit$sep_BiSBM$Z[cl == k]
+
+        return(
+          estimate_colBiSBM(
+            netlist = fit$A[cl == k],
+            colsbm_model = colsbm_model,
+            net_id = fit$net_id[cl == k],
+            distribution = distribution,
+            nb_run = min(sum(cl == k), nb_run),
+            Z_init = Z_init,
+            global_opts = global_opts,
+            fit_opts = fit_opts,
+            sep_BiSBM = filtered_sep_BiSBM
           )
-        ))
-      } else {
-        return(fit$best_fit)
+        )
+      },
+      future.seed = TRUE
+    )
+
+    # Decide whether to continue splitting or add to final list
+    if (full_inference || (fits[[1]]$best_fit$BICL + fits[[2]]$best_fit$BICL > fit$best_fit$BICL)) {
+      clustering_queue <- append(clustering_queue, fits)
+      if (verbose) {
+        cli::cli_alert_success("Splitting collections improved the BIC-L criterion")
+      }
+    } else {
+      list_model_binary <- append(list_model_binary, list(fit$best_fit))
+      if (verbose) {
+        cli::cli_alert_danger("Splitting collections {.emph decreased} the BIC-L criterion")
       }
     }
   }
 
-  if (global_opts$verbosity >= 1) {
-    cat("\n=== Finished fitting the full collection ===\n")
-    cat("\n=== Beginning recursion ===\n")
-  }
-
-  # This launches the recursion
-  list_model_binary <- recursive_clustering(my_bisbmpop)
-
-  if (global_opts$verbosity >= 1) {
-    cat("\n=== Finished recursion ===\n")
+  # Final message indicating the end of clustering
+  if (verbose) {
+    cli::cli_alert_success("Finished clustering")
   }
   invisible(list_model_binary)
 }
-
 
 ## Implement all of this in one big function (clusterize_networks)
 ## That can be used for both types of colSBM
@@ -689,7 +624,11 @@ compute_dissimilarity_matrix <- function(
     collection,
     weight = "max",
     norm = "L2") {
-  stopifnot("Can't build the distance matrix, this is not a bmpop or bisbmpop object" = (inherits(collection, "bisbmpop") | inherits(collection, "bmpop")))
+  stopifnot(
+    "Can't build the distance matrix, this is not a bmpop or bisbmpop object" =
+      (inherits(collection, "bisbmpop") | inherits(collection, "bmpop"))
+  )
+
   if (inherits(collection, "bisbmpop")) {
     dist_matrix <- compute_dissimilarity_matrix.bisbmpop(collection,
       weight = weight,
@@ -711,27 +650,26 @@ compute_dissimilarity_matrix.bisbmpop <- function(
     collection,
     weight = "max",
     norm = "L2") {
-  dist_matrix <- matrix(0,
-    nrow = collection$M,
-    ncol = collection$M
-  )
+  M <- collection$M
+  dist_matrix <- matrix(0, nrow = M, ncol = M)
 
-  for (i in seq_len(nrow(dist_matrix))) {
-    for (j in seq_len(i)) {
+  dist_matrix <- outer(
+    1:M, 1:M,
+    Vectorize(function(i, j) {
+      if (i == j) {
+        return(0)
+      }
       pis <- lapply(collection$best_fit$pim[c(i, j)], function(list) list[[1]])
       rhos <- lapply(collection$best_fit$pim[c(i, j)], function(list) list[[2]])
 
-      dist_value <- dist_bisbmpop_max(
+      dist_bisbmpop_max(
         pi = pis, rho = rhos,
         alpha = collection$best_fit$alpham[c(i, j)],
         weight = weight,
         norm = norm
       )
-
-      dist_matrix[i, j] <- dist_value
-      dist_matrix[j, i] <- dist_value
-    }
-  }
+    })
+  )
 
   return(dist_matrix)
 }
@@ -741,16 +679,18 @@ compute_dissimilarity_matrix.bmpop <- function(
     collection,
     weight = "max",
     norm = "L2") {
-  dist_matrix <- matrix(0,
-    nrow = collection$M,
-    ncol = collection$M
-  )
+  M <- collection$M
+  dist_matrix <- matrix(0, nrow = M, ncol = M)
 
-  for (i in seq_len(nrow(dist_matrix))) {
-    for (j in seq_len(i)) {
+  dist_matrix <- outer(
+    1:M, 1:M,
+    Vectorize(function(i, j) {
+      if (i == j) {
+        return(0)
+      }
       pis <- lapply(collection$best_fit$pim[c(i, j)], function(list) list)
 
-      dist_value <- dist_bmpop_max(
+      dist_bmpop_max(
         pi = pis,
         alpha = collection$best_fit$alpham[c(i, j)],
         delta = collection$best_fit$delta[c(i, j)],
@@ -758,11 +698,9 @@ compute_dissimilarity_matrix.bmpop <- function(
         weight = weight,
         norm = norm
       )
+    })
+  )
 
-      dist_matrix[i, j] <- dist_value
-      dist_matrix[j, i] <- dist_value
-    }
-  }
 
   return(dist_matrix)
 }
@@ -789,7 +727,7 @@ partition_networks_list_from_dissimilarity <- function(
   M <- length(networks_list)
 
   # Checking correspondance of args
-  if (nrow(dissimilarity_matrix) != M | ncol(dissimilarity_matrix) != M) {
+  if (nrow(dissimilarity_matrix) != M || ncol(dissimilarity_matrix) != M) {
     cli::cli_abort(c("{.arg dissimilarity_matrix} has incorrect dimensions.",
       "i" = "It should be ({toString(c(M,M))}) to match {.arg networks_list} length.",
       "x" = "And it is of size ({toString(dim(dissimilarity_matrix))})"
