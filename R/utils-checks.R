@@ -179,3 +179,67 @@ check_networks_list_match_emission_distribution <- function(
     }
   )
 }
+
+#' Check Net ID
+#'
+#' This function checks if the `net_id` is a character vector and if its length matches the length of `networks_list`.
+#'
+#' @param net_id A character vector representing network IDs.
+#' @param networks_list A list of networks.
+#' @param arg The argument name for error messages (default is the name of `net_id`).
+#' @param call The calling environment (default is the caller environment).
+#' @return Throws an error if the checks fail.
+check_net_id <- function(net_id, networks_list, arg = rlang::caller_arg(net_id), call = rlang::caller_env()) {
+  rlang::check_required(net_id, arg = arg, call = call)
+  if (!is.character(net_id)) {
+    cli::cli_abort("{.arg {arg}} must be a character vector.",
+      arg = arg,
+      call = call
+    )
+  }
+  if (length(net_id) != length(networks_list)) {
+    cli::cli_abort("{.arg {arg}} must have the same length as {.arg networks_list}.",
+      arg = arg,
+      call = call
+    )
+  }
+}
+
+#' Check Global Options
+#'
+#' This function checks if `global_opts` is a list and if `nb_cores` (if provided) is an integer greater than a threshold.
+#'
+#' @param global_opts A list of global options.
+#' @param arg The argument name for error messages (default is the name of `global_opts`).
+#' @param call The calling environment (default is the caller environment).
+#' @return Throws an error if the checks fail.
+check_global_opts <- function(global_opts, arg = rlang::caller_arg(global_opts), call = rlang::caller_env()) {
+  rlang::check_required(global_opts, arg = arg, call = call)
+  if (!is.list(global_opts)) {
+    cli::cli_abort("{.arg {arg}} must be a list.",
+      arg = arg,
+      call = call
+    )
+  }
+  if (!is.null(global_opts$nb_cores)) {
+    check_is_integer_over_thresh(global_opts$nb_cores, thresh = 1L)
+  }
+}
+
+#' Check Fit Options
+#'
+#' This function checks if `fit_opts` is a list.
+#'
+#' @param fit_opts A list of fit options.
+#' @param arg The argument name for error messages (default is the name of `fit_opts`).
+#' @param call The calling environment (default is the caller environment).
+#' @return Throws an error if the checks fail.
+check_fit_opts <- function(fit_opts, arg = rlang::caller_arg(fit_opts), call = rlang::caller_env()) {
+  rlang::check_required(fit_opts, arg = arg, call = call)
+  if (!rlang::is_list(fit_opts)) {
+    cli::cli_abort("{.arg {arg}} must be a list.",
+      arg = arg,
+      call = call
+    )
+  }
+}

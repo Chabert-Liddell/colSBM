@@ -145,3 +145,49 @@ test_that("check_networks_list_match_emission_distribution() detects matching ne
   expect_no_error(check_networks_list_match_emission_distribution(networks_list = list(matrix(c(0, 10), c(2, 3))), emission_distribution = "poisson"))
   expect_no_error(check_networks_list_match_emission_distribution(networks_list = list(matrix(c(0, 1), c(1, 5)), matrix(c(0, 1), c(1, 0))), emission_distribution = "poisson"))
 })
+
+# check_net_id
+test_that("check_net_id() detects incorrect type input", {
+  expect_error(check_net_id(1, list(matrix(1, 2))), "must be a character vector")
+  expect_error(check_net_id(TRUE, list(matrix(1, 2))), "must be a character vector")
+})
+
+test_that("check_net_id() detects length mismatch", {
+  expect_error(check_net_id(c("id1"), list(matrix(1, 2), matrix(1, 2))), "must have the same length as")
+  expect_error(check_net_id(c("id1", "id2", "id3"), list(matrix(1, 2), matrix(1, 2))), "must have the same length as")
+})
+
+test_that("check_net_id() works correctly", {
+  expect_no_error(check_net_id(c("id1", "id2"), list(matrix(1, 2), matrix(1, 2))))
+  expect_no_error(check_net_id(c("id1", "id2", "id3"), list(matrix(1, 2), matrix(1, 2), matrix(1, 2))))
+})
+
+# check_global_opts
+test_that("check_global_opts() detects incorrect type input", {
+  expect_error(check_global_opts("a"), "must be a list")
+  expect_error(check_global_opts(1), "must be a list")
+  expect_error(check_global_opts(TRUE), "must be a list")
+})
+
+test_that("check_global_opts() detects incorrect nb_cores", {
+  expect_error(check_global_opts(list(nb_cores = "a")), "must be an integer")
+  expect_error(check_global_opts(list(nb_cores = 1.5)), "must be an integer")
+  expect_error(check_global_opts(list(nb_cores = 0L)), "must be at least 1")
+})
+
+test_that("check_global_opts() works correctly", {
+  expect_no_error(check_global_opts(list()))
+  expect_no_error(check_global_opts(list(nb_cores = 2L)))
+})
+
+# check_fit_opts
+test_that("check_fit_opts() detects incorrect type input", {
+  expect_error(check_fit_opts("a"), "must be a list")
+  expect_error(check_fit_opts(1), "must be a list")
+  expect_error(check_fit_opts(TRUE), "must be a list")
+})
+
+test_that("check_fit_opts() works correctly", {
+  expect_no_error(check_fit_opts(list()))
+  expect_no_error(check_fit_opts(list(option1 = "value1")))
+})
