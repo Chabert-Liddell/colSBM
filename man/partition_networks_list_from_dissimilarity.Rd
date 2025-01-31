@@ -14,6 +14,9 @@ partition_networks_list_from_dissimilarity(
 \arguments{
 \item{networks_list}{The list of networks to partition}
 
+\item{dissimilarity_matrix}{The dissimilarity matrix computed with
+\code{compute_dissimilarity_matrix}.}
+
 \item{nb_groups}{An integer, the number of groups. Defaults to 2}
 }
 \value{

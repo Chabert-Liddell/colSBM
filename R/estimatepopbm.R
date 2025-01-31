@@ -425,7 +425,6 @@ clusterize_bipartite_networks <- function(netlist,
                                           fit_init = NULL,
                                           full_inference = FALSE,
                                           verbose = TRUE) {
-  # TODO Use new checks
   check_bipartite_colsbm_models(colsbm_model = colsbm_model)
   # Check if a netlist is provided, try to cast it if not
   check_networks_list(networks_list = netlist)
@@ -599,6 +598,9 @@ compute_dissimilarity_matrix <- function(
   return(dist_matrix)
 }
 
+#' Compute the dissimilarity matrix for a collection of bipartite networks
+#'
+#' @inheritParams compute_dissimilarity_matrix
 #' @export
 compute_dissimilarity_matrix.bisbmpop <- function(
     collection,
@@ -628,6 +630,8 @@ compute_dissimilarity_matrix.bisbmpop <- function(
   return(dist_matrix)
 }
 
+#' Compute the dissimilarity matrix for a collection of networks
+#' @inheritParams compute_dissimilarity_matrix
 #' @export
 compute_dissimilarity_matrix.bmpop <- function(
     collection,
@@ -666,6 +670,8 @@ compute_dissimilarity_matrix.bmpop <- function(
 #' a vector
 #'
 #' @param networks_list The list of networks to partition
+#' @param dissimilarity_matrix The dissimilarity matrix computed with
+#' `compute_dissimilarity_matrix`.
 #' @param nb_groups An integer, the number of groups. Defaults to 2
 #'
 #' @return A vector, eventually named according to `networks_list` names.
@@ -704,110 +710,6 @@ partition_networks_list_from_dissimilarity <- function(
 
   names(cl) <- names(networks_list)
   return(cl)
-}
-
-#' Perform the clustering procedure
-#'
-#' @param networks_list A list of matrices representing the networks to
-#' partition
-#' @inheritParams estimate_colBiSBM
-#' @param full_inference A boolean indicating if we should do the procedure
-#' until all networks are in their own partition.
-#' @importFrom fs file_temp
-#' @param save_path A file path specifying where to save the current clustering.
-#' Useful for long running clustering. Defaults to
-#' `fs::file_temp(pattern = "clustering", ext = "Rds")`.
-#'
-#' @export
-clusterize_bipartite_collection <- function(networks_list,
-                                            colsbm_model,
-                                            net_id = NULL,
-                                            distribution = "bernoulli",
-                                            nb_run = 3L,
-                                            global_opts = list(),
-                                            fit_opts = list(),
-                                            fit_init = NULL,
-                                            full_inference = FALSE,
-                                            save_path = fs::file_temp(
-                                              pattern = "clustering",
-                                              ext = "Rds"
-                                            )) {
-  # Sanity checks
-  check_networks_list(networks_list = networks_list)
-  check_bipartite_colsbm_models(colsbm_model = colsbm_model)
-  check_is_integer_over_thresh(nb_run, thresh = 1L)
-  check_colsbm_emission_distribution(emission_distribution = distribution)
-  check_networks_list_match_emission_distribution(networks_list = networks_list, emission_distribution = distribution)
-
-  global_opts <- utils::modifyList(default_global_opts_bipartite(netlist = networks_list), global_opts)
-
-  # Starting the clustering
-  cli::cli_h1(text = "Clustering on {.emph M = {length(networks_list)}} networks")
-
-  # Initialization of clustering history list
-  step <- 1L
-  max_steps <- ceiling(log2(length(networks_list))) + 1L
-  clustering_history_list <- list()
-  # Initialization of needed values
-  current_bicl <- NULL
-  current_partition_bicl <- -Inf
-  current_partition_indices <- rep(1, length(networks_list))
-
-  has_bicl_increased_with_partition <- TRUE
-  can_we_split_further <- TRUE
-
-  while (full_inference ||
-    (has_bicl_increased_with_partition && any(can_we_split_further))) {
-    current_bicl <- append(current_bicl, current_partition_bicl)
-    current_partition_matrices <- lapply(
-      unique(current_partition_indices),
-      function(k) {
-        networks_list[current_partition_indices == k]
-      }
-    )
-    clustering_history_list <- append(clustering_history_list, list(current_partition_matrices))
-    # Beginning the fit of the full collection
-    cli::cli_h2("Step {step}/{max_steps}")
-
-    # max_substep <- length(current_partition_matrices)
-
-    current_partition_fit <- lapply(seq_along(current_partition_matrices), function(idx) {
-      current_substep <- idx
-      current_M <- length(current_partition_matrices[[idx]])
-      cli::cli_h3(
-        "Sub-step {current_substep}/{length(current_partition_matrices)} - Fitting colSBM on {current_M} network{?s}."
-      )
-
-      estimate_colBiSBM(
-        netlist = current_partition_matrices[[idx]],
-        colsbm_model = colsbm_model,
-        distribution = distribution,
-        nb_run = nb_run,
-        global_opts = global_opts
-      )
-    })
-    # Should the procedure continue
-    #  I will need to keep vector of bicl to be able to determine if a
-    # partition must be splitted or not
-    current_partition_bicl <- sum(sapply(current_partition_fit, function(fit) fit$best_fit$BICL))
-    has_bicl_increased_with_partition <- tail(current_bicl, 1) < current_partition_bicl
-    can_we_split_further <- sapply(current_partition_fit, function(fit) fit$M) > 1L
-
-    current_diss_matrix <- lapply(current_partition_fit, function(fit) compute_dissimilarity_matrix(collection = fit))
-    current_partition_indices <- unlist(lapply(seq_along(current_partition_fit), function(fit_idx) {
-      if (can_we_split_further[[fit_idx]]) {
-        2 * (fit_idx - 1) + partition_networks_list_from_dissimilarity(
-          networks_list = current_partition_fit[[fit_idx]]$A,
-          dissimilarity_matrix = current_diss_matrix[[fit_idx]],
-          nb_groups = 2L
-        )
-      } else {
-        setNames(2 * (fit_idx - 1) + 1, current_partition_fit[[fit_idx]]$net_id)
-      }
-    }))
-    step <- step + 1
-  }
-  return(current_partition_fit)
 }
 
 #' Convert to tree

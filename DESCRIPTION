@@ -22,6 +22,7 @@ Imports:
     cli,
     cluster,
     dplyr,
+    future.apply,
     ggnewscale,
     ggplot2,
     gtools,
@@ -43,7 +44,6 @@ Imports:
     utils
 Suggests:
     covr,
-    future.apply,
     knitr,
     rmarkdown,
     spelling,
