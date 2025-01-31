@@ -84,6 +84,29 @@ check_bipartite_colsbm_models <- function(
     error_arg = arg,
     error_call = call
   )
+  switch(colsbm_model,
+    "iid" = {
+      free_mixture_row <- FALSE
+      free_mixture_col <- FALSE
+    },
+    "pi" = {
+      free_mixture_row <- TRUE
+      free_mixture_col <- FALSE
+    },
+    "rho" = {
+      free_mixture_row <- FALSE
+      free_mixture_col <- TRUE
+    },
+    "pirho" = {
+      free_mixture_row <- TRUE
+      free_mixture_col <- TRUE
+    },
+    stop(
+      "colsbm_model unknown.",
+      " Must be one of iid, pi, rho, pirho, delta or deltapi"
+    )
+  )
+  return(list(free_mixture_row = free_mixture_row, free_mixture_col = free_mixture_col))
 }
 
 #' Check function for bipartite colSBM models
@@ -221,6 +244,27 @@ check_global_opts <- function(global_opts, arg = rlang::caller_arg(global_opts),
       call = call
     )
   }
+  if (!is.null(global_opts$Q1_min)) {
+    check_is_integer_over_thresh(global_opts$Q1_min, thresh = 1L)
+  }
+  if (!is.null(global_opts$Q1_max)) {
+    check_is_integer_over_thresh(global_opts$Q1_max, thresh = 1L)
+  }
+  if (!is.null(global_opts$Q2_min)) {
+    check_is_integer_over_thresh(global_opts$Q2_min, thresh = 1L)
+  }
+  if (!is.null(global_opts$Q2_max)) {
+    check_is_integer_over_thresh(global_opts$Q2_max, thresh = 1L)
+  }
+  if (!is.null(global_opts$depth)) {
+    check_is_integer_over_thresh(global_opts$depth, thresh = 1L)
+  }
+  if (!is.null(global_opts$max_pass)) {
+    check_is_integer_over_thresh(global_opts$max_pass, thresh = 1L)
+  }
+  if (!is.null(global_opts$verbosity)) {
+    check_is_integer_over_thresh(global_opts$verbosity, thresh = 0L)
+  }
   if (!is.null(global_opts$nb_cores)) {
     check_is_integer_over_thresh(global_opts$nb_cores, thresh = 1L)
   }
@@ -239,6 +283,39 @@ check_fit_opts <- function(fit_opts, arg = rlang::caller_arg(fit_opts), call = r
   if (!rlang::is_list(fit_opts)) {
     cli::cli_abort("{.arg {arg}} must be a list.",
       arg = arg,
+      call = call
+    )
+  }
+  rlang::arg_match0(
+    arg = fit_opts$algo_ve,
+    values = c("fp"),
+    arg_nm = rlang::caller_arg(arg),
+    error_call = call
+  )
+  if (!rlang::is_bool(fit_opts$minibatch)) {
+    cli::cli_abort("{.arg fit_opts$minibatch} must be a boolean.",
+      call = call
+    )
+  }
+  if (!is.null(fit_opts$verbosity)) {
+    check_is_integer_over_thresh(fit_opts$verbosity, thresh = 0L)
+  }
+  if (!rlang::is_double(fit_opts$tolerance, finite = TRUE)) {
+    cli::cli_abort("{.arg fit_opts$tolerance} must be a double.",
+      call = call
+    )
+  }
+  if (!is.null(fit_opts$greedy_exploration_max_steps)) {
+    check_is_integer_over_thresh(
+      fit_opts$greedy_exploration_max_steps,
+      thresh = 1L,
+      call = call
+    )
+  }
+  if (!is.null(fit_opts$greedy_exploration_max_steps_without_improvement)) {
+    check_is_integer_over_thresh(
+      fit_opts$greedy_exploration_max_steps_without_improvement,
+      thresh = 1L,
       call = call
     )
   }

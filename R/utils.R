@@ -580,6 +580,19 @@ default_global_opts_bipartite <- function(netlist) {
   )
 }
 
+#' A simple function that returns default fit options for bipartite
+#' @noRd
+default_fit_opts_bipartite <- function() {
+  list(
+    algo_ve = "fp",
+    minibatch = TRUE,
+    verbosity = 0,
+    tolerance = 1e-6,
+    greedy_exploration_max_steps = 50,
+    greedy_exploration_max_steps_without_improvement = 5
+  )
+}
+
 #' Title
 #'
 #' @param X An adjacency matrix
