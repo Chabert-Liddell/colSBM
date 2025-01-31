@@ -426,66 +426,20 @@ clusterize_bipartite_networks <- function(netlist,
                                           full_inference = FALSE,
                                           verbose = TRUE) {
   # TODO Use new checks
-  switch(colsbm_model,
-    "iid" = {
-      free_mixture_row <- FALSE
-      free_mixture_col <- FALSE
-    },
-    "pi" = {
-      free_mixture_row <- TRUE
-      free_mixture_col <- FALSE
-    },
-    "rho" = {
-      free_mixture_row <- FALSE
-      free_mixture_col <- TRUE
-    },
-    "pirho" = {
-      free_mixture_row <- TRUE
-      free_mixture_col <- TRUE
-    },
-    stop(
-      "colsbm_model unknown.",
-      " Must be one of iid, pi, rho, pirho, delta or deltapi"
-    )
-  )
+  check_bipartite_colsbm_models(colsbm_model = colsbm_model)
   # Check if a netlist is provided, try to cast it if not
-  if (!is.list(netlist)) {
-    netlist <- list(netlist)
-  }
-  # go is used to temporarily store the default global_opts
-  go <- list(
-    Q1_min = 1L,
-    Q2_min = 1L,
-    Q1_max = floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2),
-    Q2_max = floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2),
-    nb_init = 10L,
-    nb_models = 5L,
-    backend = "future",
-    depth = 1L,
-    plot_details = 0L,
-    max_pass = 10L,
-    verbosity = 1L,
-    nb_cores = 1L
+  check_networks_list(networks_list = netlist)
+  check_colsbm_emission_distribution(emission_distribution = distribution)
+  check_networks_list_match_emission_distribution(
+    networks_list = netlist,
+    emission_distribution = distribution
   )
+  go <- default_global_opts_bipartite(netlist = netlist)
   go <- utils::modifyList(go, global_opts)
   global_opts <- go
-  if (is.null(global_opts$nb_cores)) {
-    global_opts$nb_cores <- 1L
-  }
-  nb_cores <- global_opts$nb_cores
-  if (is.null(global_opts$backend)) {
-    global_opts$backend <- "parallel"
-  }
-  if (is.null(global_opts$Q1_max)) {
-    Q1_max <- floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2)
-  } else {
-    Q1_max <- global_opts$Q1_max
-  }
-  if (is.null(global_opts$Q2_max)) {
-    Q2_max <- floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2)
-  } else {
-    Q2_max <- global_opts$Q2_max
-  }
+  fo <- default_fit_opts_bipartite()
+  fo <- utils::modifyList(fo, fit_opts)
+  fit_opts <- fo
 
   # Fit the initial model on the full collection
   if (verbose) {
