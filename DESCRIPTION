@@ -17,7 +17,6 @@ License: MIT + file LICENSE
 Depends:
     R (>= 2.10)
 Imports:
-    ape,
     aricode,
     cluster,
     dplyr,
@@ -27,7 +26,6 @@ Imports:
     magrittr,
     matrixStats,
     parallel,
-    parallelly,
     patchwork,
     phylogram,
     purrr,
@@ -36,7 +34,6 @@ Imports:
     sbm,
     stats,
     stringr,
-    tibble,
     tidyr,
     utils
 Suggests:

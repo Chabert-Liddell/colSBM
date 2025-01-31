@@ -1197,6 +1197,8 @@ fitBipartiteSBMPop <- R6::R6Class(
     #' self$fit_opts$tolerance
     #' @param ... Other parameters
     #'
+    #' @importFrom matrixStats rowMeans2
+    #'
     #' @return nothing
     optimize = function(max_step = self$fit_opts$max_vem_steps, tol = self$fit_opts$tolerance, ...) {
       if (all(self$Q == c(1, 1))) {
@@ -1483,15 +1485,15 @@ fitBipartiteSBMPop <- R6::R6Class(
             xmin <- rep(c(0, cumsum(self$pi[[net_id]][[2]][oCol][1:(self$Q[2] - 1)])), self$Q[1])
             xmax <- rep(cumsum(self$pi[[net_id]][[2]][oCol]), self$Q[1])
           }
-          p_graphon <- (self$alpha[oRow, oCol]) %>%
-            t() %>%
-            reshape2::melt() %>%
+          p_graphon <- (self$alpha[oRow, oCol]) |>
+            t() |>
+            reshape2::melt() |>
             dplyr::mutate(
               xmin = xmin,
               ymin = ymin,
               xmax = xmax,
               ymax = ymax
-            ) %>%
+            ) |>
             ggplot2::ggplot(ggplot2::aes(
               xmin = xmin, ymin = ymin,
               xmax = xmax, ymax = ymax, fill = value
@@ -1517,9 +1519,9 @@ fitBipartiteSBMPop <- R6::R6Class(
           return(p_graphon)
         },
         meso = {
-          p_alpha <- self$alpha[oRow, oCol, drop = FALSE] %>%
-            t() %>%
-            reshape2::melt() %>%
+          p_alpha <- self$alpha[oRow, oCol, drop = FALSE] |>
+            t() |>
+            reshape2::melt() |>
             ggplot2::ggplot(ggplot2::aes(x = Var1, y = Var2, fill = value)) +
             ggplot2::geom_tile() +
             ggplot2::scale_fill_gradient2("alpha",
@@ -1561,11 +1563,11 @@ fitBipartiteSBMPop <- R6::R6Class(
           # names(df_pi) <- self$net_id
           if (mixture) {
             p_pi <-
-              df_pi %>%
-              #    rename() %>%
-              dplyr::mutate(q = seq(self$Q[1])) %>%
-              tidyr::pivot_longer(cols = -c(q)) %>%
-              dplyr::mutate(Proportion = value) %>%
+              df_pi |>
+              #    rename() |>
+              dplyr::mutate(q = seq(self$Q[1])) |>
+              tidyr::pivot_longer(cols = -c(q)) |>
+              dplyr::mutate(Proportion = value) |>
               ggplot2::ggplot(ggplot2::aes(
                 fill = as.factor(q), y = name,
                 x = Proportion
@@ -1588,11 +1590,11 @@ fitBipartiteSBMPop <- R6::R6Class(
                 hjust = 1
               ))
             ggplot2::theme_bw(base_size = 15)
-            p_rho <- df_rho %>%
-              #    rename() %>%
-              dplyr::mutate(q = seq(self$Q[2])) %>%
-              tidyr::pivot_longer(cols = -c(q)) %>%
-              dplyr::mutate(Proportion = value) %>%
+            p_rho <- df_rho |>
+              #    rename() |>
+              dplyr::mutate(q = seq(self$Q[2])) |>
+              tidyr::pivot_longer(cols = -c(q)) |>
+              dplyr::mutate(Proportion = value) |>
               ggplot2::ggplot(ggplot2::aes(
                 fill = as.factor(q), y = name,
                 x = Proportion
@@ -1649,8 +1651,8 @@ fitBipartiteSBMPop <- R6::R6Class(
           as.matrix(self$A[[net_id]])[
             order(self$Z[[net_id]][[1]]),
             order(self$Z[[net_id]][[2]])
-          ] %>%
-            reshape2::melt() %>%
+          ] |>
+            reshape2::melt() |>
             ggplot2::ggplot(ggplot2::aes(x = Var2, y = rev(Var1), fill = value)) +
             ggplot2::geom_tile(show.legend = FALSE) +
             ggplot2::geom_hline(

@@ -1315,15 +1315,15 @@ fitSimpleSBMPop <- R6::R6Class(
             ymax <- rep(c(0, cumsum(self$pi[[net_id]][ord][1:(self$Q - 1)])), each = self$Q)
             ymin <- rep(cumsum(self$pi[[net_id]][ord]), each = self$Q)
           }
-          (self$alpha[ord, ord] * mean(self$delta)) %>%
-            t() %>%
-            reshape2::melt() %>%
+          (self$alpha[ord, ord] * mean(self$delta)) |>
+            t() |>
+            reshape2::melt() |>
             dplyr::mutate(
               xmax = xmax,
               xmin = xmin,
               ymax = ymax,
               ymin = ymin
-            ) %>%
+            ) |>
             ggplot2::ggplot(ggplot2::aes(
               xmin = xmin, ymin = ymin,
               xmax = xmax, ymax = ymax, fill = value
@@ -1344,9 +1344,9 @@ fitSimpleSBMPop <- R6::R6Class(
           } else {
             pim <- self$pim
           }
-          p_alpha <- self$alpha[ord, ord] %>%
-            t() %>%
-            reshape2::melt() %>%
+          p_alpha <- self$alpha[ord, ord] |>
+            t() |>
+            reshape2::melt() |>
             ggplot2::ggplot(ggplot2::aes(x = Var1, y = Var2, fill = value)) +
             ggplot2::geom_tile() +
             ggplot2::scale_fill_gradient2("alpha", low = "white", high = "red") +
@@ -1370,10 +1370,10 @@ fitSimpleSBMPop <- R6::R6Class(
           names(df) <- self$net_id
           if (mixture) {
             p_pi <-
-              df %>%
-              #    rename() %>%
-              dplyr::mutate(q = seq(self$Q)) %>%
-              tidyr::pivot_longer(cols = -c(q)) %>%
+              df |>
+              #    rename() |>
+              dplyr::mutate(q = seq(self$Q)) |>
+              tidyr::pivot_longer(cols = -c(q)) |>
               ggplot2::ggplot(ggplot2::aes(fill = as.factor(q), y = name, x = value)) +
               ggplot2::geom_col() +
               ggplot2::coord_flip(expand = FALSE) +
@@ -1394,16 +1394,16 @@ fitSimpleSBMPop <- R6::R6Class(
           as.matrix(self$A[[net_id]])[
             order(Z),
             order(Z)
-          ] %>% # t() %>%
-            reshape2::melt() %>%
+          ] |> # t() |>
+            reshape2::melt() |>
             dplyr::mutate(con = self$alpha[self$Z[[net_id]], self$Z[[net_id]]][
               order(Z),
               order(Z)
-            ] %>% # t() %>%#[self$Z[[net_id]], self$Z[[net_id]]][
+            ] |> # t() |>#[self$Z[[net_id]], self$Z[[net_id]]][
               #  order(Z),
-              #    order(Z)] %>%
-              reshape2::melt() %>%
-              dplyr::pull(value)) %>%
+              #    order(Z)] |>
+              reshape2::melt() |>
+              dplyr::pull(value)) |>
             ggplot2::ggplot(ggplot2::aes(x = Var2, y = Var1, fill = value, alpha = value)) +
             ggplot2::geom_tile(ggplot2::aes(alpha = con),
               fill = "red", size = 0, show.legend = FALSE

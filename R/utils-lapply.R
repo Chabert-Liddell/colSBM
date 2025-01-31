@@ -17,7 +17,7 @@
 #' X <- seq(1, 5)
 #' colsbm_lapply(X, backend = "future", nb_cores = 2L)
 colsbm_lapply <- function(X, FUN, backend = "future",
-                          nb_cores = parallelly::availableCores(omit = 1L),
+                          nb_cores = 1L,
                           ...) {
   if (!(backend %in% c("future", "parallel", "no_mc"))) {
     stop("Invalid backend. Choose 'parallel', 'future' or 'no_mc'.")

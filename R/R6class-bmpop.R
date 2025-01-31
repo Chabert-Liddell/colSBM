@@ -1123,10 +1123,10 @@ bmpop <- R6::R6Class(
         vbound = self$vbound
       )
       if (!is.null(self$ICL_sbm)) {
-        tb %>% dplyr::mutate(SBM = self$ICL_sbm)
+        tb |> dplyr::mutate(SBM = self$ICL_sbm)
       }
-      tb %>%
-        tidyr::pivot_longer(cols = -Q, names_to = "Criterion") %>%
+      tb |>
+        tidyr::pivot_longer(cols = -Q, names_to = "Criterion") |>
         ggplot2::ggplot(ggplot2::aes(
           x = Q, y = value,
           linetype = Criterion, color = Criterion,
