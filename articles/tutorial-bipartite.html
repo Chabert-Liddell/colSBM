@@ -8,8 +8,8 @@
 <title>Tutorial on plant pollinator data • colSBM</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
-<link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Tutorial on plant pollinator data">
 </head>
 <body>
@@ -101,39 +101,41 @@ networks, using the <em>iid-colBiSBM</em> model.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; vbound : </span></span>
 <span><span class="co">#&gt;       [,1] [,2] [,3] [,4] [,5]</span></span>
-<span><span class="co">#&gt; [1,] -Inf -625 -620 -620 -Inf</span></span>
-<span><span class="co">#&gt; [2,] -720 -614 -605 -Inf -Inf</span></span>
-<span><span class="co">#&gt; [3,] -720 -606 -596 -Inf -Inf</span></span>
+<span><span class="co">#&gt; [1,] -Inf -625 -620 -Inf -Inf</span></span>
+<span><span class="co">#&gt; [2,] -721 -614 -607 -Inf -Inf</span></span>
+<span><span class="co">#&gt; [3,] -720 -606 -600 -Inf -Inf</span></span>
 <span><span class="co">#&gt; [4,] -Inf -Inf -Inf -Inf -Inf</span></span>
 <span><span class="co">#&gt; [5,] -Inf -Inf -Inf -Inf -Inf</span></span>
 <span><span class="co">#&gt; [6,] -Inf -Inf -Inf -Inf -Inf </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ICL    : </span></span>
 <span><span class="co">#&gt;       [,1] [,2] [,3] [,4] [,5]</span></span>
-<span><span class="co">#&gt; [1,] -729 -635 -642 -650 -Inf</span></span>
-<span><span class="co">#&gt; [2,] -733 -653 -665 -Inf -Inf</span></span>
-<span><span class="co">#&gt; [3,] -739 -671 -667 -Inf -Inf</span></span>
+<span><span class="co">#&gt; [1,] -729 -635 -642 -Inf -Inf</span></span>
+<span><span class="co">#&gt; [2,] -732 -651 -653 -Inf -Inf</span></span>
+<span><span class="co">#&gt; [3,] -739 -669 -684 -Inf -Inf</span></span>
 <span><span class="co">#&gt; [4,] -Inf -Inf -Inf -Inf -Inf</span></span>
 <span><span class="co">#&gt; [5,] -Inf -Inf -Inf -Inf -Inf</span></span>
 <span><span class="co">#&gt; [6,] -Inf -Inf -Inf -Inf -Inf </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; BICL   : </span></span>
 <span><span class="co">#&gt;       [,1] [,2] [,3] [,4] [,5]</span></span>
-<span><span class="co">#&gt; [1,] -729 -635 -636 -641 -Inf</span></span>
-<span><span class="co">#&gt; [2,] -730 -634 -635 -Inf -Inf</span></span>
-<span><span class="co">#&gt; [3,] -736 -636 -640 -Inf -Inf</span></span>
+<span><span class="co">#&gt; [1,] -729 -635 -636 -Inf -Inf</span></span>
+<span><span class="co">#&gt; [2,] -731 -634 -636 -Inf -Inf</span></span>
+<span><span class="co">#&gt; [3,] -736 -636 -644 -Inf -Inf</span></span>
 <span><span class="co">#&gt; [4,] -Inf -Inf -Inf -Inf -Inf</span></span>
 <span><span class="co">#&gt; [5,] -Inf -Inf -Inf -Inf -Inf</span></span>
 <span><span class="co">#&gt; [6,] -Inf -Inf -Inf -Inf -Inf </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Best fit at Q=( 2, 2 )</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ==== Best fits criterion for the 2 networks. Computed in 0.397 secs ====</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ==== Best fits criterion for the 2 networks. Computed in 0.372 secs ====</span></span>
 <span><span class="co">#&gt; Sep BiSBM total BICL:  -640.6602</span></span>
-<span><span class="co">#&gt; colBiSBM BICL: -633.8697</span></span>
+<span><span class="co">#&gt; colBiSBM BICL: -633.9764</span></span>
 <span><span class="co">#&gt; Joint modelisation preferred. With Q = ( 2, 2 ).</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ==== Full computation performed in 15 secs ====</span></span></code></pre></div>
+<span><span class="co">#&gt; ==== Full computation performed in 13 secs ====</span></span></code></pre></div>
 <p>The output indicates that the collection benefits from a joint
 modelisation</p>
 <blockquote>
@@ -162,7 +164,7 @@ State-space exploration
 <span><span class="co">#&gt; =====================================================================</span></span>
 <span><span class="co">#&gt; net_id = ( medan2002ld medan2002rb )</span></span>
 <span><span class="co">#&gt; Dimensions = ( c(45, 21), c(72, 23) ) - ( 2, 2 ) blocks.</span></span>
-<span><span class="co">#&gt; BICL =  -633.8697 </span></span>
+<span><span class="co">#&gt; BICL =  -633.9764 </span></span>
 <span><span class="co">#&gt; #Empty row blocks on all networks:  0  -- #Empty columns blocks on all networks:  0  </span></span>
 <span><span class="co">#&gt; * Useful fields </span></span>
 <span><span class="co">#&gt;   $distribution, $nb_nodes, $nb_blocks, $support, $prob_memberships </span></span>
@@ -175,24 +177,24 @@ State-space exploration
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">best_fit</span><span class="op">$</span><span class="va">parameters</span></span>
 <span><span class="co">#&gt; $alpha</span></span>
-<span><span class="co">#&gt;           [,1]       [,2]</span></span>
-<span><span class="co">#&gt; [1,] 0.2132297 0.17088360</span></span>
-<span><span class="co">#&gt; [2,] 0.4285972 0.03350959</span></span>
+<span><span class="co">#&gt;           [,1]         [,2]</span></span>
+<span><span class="co">#&gt; [1,] 0.5877104 1.373508e-05</span></span>
+<span><span class="co">#&gt; [2,] 0.2717843 8.324585e-02</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $pi</span></span>
 <span><span class="co">#&gt; $pi[[1]]</span></span>
-<span><span class="co">#&gt; [1] 0.07572543 0.92427457</span></span>
+<span><span class="co">#&gt; [1] 0.5324849 0.4675151</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $pi[[2]]</span></span>
-<span><span class="co">#&gt; [1] 0.07572543 0.92427457</span></span>
+<span><span class="co">#&gt; [1] 0.5324849 0.4675151</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $rho</span></span>
 <span><span class="co">#&gt; $rho[[1]]</span></span>
-<span><span class="co">#&gt; [1] 0.08387756 0.91612244</span></span>
+<span><span class="co">#&gt; [1] 0.08383996 0.91616004</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $rho[[2]]</span></span>
-<span><span class="co">#&gt; [1] 0.08387756 0.91612244</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.08383996 0.91616004</span></span></code></pre></div>
 <ul>
 <li>The block memberships:</li>
 </ul>
@@ -203,69 +205,69 @@ State-space exploration
 <span><span class="co">#&gt;     Coleoptera Buprestidae Buprestidae sp. </span></span>
 <span><span class="co">#&gt;                                          2 </span></span>
 <span><span class="co">#&gt;     Coleoptera Cantharidae Cantharidae sp. </span></span>
-<span><span class="co">#&gt;                                          2 </span></span>
+<span><span class="co">#&gt;                                          1 </span></span>
 <span><span class="co">#&gt;  Coleoptera Coccinellidae Coccinelidae sp1 </span></span>
-<span><span class="co">#&gt;                                          2 </span></span>
+<span><span class="co">#&gt;                                          1 </span></span>
 <span><span class="co">#&gt;  Coleoptera Coccinellidae Coccinelidae sp2 </span></span>
-<span><span class="co">#&gt;                                          2 </span></span>
+<span><span class="co">#&gt;                                          1 </span></span>
 <span><span class="co">#&gt;  Coleoptera Coccinellidae Coccinelidae sp3 </span></span>
-<span><span class="co">#&gt;                                          2 </span></span>
+<span><span class="co">#&gt;                                          1 </span></span>
 <span><span class="co">#&gt; Coleoptera Curculionidae Curculionidae sp. </span></span>
-<span><span class="co">#&gt;                                          2 </span></span>
+<span><span class="co">#&gt;                                          1 </span></span>
 <span><span class="co">#&gt;           Coleoptera Meloidae Epicauta sp. </span></span>
 <span><span class="co">#&gt;                                          2 </span></span>
 <span><span class="co">#&gt;     Coleoptera Mordellidae Mordellidae sp. </span></span>
-<span><span class="co">#&gt;                                          2 </span></span>
+<span><span class="co">#&gt;                                          1 </span></span>
 <span><span class="co">#&gt;      Diptera Anthomyiidae Anthomyiidae sp2 </span></span>
-<span><span class="co">#&gt;                                          2</span></span></code></pre></div>
+<span><span class="co">#&gt;                                          1</span></span></code></pre></div>
 <p>And their probabilities:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">best_fit</span><span class="op">$</span><span class="va">prob_memberships</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="fl">1</span><span class="op">]</span></span>
 <span><span class="co">#&gt;        Birds Trochilidae Sappho sparganura </span></span>
-<span><span class="co">#&gt;                               0.2000449903 </span></span>
+<span><span class="co">#&gt;                               5.241083e-09 </span></span>
 <span><span class="co">#&gt;     Coleoptera Buprestidae Buprestidae sp. </span></span>
-<span><span class="co">#&gt;                               0.0148961299 </span></span>
+<span><span class="co">#&gt;                               4.167766e-04 </span></span>
 <span><span class="co">#&gt;     Coleoptera Cantharidae Cantharidae sp. </span></span>
-<span><span class="co">#&gt;                               0.0026079747 </span></span>
+<span><span class="co">#&gt;                               8.966707e-01 </span></span>
 <span><span class="co">#&gt;  Coleoptera Coccinellidae Coccinelidae sp1 </span></span>
-<span><span class="co">#&gt;                               0.0009135321 </span></span>
+<span><span class="co">#&gt;                               9.707347e-01 </span></span>
 <span><span class="co">#&gt;  Coleoptera Coccinellidae Coccinelidae sp2 </span></span>
-<span><span class="co">#&gt;                               0.0026079747 </span></span>
+<span><span class="co">#&gt;                               8.966707e-01 </span></span>
 <span><span class="co">#&gt;  Coleoptera Coccinellidae Coccinelidae sp3 </span></span>
-<span><span class="co">#&gt;                               0.0026079747 </span></span>
+<span><span class="co">#&gt;                               8.966707e-01 </span></span>
 <span><span class="co">#&gt; Coleoptera Curculionidae Curculionidae sp. </span></span>
-<span><span class="co">#&gt;                               0.0026079747 </span></span>
+<span><span class="co">#&gt;                               8.966707e-01 </span></span>
 <span><span class="co">#&gt;           Coleoptera Meloidae Epicauta sp. </span></span>
-<span><span class="co">#&gt;                               0.0414498548 </span></span>
+<span><span class="co">#&gt;                               1.090684e-04 </span></span>
 <span><span class="co">#&gt;     Coleoptera Mordellidae Mordellidae sp. </span></span>
-<span><span class="co">#&gt;                               0.0009135321 </span></span>
+<span><span class="co">#&gt;                               9.707347e-01 </span></span>
 <span><span class="co">#&gt;      Diptera Anthomyiidae Anthomyiidae sp2 </span></span>
-<span><span class="co">#&gt;                               0.0026079747</span></span></code></pre></div>
+<span><span class="co">#&gt;                               8.966707e-01</span></span></code></pre></div>
 <ul>
 <li>The prediction for each dyads in the networks</li>
 </ul>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">best_fit</span><span class="op">$</span><span class="va">pred_dyads</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="fl">1</span><span class="op">]</span></span>
 <span><span class="co">#&gt;        Birds Trochilidae Sappho sparganura </span></span>
-<span><span class="co">#&gt;                                 0.06144805 </span></span>
+<span><span class="co">#&gt;                                0.083245848 </span></span>
 <span><span class="co">#&gt;     Coleoptera Buprestidae Buprestidae sp. </span></span>
-<span><span class="co">#&gt;                                 0.03610547 </span></span>
+<span><span class="co">#&gt;                                0.083211159 </span></span>
 <span><span class="co">#&gt;     Coleoptera Cantharidae Cantharidae sp. </span></span>
-<span><span class="co">#&gt;                                 0.03442351 </span></span>
+<span><span class="co">#&gt;                                0.008614050 </span></span>
 <span><span class="co">#&gt;  Coleoptera Coccinellidae Coccinelidae sp1 </span></span>
-<span><span class="co">#&gt;                                 0.03419158 </span></span>
+<span><span class="co">#&gt;                                0.002449548 </span></span>
 <span><span class="co">#&gt;  Coleoptera Coccinellidae Coccinelidae sp2 </span></span>
-<span><span class="co">#&gt;                                 0.03442351 </span></span>
+<span><span class="co">#&gt;                                0.008614050 </span></span>
 <span><span class="co">#&gt;  Coleoptera Coccinellidae Coccinelidae sp3 </span></span>
-<span><span class="co">#&gt;                                 0.03442351 </span></span>
+<span><span class="co">#&gt;                                0.008614050 </span></span>
 <span><span class="co">#&gt; Coleoptera Curculionidae Curculionidae sp. </span></span>
-<span><span class="co">#&gt;                                 0.03442351 </span></span>
+<span><span class="co">#&gt;                                0.008614050 </span></span>
 <span><span class="co">#&gt;           Coleoptera Meloidae Epicauta sp. </span></span>
-<span><span class="co">#&gt;                                 0.03974006 </span></span>
+<span><span class="co">#&gt;                                0.083236771 </span></span>
 <span><span class="co">#&gt;     Coleoptera Mordellidae Mordellidae sp. </span></span>
-<span><span class="co">#&gt;                                 0.03419158 </span></span>
+<span><span class="co">#&gt;                                0.002449548 </span></span>
 <span><span class="co">#&gt;      Diptera Anthomyiidae Anthomyiidae sp2 </span></span>
-<span><span class="co">#&gt;                                 0.03442351</span></span></code></pre></div>
+<span><span class="co">#&gt;                                0.008614050</span></span></code></pre></div>
 <p>We can also plot the networks individually:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res_pp_iid</span><span class="op">$</span><span class="va">best_fit</span>, type <span class="op">=</span> <span class="st">"block"</span>, net_id <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
@@ -315,12 +317,12 @@ olensen2002flo networks, using the <em>iid-colBiSBM</em> model.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ==== Best fits criterion for the 4 networks. Computed in 1.09 secs ====</span></span>
+<span><span class="co">#&gt; ==== Best fits criterion for the 4 networks. Computed in 1.02 secs ====</span></span>
 <span><span class="co">#&gt; Sep BiSBM total BICL:  -813.0666</span></span>
-<span><span class="co">#&gt; colBiSBM BICL: -817.1685</span></span>
+<span><span class="co">#&gt; colBiSBM BICL: -817.0868</span></span>
 <span><span class="co">#&gt; Separated modelisation preferred.</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ==== Full computation performed in 7.76 secs ====</span></span></code></pre></div>
+<span><span class="co">#&gt; ==== Full computation performed in 13.4 secs ====</span></span></code></pre></div>
 <p>The output indicates that the collection does not benefit from a
 joint modelisation.</p>
 <blockquote>
@@ -417,7 +419,7 @@ Best partition graphon type plots
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
 </div>
 
     </footer>
