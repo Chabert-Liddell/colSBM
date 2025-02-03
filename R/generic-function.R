@@ -161,18 +161,18 @@ plot.fitSimpleSBMPop <- function(
           #    order(Z)] %>%
           reshape2::melt() %>%
           dplyr::pull(value)) %>%
-        ggplot2::ggplot(ggplot2::aes(x = Var2, y = Var1, fill = value, alpha = value)) +
+        ggplot2::ggplot(ggplot2::aes(x = as.factor(Var2), y = as.factor(Var1), fill = value, alpha = value)) +
         ggplot2::geom_tile(ggplot2::aes(alpha = con),
-          fill = "red", size = 0, show.legend = FALSE
+          fill = "red", linewidth = 0, show.legend = FALSE
         ) +
         ggplot2::geom_tile(show.legend = FALSE) +
         ggplot2::geom_hline(
           yintercept = cumsum(tabulate(Z)[1:(x$Q - 1)]) + .5,
-          col = "red", size = .5
+          col = "red", linewidth = .5
         ) +
         ggplot2::geom_vline(
-          xintercept = cumsum(tabulate(Z)[(x$Q):2]) + .5,
-          col = "red", size = .5
+          xintercept = cumsum(tabulate(Z)[ifelse(x$Q > 1, (x$Q):2, 1)]) + .5,
+          col = "red", linewidth = .5
         ) +
         ggplot2::scale_fill_gradient(low = "white", high = "black") +
         ggplot2::ylab("") +
@@ -530,8 +530,26 @@ plot.fitBipartiteSBMPop <- function(
         order(x$Z[[net_id]][[2]])
       ] |>
         reshape2::melt() |>
-        ggplot2::ggplot(ggplot2::aes(x = Var2, y = rev(Var1), fill = value)) +
+        dplyr::mutate(
+          con = x$alpha[x$Z[[net_id]][[1]], x$Z[[net_id]][[2]]][
+            order(x$Z[[net_id]][[1]]),
+            order(x$Z[[net_id]][[2]])
+          ] |>
+            reshape2::melt() |>
+            dplyr::pull(value)
+        ) |>
+        ggplot2::ggplot(ggplot2::aes(
+          x = Var2,
+          y = rev(Var1),
+          fill = value,
+          alpha = value
+        )) +
         ggplot2::geom_tile(show.legend = FALSE) +
+        ggplot2::geom_tile(ggplot2::aes(alpha = con),
+          fill = "red",
+          linewidth = 0L,
+          show.legend = FALSE
+        ) +
         # Order will need to reworked to allow to change tile order
         ggplot2::geom_hline(
           yintercept = cumsum(tabulate(x$Z[[net_id]][[1]])[order(x$alpha %*% mean_rho)][x$Q[1]:2]) + .5,
