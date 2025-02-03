@@ -35,7 +35,14 @@ test_that("plot.bisbmpop plot.fitBipartiteSBMPop plot without error", {
   set.seed(1234)
   alpha1 <- matrix(c(0.8, 0.1, 0.2, 0.7), byrow = TRUE, nrow = 2)
 
-  first_collection <- generate_bipartite_collection(nr = 50, nc = 25, pi = c(0.5, 0.5), rho = c(0.5, 0.5), alpha = alpha1, M = 2)
+  first_collection <- generate_bipartite_collection(
+    nr = 50,
+    nc = 25,
+    pi = c(0.5, 0.5),
+    rho = c(0.5, 0.5),
+    alpha = alpha1,
+    M = 2
+  )
 
 
   # A collection where joint modelisation makes sense
@@ -45,9 +52,15 @@ test_that("plot.bisbmpop plot.fitBipartiteSBMPop plot without error", {
     global_opts = list(
       nb_cores = 2,
       verbosity = 0,
-      plot_details = 0
+      plot_details = 0,
+      backend = "no_mc"
     )
   )
   expect_no_error(plot(cl_joint))
-  expect_no_error(plot(cl_joint$best_fit, net_id = 1))
+  expect_no_error(plot(cl_joint$best_fit, net_id = 1, type = "graphon"))
+  expect_no_error(plot(cl_joint$best_fit, type = "meso"))
+  expect_no_error(plot(cl_joint$best_fit, type = "meso", values = TRUE))
+  expect_no_error(plot(cl_joint$best_fit, type = "meso", mixture = TRUE))
+  expect_no_error(plot(cl_joint$best_fit, type = "meso", values = TRUE, mixture = TRUE))
+  expect_no_error(plot(cl_joint$best_fit, type = "block", net_id = 1))
 })
