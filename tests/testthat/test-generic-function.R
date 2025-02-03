@@ -26,9 +26,22 @@ test_that("plot.bmpop and plot.fitSimpleSBMPop plot without error", {
       plot_details = 0
     )
   )
-  expect_no_error(plot(cl))
 
+  expect_no_error(plot(cl))
   expect_no_error(plot(cl$best_fit, net_id = 1))
+  expect_no_error(plot(cl$best_fit, type = "graphon"))
+  expect_no_error(plot(cl$best_fit, type = "meso"))
+  expect_no_error(plot(cl$best_fit, type = "meso", mixture = TRUE))
+  expect_no_error(plot(cl$best_fit, type = "block", net_id = 1))
+
+  data(foodwebs)
+  fw_fit <- estimate_colSBM(netlist = foodwebs[1:3], colsbm_model = "iid")
+
+  expect_no_error(plot(fw_fit))
+  expect_no_error(plot(fw_fit, type = "graphon"))
+  expect_no_error(plot(fw_fit, type = "meso"))
+  expect_no_error(plot(fw_fit, type = "meso", mixture = TRUE))
+  expect_no_error(plot(fw_fit, type = "block", net_id = 1))
 })
 
 test_that("plot.bisbmpop plot.fitBipartiteSBMPop plot without error", {
@@ -61,6 +74,9 @@ test_that("plot.bisbmpop plot.fitBipartiteSBMPop plot without error", {
   expect_no_error(plot(cl_joint$best_fit, type = "meso"))
   expect_no_error(plot(cl_joint$best_fit, type = "meso", values = TRUE))
   expect_no_error(plot(cl_joint$best_fit, type = "meso", mixture = TRUE))
-  expect_no_error(plot(cl_joint$best_fit, type = "meso", values = TRUE, mixture = TRUE))
+  expect_no_error(plot(cl_joint$best_fit,
+    type = "meso", values = TRUE,
+    mixture = TRUE
+  ))
   expect_no_error(plot(cl_joint$best_fit, type = "block", net_id = 1))
 })

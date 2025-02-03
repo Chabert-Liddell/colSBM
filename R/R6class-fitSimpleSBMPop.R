@@ -1158,6 +1158,7 @@ fitSimpleSBMPop <- R6::R6Class(
         self$tau <- lapply(seq(self$M), function(m) matrix(1, self$n[m], 1))
         self$Z <- lapply(seq(self$M), function(m) rep(1, self$n[m]))
         self$pi <- lapply(seq(self$M), function(m) 1)
+        self$pim <- lapply(seq(self$M), function(m) 1)
         lapply(seq(self$M), function(m) self$update_mqr(m))
         if (self$free_density) {
           self$alpha <- matrix(sum(self$emqr[1, , ]) / sum(self$nmqr[1, , ]), 1, 1)

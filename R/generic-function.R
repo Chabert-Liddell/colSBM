@@ -15,7 +15,6 @@
 
 # )
 
-
 #' Plot matrix summaries of the collection mesoscale structure
 #'
 #' @param x a fitSimpleSBMPOP object.
@@ -47,14 +46,153 @@
 #' )
 #' plot(cl$best_fit)
 #' }
-plot.fitSimpleSBMPop <- function(x, type = "graphon",
-                                 ord = NULL, mixture = FALSE, net_id = 1, ...) {
-  stopifnot(inherits(x, "fitSimpleSBMPop"))
-  p <- x$plot(
-    type = type, ord = ord, mixture = mixture,
-    net_id = net_id, ...
+plot.fitSimpleSBMPop <- function(
+    x,
+    type = "graphon",
+    ord = NULL,
+    mixture = FALSE,
+    net_id = 1L,
+    ...) {
+  if (is.null(ord)) ord <- order(diag(x$alpha), decreasing = TRUE)
+  p <- switch(type,
+    graphon = {
+      if (x$Q == 1) {
+        ymin <- rep(0, each = x$Q)
+        ymax <- rep(1, each = x$Q)
+        xmin <- rep(0, x$Q)
+        xmax <- rep(1, x$Q)
+      } else {
+        xmax <- rep(c(0, cumsum(x$pi[[net_id]][ord][1:(x$Q - 1)])), x$Q)
+        xmin <- rep(cumsum(x$pi[[net_id]][ord]), x$Q)
+        ymax <- rep(c(0, cumsum(x$pi[[net_id]][ord][1:(x$Q - 1)])), each = x$Q)
+        ymin <- rep(cumsum(x$pi[[net_id]][ord]), each = x$Q)
+      }
+      (x$alpha[ord, ord] * mean(x$delta)) %>%
+        t() %>%
+        reshape2::melt() %>%
+        dplyr::mutate(
+          xmax = xmax,
+          xmin = xmin,
+          ymax = ymax,
+          ymin = ymin
+        ) %>%
+        ggplot2::ggplot(ggplot2::aes(
+          xmin = xmin, ymin = ymin,
+          xmax = xmax, ymax = ymax, fill = value
+        )) +
+        ggplot2::geom_rect() +
+        ggplot2::scale_fill_gradient2("alpha", low = "white", mid = "red", midpoint = 1) +
+        ggplot2::geom_hline(yintercept = cumsum(x$pi[[net_id]][ord][1:(x$Q - 1)]), linewidth = .2) +
+        ggplot2::geom_vline(xintercept = cumsum(x$pi[[net_id]][ord][1:(x$Q - 1)]), linewidth = .2) +
+        ggplot2::scale_y_reverse() +
+        ggplot2::theme_bw(base_size = 15, base_rect_size = 1, base_line_size = 1) +
+        ggplot2::xlab("") +
+        ggplot2::ylab("") +
+        ggplot2::coord_equal(expand = FALSE)
+    },
+    meso = {
+      if (x$free_mixture) {
+        pim <- x$pi
+      } else {
+        pim <- x$pim
+      }
+      p_alpha <- x$alpha[ord, ord] %>%
+        t() %>%
+        reshape2::melt() %>%
+        ggplot2::ggplot(ggplot2::aes(x = Var1, y = Var2, fill = value)) +
+        ggplot2::geom_tile() +
+        ggplot2::scale_fill_gradient2("alpha", low = "white", high = "red") +
+        ggplot2::geom_hline(yintercept = seq(x$Q) + .5) +
+        ggplot2::geom_vline(xintercept = seq(x$Q) + .5) +
+        ggplot2::scale_y_reverse() +
+        ggplot2::theme_bw(base_size = 15, base_rect_size = 1, base_line_size = 1) +
+        ggplot2::xlab("") +
+        ggplot2::ylab("") +
+        ggplot2::coord_fixed(expand = FALSE)
+      #  scale_y_reverse()
+      if (x$free_density) {
+        xl <- paste(round(x$delta, 1))
+      } else {
+        xl <- ""
+      }
+      df <- purrr::map_dfc(
+        seq_along(x$net_id),
+        function(m) {
+          setNames(
+            data.frame(x$pim[[m]][ord]),
+            x$net_id[m]
+          )
+        }
+      )
+      names(df) <- x$net_id
+      if (mixture) {
+        p_pi <-
+          df %>%
+          #    rename() %>%
+          dplyr::mutate(q = seq(x$Q)) %>%
+          tidyr::pivot_longer(cols = -c(q)) %>%
+          ggplot2::ggplot(ggplot2::aes(fill = as.factor(q), y = name, x = value)) +
+          ggplot2::geom_col() +
+          ggplot2::coord_flip(expand = FALSE) +
+          ggplot2::scale_fill_brewer("Block",
+            type = "qual", palette = "Paired",
+            direction = -1
+          ) +
+          ggplot2::ylab("") +
+          ggplot2::ylab(xl) +
+          ggplot2::theme_bw(base_size = 15)
+        p_alpha <- (p_alpha | p_pi) + patchwork::plot_layout(guides = "collect", widths = c(.65, .35)) +
+          patchwork::plot_annotation(title = NULL)
+      }
+      return(p_alpha)
+    },
+    "block" = {
+      Z <- factor(x$Z[[net_id]], levels = rev(ord))
+      as.matrix(x$A[[net_id]])[
+        order(Z),
+        order(Z)
+      ] %>% # t() %>%
+        reshape2::melt() %>%
+        dplyr::mutate(con = x$alpha[x$Z[[net_id]], x$Z[[net_id]]][
+          order(Z),
+          order(Z)
+        ] %>% # t() %>%#[x$Z[[net_id]], x$Z[[net_id]]][
+          #  order(Z),
+          #    order(Z)] %>%
+          reshape2::melt() %>%
+          dplyr::pull(value)) %>%
+        ggplot2::ggplot(ggplot2::aes(x = Var2, y = Var1, fill = value, alpha = value)) +
+        ggplot2::geom_tile(ggplot2::aes(alpha = con),
+          fill = "red", size = 0, show.legend = FALSE
+        ) +
+        ggplot2::geom_tile(show.legend = FALSE) +
+        ggplot2::geom_hline(
+          yintercept = cumsum(tabulate(Z)[1:(x$Q - 1)]) + .5,
+          col = "red", size = .5
+        ) +
+        ggplot2::geom_vline(
+          xintercept = cumsum(tabulate(Z)[(x$Q):2]) + .5,
+          col = "red", size = .5
+        ) +
+        ggplot2::scale_fill_gradient(low = "white", high = "black") +
+        ggplot2::ylab("") +
+        ggplot2::xlab(x$net_id[net_id]) +
+        ggplot2::scale_x_discrete(
+          limits = rev,
+          breaks = ""
+        ) +
+        # ggplot2::scale_y_reverse() +
+        ggplot2::scale_y_discrete( # limits = rev,
+          breaks = "", # label = rev(custom_lab3),
+          guide = ggplot2::guide_axis(angle = 0)
+        ) +
+        ggplot2::scale_alpha(range = c(0, 1)) +
+        ggplot2::coord_equal(expand = FALSE) +
+        ggplot2::theme_bw(base_size = 15) +
+        ggplot2::theme(axis.ticks = ggplot2::element_blank())
+    }
   )
-  p
+  return(p)
 }
 
 # plot_colsbm_nomix <- function(fit, ord = NULL,  title = NULL, tag = NULL) {
