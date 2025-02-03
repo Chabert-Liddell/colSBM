@@ -2,13 +2,12 @@
 % Please edit documentation in R/R6class-fitBipartiteSBMPop.R
 \name{fitBipartiteSBMPop}
 \alias{fitBipartiteSBMPop}
-\title{The method to plot the fitBipartite objects}
+\title{An R6 Class object, a fitted population of netowrks sbm
+once $optimize() is done}
 \description{
-The method to plot the fitBipartite objects
+An R6 Class object, a fitted population of netowrks sbm
+once $optimize() is done
 
-The method to plot the fitBipartite objects
-}
-\details{
 An R6 Class object, a fitted population of netowrks sbm
 once $optimize() is done
 }
@@ -177,7 +176,6 @@ parameters}
 \item \href{#method-fitBipartiteSBMPop-reorder_parameters}{\code{fitBipartiteSBMPop$reorder_parameters()}}
 \item \href{#method-fitBipartiteSBMPop-show}{\code{fitBipartiteSBMPop$show()}}
 \item \href{#method-fitBipartiteSBMPop-print}{\code{fitBipartiteSBMPop$print()}}
-\item \href{#method-fitBipartiteSBMPop-plot}{\code{fitBipartiteSBMPop$plot()}}
 \item \href{#method-fitBipartiteSBMPop-clone}{\code{fitBipartiteSBMPop$clone()}}
 }
 }
@@ -739,47 +737,6 @@ The print method}
 
 \subsection{Returns}{
 nothing; print to console
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-fitBipartiteSBMPop-plot"></a>}}
-\if{latex}{\out{\hypertarget{method-fitBipartiteSBMPop-plot}{}}}
-\subsection{Method \code{plot()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$plot(
-  type = "graphon",
-  oRow = NULL,
-  oCol = NULL,
-  mixture = FALSE,
-  net_id = NULL,
-  values = FALSE,
-  ...
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{type}}{The type of the plot. Could be "graphon", "meso" or "block".}
-
-\item{\code{oRow}}{A reordering of the row blocks.}
-
-\item{\code{oCol}}{A reordering of the column blocks.}
-
-\item{\code{mixture}}{Should the block proportions of each network be plotted as
-well?}
-
-\item{\code{net_id}}{Use to plot only one network in "graphon" view.}
-
-\item{\code{values}}{Wether or not to plot values on the alpha, pi and rho
-representation.}
-
-\item{\code{...}}{Further argument to be passed}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A plot, a ggplot2 object.
 }
 }
 \if{html}{\out{<hr>}}
