@@ -262,12 +262,47 @@ plot.fitSimpleSBMPop <- function(
 #' @param type The type of the plot. "trace".
 #' @param ... Further argument to be passed
 #' @return A plot, a ggplot2 object.
+#'
+#' @import ggplot2
+#' @importFrom tibble tibble
+#' @importFrom tidyr pivot_longer
+#' @importFrom dplyr mutate pull
+#'
 #' @export
 #'
 #'
 plot.bmpop <- function(x, type = "trace", ...) {
   stopifnot(inherits(x, "bmpop"))
-  p <- x$plot(type = type, ...)
+  tb <- tibble::tibble(
+    Q = seq_along(x$BICL),
+    ICL = x$ICL,
+    BICL = x$BICL,
+    vbound = x$vbound
+  )
+  if (!is.null(x$ICL_sbm)) {
+    tb %>% dplyr::mutate(SBM = x$ICL_sbm)
+  }
+  p <- tb %>%
+    tidyr::pivot_longer(cols = -Q, names_to = "Criterion") %>%
+    ggplot2::ggplot(ggplot2::aes(
+      x = Q, y = value,
+      linetype = Criterion, color = Criterion,
+      shape = Criterion
+    )) +
+    ggplot2::annotate(
+      geom = "rect",
+      xmin = max(which.max(x$BICL) -
+        x$global_opts$depth, 1),
+      xmax = min(which.max(x$BICL) +
+        x$global_opts$depth, length(x$BICL)),
+      ymin = -Inf,
+      ymax = Inf,
+      fill = "gray90"
+    ) +
+    ggplot2::geom_line() +
+    ggplot2::geom_point(size = 3) +
+    ggplot2::ylab("") +
+    ggplot2::theme_bw()
   p
 }
 
@@ -582,12 +617,62 @@ plot.fitBipartiteSBMPop <- function(
 #' Plot the state-space exploration plot for a bipartite collection object
 #'
 #' @param x a bisbmpop object.
+#' @param criterion The criterion to plot. Could be "BICL", "ICL" or "vbound".
+#' Default is "BICL".
 #' @param ... other arguments to pass to the plot.
+#'
+#' @import ggplot2
+#' @import dplyr
+#' @importFrom reshape2 melt
 #'
 #' @return A plot, a ggplot2 object.
 #' @export
-plot.bisbmpop <- function(x, ...) {
+plot.bisbmpop <- function(x, criterion = "BICL", ...) {
   stopifnot(inherits(x, "bisbmpop"))
-  p <- x$plot(...)
+  rlang::arg_match0(criterion, c("BICL", "ICL", "vbound"))
+  # One value of BIC-L per Q1 Q2
+  criterion_df <- x[[criterion]] |>
+    reshape2::melt(value.name = "criterion") |>
+    dplyr::rename(Q1 = Var1, Q2 = Var2) |>
+    dplyr::mutate(Q1 = as.factor(Q1), Q2 = as.factor(Q2)) |>
+    # mutate(Q1 = as.factor(Q1), Q2 = as.factor(Q2)) |>
+    # Remove -Inf values
+    dplyr::filter(criterion > -Inf)
+
+  Qmax <- dim(x$model_list)
+  Q1max <- Qmax[1]
+  Q2max <- Qmax[2]
+
+  completeness_mat <- outer(seq(1, Q1max), seq(1, Q2max), Vectorize(function(q1, q2) {
+    ifelse(is.null(x$model_list[[q1, q2]]$clustering_is_complete), NA, x$model_list[[q1, q2]]$clustering_is_complete)
+  }))
+  completeness_df <- completeness_mat |>
+    reshape2::melt(value.name = "clustering_is_complete") |>
+    dplyr::rename(Q1 = Var1, Q2 = Var2) |>
+    dplyr::mutate(Q1 = as.factor(Q1), Q2 = as.factor(Q2)) |>
+    dplyr::select(Q1, Q2, clustering_is_complete) |>
+    dplyr::filter(!is.na(clustering_is_complete)) |>
+    dplyr::mutate(clustering_is_complete = ifelse(clustering_is_complete, "Yes", "No"))
+
+  criterion_complete_df <- dplyr::left_join(x = criterion_df, completeness_df, by = c("Q1", "Q2"))
+  criterion_complete_df$is_max <- criterion_complete_df$criterion == max(criterion_complete_df$criterion)
+
+  # Convert TRUE FALSE to factor
+
+  p <- ggplot2::ggplot(data = criterion_complete_df) +
+    ggplot2::geom_tile(ggplot2::aes(x = Q2, y = Q1, fill = criterion)) +
+    ggplot2::geom_point(
+      ggplot2::aes(
+        x = Q2, y = Q1,
+        fill = criterion, color = clustering_is_complete,
+        shape = is_max
+      ),
+      size = 8
+    ) +
+    ggplot2::scale_shape_manual(name = "Is Max?", values = c(-9, 17)) +
+    ggplot2::scale_fill_distiller(name = criterion, palette = "Spectral", direction = 1L) +
+    ggplot2::scale_color_brewer(name = "Is Complete?", type = "div") +
+    ggplot2::theme(aspect.ratio = Q1max / Q2max) +
+    ggplot2::theme_classic()
   p
 }

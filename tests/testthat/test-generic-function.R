@@ -59,7 +59,7 @@ test_that("plot.bisbmpop plot.fitBipartiteSBMPop plot without error", {
 
 
   # A collection where joint modelisation makes sense
-  cl_joint <- estimate_colBiSBM(
+  cl_bipartite <- estimate_colBiSBM(
     netlist = first_collection,
     colsbm_model = "iid",
     global_opts = list(
@@ -69,14 +69,14 @@ test_that("plot.bisbmpop plot.fitBipartiteSBMPop plot without error", {
       backend = "no_mc"
     )
   )
-  expect_no_error(plot(cl_joint))
-  expect_no_error(plot(cl_joint$best_fit, net_id = 1, type = "graphon"))
-  expect_no_error(plot(cl_joint$best_fit, type = "meso"))
-  expect_no_error(plot(cl_joint$best_fit, type = "meso", values = TRUE))
-  expect_no_error(plot(cl_joint$best_fit, type = "meso", mixture = TRUE))
-  expect_no_error(plot(cl_joint$best_fit,
+  expect_no_error(plot(cl_bipartite))
+  expect_no_error(plot(cl_bipartite$best_fit, net_id = 1, type = "graphon"))
+  expect_no_error(plot(cl_bipartite$best_fit, type = "meso"))
+  expect_no_error(plot(cl_bipartite$best_fit, type = "meso", values = TRUE))
+  expect_no_error(plot(cl_bipartite$best_fit, type = "meso", mixture = TRUE))
+  expect_no_error(plot(cl_bipartite$best_fit,
     type = "meso", values = TRUE,
     mixture = TRUE
   ))
-  expect_no_error(plot(cl_joint$best_fit, type = "block", net_id = 1))
+  expect_no_error(plot(cl_bipartite$best_fit, type = "block", net_id = 1))
 })
