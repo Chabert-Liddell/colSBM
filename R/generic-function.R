@@ -316,6 +316,7 @@ plot.bmpop <- function(x, type = "trace", ...) {
 #' well?
 #' @param values Wether or not to plot values on the alpha, pi and rho
 #' representation.
+#' @param values_min The minimum value to plot the value.
 #' @param net_id Use to plot only on network in "graphon" view.
 #' @param ... Further argument to be passed
 #' @return A plot, a ggplot2 object.
@@ -624,6 +625,7 @@ plot.fitBipartiteSBMPop <- function(
 #' @import ggplot2
 #' @import dplyr
 #' @importFrom reshape2 melt
+#' @importFrom rlang arg_match0
 #'
 #' @return A plot, a ggplot2 object.
 #' @export
