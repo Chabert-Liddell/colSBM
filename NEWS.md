@@ -1,3 +1,8 @@
+# colSBM 0.4.1
+
+* Reworking plot functions to be more flexible and customizable by not relying on R6 plot methods
+* Turning plot.bisbmpop into an heatmap plot with possibility to select criterion to show
+
 # colSBM 0.4.0
 
 * Adding `colBiSBM`, supporting bipartite collections
