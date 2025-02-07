@@ -13,7 +13,7 @@ once $optimize() is done"></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">colSBM</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -308,7 +308,6 @@ parameters</p></dd>
 <li><p><a href="#method-fitSimpleSBMPop-optimize"><code>fitSimpleSBMPop$optimize()</code></a></p></li>
 <li><p><a href="#method-fitSimpleSBMPop-show"><code>fitSimpleSBMPop$show()</code></a></p></li>
 <li><p><a href="#method-fitSimpleSBMPop-print"><code>fitSimpleSBMPop$print()</code></a></p></li>
-<li><p><a href="#method-fitSimpleSBMPop-plot"><code>fitSimpleSBMPop$plot()</code></a></p></li>
 <li><p><a href="#method-fitSimpleSBMPop-clone"><code>fitSimpleSBMPop$clone()</code></a></p></li>
 </ul></div><p></p><hr><a id="method-fitSimpleSBMPop-new"></a><div class="section">
 <h3 id="method-new-">Method <code>new()</code><a class="anchor" aria-label="anchor" href="#method-new-"></a></h3>
@@ -1107,64 +1106,18 @@ The print method</p></dd>
 
 <div class="section">
 <h4 id="returns-26">Returns<a class="anchor" aria-label="anchor" href="#returns-26"></a></h4>
-<p>nothing; print to console
-Plot method</p>
-</div>
-
-</div><p></p><hr><a id="method-fitSimpleSBMPop-plot"></a><div class="section">
-<h3 id="method-plot-">Method <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code><a class="anchor" aria-label="anchor" href="#method-plot-"></a></h3>
-
-<div class="section">
-<h4 id="usage-32">Usage<a class="anchor" aria-label="anchor" href="#usage-32"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">plot</span><span class="op">(</span></span>
-<span>  type <span class="op">=</span> <span class="st">"graphon"</span>,</span>
-<span>  ord <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  mixture <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  net_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  <span class="va">...</span></span>
-<span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
-<h4 id="arguments-22">Arguments<a class="anchor" aria-label="anchor" href="#arguments-22"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>type</code></dt>
-<dd><p>The type of the plot. Could be "graphon", "meso" or "block".</p></dd>
-
-
-<dt><code>ord</code></dt>
-<dd><p>A reordering of the blocks.</p></dd>
-
-
-<dt><code>mixture</code></dt>
-<dd><p>Should the block proportions of each network be plotted as
-well?</p></dd>
-
-
-<dt><code>net_id</code></dt>
-<dd><p>The id of the network to plot. Used to plot only on
-network in "graphon" view.</p></dd>
-
-
-<dt><code>...</code></dt>
-<dd><p>Further arguments to be passed</p></dd>
-
-
-</dl><p></p></div>
-</div>
-<div class="section">
-<h4 id="returns-27">Returns<a class="anchor" aria-label="anchor" href="#returns-27"></a></h4>
-<p>A plot, a ggplot2 object.</p>
+<p>nothing; print to console</p>
 </div>
 
 </div><p></p><hr><a id="method-fitSimpleSBMPop-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-33">Usage<a class="anchor" aria-label="anchor" href="#usage-33"></a></h4>
+<h4 id="usage-32">Usage<a class="anchor" aria-label="anchor" href="#usage-32"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitSimpleSBMPop</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-23">Arguments<a class="anchor" aria-label="anchor" href="#arguments-23"></a></h4>
+<h4 id="arguments-22">Arguments<a class="anchor" aria-label="anchor" href="#arguments-22"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 
