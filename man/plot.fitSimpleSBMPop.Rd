@@ -4,7 +4,7 @@
 \alias{plot.fitSimpleSBMPop}
 \title{Plot matrix summaries of the collection mesoscale structure}
 \usage{
-\method{plot}{fitSimpleSBMPop}(x, type = "graphon", ord = NULL, mixture = FALSE, net_id = 1, ...)
+\method{plot}{fitSimpleSBMPop}(x, type = "graphon", ord = NULL, mixture = FALSE, net_id = 1L, ...)
 }
 \arguments{
 \item{x}{a fitSimpleSBMPOP object.}

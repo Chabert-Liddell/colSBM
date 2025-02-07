@@ -169,7 +169,6 @@ parameters}
 \item \href{#method-fitSimpleSBMPop-optimize}{\code{fitSimpleSBMPop$optimize()}}
 \item \href{#method-fitSimpleSBMPop-show}{\code{fitSimpleSBMPop$show()}}
 \item \href{#method-fitSimpleSBMPop-print}{\code{fitSimpleSBMPop$print()}}
-\item \href{#method-fitSimpleSBMPop-plot}{\code{fitSimpleSBMPop$plot()}}
 \item \href{#method-fitSimpleSBMPop-clone}{\code{fitSimpleSBMPop$clone()}}
 }
 }
@@ -852,42 +851,6 @@ The print method}
 
 \subsection{Returns}{
 nothing; print to console
-Plot method
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-fitSimpleSBMPop-plot"></a>}}
-\if{latex}{\out{\hypertarget{method-fitSimpleSBMPop-plot}{}}}
-\subsection{Method \code{plot()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{fitSimpleSBMPop$plot(
-  type = "graphon",
-  ord = NULL,
-  mixture = FALSE,
-  net_id = NULL,
-  ...
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{type}}{The type of the plot. Could be "graphon", "meso" or "block".}
-
-\item{\code{ord}}{A reordering of the blocks.}
-
-\item{\code{mixture}}{Should the block proportions of each network be plotted as
-well?}
-
-\item{\code{net_id}}{The id of the network to plot. Used to plot only on
-network in "graphon" view.}
-
-\item{\code{...}}{Further arguments to be passed}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A plot, a ggplot2 object.
 }
 }
 \if{html}{\out{<hr>}}

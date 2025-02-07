@@ -88,7 +88,6 @@ modelisation.}
 \item \href{#method-bisbmpop-new}{\code{bisbmpop$new()}}
 \item \href{#method-bisbmpop-split_clustering}{\code{bisbmpop$split_clustering()}}
 \item \href{#method-bisbmpop-merge_clustering}{\code{bisbmpop$merge_clustering()}}
-\item \href{#method-bisbmpop-state_space_plot}{\code{bisbmpop$state_space_plot()}}
 \item \href{#method-bisbmpop-greedy_exploration}{\code{bisbmpop$greedy_exploration()}}
 \item \href{#method-bisbmpop-optimize_from_zinit}{\code{bisbmpop$optimize_from_zinit()}}
 \item \href{#method-bisbmpop-burn_in}{\code{bisbmpop$burn_in()}}
@@ -99,7 +98,6 @@ modelisation.}
 \item \href{#method-bisbmpop-store_criteria_and_best_fit}{\code{bisbmpop$store_criteria_and_best_fit()}}
 \item \href{#method-bisbmpop-compute_sep_BiSBM_BICL}{\code{bisbmpop$compute_sep_BiSBM_BICL()}}
 \item \href{#method-bisbmpop-choose_joint_or_separated}{\code{bisbmpop$choose_joint_or_separated()}}
-\item \href{#method-bisbmpop-plot}{\code{bisbmpop$plot()}}
 \item \href{#method-bisbmpop-print_metrics}{\code{bisbmpop$print_metrics()}}
 \item \href{#method-bisbmpop-show}{\code{bisbmpop$show()}}
 \item \href{#method-bisbmpop-print}{\code{bisbmpop$print()}}
@@ -202,31 +200,6 @@ or "both" merge}
 }
 \subsection{Returns}{
 best of the possible models tested
-A method to plot the state of space and its current exploration.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-bisbmpop-state_space_plot"></a>}}
-\if{latex}{\out{\hypertarget{method-bisbmpop-state_space_plot}{}}}
-\subsection{Method \code{state_space_plot()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{bisbmpop$state_space_plot(plot_detail = self$global_opts$plot_detail)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot_detail}}{Is by default set using the global options.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Details}{
-the method takes no parameters and print a plot
-of the current state of the model_list.
-}
-
-\subsection{Returns}{
-nothing
 Method to greedily explore state of space looking for the mode
 and storing the models discovered along the way
 }
@@ -415,19 +388,8 @@ BICL criterion.
 
 \subsection{Returns}{
 nothing; stores a boolean
-Plot method
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-bisbmpop-plot"></a>}}
-\if{latex}{\out{\hypertarget{method-bisbmpop-plot}{}}}
-\subsection{Method \code{plot()}}{
-Plots the state space exploration
 Print the vbound, the ICL and the BICL
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{bisbmpop$plot()}\if{html}{\out{</div>}}
 }
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-bisbmpop-print_metrics"></a>}}
