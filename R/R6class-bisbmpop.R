@@ -2202,8 +2202,12 @@ bisbmpop <- R6::R6Class(
 
           # Checking if we can use sbm estimateBipartiteSBM
           if (self$distribution %in% c("bernoulli", "poisson")) {
+            mat_for_sbm <- self[["A"]][[m]]
+            # Currently sbm can't handle missing values
+            # We need to remove the masked values (i.e. NAs)
+            mat_for_sbm[which(self[["mask"]][[m]] == 1)] <- 0
             init_lbm <- sbm::estimateBipartiteSBM(
-              netMat = self[["A"]][[m]],
+              netMat = mat_for_sbm,
               model = self[["distribution"]],
               estimOptions = list(
                 verbosity = 0L,
@@ -2280,8 +2284,10 @@ bisbmpop <- R6::R6Class(
         self$compute_sep_BiSBM_BICL()
       }
 
-      if (self$global_opts$verbosity >= 1) {
-        if (self$M > 1) {
+
+      if (self$M > 1) {
+        self$joint_modelisation_preferred <- sum(self$sep_BiSBM$BICL) <= self$best_fit$BICL
+        if (self$global_opts$verbosity >= 1) {
           cat(
             "\n==== Best fits criterion for the", self$M,
             "networks. Computed in",
@@ -2289,18 +2295,24 @@ bisbmpop <- R6::R6Class(
           )
           cat("\nSep BiSBM total BICL: ", sum(self$sep_BiSBM$BICL))
           cat("\ncolBiSBM BICL:", self$best_fit$BICL)
-          if (sum(self$sep_BiSBM$BICL) > self$best_fit$BICL) {
+        }
+        if (sum(self$sep_BiSBM$BICL) > self$best_fit$BICL) {
+          if (self$global_opts$verbosity >= 1) {
             cat("\nSeparated modelisation preferred.\n")
-            self$joint_modelisation_preferred <- FALSE
-          } else {
+          }
+          self$joint_modelisation_preferred <- FALSE
+        } else {
+          if (self$global_opts$verbosity >= 1) {
             cat(
               "\nJoint modelisation preferred. With Q = (",
               toString(self$best_fit$Q),
               ").\n"
             )
-            self$joint_modelisation_preferred <- TRUE
           }
-        } else {
+          self$joint_modelisation_preferred <- TRUE
+        }
+      } else {
+        if (self$global_opts$verbosity >= 1) {
           cat("\n==== Best fits criterion for the network ====")
           cat("\nOnly 1 network")
           cat("\nSep BiSBM total BICL: ", sum(self$sep_BiSBM$BICL))
