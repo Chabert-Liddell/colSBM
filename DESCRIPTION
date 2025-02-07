@@ -20,7 +20,6 @@ Imports:
     aricode,
     cluster,
     dplyr,
-    ggnewscale,
     ggplot2,
     gtools,
     magrittr,

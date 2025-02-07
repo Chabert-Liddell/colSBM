@@ -76,7 +76,6 @@ the current best fit.}
 \item \href{#method-bmpop-choose_models}{\code{bmpop$choose_models()}}
 \item \href{#method-bmpop-show}{\code{bmpop$show()}}
 \item \href{#method-bmpop-print}{\code{bmpop$print()}}
-\item \href{#method-bmpop-plot}{\code{bmpop$plot()}}
 \item \href{#method-bmpop-clone}{\code{bmpop$clone()}}
 }
 }
@@ -404,25 +403,6 @@ The print method}
 
 \subsection{Returns}{
 nothing; print to console
-Plot method
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-bmpop-plot"></a>}}
-\if{latex}{\out{\hypertarget{method-bmpop-plot}{}}}
-\subsection{Method \code{plot()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{bmpop$plot(type = "trace", ...)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{type}}{the type of the plot}
-
-\item{\code{...}}{}
-}
-\if{html}{\out{</div>}}
 }
 }
 \if{html}{\out{<hr>}}
