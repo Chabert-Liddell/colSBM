@@ -211,7 +211,7 @@ test_that("Estimate colBiSBM runs with pi, rho and pirho. With and without NA", 
     )
   )
 
-  expect_warning(adjust_colBiSBM(
+  expect_no_error(adjust_colBiSBM(
     fitted_bisbmpop = fit_iid,
     Q = c(1L, 1L)
   ))

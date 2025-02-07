@@ -1706,7 +1706,7 @@ bisbmpop <- R6::R6Class(
       # Checking if the window's bound is in domain
       if (!self$point_is_in_limits(c(Q1_mode - depth, Q2_mode - depth)) ||
         !self$point_is_in_limits(c(Q1_mode + depth, Q2_mode + depth))) {
-        warning(paste0(
+        message(paste0(
           "\nThe window is (partially) out of domain !",
           "\nTrying to go from (", toString(c(Q1_mode - depth, Q2_mode - depth)),
           ") to (", toString(c(Q1_mode + depth, Q2_mode + depth)), ").",
