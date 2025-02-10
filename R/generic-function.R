@@ -357,26 +357,27 @@ plot.fitBipartiteSBMPop <- function(
     values_min = 0.1,
     ...) {
   stopifnot(inherits(x, "fitBipartiteSBMPop"))
-  # The below order use mean over all networks to have a consistent display
-  if (x$Q[2] == 1) {
-    mean_rho <- 1
-  } else {
-    mean_rho <- matrixStats::rowMeans2(sapply(x$pi, function(pi) pi[[2]]))
-  }
-  if (is.null(oRow)) {
-    oRow <- order(x$alpha %*% mean_rho, decreasing = TRUE)
-  }
-  #  Once order of tile in block will be fix, need to go back in nullity cond
-  if (x$Q[1] == 1) {
-    mean_pi <- 1
-  } else {
-    mean_pi <- matrixStats::rowMeans2(sapply(x$pi, function(pi) pi[[1]]))
-  }
-  if (is.null(oCol)) {
-    oCol <- order(mean_pi %*% x$alpha, decreasing = TRUE)
-  }
   p <- switch(type,
     graphon = {
+      # The below order use net_id parameters
+      if (x$Q[2] == 1) {
+        mean_rho <- 1
+      } else {
+        mean_rho <- x[["pi"]][[net_id]][[2]]
+      }
+      if (is.null(oRow)) {
+        oRow <- order(x$alpham[[net_id]] %*% mean_rho, decreasing = TRUE)
+      }
+      #  Once order of tile in block will be fix, need to go back in nullity cond
+      if (x$Q[1] == 1) {
+        mean_pi <- 1
+      } else {
+        mean_pi <- x[["pi"]][[net_id]][[1]]
+      }
+      if (is.null(oCol)) {
+        oCol <- order(mean_pi %*% x$alpham[[net_id]], decreasing = TRUE)
+      }
+
       if (x$Q[1] == 1) {
         ymin <- rep(0, each = x$Q[2])
         ymax <- rep(1, each = x$Q[2])
@@ -421,10 +422,29 @@ plot.fitBipartiteSBMPop <- function(
         ggplot2::theme_bw(base_size = 15, base_rect_size = 1, base_line_size = 1) +
         ggplot2::xlab("Column Blocks") +
         ggplot2::ylab("Row Blocks") +
+        ggplot2::ggtitle(x[["net_id"]][net_id]) +
         ggplot2::coord_equal(expand = FALSE)
       return(p_graphon)
     },
     meso = {
+      # The below order use mean over all networks to have a consistent display
+      if (x$Q[2] == 1) {
+        mean_rho <- 1
+      } else {
+        mean_rho <- matrixStats::rowMeans2(sapply(x$pi, function(pi) pi[[2]]))
+      }
+      if (is.null(oRow)) {
+        oRow <- order(x$alpha %*% mean_rho, decreasing = TRUE)
+      }
+      #  Once order of tile in block will be fix, need to go back in nullity cond
+      if (x$Q[1] == 1) {
+        mean_pi <- 1
+      } else {
+        mean_pi <- matrixStats::rowMeans2(sapply(x$pi, function(pi) pi[[1]]))
+      }
+      if (is.null(oCol)) {
+        oCol <- order(mean_pi %*% x$alpha, decreasing = TRUE)
+      }
       p_alpha <- x$alpha[oRow, oCol, drop = FALSE] |>
         t() |>
         reshape2::melt() |>
@@ -561,15 +581,39 @@ plot.fitBipartiteSBMPop <- function(
       return(p_alpha)
     },
     "block" = {
+      # The below order use net_id parameters
+      if (x$Q[2] == 1) {
+        mean_rho <- 1
+      } else {
+        mean_rho <- x[["pi"]][[net_id]][[2]]
+      }
+      if (is.null(oRow)) {
+        oRow <- order(x$alpham[[net_id]] %*% mean_rho, decreasing = FALSE)
+      }
+      #  Once order of tile in block will be fix, need to go back in nullity cond
+      if (x$Q[1] == 1) {
+        mean_pi <- 1
+      } else {
+        mean_pi <- x[["pi"]][[net_id]][[1]]
+      }
+      if (is.null(oCol)) {
+        oCol <- order(mean_pi %*% x$alpham[[net_id]], decreasing = TRUE)
+      }
+
+      Z1_ordered <- ordered(x$Z[[net_id]][[1]], levels = oRow)
+      Z2_ordered <- ordered(x$Z[[net_id]][[2]], levels = oCol)
+      row_order <- order(Z1_ordered)
+      col_order <- order(Z2_ordered)
+
       as.matrix(x$A[[net_id]])[
-        order(x$Z[[net_id]][[1]]),
-        order(x$Z[[net_id]][[2]])
+        row_order,
+        col_order
       ] |>
         reshape2::melt() |>
         dplyr::mutate(
           con = x$alpha[x$Z[[net_id]][[1]], x$Z[[net_id]][[2]]][
-            order(x$Z[[net_id]][[1]]),
-            order(x$Z[[net_id]][[2]])
+            row_order,
+            col_order
           ] |>
             reshape2::melt() |>
             dplyr::pull(value)
@@ -588,11 +632,11 @@ plot.fitBipartiteSBMPop <- function(
         ) +
         # Order will need to reworked to allow to change tile order
         ggplot2::geom_hline(
-          yintercept = cumsum(tabulate(x$Z[[net_id]][[1]])[order(x$alpha %*% mean_rho)][x$Q[1]:2]) + .5,
+          yintercept = cumsum(na.omit(tabulate(x$Z[[net_id]][[1]])[rev(oRow)][x$Q[1]:2])) + .5,
           col = "red", linewidth = .5
         ) +
         ggplot2::geom_vline(
-          xintercept = cumsum(tabulate(x$Z[[net_id]][[2]])[order(mean_pi %*% x$alpha, decreasing = TRUE)][1:(x$Q[2] - 1)]) + .5,
+          xintercept = cumsum(tabulate(x$Z[[net_id]][[2]])[oCol][1:(x$Q[2] - 1)]) + .5,
           col = "red", linewidth = .5
         ) +
         ggplot2::scale_fill_gradient(low = "white", high = "black", na.value = "transparent") +
@@ -604,7 +648,6 @@ plot.fitBipartiteSBMPop <- function(
         # ggplot2::scale_y_reverse() +
         ggplot2::scale_y_discrete(
           breaks = "",
-          # guide = ggplot2::guide_axis(angle = 0),
           limits = rev
         ) +
         ggplot2::coord_equal(expand = FALSE) +
