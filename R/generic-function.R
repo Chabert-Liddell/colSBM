@@ -377,7 +377,6 @@ plot.fitBipartiteSBMPop <- function(
       if (is.null(oCol)) {
         oCol <- order(mean_pi %*% x$alpham[[net_id]], decreasing = TRUE)
       }
-
       if (x$Q[1] == 1) {
         ymin <- rep(0, each = x$Q[2])
         ymax <- rep(1, each = x$Q[2])
