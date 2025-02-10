@@ -325,6 +325,7 @@ plot.bmpop <- function(x, type = "trace", ...) {
 #' @import ggplot2
 #' @import tidyr
 #' @import dplyr
+#' @importFrom stats na.omit
 #' @importFrom patchwork wrap_plots plot_layout
 #' @importFrom reshape2 melt
 #' @importFrom matrixStats rowMeans2
@@ -631,11 +632,11 @@ plot.fitBipartiteSBMPop <- function(
         ) +
         # Order will need to reworked to allow to change tile order
         ggplot2::geom_hline(
-          yintercept = cumsum(na.omit(tabulate(x$Z[[net_id]][[1]])[rev(oRow)][x$Q[1]:2])) + .5,
+          yintercept = cumsum(stats::na.omit(tabulate(x$Z[[net_id]][[1]])[rev(oRow)][x$Q[1]:2])) + .5,
           col = "red", linewidth = .5
         ) +
         ggplot2::geom_vline(
-          xintercept = cumsum(na.omit(tabulate(x$Z[[net_id]][[2]])[oCol][1:(x$Q[2] - 1)])) + .5,
+          xintercept = cumsum(stats::na.omit(tabulate(x$Z[[net_id]][[2]])[oCol][1:(x$Q[2] - 1)])) + .5,
           col = "red", linewidth = .5
         ) +
         ggplot2::scale_fill_gradient(low = "white", high = "black", na.value = "transparent") +
