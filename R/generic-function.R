@@ -635,7 +635,7 @@ plot.fitBipartiteSBMPop <- function(
           col = "red", linewidth = .5
         ) +
         ggplot2::geom_vline(
-          xintercept = cumsum(tabulate(x$Z[[net_id]][[2]])[oCol][1:(x$Q[2] - 1)]) + .5,
+          xintercept = cumsum(na.omit(tabulate(x$Z[[net_id]][[2]])[oCol][1:(x$Q[2] - 1)])) + .5,
           col = "red", linewidth = .5
         ) +
         ggplot2::scale_fill_gradient(low = "white", high = "black", na.value = "transparent") +
