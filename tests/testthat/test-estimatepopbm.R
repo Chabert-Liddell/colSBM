@@ -1,4 +1,7 @@
+common_fit_opts <- list(max_vem_steps = 3000L)
+
 test_that("clusterize_bipartite_networks works with valid inputs", {
+  set.seed(0)
   alpha1 <- matrix(c(0.8, 0.1, 0.2, 0.7), byrow = TRUE, nrow = 2)
   alpha2 <- matrix(c(0.8, 0.5, 0.5, 0.2), byrow = TRUE, nrow = 2)
   first_collection <- generate_bipartite_collection(
@@ -16,7 +19,8 @@ test_that("clusterize_bipartite_networks works with valid inputs", {
   result <- clusterize_bipartite_networks(
     netlist = netlist,
     colsbm_model = "iid",
-    global_opts = list(nb_cores = 1)
+    global_opts = list(nb_cores = 1),
+    fit_opts = common_fit_opts
   )
 
   expect_type(result, "list")
@@ -30,9 +34,10 @@ test_that("clusterize_bipartite_networks handles invalid colsbm_model", {
     clusterize_bipartite_networks(
       netlist = netlist,
       colsbm_model = "invalid_model",
-      global_opts = list(nb_cores = 1)
+      global_opts = list(nb_cores = 1),
+      fit_opts = common_fit_opts
     ),
-    "colsbm_model unknown. Must be one of iid, pi, rho or pirho"
+    "`colsbm_model` must be one of"
   )
 })
 
@@ -43,13 +48,15 @@ test_that("clusterize_bipartite_networks handles empty netlist", {
     clusterize_bipartite_networks(
       netlist = netlist,
       colsbm_model = "iid",
-      global_opts = list(nb_cores = 1)
+      global_opts = list(nb_cores = 1),
+      fit_opts = common_fit_opts
     ),
-    "Provided netlist is empty"
+    "`netlist` must be a list of matrices."
   )
 })
 
 test_that("clusterize_bipartite_networks works with different distributions", {
+  set.seed(0)
   alpha1 <- matrix(c(0.8, 0.1, 0.2, 0.7), byrow = TRUE, nrow = 2)
   alpha2 <- matrix(c(0.8, 0.5, 0.5, 0.2), byrow = TRUE, nrow = 2)
   first_collection <- generate_bipartite_collection(
@@ -68,7 +75,8 @@ test_that("clusterize_bipartite_networks works with different distributions", {
     netlist = netlist,
     colsbm_model = "iid",
     distribution = "poisson",
-    global_opts = list(nb_cores = 1)
+    global_opts = list(nb_cores = 1),
+    fit_opts = common_fit_opts
   )
 
   expect_type(result, "list")
@@ -76,6 +84,7 @@ test_that("clusterize_bipartite_networks works with different distributions", {
 })
 
 test_that("clusterize_bipartite_networks works with full_inference = TRUE", {
+  set.seed(0)
   alpha1 <- matrix(c(0.8, 0.1, 0.2, 0.7), byrow = TRUE, nrow = 2)
   alpha2 <- matrix(c(0.8, 0.5, 0.5, 0.2), byrow = TRUE, nrow = 2)
   first_collection <- generate_bipartite_collection(
@@ -94,7 +103,8 @@ test_that("clusterize_bipartite_networks works with full_inference = TRUE", {
     netlist = netlist,
     colsbm_model = "iid",
     full_inference = TRUE,
-    global_opts = list(nb_cores = 1)
+    global_opts = list(nb_cores = 1),
+    fit_opts = common_fit_opts
   )
 
   expect_type(result, "list")
