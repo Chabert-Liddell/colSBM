@@ -1,3 +1,5 @@
+# colSBM 0.4.1
+
 # colSBM 0.4.0
 
 * Adding `colBiSBM`, supporting bipartite collections
