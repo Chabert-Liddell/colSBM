@@ -1,3 +1,7 @@
+# colSBM 0.4.2
+
+* Reworked clustering to have it de-recursified
+
 # colSBM 0.4.1
 
 # colSBM 0.4.0
