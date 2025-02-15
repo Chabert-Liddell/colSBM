@@ -265,7 +265,7 @@ test_that("check_global_opts() detects incorrect nb_models", {
 go16 <- default_go
 go16$backend <- 1
 test_that("check_global_opts() detects incorrect backend", {
-  expect_error(check_global_opts(go16), "must be a character string")
+  expect_error(check_global_opts(go16), "must be a character vector")
 })
 
 go17 <- default_go
@@ -299,9 +299,9 @@ test_that("check_global_opts() detects incorrect plot_details", {
 })
 
 go22 <- default_go
-go22$plot_details <- 0L
+go22$plot_details <- -1L
 test_that("check_global_opts() detects incorrect plot_details", {
-  expect_error(check_global_opts(go22), "must be at least 1")
+  expect_error(check_global_opts(go22), "must be at least 0")
 })
 
 go23 <- default_go

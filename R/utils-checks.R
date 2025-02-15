@@ -228,6 +228,28 @@ check_net_id <- function(net_id, networks_list, arg = rlang::caller_arg(net_id),
   }
 }
 
+#' Check Backend
+#' @noRd
+#' @param backend A character string specifying the backend
+#' @param arg The name of the argument
+#' @param call The environment where the function was called
+#' @return The backend
+check_backend <- function(
+    backend,
+    arg = rlang::caller_arg(backend),
+    call = rlang::caller_env()) {
+  rlang::check_required(backend,
+    arg = arg,
+    call = call
+  )
+  rlang::arg_match(
+    arg = backend,
+    values = c("no_mc", "parallel", "future"),
+    error_arg = arg,
+    error_call = call
+  )
+}
+
 #' Check Global Options
 #'
 #' This function checks if `global_opts` is a list and if `nb_cores` (if provided) is an integer greater than a threshold.
@@ -255,6 +277,18 @@ check_global_opts <- function(global_opts, arg = rlang::caller_arg(global_opts),
   }
   if (!is.null(global_opts$Q2_max)) {
     check_is_integer_over_thresh(global_opts$Q2_max, thresh = 1L)
+  }
+  if (!is.null(global_opts$nb_init)) {
+    check_is_integer_over_thresh(global_opts$nb_init, thresh = 1L)
+  }
+  if (!is.null(global_opts$nb_models)) {
+    check_is_integer_over_thresh(global_opts$nb_models, thresh = 1L)
+  }
+  if (!is.null(global_opts$backend)) {
+    check_backend(backend = global_opts$backend, arg = "global_opts$backend", call = call)
+  }
+  if (!is.null(global_opts$plot_details)) {
+    check_is_integer_over_thresh(global_opts$plot_details, thresh = 0L)
   }
   if (!is.null(global_opts$depth)) {
     check_is_integer_over_thresh(global_opts$depth, thresh = 1L)

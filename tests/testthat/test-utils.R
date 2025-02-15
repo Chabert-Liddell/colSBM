@@ -109,68 +109,68 @@ test_that("Testing various wrong arguments for generating bipartite networks", {
   wrong_pi_value <- c(-0.5)
 
   #  Wrong alpha
-  expect_error(colSBM:::generate_bipartite_network(
+  expect_error(generate_bipartite_network(
     nr = nr, nc = nc,
     pi = pi, rho = pi, alpha = wrong_alpha_bernoulli,
     distribution = "bernoulli"
   ))
-  expect_error(colSBM:::generate_bipartite_network(
+  expect_error(generate_bipartite_network(
     nr = nr, nc = nc,
     pi = pi, rho = pi, alpha = wrong_alpha_negative,
     distribution = "bernoulli"
   ))
-  expect_error(colSBM:::generate_bipartite_network(
+  expect_error(generate_bipartite_network(
     nr = nr, nc = nc,
     pi = pi, rho = pi, alpha = wrong_alpha_negative,
     distribution = "poisson"
   ))
   # No error
-  expect_no_error(colSBM:::generate_bipartite_network(
+  expect_no_error(generate_bipartite_network(
     nr = nr, nc = nc,
     pi = pi, rho = pi, alpha = alpha,
     distribution = "bernoulli"
   ))
-  expect_no_error(colSBM:::generate_bipartite_network(
+  expect_no_error(generate_bipartite_network(
     nr = nr, nc = nc,
     pi = pi, rho = pi, alpha = alpha,
     distribution = "poisson"
   ))
-  expect_no_error(colSBM:::generate_bipartite_network(
+  expect_no_error(generate_bipartite_network(
     nr = nr, nc = nc,
     pi = pi_sum_float, rho = pi_sum_float, alpha = alpha_3,
     distribution = "bernoulli"
   ))
 
   #  Wrong pi
-  expect_error(colSBM:::generate_bipartite_network(
+  expect_error(generate_bipartite_network(
     nr = nr, nc = nc,
     pi = wrong_pi_sum, rho = pi, alpha = alpha,
     distribution = "bernoulli"
   ))
-  expect_error(colSBM:::generate_bipartite_network(
+  expect_error(generate_bipartite_network(
     nr = nr, nc = nc,
     pi = wrong_pi_value, rho = pi, alpha = alpha,
     distribution = "bernoulli"
   ))
   #  Wrong rho
-  expect_error(colSBM:::generate_bipartite_network(
+  expect_error(generate_bipartite_network(
     nr = nr, nc = nc,
     pi = pi, rho = wrong_pi_sum, alpha = alpha,
     distribution = "bernoulli"
   ))
-  expect_error(colSBM:::generate_bipartite_network(
+  expect_error(generate_bipartite_network(
     nr = nr, nc = nc,
     pi = pi, rho = wrong_pi_value, alpha = alpha,
     distribution = "bernoulli"
   ))
 
   # No error
-  expect_no_error(colSBM:::generate_bipartite_network(
+  expect_no_error(generate_bipartite_network(
     nr = nr, nc = nc,
     pi = pi, rho = pi, alpha = alpha,
     distribution = "bernoulli"
   ))
-  expect_no_error(colSBM:::generate_bipartite_network(
+  expect_no_error(generate_bipartite_network(
     nr = nr, nc = nc,
     pi = pi, rho = pi, alpha = alpha,
     distribution = "bernoulli"
@@ -195,58 +195,58 @@ test_that("Testing various wrong arguments for generating unipartite networks", 
   wrong_pi_value <- c(-0.5)
 
   #  Wrong alpha
-  expect_error(colSBM:::generate_unipartite_network(
+  expect_error(generate_unipartite_network(
     n = n,
     pi = pi, alpha = wrong_alpha_bernoulli,
     distribution = "bernoulli"
   ))
-  expect_error(colSBM:::generate_unipartite_network(
+  expect_error(generate_unipartite_network(
     n = n,
     pi = pi, alpha = wrong_alpha_negative,
     distribution = "bernoulli"
   ))
-  expect_error(colSBM:::generate_unipartite_network(
+  expect_error(generate_unipartite_network(
     n = n,
     pi = pi, alpha = wrong_alpha_negative,
     distribution = "poisson"
   ))
 
   # No error
-  expect_no_error(colSBM:::generate_unipartite_network(
+  expect_no_error(generate_unipartite_network(
     n = n,
     pi = pi, alpha = alpha,
     distribution = "bernoulli"
   ))
-  expect_no_error(colSBM:::generate_unipartite_network(
+  expect_no_error(generate_unipartite_network(
     n = n,
     pi = pi, alpha = alpha,
     distribution = "poisson"
   ))
-  expect_no_error(colSBM:::generate_unipartite_network(
+  expect_no_error(generate_unipartite_network(
     n = n,
     pi = pi_sum_float, alpha = alpha_3,
     distribution = "bernoulli"
   ))
 
   #  Wrong pi
-  expect_error(colSBM:::generate_unipartite_network(
+  expect_error(generate_unipartite_network(
     n = n,
     pi = wrong_pi_sum, alpha = alpha,
     distribution = "bernoulli"
   ))
-  expect_error(colSBM:::generate_unipartite_network(
+  expect_error(generate_unipartite_network(
     n = n,
     pi = wrong_pi_value, alpha = alpha,
     distribution = "bernoulli"
   ))
 
   # No error
-  expect_no_error(colSBM:::generate_unipartite_network(
+  expect_no_error(generate_unipartite_network(
     n = n,
     pi = pi, alpha = alpha,
     distribution = "bernoulli"
   ))
-  expect_no_error(colSBM:::generate_unipartite_network(
+  expect_no_error(generate_unipartite_network(
     n = n,
     pi = pi, alpha = alpha,
     distribution = "bernoulli"
@@ -311,7 +311,7 @@ test_that("Testing that all arguments work for generating unipartite networks", 
 test_that("Base case spectral biclustering", {
   X <- matrix(c(1, 0, 0, 1), byrow = TRUE, nrow = 2)
   expect_equal(
-    colSBM:::spectral_biclustering(X = X, K = c(1, 1)),
+    spectral_biclustering(A = X, Q = c(1, 1)),
     list(
       row_clustering = c(1, 1),
       col_clustering = c(1, 1)
@@ -320,16 +320,18 @@ test_that("Base case spectral biclustering", {
 })
 
 test_that("Spectral clustering too many clusters works", {
-  X <- colSBM:::generate_unipartite_network(n = 10, pi = 1, alpha = 0.9)
+  set.seed(1234)
+  X <- generate_unipartite_network(n = 10, pi = 1, alpha = 0.9)
   expect_message(
-    colSBM:::spectral_clustering(X = X, K = 12),
+    spectral_clustering(X = X, K = 12, kmeans.iter.max = 50,
+                        kmeans.nstart = 100),
   )
 })
 
 test_that("Base case spectral biclustering", {
   X <- matrix(c(1, 0, 0, 1), byrow = TRUE, nrow = 2)
   expect_equal(
-    colSBM:::spectral_biclustering(X = X, K = c(1, 1)),
+    spectral_biclustering(A = X, Q = c(1, 1)),
     list(
       row_clustering = c(1, 1),
       col_clustering = c(1, 1)
@@ -340,7 +342,7 @@ test_that("Base case spectral biclustering", {
 test_that("Base case hierarchical biclustering", {
   X <- matrix(c(1, 0, 0, 1), byrow = TRUE, nrow = 2)
   expect_equal(
-    colSBM:::bipartite_hierarchic_clustering(X = X, K = c(1, 1)),
+    bipartite_hierarchic_clustering(X = X, K = c(1, 1)),
     list(
       row_clustering = c(1, 1),
       col_clustering = c(1, 1)
@@ -349,12 +351,12 @@ test_that("Base case hierarchical biclustering", {
 })
 
 test_that("Hierarchical biclustering works", {
-  X <- colSBM:::generate_bipartite_network(
+  X <- generate_bipartite_network(
     nr = 10, 10, pi = c(0.4, 0.6), rho = 1,
     alpha = matrix(c(0.9, 0.1), byrow = TRUE, nrow = 2)
   )
   expect_no_error(
-    colSBM:::bipartite_hierarchic_clustering(X = X, K = c(2, 1)),
+    bipartite_hierarchic_clustering(X = X, K = c(2, 1)),
   )
 })
 
@@ -373,13 +375,13 @@ test_that("split_clust fails with a table", {
   ), nrow = 10, ncol = 10, byrow = TRUE))
   Z <- c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
 
-  expect_no_error(colSBM:::split_clust(X = X, Q = 2, Z = Z, is_bipartite = TRUE))
+  expect_no_error(split_clust(X = X, Q = 2, Z = Z, is_bipartite = TRUE))
 })
 
 test_that("Helper functions work", {
-  expect_identical(colSBM:::logistic(Inf), 1)
-  expect_identical(colSBM:::logistic(-Inf), 0)
+  expect_identical(logistic(Inf), 1)
+  expect_identical(logistic(-Inf), 0)
 
-  expect_identical(colSBM:::logit(0), -Inf)
-  expect_identical(colSBM:::logit(1), Inf)
+  expect_identical(logit(0), -Inf)
+  expect_identical(logit(1), Inf)
 })
