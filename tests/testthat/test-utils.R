@@ -323,8 +323,10 @@ test_that("Spectral clustering too many clusters works", {
   set.seed(1234)
   X <- generate_unipartite_network(n = 10, pi = 1, alpha = 0.9)
   expect_message(
-    spectral_clustering(X = X, K = 12, kmeans.iter.max = 50,
-                        kmeans.nstart = 100),
+    spectral_clustering(
+      X = X, K = 12, kmeans.iter.max = 50,
+      kmeans.nstart = 100
+    ),
   )
 })
 
