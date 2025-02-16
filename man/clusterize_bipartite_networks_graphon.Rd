@@ -37,7 +37,8 @@ to 5.}
 
 \item{fit_opts}{Fit options for the VEM algorithm}
 
-\item{fit_init}{Do not use!
+\item{fit_init}{WIP A list of fitted collections from which to start the
+fusions
 Optional fit init from where initializing the algorithm.}
 
 \item{full_inference}{The default "FALSE", the algorithm stop once splitting
