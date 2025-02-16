@@ -725,7 +725,8 @@ partition_networks_list_from_dissimilarity <- function(
 #' to 5.
 #' @param global_opts Global options for the outer algorithm and the output
 #' @param fit_opts Fit options for the VEM algorithm
-#' @param fit_init Do not use!
+#' @param fit_init WIP A list of fitted collections from which to start the
+#' fusions
 #' Optional fit init from where initializing the algorithm.
 #' @param full_inference The default "FALSE", the algorithm stop once splitting
 #' groups of networks does not improve the BICL criterion. If "TRUE", then
@@ -749,7 +750,7 @@ clusterize_bipartite_networks_graphon <- function(
     fusions_per_step = 5L,
     global_opts = list(),
     fit_opts = list(),
-    fit_init = NULL,
+    fit_init = NULL, # Use this to store a list of fits from which to start clustering
     full_inference = FALSE) {
   # Adding default global_opts
   # TODO Extract all these checks utils
@@ -803,6 +804,10 @@ clusterize_bipartite_networks_graphon <- function(
   )
   go <- utils::modifyList(go, global_opts)
   global_opts <- go
+  fo <- default_fit_opts_bipartite()
+  fo <- utils::modifyList(fo, fit_opts)
+  fit_opts <- fo
+
   if (is.null(global_opts$nb_cores)) {
     global_opts$nb_cores <- 1L
   }
@@ -819,26 +824,32 @@ clusterize_bipartite_networks_graphon <- function(
   } else {
     Q2_max <- global_opts$Q2_max
   }
-
-  # Initializing separated collections
-  cli::cli_h1("Beginning the clustering")
-  cli::cli_h2("Fitting separated BiSBM models")
-  p <- progressr::progressor(along = netlist)
-  collections <- future.apply::future_lapply(seq_along(netlist), function(i) {
-    col <- estimate_colBiSBM(
-      netlist = list(netlist[[i]]),
-      net_id = c(net_id[[i]]),
-      colsbm_model = colsbm_model,
-      nb_run = nb_run,
-      distribution = distribution,
-      global_opts = global_opts,
-      fit_opts = fit_opts
+  if (is.null(fit_init)) {
+    # Initializing separated collections
+    cli::cli_h1("Beginning the clustering")
+    cli::cli_h2("Fitting separated BiSBM models")
+    p <- progressr::progressor(along = netlist)
+    collections <- colsbm_lapply(seq_along(netlist), function(i) {
+      col <- estimate_colBiSBM(
+        netlist = list(netlist[[i]]),
+        net_id = c(net_id[[i]]),
+        colsbm_model = colsbm_model,
+        nb_run = nb_run,
+        distribution = distribution,
+        global_opts = global_opts,
+        fit_opts = fit_opts
+      )
+      if (exists("p")) {
+        p(sprintf("Fitted network %s", paste0(col$net_id)))
+      }
+      col
+    },
+    backend = global_opts$backend,
+    nb_cores = global_opts$nb_cores
     )
-    if (exists("p")) {
-      p(sprintf("Fitted network %s", paste0(col$net_id)))
-    }
-    col
-  }, future.seed = TRUE)
+  } else {
+    collections <- fit_init
+  }
 
   compute_bicl_partition <- function(collections) {
     return(sum(sapply(collections, function(col) col$best_fit$BICL)))
@@ -855,10 +866,10 @@ clusterize_bipartite_networks_graphon <- function(
     dist_matrix <- matrix(Inf, nrow = M, ncol = M)
     for (i in seq_len(M)) {
       for (j in seq_len(i - 1)) {
-        dist_matrix[i, j] <- dist_graphon_bipartite_marginals(
+        dist_matrix[i, j] <- dist_graphon_bipartite_all_permutations(
           pis = list(collections[[i]]$best_fit$parameters$pi[[1]], collections[[j]]$best_fit$parameters$pi[[1]]),
           rhos = list(collections[[i]]$best_fit$parameters$rho[[1]], collections[[j]]$best_fit$parameters$rho[[1]]),
-          alphas = list(collections[[i]]$best_fit$parameters$alpha[[1]], collections[[j]]$best_fit$parameters$alpha[[1]])
+          alphas = list(collections[[i]]$best_fit$parameters$alpha, collections[[j]]$best_fit$parameters$alpha)
         )
       }
     }
@@ -878,13 +889,14 @@ clusterize_bipartite_networks_graphon <- function(
   step <- 1
   has_bicl_increased <- TRUE
   # Loop to merge collections
-  while (length(collections) > 1 & (has_bicl_increased || full_inference)) {
+  while (length(collections) > 1 && (has_bicl_increased || full_inference)) {
     cli::cli_h2("Step {.val {step}} on a max of {.val {max_steps}} step{?s}")
     cli::cli_alert_info("Computing distances between collections")
     dist_matrix <- compute_distances(collections)
     sorted_pairs <- generate_sorted_pairs(dist_matrix)
     sorted_pairs <- sorted_pairs[seq(1, min(fusions_per_step, nrow(sorted_pairs))), ]
-    candidates_collections <- future.apply::future_lapply(seq_len(nrow(sorted_pairs)), function(k) {
+    sorted_pairs <- matrix(sorted_pairs, ncol = 2L)
+    candidates_collections <- colsbm_lapply(seq_len(nrow(sorted_pairs)), function(k) {
       i <- sorted_pairs[k, 1]
       j <- sorted_pairs[k, 2]
 
@@ -901,7 +913,10 @@ clusterize_bipartite_networks_graphon <- function(
       )
 
       candidate_collection
-    }, future.seed = TRUE)
+    },
+    backend = global_opts$backend,
+    nb_cores = global_opts$nb_cores
+    )
 
 
     candidates_bicl <- sapply(
