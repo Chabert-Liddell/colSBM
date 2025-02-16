@@ -588,6 +588,7 @@ default_fit_opts_bipartite <- function() {
     minibatch = TRUE,
     verbosity = 0,
     tolerance = 1e-6,
+    max_vem_steps = 3000L,
     greedy_exploration_max_steps = 50,
     greedy_exploration_max_steps_without_improvement = 5
   )
