@@ -751,7 +751,8 @@ clusterize_bipartite_networks_graphon <- function(
     global_opts = list(),
     fit_opts = list(),
     fit_init = NULL, # Use this to store a list of fits from which to start clustering
-    full_inference = FALSE) {
+    full_inference = FALSE,
+    temp_save = tempfile(fileext = ".Rds")) {
   # Adding default global_opts
   # TODO Extract all these checks utils
   switch(colsbm_model,
@@ -824,6 +825,7 @@ clusterize_bipartite_networks_graphon <- function(
   } else {
     Q2_max <- global_opts$Q2_max
   }
+  cli::cli_text("Temporary results will be saved as {.val {temp_save}} after each step")
   if (is.null(fit_init)) {
     # Initializing separated collections
     cli::cli_h1("Beginning the clustering")
@@ -890,12 +892,13 @@ clusterize_bipartite_networks_graphon <- function(
   has_bicl_increased <- TRUE
   # Loop to merge collections
   while (length(collections) > 1 && (has_bicl_increased || full_inference)) {
+    saveRDS(list(fusion_history = fusion_history, bicl_history = bicl_history), temp_save)
     cli::cli_h2("Step {.val {step}} on a max of {.val {max_steps}} step{?s}")
     cli::cli_alert_info("Computing distances between collections")
     dist_matrix <- compute_distances(collections)
     sorted_pairs <- generate_sorted_pairs(dist_matrix)
-    sorted_pairs <- sorted_pairs[seq(1, min(fusions_per_step, nrow(sorted_pairs))), ]
     sorted_pairs <- matrix(sorted_pairs, ncol = 2L)
+    sorted_pairs <- sorted_pairs[seq(1, min(fusions_per_step, nrow(sorted_pairs))), ]
     candidates_collections <- colsbm_lapply(seq_len(nrow(sorted_pairs)), function(k) {
       i <- sorted_pairs[k, 1]
       j <- sorted_pairs[k, 2]
