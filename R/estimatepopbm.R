@@ -898,58 +898,22 @@ clusterize_bipartite_networks_graphon <- function(
     dist_matrix <- compute_distances(collections)
     sorted_pairs <- generate_sorted_pairs(dist_matrix)
     sorted_pairs <- matrix(sorted_pairs, ncol = 2L)
-    sorted_pairs <- sorted_pairs[seq(1, min(fusions_per_step, nrow(sorted_pairs))), ]
-    candidates_collections <- colsbm_lapply(seq_len(nrow(sorted_pairs)), function(k) {
-      i <- sorted_pairs[k, 1]
-      j <- sorted_pairs[k, 2]
+    i <- sorted_pairs[1, 1]
+    j <- sorted_pairs[1, 2]
 
-      cli::cli_alert_info("Try merging{cli::qty({collections[[i]]$net_id})} network{?s} {.val {collections[[i]]$net_id}} with{cli::qty({collections[[j]]$net_id})} network{?s} {.val {collections[[j]]$net_id}}")
+    cli::cli_alert_info("Try merging{cli::qty({collections[[i]]$net_id})} network{?s} {.val {collections[[i]]$net_id}} with{cli::qty({collections[[j]]$net_id})} network{?s} {.val {collections[[j]]$net_id}}")
 
-      candidate_collection <- estimate_colBiSBM(
-        netlist = c(collections[[i]]$A, collections[[j]]$A),
-        net_id = c(collections[[i]]$net_id, collections[[j]]$net_id),
-        colsbm_model = colsbm_model,
-        nb_run = nb_run,
-        distribution = distribution,
-        global_opts = global_opts,
-        fit_opts = fit_opts
-      )
-
-      candidate_collection
-    },
-    backend = global_opts$backend,
-    nb_cores = global_opts$nb_cores
+    candidate_collection <- estimate_colBiSBM(
+      netlist = c(collections[[i]]$A, collections[[j]]$A),
+      net_id = c(collections[[i]]$net_id, collections[[j]]$net_id),
+      colsbm_model = colsbm_model,
+      nb_run = nb_run,
+      distribution = distribution,
+      global_opts = global_opts,
+      fit_opts = fit_opts
     )
 
-
-    candidates_bicl <- sapply(
-      seq_along(candidates_collections), function(i) {
-        candidates_collections[[i]]$best_fit$BICL
-      }
-    )
-
-    candidates_joint_preferred <- sapply(
-      seq_along(candidates_collections), function(i) {
-        candidates_collections[[i]]$joint_modelisation_preferred
-      }
-    )
-
-    # Create a boolean vector to select the best candidate as the one with joint modelisation preferred
-    # and the best BICL
-    candidates_bicl_joint <- candidates_bicl
-    candidates_bicl_joint[!candidates_joint_preferred] <- -Inf
-
-    #  Handle the case where no candidate has a joint modelisation preferred
-    if (any(candidates_joint_preferred)) {
-      best_candidate_id <- which.max(candidates_bicl_joint)
-    } else {
-      cli::cli_alert_warning("No candidate has a joint modelisation preferred, selecting the one with smallest graphon distance !")
-      best_candidate_id <- 1L # As this is the minimal distance
-    }
-
-    new_collection <- candidates_collections[[best_candidate_id]]
-    i <- sorted_pairs[best_candidate_id, 1]
-    j <- sorted_pairs[best_candidate_id, 2]
+    new_collection <- candidate_collection
 
     cli::cli_alert_success("After selection the best fusion is {.val {collections[[i]]$net_id}} with {.val {collections[[j]]$net_id}}")
 
