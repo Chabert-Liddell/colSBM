@@ -14,7 +14,8 @@ clusterize_bipartite_networks_graphon(
   global_opts = list(),
   fit_opts = list(),
   fit_init = NULL,
-  full_inference = FALSE
+  full_inference = FALSE,
+  temp_save = tempfile(fileext = ".Rds")
 )
 }
 \arguments{
