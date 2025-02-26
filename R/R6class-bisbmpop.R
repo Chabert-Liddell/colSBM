@@ -2051,7 +2051,7 @@ bisbmpop <- R6::R6Class(
               model = self[["distribution"]],
               estimOptions = list(
                 verbosity = 0L,
-                plot = 0L,
+                plot = FALSE,
                 nbCores = self[["global_opts"]][["nb_cores"]]
               )
             )
