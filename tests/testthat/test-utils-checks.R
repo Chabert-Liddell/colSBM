@@ -148,13 +148,16 @@ test_that("check_networks_list_match_emission_distribution() detects matching ne
 
 # check_net_id
 test_that("check_net_id() detects incorrect type input", {
-  expect_error(check_net_id(1, list(matrix(1, 2))), "must be a character vector")
-  expect_error(check_net_id(TRUE, list(matrix(1, 2))), "must be a character vector")
+  expect_error(check_net_id(TRUE, list(matrix(1, 2))), "must be a character or an integer vector.")
 })
 
 test_that("check_net_id() detects length mismatch", {
   expect_error(check_net_id(c("id1"), list(matrix(1, 2), matrix(1, 2))), "must have the same length as")
   expect_error(check_net_id(c("id1", "id2", "id3"), list(matrix(1, 2), matrix(1, 2))), "must have the same length as")
+})
+
+test_that("check_net_id() detects duplicated ids", {
+  expect_error(check_net_id(c("id1", "id1"), list(matrix(1, 2), matrix(1, 2))), "must have unique values.")
 })
 
 test_that("check_net_id() works correctly", {

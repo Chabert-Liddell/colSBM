@@ -245,6 +245,12 @@ check_net_id <- function(net_id, networks_list, arg = rlang::caller_arg(net_id),
       call = call
     )
   }
+  if (anyDuplicated(net_id) > 0L) {
+    cli::cli_abort("{.arg {arg}} must have unique values.",
+      arg = arg,
+      call = call
+    )
+  }
   return(net_id)
 }
 
