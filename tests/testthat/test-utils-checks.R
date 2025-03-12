@@ -393,3 +393,28 @@ test_that("check_fit_opts() detects incorrect greedy_exploration_max_steps_witho
 test_that("check_fit_opts() works correctly", {
   expect_no_error(check_fit_opts(fo))
 })
+
+# check_net_id_and_initialize
+test_that("check_net_id_and_initialize() initializes net_id correctly", {
+  networks_list <- list(matrix(1, 2), matrix(1, 2))
+  expect_identical(check_net_id_and_initialize(NULL, networks_list), c(1L, 2L))
+})
+
+test_that("check_net_id_and_initialize() detects incorrect type input", {
+  networks_list <- list(matrix(1, 2), matrix(1, 2))
+  expect_error(check_net_id_and_initialize(TRUE, networks_list), "must be a character or an integer vector")
+  expect_error(check_net_id_and_initialize(c(NA, 1), networks_list), "must be a character or an integer vector")
+  expect_error(check_net_id_and_initialize(c(NA, "a"), networks_list), "must be a character or an integer vector")
+})
+
+test_that("check_net_id_and_initialize() detects length mismatch", {
+  networks_list <- list(matrix(1, 2), matrix(1, 2))
+  expect_error(check_net_id_and_initialize(c("id1"), networks_list), "must have the same length as")
+  expect_error(check_net_id_and_initialize(c("id1", "id2", "id3"), networks_list), "must have the same length as")
+})
+
+test_that("check_net_id_and_initialize() works correctly", {
+  networks_list <- list(matrix(1, 2), matrix(1, 2))
+  expect_identical(check_net_id_and_initialize(c("id1", "id2"), networks_list), c("id1", "id2"))
+  expect_identical(check_net_id_and_initialize(c("id1", "id2", "id3"), list(matrix(1, 2), matrix(1, 2), matrix(1, 2))), c("id1", "id2", "id3"))
+})

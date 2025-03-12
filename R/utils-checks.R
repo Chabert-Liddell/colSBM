@@ -48,6 +48,21 @@ check_networks_list <- function(networks_list,
   }
 }
 
+#' Check net_id and eventually intialize it
+#' @noRd
+#' @param net_id A character vector representing network IDs.
+#' @param networks_list A list of networks.
+#' @param arg The argument name for error messages (default is the name of `net_id`).
+#' @param call The calling environment (default is the caller environment).
+#' @return The network IDs
+check_net_id_and_initialize <- function(net_id, networks_list, arg = rlang::caller_arg(net_id), call = rlang::caller_env()) {
+  if (rlang::is_empty(net_id)) {
+    net_id <- seq_along(networks_list)
+  }
+  check_net_id(net_id, networks_list, arg = arg, call = call)
+  return(net_id)
+}
+
 #' Check function for dissimilarity matrix
 #' @noRd
 check_dissimilarity_matrix <- function(dissimilarity_matrix,
@@ -213,19 +228,24 @@ check_networks_list_match_emission_distribution <- function(
 #' @param call The calling environment (default is the caller environment).
 #' @return Throws an error if the checks fail.
 check_net_id <- function(net_id, networks_list, arg = rlang::caller_arg(net_id), call = rlang::caller_env()) {
-  rlang::check_required(net_id, arg = arg, call = call)
-  if (!is.character(net_id)) {
-    cli::cli_abort("{.arg {arg}} must be a character vector.",
+  if (!(rlang::is_character(net_id) ||
+    rlang::is_integerish(net_id, finite = TRUE)) ||
+    any(rlang::are_na(net_id))) {
+    cli::cli_abort("{.arg {arg}} must be a character or an integer vector.",
       arg = arg,
       call = call
     )
   }
   if (length(net_id) != length(networks_list)) {
-    cli::cli_abort("{.arg {arg}} must have the same length as {.arg networks_list}.",
+    cli::cli_abort(
+      c("{.arg {arg}} must have the same length as {.arg networks_list}.",
+        "i" = "You've provided a vector of length {.val {length(net_id)}} where length {.val {length(networks_list)}} was expected."
+      ),
       arg = arg,
       call = call
     )
   }
+  return(net_id)
 }
 
 #' Check Backend
