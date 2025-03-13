@@ -375,6 +375,9 @@ extract_best_partition <- function(l, unnest = TRUE) {
 #' @param verbose A boolean, should the function be verbose or not. Default to
 #' TRUE.
 #'
+#' @param temp_save_path A string, the path where to save the temporary results.
+#' Defaults to a temporary file.
+#'
 #' @importFrom future.apply future_lapply
 #' @import cli
 #' @importFrom utils modifyList
@@ -424,10 +427,12 @@ clusterize_bipartite_networks <- function(netlist,
                                           fit_opts = list(),
                                           fit_init = NULL,
                                           full_inference = FALSE,
-                                          verbose = TRUE) {
+                                          verbose = TRUE,
+                                          temp_save_path = tempfile(fileext = ".Rds")) {
   check_bipartite_colsbm_models(colsbm_model = colsbm_model)
   # Check if a netlist is provided, try to cast it if not
   check_networks_list(networks_list = netlist)
+  net_id <- check_net_id_and_initialize(net_id = net_id, networks_list = netlist)
   check_colsbm_emission_distribution(emission_distribution = distribution)
   check_networks_list_match_emission_distribution(
     networks_list = netlist,
@@ -442,9 +447,10 @@ clusterize_bipartite_networks <- function(netlist,
 
   # Fit the initial model on the full collection
   if (verbose) {
+    cli::cli_alert_info("A save file will be created at {.val {temp_save_path}} and updated after each step")
     cli::cli_h1("Fitting the full collection")
   }
-
+  start_time <- Sys.time()
   my_bisbmpop <- estimate_colBiSBM(
     netlist = netlist,
     colsbm_model = colsbm_model,
@@ -457,12 +463,15 @@ clusterize_bipartite_networks <- function(netlist,
 
   clustering_queue <- list(my_bisbmpop)
   list_model_binary <- list()
+  cluster <- rep(1, length(netlist))
+  names(cluster) <- net_id
 
   if (verbose) {
     cli::cli_h1("Beginning clustering")
   }
   # Process the clustering queue
   while (length(clustering_queue) > 0) {
+    saveRDS(clustering_queue, temp_save_path)
     fit <- clustering_queue[[1]]
     clustering_queue <- clustering_queue[-1]
 
@@ -526,12 +535,24 @@ clusterize_bipartite_networks <- function(netlist,
       future.seed = TRUE
     )
 
+
+    bicl_increased <- (fits[[1]]$best_fit$BICL + fits[[2]]$best_fit$BICL > fit$best_fit$BICL)
     # Decide whether to continue splitting or add to final list
-    if (full_inference || (fits[[1]]$best_fit$BICL + fits[[2]]$best_fit$BICL > fit$best_fit$BICL)) {
+    if (full_inference || bicl_increased) {
       clustering_queue <- append(clustering_queue, fits)
-      if (verbose) {
+      if (verbose && bicl_increased) {
         cli::cli_alert_success("Splitting collections improved the BIC-L criterion")
       }
+      if (verbose && full_inference) {
+        cli::cli_alert_info("Full inference mode enabled, continuing to split collections")
+      }
+      prev_cluster <- unique(cluster[fit$net_id])
+
+      #  Making room for a new cluster
+      cluster[cluster > prev_cluster] <- cluster[cluster > prev_cluster] + 1
+
+      # Assign the new cluster to the networks
+      cluster[fit$net_id[cl == 2]] <- prev_cluster + 1
     } else {
       list_model_binary <- append(list_model_binary, list(fit$best_fit))
       if (verbose) {
@@ -544,7 +565,11 @@ clusterize_bipartite_networks <- function(netlist,
   if (verbose) {
     cli::cli_alert_success("Finished clustering")
   }
-  invisible(list_model_binary)
+  return(list(
+    partition = list_model_binary,
+    cluster = cluster,
+    elapsed_time = Sys.time() - start_time
+  ))
 }
 
 ## Implement all of this in one big function (clusterize_networks)
@@ -732,6 +757,8 @@ partition_networks_list_from_dissimilarity <- function(
 #' groups of networks does not improve the BICL criterion. If "TRUE", then
 #' continue to split groups until a trivial classification of one network per
 #' group.
+#' @param temp_save_path A string, the path where to save the temporary results.
+#' Defaults to a temporary file.
 #'
 #' @export
 #'
@@ -752,7 +779,7 @@ clusterize_bipartite_networks_graphon <- function(
     fit_opts = list(),
     fit_init = NULL, # Use this to store a list of fits from which to start clustering
     full_inference = FALSE,
-    temp_save = tempfile(fileext = ".Rds")) {
+    temp_save_path = tempfile(fileext = ".Rds")) {
   # Adding default global_opts
   # TODO Extract all these checks utils
   switch(colsbm_model,
@@ -892,7 +919,7 @@ clusterize_bipartite_networks_graphon <- function(
   has_bicl_increased <- TRUE
   # Loop to merge collections
   while (length(collections) > 1 && (has_bicl_increased || full_inference)) {
-    saveRDS(list(fusion_history = fusion_history, bicl_history = bicl_history), temp_save)
+    saveRDS(list(fusion_history = fusion_history, bicl_history = bicl_history), temp_save_path)
     cli::cli_h2("Step {.val {step}} on a max of {.val {max_steps}} step{?s}")
     cli::cli_alert_info("Computing distances between collections")
     dist_matrix <- compute_distances(collections)
