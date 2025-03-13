@@ -54,8 +54,14 @@ check_networks_list <- function(networks_list,
 #' @param networks_list A list of networks.
 #' @param arg The argument name for error messages (default is the name of `net_id`).
 #' @param call The calling environment (default is the caller environment).
+#'
+#' @importFrom rlang is_named is_empty
+#'
 #' @return The network IDs
 check_net_id_and_initialize <- function(net_id, networks_list, arg = rlang::caller_arg(net_id), call = rlang::caller_env()) {
+  if (rlang::is_named(networks_list)) {
+    net_id <- names(networks_list)
+  }
   if (rlang::is_empty(net_id)) {
     net_id <- seq_along(networks_list)
   }
@@ -227,6 +233,8 @@ check_networks_list_match_emission_distribution <- function(
 #' @param arg The argument name for error messages (default is the name of `net_id`).
 #' @param call The calling environment (default is the caller environment).
 #' @return Throws an error if the checks fail.
+#'
+#' @importFrom rlang is_character is_integerish are_na
 check_net_id <- function(net_id, networks_list, arg = rlang::caller_arg(net_id), call = rlang::caller_env()) {
   if (!(rlang::is_character(net_id) ||
     rlang::is_integerish(net_id, finite = TRUE)) ||

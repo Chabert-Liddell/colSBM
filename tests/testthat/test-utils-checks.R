@@ -417,7 +417,9 @@ test_that("check_net_id_and_initialize() detects length mismatch", {
 })
 
 test_that("check_net_id_and_initialize() works correctly", {
-  networks_list <- list(matrix(1, 2), matrix(1, 2))
+  networks_list <- list("id1" = matrix(1, 2), "id2" = matrix(1, 2))
   expect_identical(check_net_id_and_initialize(c("id1", "id2"), networks_list), c("id1", "id2"))
   expect_identical(check_net_id_and_initialize(c("id1", "id2", "id3"), list(matrix(1, 2), matrix(1, 2), matrix(1, 2))), c("id1", "id2", "id3"))
+  # Initialize net_id retrieves the ids from the networks_list
+  expect_identical(check_net_id_and_initialize(NULL, networks_list), c("id1", "id2"))
 })
