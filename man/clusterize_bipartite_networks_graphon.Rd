@@ -15,7 +15,7 @@ clusterize_bipartite_networks_graphon(
   fit_opts = list(),
   fit_init = NULL,
   full_inference = FALSE,
-  temp_save = tempfile(fileext = ".Rds")
+  temp_save_path = tempfile(fileext = ".Rds")
 )
 }
 \arguments{
@@ -46,6 +46,9 @@ Optional fit init from where initializing the algorithm.}
 groups of networks does not improve the BICL criterion. If "TRUE", then
 continue to split groups until a trivial classification of one network per
 group.}
+
+\item{temp_save_path}{A string, the path where to save the temporary results.
+Defaults to a temporary file.}
 }
 \value{
 A list of models for the recursive partition of

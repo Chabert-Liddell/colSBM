@@ -15,7 +15,8 @@ clusterize_bipartite_networks(
   fit_opts = list(),
   fit_init = NULL,
   full_inference = FALSE,
-  verbose = TRUE
+  verbose = TRUE,
+  temp_save_path = tempfile(fileext = ".Rds")
 )
 }
 \arguments{
@@ -44,6 +45,9 @@ group.}
 
 \item{verbose}{A boolean, should the function be verbose or not. Default to
 TRUE.}
+
+\item{temp_save_path}{A string, the path where to save the temporary results.
+Defaults to a temporary file.}
 }
 \value{
 A list of models for the recursive partition of
