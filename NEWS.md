@@ -1,6 +1,8 @@
 # colSBM 0.4.2
 
 * Reworked clustering to have it de-recursified
+* Added a clustering function based on graphon distance
+* Added a `$cluster`vector to clustering output
 
 # colSBM 0.4.1
 
