@@ -12,6 +12,8 @@
 #' @param nb_run An integer, the number of run the algorithm do.
 #' @param global_opts Global options for the outer algorithm and the output
 #' @param fit_opts Fit options for the VEM algorithm
+#' @param Z_init An optional list of cluster memberships for q in 1:Q_max.
+#' Default to NULL.
 #' @param fit_init Do not use!
 #' Optional fit init from where initializing the algorithm.
 #'
@@ -50,6 +52,7 @@ estimate_colSBM <-
            nb_run = 3L,
            global_opts = list(),
            fit_opts = list(),
+           Z_init = NULL,
            fit_init = NULL) {
     switch(colsbm_model,
       "iid" = {
@@ -126,6 +129,7 @@ estimate_colSBM <-
               free_mixture = free_mixture,
               fit_sbm = fit_sbm,
               global_opts = global_opts,
+              Z_init = Z_init,
               fit_opts = fit_opts
             )
             tmp_fit$optimize()
