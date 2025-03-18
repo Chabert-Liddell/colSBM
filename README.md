@@ -5,11 +5,12 @@
 
 <!-- badges: start -->
 
-[![](https://img.shields.io/badge/devel%20version-0.4.1-green.svg)](https://github.com/Chabert-Liddell/colSBM)
+[![](https://img.shields.io/badge/devel%20version-0.4.2-green.svg)](https://github.com/Chabert-Liddell/colSBM)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![](https://img.shields.io/github/last-commit/Chabert-Liddell/colSBM.svg)](https://github.com/Chabert-Liddell/colSBM/commits/main)
 [![](https://badgen.net/badge/DOI/10.1214%2F23-AOAS1831/yellow)](https://doi.org/10.1214/23-AOAS1831)
+[![](https://www.r-pkg.org/badges/version/colSBM)](https://CRAN.R-project.org/package=colSBM)
 <!-- badges: end -->
 
 colSBM is an R package which implements methods for clustering and
