@@ -167,7 +167,7 @@ fitSimpleSBMPop <- R6::R6Class(
         self$mask <- lapply(
           seq_along(self$A),
           function(m) {
-            mask <- Matrix::Matrix(diag(1, self$n[m]), sparse = TRUE)
+            mask <- diag(1, self$n[m])
             if (sum(is.na(self$A[[m]])) > 0) {
               mask[is.na(self$A[[m]])] <- 1
             }
