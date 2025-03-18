@@ -542,6 +542,11 @@ adjust_colBiSBM <- function(
 #' @param arg The name of the argument
 #'
 #' @return A data.frame with columns network, node_name, cluster and node_type
+#'
+#' @importFrom purrr map_dfr
+#' @importFrom dplyr bind_rows
+#' @importFrom cli cli_alert_info cli_text cli_abort
+#'
 #' @export
 extract_nodes_groups <- function(fit, arg = rlang::caller_arg(fit)) {
   if (!any(inherits(fit, c(
