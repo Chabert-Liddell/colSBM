@@ -535,6 +535,14 @@ adjust_colBiSBM <- function(
   return(adjusted_bisbmpop)
 }
 
+#' Extract nodes groups from a fitSimpleSBMPop, fitBipartiteSBMPop, bmpop or
+#' bisbmpop object
+#'
+#' @param fit A fitSimpleSBMPop, fitBipartiteSBMPop, bmpop or bisbmpop object
+#' @param arg The name of the argument
+#'
+#' @return A data.frame with columns network, node_name, cluster and node_type
+#' @export
 extract_nodes_groups <- function(fit, arg = rlang::caller_arg(fit)) {
   if (!any(inherits(fit, c(
     "fitSimpleSBMPop",
