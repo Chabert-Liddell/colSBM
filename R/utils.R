@@ -561,6 +561,36 @@ dist_param <- function(param, param_old) {
   sqrt(sum((param - param_old)**2))
 }
 
+#' A simple function that returns the default global options for the unipartite
+#' @noRd
+default_global_opts_unipartite <- function(netlist) {
+  n <- sapply(netlist, nrow)
+  list(
+    Q_min = 1L,
+    Q_max = floor(log(sum(n))) + 2,
+    sbm_init = TRUE,
+    spectral_init = TRUE,
+    nb_init = 10L,
+    nb_models = 5L,
+    depth = 3L,
+    plot_details = 1L,
+    max_pass = 10L,
+    verbosity = 0L,
+    nb_cores = 1L
+  )
+}
+
+#' A simple function that returns default fit options for unipartite
+#' @noRd
+default_fit_opts_unipartite <- function() {
+  list(
+    algo_ve = "fp",
+    approx_pois = FALSE,
+    minibatch = TRUE,
+    verbosity = 0L
+  )
+}
+
 #' A simple function that returns the default global options for the bipartite
 #' @noRd
 default_global_opts_bipartite <- function(netlist) {
