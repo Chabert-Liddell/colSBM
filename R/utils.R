@@ -286,6 +286,8 @@ generate_bipartite_collection <- function(
 #'
 #' @return A vector : The clusters labels
 #'
+#' @keywords internal
+#'
 #' @return A vector : The clusters labels
 spectral_clustering <- function(X, K, kmeans.nstart = 400L, kmeans.iter.max = 50L) {
   X <- as.matrix(X)
@@ -365,6 +367,9 @@ spectral_clustering <- function(X, K, kmeans.nstart = 400L, kmeans.iter.max = 50
 #'
 #' @return A list of two vectors : The clusters labels.
 #' They are accessed using $row_clustering and $col_clustering
+#'
+#' @keywords internal
+#'
 spectral_biclustering <- function(A, Q, kmeans.nstart = 400L, kmeans.iter.max = 50L) {
   # Trivial clustering : everyone is part of the cluster
   if (all(Q == c(1, 1))) {

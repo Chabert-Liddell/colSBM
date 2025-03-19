@@ -24,3 +24,4 @@ The graphon distance is computed as the L2 norm between the
 graphons of the two structures. Please note that this does not take into
 account the possible permutation of the blocks.
 }
+\keyword{internal}

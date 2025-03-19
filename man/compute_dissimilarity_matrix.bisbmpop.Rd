@@ -13,11 +13,9 @@ dissimilarity matrix}
 \item{weight}{The weighting to apply to the block proportions. One of "max"
 or "mean", defaults to "max".}
 
-\item{norm}{The norm to use, either one of "L1" or "L2". Defaults to "L2".
-
-@return A matrix of size \eqn{M * M} containing the dissimilarity matrix
-between the networks.}
+\item{norm}{The norm to use, either one of "L1" or "L2". Defaults to "L2".}
 }
 \description{
 Compute the dissimilarity matrix for a collection of bipartite networks
 }
+\keyword{internal}

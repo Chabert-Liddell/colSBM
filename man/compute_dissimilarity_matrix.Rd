@@ -13,11 +13,13 @@ dissimilarity matrix}
 \item{weight}{The weighting to apply to the block proportions. One of "max"
 or "mean", defaults to "max".}
 
-\item{norm}{The norm to use, either one of "L1" or "L2". Defaults to "L2".
-
-@return A matrix of size \eqn{M * M} containing the dissimilarity matrix
-between the networks.}
+\item{norm}{The norm to use, either one of "L1" or "L2". Defaults to "L2".}
+}
+\value{
+A matrix of size \eqn{M * M} containing the dissimilarity matrix
+between the networks.
 }
 \description{
 Computes a dissimilarity matrix between networks of the collections
 }
+\keyword{internal}

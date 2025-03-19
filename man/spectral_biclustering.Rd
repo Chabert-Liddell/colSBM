@@ -28,3 +28,4 @@ They are accessed using $row_clustering and $col_clustering
 \description{
 Relies on the spectral_clustering function defined above
 }
+\keyword{internal}

@@ -10,6 +10,7 @@ reference:
       - "`adjust_colBiSBM`"
       - "`clusterize_unipartite_networks`"
       - "`clusterize_bipartite_networks`"
+      - "`clusterize_bipartite_networks_graphon`"
       - "`dist_bisbmpop_max`"
       - "`estimate_colBiSBM`"
       - "`generate_bipartite_collection`"

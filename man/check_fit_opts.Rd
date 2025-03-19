@@ -23,3 +23,4 @@ Throws an error if the checks fail.
 \description{
 This function checks if \code{fit_opts} is a list.
 }
+\keyword{internal}

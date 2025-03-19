@@ -1,5 +1,6 @@
 #' Check that the number is an integer over a certain threshold
 #' @noRd
+#' @keywords internal
 check_is_integer_over_thresh <- function(
     int,
     thresh,
@@ -21,6 +22,7 @@ check_is_integer_over_thresh <- function(
 
 #' Check function for networks_list
 #' @noRd
+#' @keywords internal
 check_networks_list <- function(networks_list,
                                 min_length = 2L,
                                 arg = rlang::caller_arg(networks_list),
@@ -50,6 +52,7 @@ check_networks_list <- function(networks_list,
 
 #' Check net_id and eventually intialize it
 #' @noRd
+#' @keywords internal
 #' @param net_id A character vector representing network IDs.
 #' @param networks_list A list of networks.
 #' @param arg The argument name for error messages (default is the name of `net_id`).
@@ -71,6 +74,7 @@ check_net_id_and_initialize <- function(net_id, networks_list, arg = rlang::call
 
 #' Check function for dissimilarity matrix
 #' @noRd
+#' @keywords internal
 check_dissimilarity_matrix <- function(dissimilarity_matrix,
                                        arg = rlang::caller_arg(dissimilarity_matrix),
                                        call = rlang::caller_env()) {
@@ -91,6 +95,7 @@ check_dissimilarity_matrix <- function(dissimilarity_matrix,
 
 #' Check function for bipartite colSBM models
 #' @noRd
+#' @keywords internal
 check_bipartite_colsbm_models <- function(
     colsbm_model,
     arg = rlang::caller_arg(colsbm_model),
@@ -132,6 +137,7 @@ check_bipartite_colsbm_models <- function(
 
 #' Check function for bipartite colSBM models
 #' @noRd
+#' @keywords internal
 check_unipartite_colsbm_models <- function(
     colsbm_model,
     arg = rlang::caller_arg(colsbm_model),
@@ -150,6 +156,7 @@ check_unipartite_colsbm_models <- function(
 
 #' Check colSBM emission distribution
 #' @noRd
+#' @keywords internal
 #' @param emission_distribution A character string specifying the emission distribution
 #' @param arg The name of the argument
 #' @param call The environment where the function was called
@@ -177,6 +184,7 @@ check_colsbm_emission_distribution <- function(
 #' @param arg The name of the argument
 #' @param call The environment where the function was called
 #' @return The list of matrices
+#' @keywords internal
 check_networks_list_match_emission_distribution <- function(
     networks_list,
     emission_distribution,
@@ -228,6 +236,8 @@ check_networks_list_match_emission_distribution <- function(
 #'
 #' This function checks if the `net_id` is a character vector and if its length matches the length of `networks_list`.
 #'
+#' @noRd
+#'
 #' @param net_id A character vector representing network IDs.
 #' @param networks_list A list of networks.
 #' @param arg The argument name for error messages (default is the name of `net_id`).
@@ -235,6 +245,7 @@ check_networks_list_match_emission_distribution <- function(
 #' @return Throws an error if the checks fail.
 #'
 #' @importFrom rlang is_character is_integerish are_na
+#' @keywords internal
 check_net_id <- function(net_id, networks_list, arg = rlang::caller_arg(net_id), call = rlang::caller_env()) {
   if (!(rlang::is_character(net_id) ||
     rlang::is_integerish(net_id, finite = TRUE)) ||
@@ -268,6 +279,7 @@ check_net_id <- function(net_id, networks_list, arg = rlang::caller_arg(net_id),
 #' @param arg The name of the argument
 #' @param call The environment where the function was called
 #' @return The backend
+#' @keywords internal
 check_backend <- function(
     backend,
     arg = rlang::caller_arg(backend),
@@ -292,6 +304,7 @@ check_backend <- function(
 #' @param arg The argument name for error messages (default is the name of `global_opts`).
 #' @param call The calling environment (default is the caller environment).
 #' @return Throws an error if the checks fail.
+#' @keywords internal
 check_global_opts <- function(global_opts, arg = rlang::caller_arg(global_opts), call = rlang::caller_env()) {
   rlang::check_required(global_opts, arg = arg, call = call)
   if (!is.list(global_opts)) {
@@ -346,6 +359,7 @@ check_global_opts <- function(global_opts, arg = rlang::caller_arg(global_opts),
 #' @param arg The argument name for error messages (default is the name of `fit_opts`).
 #' @param call The calling environment (default is the caller environment).
 #' @return Throws an error if the checks fail.
+#' @keywords internal
 check_fit_opts <- function(fit_opts, arg = rlang::caller_arg(fit_opts), call = rlang::caller_env()) {
   rlang::check_required(fit_opts, arg = arg, call = call)
   if (!rlang::is_list(fit_opts)) {

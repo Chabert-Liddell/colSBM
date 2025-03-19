@@ -19,3 +19,4 @@ The graphon distance between two mesoscale structure.
 \description{
 Graphon distance for bipartite SBM using symmetrization
 }
+\keyword{internal}

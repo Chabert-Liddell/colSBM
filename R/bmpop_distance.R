@@ -133,6 +133,7 @@ dist_bisbmpop_max <- function(
 #' @details The graphon distance is computed as the L2 norm between the
 #' graphons of the two structures. Please note that this does not take into
 #' account the possible permutation of the blocks.
+#' @keywords internal
 graphon_distance_bipartite <- function(pis, rhos, alphas) {
   # Extracting to pi1 and pi2
   pi1 <- as.vector(pis[[1]])
@@ -195,7 +196,7 @@ graphon_distance_bipartite <- function(pis, rhos, alphas) {
 #' graphons of the two structures. This function takes into account the
 #' possible permutation of the blocks and returns the minimum distance.
 #'
-#' @export
+#' @keywords internal
 dist_graphon_bipartite_all_permutations <- function(pis, rhos, alphas) {
   # Extracting to pi1 and pi2
   pi1 <- pis[[1]]
@@ -267,6 +268,7 @@ dist_graphon_bipartite_all_permutations <- function(pis, rhos, alphas) {
 #' @param alphas A list of two connectivity matrices
 #'
 #' @return The graphon distance between two mesoscale structure.
+#' @keywords internal
 dist_graphon_bipartite_marginals <- function(pis, rhos, alphas) {
   # Extract pi and rho
   pi1 <- as.vector(pis[[1]])
@@ -339,7 +341,7 @@ matrix_distance_graphon_bipartite <- function(parameters_list) {
 #' @param alphas A list of two connectivity matrices
 #'
 #' @return The graphon distance between two mesoscale structure.
-#' @export
+#' @keywords internal
 dist_graphon_bipartite_symmetrization <- function(pis, rhos, alphas) {
   alpha1 <- alphas[[1]]
   alpha2 <- alphas[[2]]
@@ -399,6 +401,7 @@ dist_graphon_bipartite_symmetrization <- function(pis, rhos, alphas) {
 #' @details The graphon distance is computed as the L2 norm between the
 #' graphons of the two structures. Please note that this does not take into
 #' account the possible permutation of the blocks.
+#' @keywords internal
 graphon_distance_unipartite <- function(pis, alphas) {
   # Extracting to pi1 and pi2
   pi1 <- as.vector(pis[[1]])
@@ -448,7 +451,7 @@ graphon_distance_unipartite <- function(pis, alphas) {
 #' graphons of the two structures. This function takes into account the
 #' possible permutation of the blocks and returns the minimum distance.
 #'
-#' @export
+#' @keywords internal
 dist_graphon_unipartite_all_permutations <- function(pis, alphas) {
   # Extracting to pi1 and pi2
   pi1 <- pis[[1]]
@@ -498,7 +501,7 @@ dist_graphon_unipartite_all_permutations <- function(pis, alphas) {
 #' @param alphas A list of two connectivity matrices
 #'
 #' @return The graphon distance between two mesoscale structure.
-#' @export
+#' @keywords internal
 dist_graphon_unipartite_marginals <- function(pis, alphas) {
   # Extract pi and rho
   pi1 <- as.vector(pis[[1]])

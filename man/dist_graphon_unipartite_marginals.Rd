@@ -19,3 +19,4 @@ The graphon distance between two mesoscale structure.
 Graphon distance for bipartite SBM using identifiability
 properties of the graphons
 }
+\keyword{internal}

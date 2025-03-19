@@ -25,3 +25,4 @@ A vector : The clusters labels
 \description{
 Perform a spectral clustering
 }
+\keyword{internal}

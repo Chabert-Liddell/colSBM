@@ -30,3 +30,4 @@ Partition networks according to the dissimilarity matrix computed with
 This functions partition a provided networks list and outputs back
 a vector
 }
+\keyword{internal}

@@ -23,3 +23,4 @@ Throws an error if the checks fail.
 \description{
 This function checks if \code{global_opts} is a list and if \code{nb_cores} (if provided) is an integer greater than a threshold.
 }
+\keyword{internal}

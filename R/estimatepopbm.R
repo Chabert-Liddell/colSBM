@@ -90,7 +90,9 @@ clusterize_unipartite_networks <- function(netlist,
 
   # Fit the initial model on the full collection
   if (verbose) {
-    cli::cli_alert_info("A save file will be created at {.val {temp_save_path}} and updated after each step")
+    if (!is.null(temp_save_path)) {
+      cli::cli_alert_info("A save file will be created at {.val {temp_save_path}} and updated after each step")
+    }
     cli::cli_h1("Fitting the full collection")
   }
   start_time <- Sys.time()
@@ -119,11 +121,13 @@ clusterize_unipartite_networks <- function(netlist,
   }
   # Process the clustering queue
   while (length(clustering_queue) > 0) {
-    saveRDS(list(
-      clustering_queue = clustering_queue,
-      list_model_binary = list_model_binary,
-      cluster_history = cluster_history
-    ), temp_save_path)
+    if (!is.null(temp_save_path)) {
+      saveRDS(list(
+        clustering_queue = clustering_queue,
+        list_model_binary = list_model_binary,
+        cluster_history = cluster_history
+      ), temp_save_path)
+    }
     fit <- clustering_queue[[1]]
     clustering_queue <- clustering_queue[-1]
 
@@ -220,8 +224,12 @@ clusterize_unipartite_networks <- function(netlist,
     elapsed_time = Sys.time() - start_time,
     cluster_history = cluster_history
   )
-  saveRDS(output_list, temp_save_path)
-  cli::cli_alert_info("The final results are saved at {.val {temp_save_path}}")
+  if (!is.null(temp_save_path)) {
+    saveRDS(output_list, temp_save_path)
+    if (verbose) {
+      cli::cli_alert_info("The final results are saved at {.val {temp_save_path}}")
+    }
+  }
   return(output_list)
 }
 
@@ -313,7 +321,9 @@ clusterize_bipartite_networks <- function(netlist,
 
   # Fit the initial model on the full collection
   if (verbose) {
-    cli::cli_alert_info("A save file will be created at {.val {temp_save_path}} and updated after each step")
+    if (!is.null(temp_save_path)) {
+      cli::cli_alert_info("A save file will be created at {.val {temp_save_path}} and updated after each step")
+    }
     cli::cli_h1("Fitting the full collection")
   }
   start_time <- Sys.time()
@@ -338,11 +348,13 @@ clusterize_bipartite_networks <- function(netlist,
   }
   # Process the clustering queue
   while (length(clustering_queue) > 0) {
-    saveRDS(list(
-      clustering_queue = clustering_queue,
-      list_model_binary = list_model_binary,
-      clustering_history = clustering_history
-    ), temp_save_path)
+    if (!is.null(temp_save_path)) {
+      saveRDS(list(
+        clustering_queue = clustering_queue,
+        list_model_binary = list_model_binary,
+        clustering_history = clustering_history
+      ), temp_save_path)
+    }
     fit <- clustering_queue[[1]]
     clustering_queue <- clustering_queue[-1]
 
@@ -444,8 +456,12 @@ clusterize_bipartite_networks <- function(netlist,
     elapsed_time = Sys.time() - start_time,
     clustering_history = clustering_history
   )
-  saveRDS(output_list, temp_save_path)
-  cli::cli_alert_info("The final results are saved at {.val {temp_save_path}}")
+  if (!is.null(temp_save_path)) {
+    saveRDS(output_list, temp_save_path)
+    if (verbose) {
+      cli::cli_alert_info("The final results are saved at {.val {temp_save_path}}")
+    }
+  }
   return(output_list)
 }
 
@@ -471,10 +487,10 @@ clusterize_bipartite_networks <- function(netlist,
 #'
 #' @param norm The norm to use, either one of "L1" or "L2". Defaults to "L2".
 #'
-#'  @return A matrix of size \eqn{M * M} containing the dissimilarity matrix
+#' @return A matrix of size \eqn{M * M} containing the dissimilarity matrix
 #' between the networks.
 #'
-#' @export
+#' @keywords internal
 compute_dissimilarity_matrix <- function(
     collection,
     weight = "max",
@@ -503,7 +519,7 @@ compute_dissimilarity_matrix <- function(
 #' Compute the dissimilarity matrix for a collection of bipartite networks
 #'
 #' @inheritParams compute_dissimilarity_matrix
-#' @export
+#' @keywords internal
 compute_dissimilarity_matrix.bisbmpop <- function(
     collection,
     weight = "max",
@@ -534,7 +550,7 @@ compute_dissimilarity_matrix.bisbmpop <- function(
 
 #' Compute the dissimilarity matrix for a collection of networks
 #' @inheritParams compute_dissimilarity_matrix
-#' @export
+#' @keywords internal
 compute_dissimilarity_matrix.bmpop <- function(
     collection,
     weight = "max",
@@ -578,7 +594,7 @@ compute_dissimilarity_matrix.bmpop <- function(
 #'
 #' @return A vector, eventually named according to `networks_list` names.
 #'
-#' @export
+#' @keywords internal
 partition_networks_list_from_dissimilarity <- function(
     networks_list,
     dissimilarity_matrix,
