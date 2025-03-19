@@ -61,8 +61,8 @@ tibble::tibble(
   BICL = res$BICL,
   vbound = res$vbound,
   SBM = res$ICL_sbm
-) %>%
-  tidyr::pivot_longer(cols = -Q, names_to = "Criterion") %>%
+) |>
+  tidyr::pivot_longer(cols = -Q, names_to = "Criterion") |>
   ggplot2::ggplot(ggplot2::aes(
     x = Q, y = value,
     linetype = Criterion, color = Criterion,

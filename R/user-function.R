@@ -385,7 +385,7 @@ estimate_colBiSBM <-
       Q2_max = floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2),
       nb_init = 10L,
       nb_models = 5L,
-      backend = "future",
+      backend = "no_mc",
       depth = 1L,
       plot_details = 1L,
       max_pass = 10L,
@@ -551,4 +551,59 @@ adjust_colBiSBM <- function(
   }
   adjusted_bisbmpop$adjusted_fit <- adjusted_bisbmpop$model_list[[Q[1], Q[2]]]
   return(adjusted_bisbmpop)
+}
+
+#' Extract nodes groups from a fitSimpleSBMPop, fitBipartiteSBMPop, bmpop or
+#' bisbmpop object
+#'
+#' @param fit A fitSimpleSBMPop, fitBipartiteSBMPop, bmpop or bisbmpop object
+#' @param arg The name of the argument
+#'
+#' @return A data.frame with columns network, node_name, cluster and node_type
+#'
+#' @importFrom purrr map_dfr
+#' @importFrom dplyr bind_rows
+#' @importFrom cli cli_alert_info cli_text cli_abort
+#'
+#' @export
+extract_nodes_groups <- function(fit, arg = rlang::caller_arg(fit)) {
+  if (!any(inherits(fit, c(
+    "fitSimpleSBMPop",
+    "fitBipartiteSBMPop",
+    "bmpop",
+    "bisbmpop"
+  )))) {
+    cli::cli_abort("{.var {arg}} must be a fitSimpleSBMPop, fitBipartiteSBMPop, bmpop or bisbmpop object.")
+  }
+  if (inherits(fit, "bmpop") || inherits(fit, "bisbmpop")) {
+    cli::cli_alert_info("As you've provided {.obj_type_friendly {fit}} and not {.obj_type_friendly {fit$best_fit}}, the function will extract from {.var {arg}$best_fit}.")
+    fit <- fit$best_fit
+  }
+
+
+  if (inherits(fit, "fitSimpleSBMPop")) {
+    cli::cli_text("Extracting nodes groups from a fitSimpleSBMPop object.")
+    fit$Z %>%
+      purrr::map_dfr(~ {
+        .x %>%
+          data.frame(node_name = names(.), cluster = .) %>%
+          rownames_to_column(var = "network")
+      }, .id = "network") -> out
+    return(out)
+  }
+  if (inherits(fit, "fitBipartiteSBMPop")) {
+    cli::cli_text("Extracting nodes groups from a fitBipartiteSBMPop object.")
+    fit$memberships %>%
+      purrr::map_dfr(~ {
+        row_df <- .x$row %>%
+          data.frame(node_name = names(.), cluster = ., node_type = "row") %>%
+          rownames_to_column(var = "network")
+
+        col_df <- .x$col %>%
+          data.frame(node_name = names(.), cluster = ., node_type = "col") %>%
+          rownames_to_column(var = "network")
+
+        dplyr::bind_rows(row_df, col_df)
+      }, .id = "network")
+  }
 }

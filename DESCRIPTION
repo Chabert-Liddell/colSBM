@@ -17,19 +17,16 @@ License: MIT + file LICENSE
 Depends:
     R (>= 2.10)
 Imports:
-    ape,
     aricode,
     cli,
     cluster,
     dplyr,
     future.apply,
-    ggnewscale,
     ggplot2,
     gtools,
     magrittr,
     matrixStats,
     parallel,
-    parallelly,
     patchwork,
     progressr,
     purrr,

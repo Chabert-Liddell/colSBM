@@ -7,6 +7,10 @@
 
 # colSBM 0.4.1
 
+* Reworking plot functions to be more flexible and customizable by not relying on R6 plot methods
+* Turning plot.bisbmpop into an heatmap plot with possibility to select criterion to show
+* Adding a `extract_nodes_groups` function to extract the nodes groups from a fitted collection
+
 # colSBM 0.4.0
 
 * Adding `colBiSBM`, supporting bipartite collections

@@ -1105,47 +1105,6 @@ bmpop <- R6::R6Class(
     #' The print method
     #'
     #' @return nothing; print to console
-    print = function() self$show(),
-    #' Plot method
-    #'
-    #' @param type the type of the plot
-    #' @param ...
-    #'
-    #' @import ggplot2
-    #' @importFrom tibble tibble
-    #' @importFrom tidyr pivot_longer
-    #' @importFrom dplyr mutate pull
-    plot = function(type = "trace", ...) {
-      tb <- tibble::tibble(
-        Q = seq(length(self$BICL)),
-        ICL = self$ICL,
-        BICL = self$BICL,
-        vbound = self$vbound
-      )
-      if (!is.null(self$ICL_sbm)) {
-        tb %>% dplyr::mutate(SBM = self$ICL_sbm)
-      }
-      tb %>%
-        tidyr::pivot_longer(cols = -Q, names_to = "Criterion") %>%
-        ggplot2::ggplot(ggplot2::aes(
-          x = Q, y = value,
-          linetype = Criterion, color = Criterion,
-          shape = Criterion
-        )) +
-        ggplot2::annotate(
-          geom = "rect",
-          xmin = max(which.max(self$BICL) -
-            self$global_opts$depth, 1),
-          xmax = min(which.max(self$BICL) +
-            self$global_opts$depth, length(self$BICL)),
-          ymin = -Inf,
-          ymax = Inf,
-          fill = "gray90"
-        ) +
-        ggplot2::geom_line() +
-        ggplot2::geom_point(size = 3) +
-        ggplot2::ylab("") +
-        ggplot2::theme_bw()
-    }
+    print = function() self$show()
   )
 )

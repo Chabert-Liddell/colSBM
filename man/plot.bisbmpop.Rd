@@ -4,10 +4,13 @@
 \alias{plot.bisbmpop}
 \title{Plot the state-space exploration plot for a bipartite collection object}
 \usage{
-\method{plot}{bisbmpop}(x, ...)
+\method{plot}{bisbmpop}(x, criterion = "BICL", ...)
 }
 \arguments{
 \item{x}{a bisbmpop object.}
+
+\item{criterion}{The criterion to plot. Could be "BICL", "ICL" or "vbound".
+Default is "BICL".}
 
 \item{...}{other arguments to pass to the plot.}
 }

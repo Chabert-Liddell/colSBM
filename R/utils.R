@@ -420,7 +420,6 @@ bipartite_hierarchic_clustering <- function(X, K) {
 
 #' Perform a Hierarchical Clustering
 #' @importFrom stats cutree dist hclust
-#' @importFrom ape additive
 #' @param X An Adjacency Matrix
 #' @param K the number of wanted clusters
 #'
@@ -432,15 +431,11 @@ hierarClust <- function(X, K) {
   if (K == 1) {
     return(rep(1L, nrow(X)))
   }
-  # distance <- stats::dist(x = X, method = "manhattan")
-  # X[X == -1] <- NA
-  # distance[which(A == 1)] <- distance[which(A == 1)] - 2
-  # distance <- stats::as.dist(ape::additive(distance))
   diss <- cluster::daisy(x = X, metric = "manhattan", warnBin = FALSE)
-  if (!any(is.na(diss))) {
-    clust <- cluster::agnes(x = X, metric = "manhattan", method = "ward")
-  } else {
+  if (anyNA(diss)) {
     return(rep(1L, nrow(X)))
+  } else {
+    clust <- cluster::agnes(x = X, metric = "manhattan", method = "ward")
   }
   # clust    <- stats::hclust(d = distance , method = "ward.D2")
   return(stats::cutree(tree = clust, k = K))

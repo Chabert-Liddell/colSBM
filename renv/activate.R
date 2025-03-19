@@ -1,6 +1,6 @@
 local({
   # the requested version of renv
-  version <- "1.0.11"
+  version <- "1.1.0"
   attr(version, "sha") <- NULL
 
   # the project directory
@@ -532,6 +532,15 @@ local({
 
     catf("- Using local tarball '%s'.", tarball)
     tarball
+  }
+
+  renv_bootstrap_github_token <- function() {
+    for (envvar in c("GITHUB_TOKEN", "GITHUB_PAT", "GH_TOKEN")) {
+      envval <- Sys.getenv(envvar, unset = NA)
+      if (!is.na(envval)) {
+        return(envval)
+      }
+    }
   }
 
   renv_bootstrap_github_token <- function() {

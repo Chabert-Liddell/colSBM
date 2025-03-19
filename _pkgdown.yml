@@ -14,6 +14,7 @@ reference:
       - "`estimate_colBiSBM`"
       - "`generate_bipartite_collection`"
       - "`generate_unipartite_collection`"
+      - "`extract_nodes_groups`"
 
   - title: colSBM R6 class objects
     contents:

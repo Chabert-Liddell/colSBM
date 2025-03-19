@@ -869,166 +869,6 @@ bisbmpop <- R6::R6Class(
       return(possible_models[[which.max(possible_models_BICLs)]])
     },
 
-    #' A method to plot the state of space and its current exploration.
-    #'
-    #' @details the method takes no parameters and print a plot
-    #' of the current state of the model_list.
-    #'
-    #' @param plot_detail Is by default set using the global options.
-    #'
-    #' @importFrom ggnewscale new_scale_color
-    #' @return nothing
-    state_space_plot = function(plot_detail = self$global_opts$plot_detail) {
-      # Creating an empty dataframe
-      if (plot_detail > 0) {
-        data_state_space <- as.data.frame(matrix(ncol = 6, nrow = 0))
-        names(data_state_space) <- c("Q1", "Q2", "BICL", "isMaxBICL", "startingPoint", "clusteringComplete")
-
-        for (i in seq.int(self$global_opts$Q1_max)) {
-          for (j in seq.int(self$global_opts$Q2_max)) {
-            if (!is.null(self$model_list[[i, j]])) {
-              # If the model with Q1 and Q2 was seen
-              # we add a line in the dataframe
-              data_state_space[nrow(data_state_space) + 1, ] <- list(
-                i,
-                j,
-                self$model_list[[i, j]]$BICL,
-                FALSE,
-                as.character(toString(c(self$model_list[[i, j]]$greedy_exploration_starting_point[1], self$model_list[[i, j]]$greedy_exploration_starting_point[2]))),
-                self$model_list[[i, j]]$clustering_is_complete
-              )
-            }
-          }
-        }
-
-        # Here the max BICL is highlighted
-        data_state_space[which.max(data_state_space$BICL), ]$isMaxBICL <- TRUE
-
-        # Here the greedy exploration path is computed
-        exploration_path <- as.data.frame(matrix(nrow = 0, ncol = 3))
-        names(exploration_path) <- c("Q1", "Q2", "startingPoint")
-
-        for (path in seq_along(self$exploration_order_list)) {
-          for (idx in seq_along(self$exploration_order_list[[path]])) {
-            exploration_path[nrow(exploration_path) + 1, ] <- list(
-              self$exploration_order_list[[path]][[idx]][1], # Q1
-              self$exploration_order_list[[path]][[idx]][2], # Q2
-              as.character(toString(c( # startingPoint
-                self$exploration_order_list[[path]][[1]][1],
-                self$exploration_order_list[[path]][[1]][2]
-              )))
-            )
-          }
-        }
-
-        # Plotting
-        state_plot <- ggplot2::ggplot(data_state_space) +
-          ggplot2::geom_path(
-            data = exploration_path,
-            position = ggplot2::position_dodge2(width = 0.2),
-            ggplot2::aes(
-              x = Q1,
-              y = Q2,
-              color = startingPoint
-            ),
-            linewidth = 2,
-            arrow = ggplot2::arrow()
-          ) +
-          ggplot2::guides(color = ggplot2::guide_legend(
-            title = "Greedy exploration path"
-          )) +
-          ggplot2::coord_cartesian(
-            xlim = c(0, self$global_opts$Q1_max + 1),
-            ylim = c(0, self$global_opts$Q2_max + 1)
-          ) +
-          ggplot2::scale_color_discrete() +
-          ggplot2::scale_y_continuous(
-            breaks = function(x) {
-              unique(
-                floor(pretty(seq(0, (max(x) + 1) * 1.1)))
-              )
-            },
-            limits = c(0, self$global_opts$Q2_max)
-          ) +
-          ggplot2::scale_x_continuous(
-            breaks = function(x) {
-              unique(
-                floor(pretty(seq(0, (max(x) + 1) * 1.1)))
-              )
-            },
-            limits = c(0, self$global_opts$Q1_max)
-          )
-
-        if (!is.null(self$old_moving_window_coordinates)) {
-          # If there are previous moving windows coordinates
-
-          for (index in seq.int(
-            from = ifelse(length(self$old_moving_window_coordinates) >= 3,
-              length(self$old_moving_window_coordinates) - 2,
-              1
-            ),
-            to = length(self$old_moving_window_coordinates)
-          )) {
-            coords <- self$old_moving_window_coordinates[[index]]
-            state_plot <- state_plot +
-              ggplot2::annotate("rect",
-                xmin = coords[[1]][1],
-                xmax = coords[[2]][1],
-                ymin = coords[[1]][2],
-                ymax = coords[[2]][2],
-                color = "black",
-                alpha = .2
-              ) +
-              ggplot2::annotate("label",
-                x = coords[[1]][1] + 0.25,
-                y = coords[[1]][2] + 0.25,
-                label = paste0(index)
-              )
-          }
-        }
-
-        if (!is.null(self$moving_window_coordinates)) {
-          # We add the moving window on top of the plot
-          coords <- self$moving_window_coordinates
-          # coords[[1]] <- coords[[1]] - 0.25
-          # coords[[2]] <- coords[[2]] + 0.25
-          state_plot <- state_plot +
-            ggplot2::annotate("rect",
-              xmin = max(coords[[1]][1], 1),
-              xmax = min(coords[[2]][1], self$Q1_max),
-              ymin = max(coords[[1]][2], 1),
-              ymax = min(coords[[2]][2], self$Q2_max),
-              color = "red",
-              alpha = .2
-            )
-        }
-
-
-        state_plot <- state_plot +
-          ggnewscale::new_scale_color() +
-          ggplot2::geom_point(ggplot2::aes(
-            x = Q1,
-            y = Q2,
-            size = BICL,
-            color = isMaxBICL,
-            alpha = BICL,
-          )) +
-          ggplot2::guides(color = ggplot2::guide_legend(title = "Is max value\nof BICL ?")) +
-          ggnewscale::new_scale_color() +
-          ggplot2::scale_colour_hue(l = 45, drop = FALSE) +
-          ggplot2::geom_point(ggplot2::aes(
-            x = Q1,
-            y = Q2,
-            color = clusteringComplete
-          )) +
-          ggplot2::guides(color = ggplot2::guide_legend(title = "Is the clustering complete ?"))
-        ggplot2::ggtitle("State space for ", toString(self$net_id))
-
-
-        state_plot
-      }
-    },
-
     #' Method to greedily explore state of space looking for the mode
     #' and storing the models discovered along the way
     #'
@@ -1706,7 +1546,7 @@ bisbmpop <- R6::R6Class(
       # Checking if the window's bound is in domain
       if (!self$point_is_in_limits(c(Q1_mode - depth, Q2_mode - depth)) ||
         !self$point_is_in_limits(c(Q1_mode + depth, Q2_mode + depth))) {
-        warning(paste0(
+        message(paste0(
           "\nThe window is (partially) out of domain !",
           "\nTrying to go from (", toString(c(Q1_mode - depth, Q2_mode - depth)),
           ") to (", toString(c(Q1_mode + depth, Q2_mode + depth)), ").",
@@ -2202,8 +2042,12 @@ bisbmpop <- R6::R6Class(
 
           # Checking if we can use sbm estimateBipartiteSBM
           if (self$distribution %in% c("bernoulli", "poisson")) {
+            mat_for_sbm <- self[["A"]][[m]]
+            # Currently sbm can't handle missing values
+            # We need to remove the masked values (i.e. NAs)
+            mat_for_sbm[which(self[["mask"]][[m]] == 1)] <- 0
             init_lbm <- sbm::estimateBipartiteSBM(
-              netMat = self[["A"]][[m]],
+              netMat = mat_for_sbm,
               model = self[["distribution"]],
               estimOptions = list(
                 verbosity = 0L,
@@ -2280,8 +2124,10 @@ bisbmpop <- R6::R6Class(
         self$compute_sep_BiSBM_BICL()
       }
 
-      if (self$global_opts$verbosity >= 1) {
-        if (self$M > 1) {
+
+      if (self$M > 1) {
+        self$joint_modelisation_preferred <- sum(self$sep_BiSBM$BICL) <= self$best_fit$BICL
+        if (self$global_opts$verbosity >= 1) {
           cat(
             "\n==== Best fits criterion for the", self$M,
             "networks. Computed in",
@@ -2289,32 +2135,30 @@ bisbmpop <- R6::R6Class(
           )
           cat("\nSep BiSBM total BICL: ", sum(self$sep_BiSBM$BICL))
           cat("\ncolBiSBM BICL:", self$best_fit$BICL)
-          if (sum(self$sep_BiSBM$BICL) > self$best_fit$BICL) {
+        }
+        if (sum(self$sep_BiSBM$BICL) > self$best_fit$BICL) {
+          if (self$global_opts$verbosity >= 1) {
             cat("\nSeparated modelisation preferred.\n")
-            self$joint_modelisation_preferred <- FALSE
-          } else {
+          }
+          self$joint_modelisation_preferred <- FALSE
+        } else {
+          if (self$global_opts$verbosity >= 1) {
             cat(
               "\nJoint modelisation preferred. With Q = (",
               toString(self$best_fit$Q),
               ").\n"
             )
-            self$joint_modelisation_preferred <- TRUE
           }
-        } else {
+          self$joint_modelisation_preferred <- TRUE
+        }
+      } else {
+        if (self$global_opts$verbosity >= 1) {
           cat("\n==== Best fits criterion for the network ====")
           cat("\nOnly 1 network")
           cat("\nSep BiSBM total BICL: ", sum(self$sep_BiSBM$BICL))
         }
       }
     },
-    #' Plot method
-    #'
-    #' @description
-    #' Plots the state space exploration
-    plot = function() {
-      self$state_space_plot(plot_detail = 1)
-    },
-
     #' Print the vbound, the ICL and the BICL
     #' @return nothing
     print_metrics = function() {

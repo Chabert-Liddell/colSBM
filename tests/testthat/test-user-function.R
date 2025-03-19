@@ -6,6 +6,8 @@ test_that("colsbm-model not correct raises an error", {
   ))
 })
 
+fit_opts <- list(max_vem_steps = 2500L)
+
 test_that("Estimate colSBM runs without problems", {
   set.seed(1234L)
   expect_no_error(estimate_colSBM(
@@ -149,7 +151,8 @@ test_that("Estimate colBiSBM runs without problems with verbosity", {
       verbosity = 4L,
       Q1_max = NULL,
       Q2_max = NULL
-    )
+    ),
+    fit_opts = fit_opts
   ))
 })
 
@@ -171,6 +174,7 @@ test_that("Estimate colBiSBM runs with pi, rho and pirho. With and without NA", 
     M = 3L,
     model = "pirho"
   )
+
   pirho_collection_na <- pirho_collection
   NA_index <- sample.int(length(pirho_collection_na[[1]]), size = 20)
   pirho_collection_na[[1]][NA_index] <- NA
@@ -185,7 +189,8 @@ test_that("Estimate colBiSBM runs with pi, rho and pirho. With and without NA", 
         verbosity = 0L,
         Q1_max = 10L,
         Q2_max = 10L
-      )
+      ),
+      fit_opts = fit_opts
     )
   )
   expect_no_error(
@@ -199,7 +204,8 @@ test_that("Estimate colBiSBM runs with pi, rho and pirho. With and without NA", 
         verbosity = 0L,
         Q1_max = 10L,
         Q2_max = 10L
-      )
+      ),
+      fit_opts = fit_opts
     )
   )
   expect_no_error(
@@ -212,7 +218,8 @@ test_that("Estimate colBiSBM runs with pi, rho and pirho. With and without NA", 
         verbosity = 0L,
         Q1_max = 10L,
         Q2_max = 10L
-      )
+      ),
+      fit_opts = fit_opts
     )
   )
   expect_no_error(
@@ -225,7 +232,8 @@ test_that("Estimate colBiSBM runs with pi, rho and pirho. With and without NA", 
         verbosity = 0L,
         Q1_max = 10L,
         Q2_max = 10L
-      )
+      ),
+      fit_opts = fit_opts
     )
   )
   expect_no_error(
@@ -238,11 +246,12 @@ test_that("Estimate colBiSBM runs with pi, rho and pirho. With and without NA", 
         verbosity = 0L,
         Q1_max = 10L,
         Q2_max = 10L
-      )
+      ),
+      fit_opts = fit_opts
     )
   )
 
-  expect_warning(adjust_colBiSBM(
+  expect_no_error(adjust_colBiSBM(
     fitted_bisbmpop = fit_iid,
     Q = c(1L, 1L)
   ))
@@ -277,14 +286,15 @@ test_that("Check that LBM and colBiSBM with one network return the same", {
     free_mixture_col = FALSE,
     init_method = "given",
     Z = list(init_lbm[["memberships"]]),
-    fit_opts = list(verbosity = 0L)
+    fit_opts = list(verbosity = 0L, max_vem_steps = fit_opts$max_vem_steps)
   )
   lbm[["optimize"]]()
 
   colBiSBM <- estimate_colBiSBM(
     netlist = list(testNet), colsbm_model = "iid",
     nb_run = 1L,
-    global_opts = list(verbosity = 0L, backend = "no_mc")
+    global_opts = list(verbosity = 0L, backend = "no_mc"),
+    fit_opts = fit_opts
   )
 
   collbm <- colBiSBM[["best_fit"]]

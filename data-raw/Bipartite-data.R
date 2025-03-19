@@ -18,7 +18,7 @@ names_aggreg_networks <- sapply(
 incidence_matrices <- lapply(
   seq_ids_network_aggreg,
   function(m) {
-    current_interaction_data <- interaction_data[which(interaction_data$id_network_aggreg == m), ] %>%
+    current_interaction_data <- interaction_data[which(interaction_data$id_network_aggreg == m), ] |>
       mutate(
         plantaggreg = paste(plantorder,
           plantfamily, plantgenus, plantspecies,
