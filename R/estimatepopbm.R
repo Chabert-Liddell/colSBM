@@ -411,8 +411,7 @@ clusterize_unipartite_networks <- function(netlist,
   cluster <- rep(1, length(netlist))
   names(cluster) <- net_id
 
-  cluster_history <- as.data.frame(matrix(cluster, nrow = 1))
-  colnames(cluster_history) <- net_id
+  cluster_history <- as.data.frame(matrix(cluster, nrow = 1L))
 
 
 
@@ -423,7 +422,8 @@ clusterize_unipartite_networks <- function(netlist,
   while (length(clustering_queue) > 0) {
     saveRDS(list(
       clustering_queue = clustering_queue,
-      list_model_binary = list_model_binary
+      list_model_binary = list_model_binary,
+      cluster_history = cluster_history
     ), temp_save_path)
     fit <- clustering_queue[[1]]
     clustering_queue <- clustering_queue[-1]
@@ -500,7 +500,7 @@ clusterize_unipartite_networks <- function(netlist,
 
       # Assign the new cluster to the networks
       cluster[fit$net_id[cl == 2]] <- prev_cluster + 1
-      rbind(cluster_history, as.data.frame(matrix(cluster, nrow = 1)))
+      cluster_history <- rbind(cluster_history, matrix(unname(cluster), nrow = 1))
 
     } else {
       list_model_binary <- append(list_model_binary, list(fit$best_fit))
@@ -515,17 +515,18 @@ clusterize_unipartite_networks <- function(netlist,
     cli::cli_alert_success("Finished clustering")
   }
 
+  colnames(cluster_history) <- net_id
+
   output_list <- list(
     partition = list_model_binary,
     cluster = cluster,
-    elapsed_time = Sys.time() - start_time
+    elapsed_time = Sys.time() - start_time,
+    cluster_history = cluster_history
   )
   saveRDS(output_list, temp_save_path)
   cli::cli_alert_info("The final results are saved at {.val {temp_save_path}}")
   return(output_list)
 }
-
-
 
 #' Extract the best partition from the list of model given by the functions
 #' `clusterize_networks()` or `clusterize_bipartite_networks()`.
@@ -689,6 +690,7 @@ clusterize_bipartite_networks <- function(netlist,
   list_model_binary <- list()
   cluster <- rep(1, length(netlist))
   names(cluster) <- net_id
+  clustering_history <- as.data.frame(matrix(cluster, nrow = 1L))
 
   if (verbose) {
     cli::cli_h1("Beginning clustering")
@@ -697,7 +699,8 @@ clusterize_bipartite_networks <- function(netlist,
   while (length(clustering_queue) > 0) {
     saveRDS(list(
       clustering_queue = clustering_queue,
-      list_model_binary = list_model_binary
+      list_model_binary = list_model_binary,
+      clustering_history = clustering_history
     ), temp_save_path)
     fit <- clustering_queue[[1]]
     clustering_queue <- clustering_queue[-1]
@@ -780,6 +783,7 @@ clusterize_bipartite_networks <- function(netlist,
 
       # Assign the new cluster to the networks
       cluster[fit$net_id[cl == 2]] <- prev_cluster + 1
+      clustering_history <- rbind(clustering_history, matrix(unname(cluster), nrow = 1))
     } else {
       list_model_binary <- append(list_model_binary, list(fit$best_fit))
       if (verbose) {
@@ -792,11 +796,12 @@ clusterize_bipartite_networks <- function(netlist,
   if (verbose) {
     cli::cli_alert_success("Finished clustering")
   }
-
+  colnames(clustering_history) <- net_id
   output_list <- list(
     partition = list_model_binary,
     cluster = cluster,
-    elapsed_time = Sys.time() - start_time
+    elapsed_time = Sys.time() - start_time,
+    clustering_history = clustering_history
   )
   saveRDS(output_list, temp_save_path)
   cli::cli_alert_info("The final results are saved at {.val {temp_save_path}}")
