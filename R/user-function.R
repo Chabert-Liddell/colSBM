@@ -21,7 +21,7 @@
 #' collection of networks
 #' @export
 #'
-#' @seealso [colSBM::clusterize_networks()], \code{\link[colSBM]{bmpop}},
+#' @seealso [colSBM::clusterize_unipartite_networks()], \code{\link[colSBM]{bmpop}},
 #' \code{\link[colSBM]{fitSimpleSBMPop}}, `browseVignettes("colSBM")`
 #' @import sbm
 #' @examples

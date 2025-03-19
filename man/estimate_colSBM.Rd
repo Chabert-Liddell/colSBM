@@ -73,6 +73,6 @@ cl <- estimate_colSBM(Net,
 }
 }
 \seealso{
-\code{\link[=clusterize_networks]{clusterize_networks()}}, \code{\link[colSBM]{bmpop}},
+\code{\link[=clusterize_unipartite_networks]{clusterize_unipartite_networks()}}, \code{\link[colSBM]{bmpop}},
 \code{\link[colSBM]{fitSimpleSBMPop}}, \code{browseVignettes("colSBM")}
 }

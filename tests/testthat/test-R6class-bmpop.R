@@ -23,7 +23,7 @@ test_that("Spectral_init for missing models works", {
   expect_no_error(cloned_colsbm$forward_pass(Q_min = 1, Q_max = 4))
 })
 
-test_that("clusterize_networks_iid", {
+test_that("clusterize_unipartite_networks_iid", {
   set.seed(1234)
   Net <- lapply(
     list(.7, .7, .2, .2),
@@ -33,7 +33,7 @@ test_that("clusterize_networks_iid", {
       A <- A + t(A)
     }
   )
-  cl <- clusterize_networks(Net,
+  cl <- clusterize_unipartite_networks(Net,
     colsbm_model = "iid",
     directed = FALSE,
     distribution = "bernoulli",
@@ -46,13 +46,12 @@ test_that("clusterize_networks_iid", {
       depth = 1
     )
   )
-  expect_equal(
+  expect_identical(
     {
-      c(diff(cl[[2]]$net_id), diff(cl[[3]]$net_id))
+      cl$partition[[1]]$M
     },
-    c(1, 1)
+    4L
   )
-  expect_no_error(extract_best_partition(cl))
 })
 
 test_that("estimate_colsbm_poisson_delta with verbosity", {
