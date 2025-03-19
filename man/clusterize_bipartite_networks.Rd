@@ -14,14 +14,15 @@ clusterize_bipartite_networks(
   global_opts = list(),
   fit_opts = list(),
   fit_init = NULL,
-  full_inference = FALSE
+  full_inference = FALSE,
+  verbose = TRUE,
+  temp_save_path = tempfile(fileext = ".Rds")
 )
 }
 \arguments{
 \item{netlist}{A list of matrices.}
 
-\item{colsbm_model}{Which colSBM to use, one of "iid", "pi", "rho", "pirho",
-"delta", "deltapi".}
+\item{colsbm_model}{Which colBiSBM to use, one of "iid", "pi", "rho", "pirho",}
 
 \item{net_id}{A vector of string, the name of the networks.}
 
@@ -41,21 +42,22 @@ Optional fit init from where initializing the algorithm.}
 groups of networks does not improve the BICL criterion. If "TRUE", then
 continue to split groups until a trivial classification of one network per
 group.}
+
+\item{verbose}{A boolean, should the function be verbose or not. Default to
+TRUE.}
+
+\item{temp_save_path}{A string, the path where to save the temporary results.
+Defaults to a temporary file.}
 }
 \value{
 A list of models for the recursive partition of
 the collection of networks.
+
+This functions make call to \code{estimate_colBiSBM}.
 }
 \description{
 Partition of a collection of bipartite networks based on their common
 mesoscale structures
-}
-\details{
-The best partition could be extract with the function
-\code{extract_best_partition()}. The object of the list are fitBipartiteSBMPop
-object, so it is a model for a given number of blocks Q1, Q2.
-
-This functions make call to \code{estimate_colBiSBM}.
 }
 \examples{
 alpha1 <- matrix(c(0.8, 0.1, 0.2, 0.7), byrow = TRUE, nrow = 2)
@@ -82,6 +84,6 @@ cl_separated <- clusterize_bipartite_networks(
 }
 }
 \seealso{
-\code{\link[=extract_best_partition]{extract_best_partition()}}, \code{\link[=estimate_colBiSBM]{estimate_colBiSBM()}},
+\code{\link[=clusterize_unipartite_networks]{clusterize_unipartite_networks()}}, \code{\link[=estimate_colBiSBM]{estimate_colBiSBM()}},
 \code{\link[colSBM]{fitBipartiteSBMPop}}, \code{browseVignettes("colSBM")}
 }

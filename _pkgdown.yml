@@ -5,13 +5,12 @@ template:
 reference:
   - title: User functions
     contents:
-      - "`clusterize_networks`"
       - "`estimate_colSBM`"
       - "`dist_bmpop_max`"
-      - "`extract_best_partition`"
-      - "`extract_clustering_dendrogram`"
       - "`adjust_colBiSBM`"
+      - "`clusterize_unipartite_networks`"
       - "`clusterize_bipartite_networks`"
+      - "`clusterize_bipartite_networks_graphon`"
       - "`dist_bisbmpop_max`"
       - "`estimate_colBiSBM`"
       - "`generate_bipartite_collection`"

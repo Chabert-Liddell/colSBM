@@ -14,6 +14,7 @@ estimate_colSBM(
   nb_run = 3L,
   global_opts = list(),
   fit_opts = list(),
+  Z_init = NULL,
   fit_init = NULL
 )
 }
@@ -38,6 +39,9 @@ Use to speed up the initialization.}
 \item{global_opts}{Global options for the outer algorithm and the output}
 
 \item{fit_opts}{Fit options for the VEM algorithm}
+
+\item{Z_init}{An optional list of cluster memberships for q in 1:Q_max.
+Default to NULL.}
 
 \item{fit_init}{Do not use!
 Optional fit init from where initializing the algorithm.}
@@ -69,6 +73,6 @@ cl <- estimate_colSBM(Net,
 }
 }
 \seealso{
-\code{\link[=clusterize_networks]{clusterize_networks()}}, \code{\link[colSBM]{bmpop}},
+\code{\link[=clusterize_unipartite_networks]{clusterize_unipartite_networks()}}, \code{\link[colSBM]{bmpop}},
 \code{\link[colSBM]{fitSimpleSBMPop}}, \code{browseVignettes("colSBM")}
 }

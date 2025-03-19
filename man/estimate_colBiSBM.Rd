@@ -25,7 +25,7 @@ estimate_colBiSBM(
 \item{net_id}{A vector of string, the name of the networks.}
 
 \item{distribution}{A string, the emission distribution, either "bernoulli"
-(the default) or "poisson" (to be implemented)}
+(the default) or "poisson".}
 
 \item{nb_run}{An integer, the number of run the algorithm do. Default to 3.}
 

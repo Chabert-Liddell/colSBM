@@ -277,14 +277,19 @@ generate_bipartite_collection <- function(
 #'
 #' @importFrom stats kmeans
 #'
-#' @param X an Adjacency matrix
+#' @param X an adjacency matrix
 #' @param K the number of clusters
-#'
-#' @noMd
-#' @noRd
+#' @param kmeans.nstart the number of random starts for the kmeans algorithm.
+#' Defaults to 400. Ensures consistency of the results.
+#' @param kmeans.iter.max the maximum number of iterations for the kmeans
+#' algorithm. Defaults to 50.
 #'
 #' @return A vector : The clusters labels
-spectral_clustering <- function(X, K) {
+#'
+#' @keywords internal
+#'
+#' @return A vector : The clusters labels
+spectral_clustering <- function(X, K, kmeans.nstart = 400L, kmeans.iter.max = 50L) {
   X <- as.matrix(X)
   n <- nrow(X)
   if (K == 1) {
@@ -319,8 +324,8 @@ spectral_clustering <- function(X, K) {
     cl <- try(
       expr = {
         stats::kmeans(U, K,
-          iter.max = 100,
-          nstart = 100
+          iter.max = kmeans.iter.max,
+          nstart = kmeans.nstart
         )$cluster
       },
       silent = TRUE
@@ -329,8 +334,8 @@ spectral_clustering <- function(X, K) {
       cl <- try(
         expr = {
           stats::kmeans(U, K,
-            iter.max = 100,
-            nstart = 100
+            iter.max = kmeans.iter.max,
+            nstart = kmeans.nstart
           )$cluster
         },
         silent = TRUE
@@ -339,13 +344,6 @@ spectral_clustering <- function(X, K) {
   } else {
     cl <- rep(1, nrow(X))
   }
-  # index <- rev(order(abs(specabs$values)))[1:K]
-  # U <- specabs$vectors[, index]
-  # U <- U / rowSums(U**2)**(1 / 2)
-  # U[is.na(U)] <- 0
-  # U[is.nan(U)] <- 0
-  # U[is.infinite(U)] <- 0
-  # cl <- stats::kmeans(U, K, iter.max = 100, nstart = 100)$cluster
   clustering <- rep(1, n)
   clustering[connected] <- cl
   clustering[isolated] <- which.min(rowsum(rowSums(X, na.rm = TRUE), cl))
@@ -360,32 +358,44 @@ spectral_clustering <- function(X, K) {
 #'
 #' Relies on the spectral_clustering function defined above
 #'
-#' @param X an Incidence matrix
-#' @param K the two numbers of clusters
+#' @param A a bipartite adjacency matrix
+#' @param Q the two numbers of clusters
+#' @inheritParams spectral_clustering
 #'
-#' @noMd
-#' @noRd
+#' @return A list of two vectors : The clusters labels. They are accessed using
+#' $row_clustering and $col_clustering
 #'
 #' @return A list of two vectors : The clusters labels.
 #' They are accessed using $row_clustering and $col_clustering
-spectral_biclustering <- function(X, K) {
+#'
+#' @keywords internal
+#'
+spectral_biclustering <- function(A, Q, kmeans.nstart = 400L, kmeans.iter.max = 50L) {
   # Trivial clustering : everyone is part of the cluster
-  if (all(K == c(1, 1))) {
+  if (all(Q == c(1, 1))) {
     return(list(
-      row_clustering = rep(1, nrow(X)),
-      col_clustering = rep(1, ncol(X))
+      row_clustering = rep(1, nrow(A)),
+      col_clustering = rep(1, ncol(A))
     ))
   }
 
   # Extracts the number of clusters
-  K1 <- K[1] # Row clusters
-  K2 <- K[2] # Column clusters
+  K1 <- Q[1] # Row clusters
+  K2 <- Q[2] # Column clusters
 
-  row_adjacency_matrix <- tcrossprod(X)
-  row_clustering <- spectral_clustering(row_adjacency_matrix, K1)
+  row_adjacency_matrix <- tcrossprod(A)
+  row_clustering <- spectral_clustering(row_adjacency_matrix,
+    K1,
+    kmeans.nstart = kmeans.nstart,
+    kmeans.iter.max = kmeans.iter.max
+  )
 
-  col_adjacency_matrix <- crossprod(X)
-  col_clustering <- spectral_clustering(col_adjacency_matrix, K2)
+  col_adjacency_matrix <- crossprod(A)
+  col_clustering <- spectral_clustering(col_adjacency_matrix,
+    K2,
+    kmeans.nstart = kmeans.nstart,
+    kmeans.iter.max = kmeans.iter.max
+  )
 
   return(list(row_clustering = row_clustering, col_clustering = col_clustering))
 }
@@ -546,9 +556,72 @@ F.bern <- function(X, alpha, tau) {
 
 rotate <- function(x) t(apply(x, 2, rev))
 
-#
+
 dist_param <- function(param, param_old) {
   sqrt(sum((param - param_old)**2))
+}
+
+#' A simple function that returns the default global options for the unipartite
+#' @noRd
+default_global_opts_unipartite <- function(netlist) {
+  n <- sapply(netlist, nrow)
+  list(
+    Q_min = 1L,
+    Q_max = floor(log(sum(n))) + 2,
+    sbm_init = TRUE,
+    spectral_init = TRUE,
+    nb_init = 10L,
+    nb_models = 5L,
+    depth = 3L,
+    plot_details = 1L,
+    max_pass = 10L,
+    verbosity = 0L,
+    nb_cores = 1L
+  )
+}
+
+#' A simple function that returns default fit options for unipartite
+#' @noRd
+default_fit_opts_unipartite <- function() {
+  list(
+    algo_ve = "fp",
+    approx_pois = FALSE,
+    minibatch = TRUE,
+    verbosity = 0L
+  )
+}
+
+#' A simple function that returns the default global options for the bipartite
+#' @noRd
+default_global_opts_bipartite <- function(netlist) {
+  list(
+    Q1_min = 1L,
+    Q2_min = 1L,
+    Q1_max = floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2),
+    Q2_max = floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2),
+    nb_init = 10L,
+    nb_models = 5L,
+    backend = "future",
+    depth = 1L,
+    plot_details = 1L,
+    max_pass = 10L,
+    verbosity = 1L,
+    nb_cores = 1L
+  )
+}
+
+#' A simple function that returns default fit options for bipartite
+#' @noRd
+default_fit_opts_bipartite <- function() {
+  list(
+    algo_ve = "fp",
+    minibatch = TRUE,
+    verbosity = 0,
+    tolerance = 1e-6,
+    max_vem_steps = 3000L,
+    greedy_exploration_max_steps = 50,
+    greedy_exploration_max_steps_without_improvement = 5
+  )
 }
 
 #' Title
