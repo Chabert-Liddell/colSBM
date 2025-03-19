@@ -137,7 +137,7 @@ test_that("check_networks_list_match_emission_distribution() detects non matchin
   expect_error(check_networks_list_match_emission_distribution(networks_list = list(matrix(c(0.5, 1))), emission_distribution = "poisson"), "non integer entries")
   expect_error(check_networks_list_match_emission_distribution(networks_list = list(matrix(c(0, 1.5))), emission_distribution = "poisson"), "non integer entries")
   expect_error(check_networks_list_match_emission_distribution(networks_list = list(matrix(c(0, 1, "0"))), emission_distribution = "poisson"), "non integer entries")
-  expect_error(check_networks_list_match_emission_distribution(networks_list = list(matrix(c(0, -1, 2))), emission_distribution = "poisson"), "with negative entries")
+  expect_error(check_networks_list_match_emission_distribution(networks_list = list(matrix(c(0, -1, 2))), emission_distribution = "poisson"), "non-negative integer entries")
 })
 
 ## Matching networks matrices
