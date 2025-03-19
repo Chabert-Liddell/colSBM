@@ -190,7 +190,7 @@ check_networks_list_match_emission_distribution <- function(
 
   switch(emission_distribution,
     poisson = {
-      if (!all(sapply(networks_list, rlang::is_integerish, finite = FALSE))) {
+      if (!all(sapply(networks_list, rlang::is_integerish))) {
         cli::cli_abort(
           c("For Poisson emission distribution, all matrices in {.arg {arg}} must have non-negative integer entries.",
             "x" = "You've provided a {.obj_type_friendly {networks_list[[1]]}} with non integer entries."
