@@ -25,6 +25,8 @@ clusterize_unipartite_networks(
 
 \item{colsbm_model}{Which colSBM to use, one of "iid", "pi", "delta", "deltapi",}
 
+\item{directed}{A boolean, should the networks be considered as directed or not.}
+
 \item{net_id}{A vector of string, the name of the networks.}
 
 \item{distribution}{A string, the emission distribution, either "bernoulli"
@@ -66,7 +68,7 @@ This functions make call to \code{estimate_colSBM}.
 alpha1 <- matrix(c(0.8, 0.1, 0.2, 0.7), byrow = TRUE, nrow = 2)
 alpha2 <- matrix(c(0.8, 0.5, 0.5, 0.2), byrow = TRUE, nrow = 2)
 first_collection <- generate_unipartite_collection(
-  n = 50
+  n = 50,
   pi = c(0.5, 0.5),
   alpha = alpha1, M = 2
 )

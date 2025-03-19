@@ -3,6 +3,7 @@
 #'
 #' @param netlist A list of matrices.
 #' @param colsbm_model Which colSBM to use, one of "iid", "pi", "delta", "deltapi",
+#' @param directed A boolean, should the networks be considered as directed or not.
 #' @param net_id A vector of string, the name of the networks.
 #' @param distribution A string, the emission distribution, either "bernoulli"
 #' (the default) or "poisson"
@@ -29,7 +30,7 @@
 #' \item{partition}{A list of models giving the best partition.}
 #' \item{cluster}{A vector of integers giving the cluster of each network.}
 #'
-#' @details 
+#' @details
 #' This functions make call to `estimate_colSBM`.
 #' @export
 #'
@@ -40,7 +41,7 @@
 #' alpha1 <- matrix(c(0.8, 0.1, 0.2, 0.7), byrow = TRUE, nrow = 2)
 #' alpha2 <- matrix(c(0.8, 0.5, 0.5, 0.2), byrow = TRUE, nrow = 2)
 #' first_collection <- generate_unipartite_collection(
-#'   n = 50
+#'   n = 50,
 #'   pi = c(0.5, 0.5),
 #'   alpha = alpha1, M = 2
 #' )
@@ -59,17 +60,17 @@
 #' )
 #' }
 clusterize_unipartite_networks <- function(netlist,
-                                colsbm_model,
-                                directed = FALSE,
-                                net_id = NULL,
-                                distribution = "bernoulli",
-                                nb_run = 3L,
-                                global_opts = list(),
-                                fit_opts = list(),
-                                fit_init = NULL,
-                                full_inference = FALSE,
-                                verbose = TRUE,
-                                temp_save_path = tempfile(fileext = ".Rds")) {
+                                           colsbm_model,
+                                           directed = FALSE,
+                                           net_id = NULL,
+                                           distribution = "bernoulli",
+                                           nb_run = 3L,
+                                           global_opts = list(),
+                                           fit_opts = list(),
+                                           fit_init = NULL,
+                                           full_inference = FALSE,
+                                           verbose = TRUE,
+                                           temp_save_path = tempfile(fileext = ".Rds")) {
   check_unipartite_colsbm_models(colsbm_model = colsbm_model)
   # Check if a netlist is provided, try to cast it if not
   check_networks_list(networks_list = netlist)
@@ -148,7 +149,6 @@ clusterize_unipartite_networks <- function(netlist,
     fits <- future.apply::future_lapply(
       c(1, 2),
       function(k) {
-
         Z_init <- lapply(
           seq_along(fit$model_list[[1]]),
           function(q) {
@@ -199,7 +199,6 @@ clusterize_unipartite_networks <- function(netlist,
       # Assign the new cluster to the networks
       cluster[fit$net_id[cl == 2]] <- prev_cluster + 1
       cluster_history <- rbind(cluster_history, matrix(unname(cluster), nrow = 1))
-
     } else {
       list_model_binary <- append(list_model_binary, list(fit$best_fit))
       if (verbose) {
@@ -224,58 +223,6 @@ clusterize_unipartite_networks <- function(netlist,
   saveRDS(output_list, temp_save_path)
   cli::cli_alert_info("The final results are saved at {.val {temp_save_path}}")
   return(output_list)
-}
-
-#' Extract the best partition from the list of model given by the functions
-#' `clusterize_networks()` or `clusterize_bipartite_networks()`.
-#'
-#' @param l A list of models obtained from the function  `clusterize_networks()`
-#' @param unnest A boolean specifying if the returned object should be un-nested
-#' (and thus loose exploration clustering structure) or not. Default to TRUE.
-#'
-#'
-#' @return A list of models giving the best partition.
-#' @export
-#'
-#' @examples
-#'
-#' #' # Trivial example with Gnp networks:
-#' Net <- lapply(
-#'   list(.7, .7, .2, .2),
-#'   function(p) {
-#'     A <- matrix(0, 15, 15)
-#'     A[lower.tri(A)][sample(15 * 14 / 2, size = round(p * 15 * 14 / 2))] <- 1
-#'     A <- A + t(A)
-#'   }
-#' )
-#' \dontrun{
-#' cl <- clusterize_networks(Net,
-#'   colsbm_model = "iid",
-#'   directed = FALSE,
-#'   distribution = "bernoulli",
-#'   nb_run = 1
-#' )
-#' best_partition <- extract_best_partition(cl)
-#' }
-extract_best_partition <- function(l, unnest = TRUE) {
-  if (inherits(l, "fitSimpleSBMPop") || inherits(l, "fitBipartiteSBMPop")) {
-    return(l)
-  }
-  stopifnot("Provided clustering contains incorrect fit objects ! Should be fitSimpleSBMPop or fitBipartiteSBMPop" = (inherits(l[[1]], "fitSimpleSBMPop") || inherits(l[[1]], "fitBipartiteSBMPop")))
-  if (length(l) == 1) {
-    return(l[[1]])
-  }
-  if (length(l) == 2) {
-    return(l[[2]])
-  }
-  out <- list(
-    extract_best_partition(l[[2]]),
-    extract_best_partition(l[[3]])
-  )
-  if (unnest && is.list(out)) {
-    out <- unlist(out)
-  }
-  return(out)
 }
 
 #' Partition of a collection of bipartite networks based on their common
@@ -308,14 +255,10 @@ extract_best_partition <- function(l, unnest = TRUE) {
 #' @return A list of models for the recursive partition of
 #' the collection of networks.
 #'
-#' @details The best partition could be extract with the function
-#' `extract_best_partition()`. The object of the list are fitBipartiteSBMPop
-#' object, so it is a model for a given number of blocks Q1, Q2.
-#'
 #' This functions make call to `estimate_colBiSBM`.
 #' @export
 #'
-#' @seealso [colSBM::extract_best_partition()], [colSBM::estimate_colBiSBM()],
+#' @seealso [colSBM::clusterize_unipartite_networks()], [colSBM::estimate_colBiSBM()],
 #' \code{\link[colSBM]{fitBipartiteSBMPop}}, `browseVignettes("colSBM")`
 #'
 #' @examples
@@ -901,61 +844,4 @@ clusterize_bipartite_networks_graphon <- function(
   cli::cli_h1("Clustering of bipartite networks completed")
 
   return(list(fusion_history = fusion_history, bicl_history = bicl_history))
-}
-
-#' Convert to tree
-#'
-#' @importFrom phylogram read.dendrogram
-#' @importFrom stringr str_replace_all
-#'
-#' @param clustering A nested list given by one of the clusterize function from
-#' which to extract the clustering tree.
-#' @param invalid_char_to_replace_regex A regex string used by
-#' `stringr::str_replace_all()` to clean net_ids before they are processed.
-#' @param net_id_width An integer to truncate long net_id and prevent messy
-#' plots. Defaults to 20.
-#'
-#' @return A dendrogram object
-#'
-#' @export
-#'
-#' @details
-#' This function converts the nested list given by the clusterize functions
-#' in Newick tree format that is read by `phylogram::read.dendrogram`.
-#'
-#' The code is adapted from this StackOverflow answer :
-#' https://stackoverflow.com/questions/45091691/convert-a-nested-list-in-dendrogram-tree-with-r
-extract_clustering_dendrogram <- function(
-    clustering,
-    invalid_char_to_replace_regex = "\\(|\\)",
-    net_id_width = 20L) {
-  partition <- extract_best_partition(clustering, unnest = FALSE)
-  if ((
-    inherits(partition, "fitBipartiteSBMPop") ||
-      inherits(partition, "fitSimpleSBMPop")) &&
-    !is.list(partition)) {
-    partition <- list(partition)
-  }
-  net_id_clustering <- rapply(partition,
-    function(collection) {
-      collection[["net_id"]]
-    },
-    how = "list"
-  )
-
-  net_id_clustering <- rapply(net_id_clustering, function(vec_net_id) {
-    vec_net_id <- stringr::str_replace_all(vec_net_id, invalid_char_to_replace_regex, "")
-    vec_net_id <- stringr::str_trunc(string = vec_net_id, width = net_id_width)
-  }, how = "list")
-
-  newick_str <- paste0(lapply(net_id_clustering, function(y) paste0("(", paste0(y, collapse = ","), ")")), collapse = ",")
-
-  # remove unwanted characters
-  newick_str <- gsub('\"|c|list| ', "", newick_str)
-  newick_str <- paste0("(", newick_str, ");")
-
-  # remove brackets from single term list object
-  newick_str <- stringr::str_replace_all(newick_str, "\\([a-z]*\\)", function(x) gsub("^\\(|\\)$", "", x))
-
-  return(phylogram::read.dendrogram(text = newick_str))
 }

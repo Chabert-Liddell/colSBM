@@ -31,7 +31,6 @@ Imports:
     parallel,
     parallelly,
     patchwork,
-    phylogram,
     progressr,
     purrr,
     R6,
@@ -39,7 +38,6 @@ Imports:
     rlang,
     sbm,
     stats,
-    stringr,
     tibble,
     tidyr,
     utils

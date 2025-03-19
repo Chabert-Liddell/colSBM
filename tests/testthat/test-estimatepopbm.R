@@ -24,7 +24,7 @@ test_that("clusterize_bipartite_networks works with valid inputs", {
   )
 
   expect_type(result, "list")
-  expect_true(all(sapply(result, inherits, "fitBipartiteSBMPop")))
+  expect_true(all(sapply(result$partition, inherits, "fitBipartiteSBMPop")))
 })
 
 test_that("clusterize_bipartite_networks handles invalid colsbm_model", {
@@ -80,7 +80,7 @@ test_that("clusterize_bipartite_networks works with different distributions", {
   )
 
   expect_type(result, "list")
-  expect_true(all(sapply(result, inherits, "fitBipartiteSBMPop")))
+  expect_true(all(sapply(result$partition, inherits, "fitBipartiteSBMPop")))
 })
 
 test_that("clusterize_bipartite_networks works with full_inference = TRUE", {
@@ -108,5 +108,5 @@ test_that("clusterize_bipartite_networks works with full_inference = TRUE", {
   )
 
   expect_type(result, "list")
-  expect_true(all(sapply(result, inherits, "fitBipartiteSBMPop")))
+  expect_true(all(sapply(result$partition, inherits, "fitBipartiteSBMPop")))
 })

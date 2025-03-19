@@ -2,7 +2,8 @@
 
 * Reworked clustering to have it de-recursified
 * Added a clustering function based on graphon distance
-* Added a `$cluster`vector to clustering output
+* Added a `$cluster` vector to clustering output
+* Removing `extract_best_partition()` and `extract_clustering_dendrogram()`
 
 # colSBM 0.4.1
 
