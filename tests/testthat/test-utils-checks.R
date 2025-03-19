@@ -127,6 +127,7 @@ test_that("check_networks_list_match_emission_distribution() detects matching ne
   expect_no_error(check_networks_list_match_emission_distribution(networks_list = list(matrix(c(0, 1))), emission_distribution = "bernoulli"))
   expect_no_error(check_networks_list_match_emission_distribution(networks_list = list(matrix(c(0, 1), c(1, 0))), emission_distribution = "bernoulli"))
   expect_no_error(check_networks_list_match_emission_distribution(networks_list = list(matrix(c(0, 1), c(1, 0)), matrix(c(0, 1), c(1, 0))), emission_distribution = "bernoulli"))
+  expect_no_error(check_networks_list_match_emission_distribution(networks_list = list(matrix(c(0, NA), c(1, 0)), matrix(c(0, 1), c(1, 0)), matrix(c(0, 1), c(1, 0))), emission_distribution = "bernoulli"))
 })
 
 
