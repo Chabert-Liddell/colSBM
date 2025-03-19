@@ -198,9 +198,7 @@ net_clust <- clusterize_bipartite_networks(
 best_partition <- net_clust$partition
 ```
 
-We obtain a list of `r length(best_partition)` tested collections. The lists are nested and reflect the
-sequential steps of clustering.
-The extraction of the best partition below reveals that our `r length(sim_net)`
+The obtained partition below reveals that our `r length(sim_net)`
 simulated networks are considered as being part of the same collection and that
 the among the 4
 plant-pollinator networks there exists a difference leading to 2 collections that
