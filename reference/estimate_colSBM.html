@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">colSBM</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -53,6 +53,7 @@
 <span>  nb_run <span class="op">=</span> <span class="fl">3L</span>,</span>
 <span>  global_opts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  fit_opts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  Z_init <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fit_init <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -100,6 +101,11 @@ Use to speed up the initialization.</p></dd>
 <dd><p>Fit options for the VEM algorithm</p></dd>
 
 
+<dt id="arg-z-init">Z_init<a class="anchor" aria-label="anchor" href="#arg-z-init"></a></dt>
+<dd><p>An optional list of cluster memberships for q in 1:Q_max.
+Default to NULL.</p></dd>
+
+
 <dt id="arg-fit-init">fit_init<a class="anchor" aria-label="anchor" href="#arg-fit-init"></a></dt>
 <dd><p>Do not use!
 Optional fit init from where initializing the algorithm.</p></dd>
@@ -112,7 +118,7 @@ collection of networks</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="clusterize_networks.html">clusterize_networks()</a></code>, <code><a href="bmpop.html">bmpop</a></code>,
+    <div class="dont-index"><p><code><a href="clusterize_unipartite_networks.html">clusterize_unipartite_networks()</a></code>, <code><a href="bmpop.html">bmpop</a></code>,
 <code><a href="fitSimpleSBMPop.html">fitSimpleSBMPop</a></code>, <code>browseVignettes("colSBM")</code></p></div>
     </div>
 

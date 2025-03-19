@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">colSBM</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -37,6 +37,14 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.2" id="colsbm-042">colSBM 0.4.2<a class="anchor" aria-label="anchor" href="#colsbm-042"></a></h2>
+<ul><li>Reworked clustering to have it de-recursified</li>
+<li>Added a clustering function based on graphon distance</li>
+<li>Added a <code>$cluster</code> vector to clustering output</li>
+<li>Removing <code>extract_best_partition()</code> and <code>extract_clustering_dendrogram()</code>
+</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.1" id="colsbm-041">colSBM 0.4.1<a class="anchor" aria-label="anchor" href="#colsbm-041"></a></h2>
 <ul><li>Reworking plot functions to be more flexible and customizable by not relying on R6 plot methods</li>
 <li>Turning plot.bisbmpop into an heatmap plot with possibility to select criterion to show</li>
@@ -55,14 +63,14 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.1" id="colsbm-021">colSBM 0.2.1<a class="anchor" aria-label="anchor" href="#colsbm-021"></a></h2>
 <ul><li>BREAKING CHANGE: emission distribution arguments are now named “distribution” instead of “model”</li>
-<li>Fixed an error in <code><a href="../reference/extract_best_partition.html">extract_best_partition()</a></code>
+<li>Fixed an error in <code>extract_best_partition()</code>
 </li>
 <li>Fixed a bug when using “spectal_init” as a <code>global_opts</code> arguement</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.0" id="colsbm-020">colSBM 0.2.0<a class="anchor" aria-label="anchor" href="#colsbm-020"></a></h2>
 <ul><li>Added sparse matrix with the <code>Matrix</code> package leading to less intensive memory usage</li>
-<li>Added <code><a href="../reference/extract_best_partition.html">extract_best_partition()</a></code> function</li>
+<li>Added <code>extract_best_partition()</code> function</li>
 <li>Improved documentation, references and vignette</li>
 </ul></div>
     <div class="section level2">
@@ -72,7 +80,7 @@
 <h2 class="pkg-version" data-toc-text="0.1.0" id="colsbm-010">colSBM 0.1.0<a class="anchor" aria-label="anchor" href="#colsbm-010"></a></h2>
 <div class="section level3">
 <h3 id="breaking-changes-0-1-0">Breaking changes<a class="anchor" aria-label="anchor" href="#breaking-changes-0-1-0"></a></h3>
-<ul><li>Changed the name of <code>EstimateBMPOP()</code> to <code><a href="../reference/clusterize_networks.html">clusterize_networks()</a></code>
+<ul><li>Changed the name of <code>EstimateBMPOP()</code> to <code>clusterize_networks()</code>
 </li>
 <li>Most internal functions are not exported anymore</li>
 </ul></div>

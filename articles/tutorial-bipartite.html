@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">colSBM</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -101,27 +101,27 @@ networks, using the <em>iid-colBiSBM</em> model.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; vbound : </span></span>
 <span><span class="co">#&gt;       [,1] [,2] [,3] [,4] [,5]</span></span>
-<span><span class="co">#&gt; [1,] -Inf -625 -620 -Inf -Inf</span></span>
-<span><span class="co">#&gt; [2,] -721 -614 -607 -Inf -Inf</span></span>
-<span><span class="co">#&gt; [3,] -720 -606 -600 -Inf -Inf</span></span>
+<span><span class="co">#&gt; [1,] -725 -625 -620 -620 -Inf</span></span>
+<span><span class="co">#&gt; [2,] -720 -614 -606 -Inf -Inf</span></span>
+<span><span class="co">#&gt; [3,] -720 -607 -596 -Inf -Inf</span></span>
 <span><span class="co">#&gt; [4,] -Inf -Inf -Inf -Inf -Inf</span></span>
 <span><span class="co">#&gt; [5,] -Inf -Inf -Inf -Inf -Inf</span></span>
 <span><span class="co">#&gt; [6,] -Inf -Inf -Inf -Inf -Inf </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ICL    : </span></span>
 <span><span class="co">#&gt;       [,1] [,2] [,3] [,4] [,5]</span></span>
-<span><span class="co">#&gt; [1,] -729 -635 -642 -Inf -Inf</span></span>
-<span><span class="co">#&gt; [2,] -732 -651 -653 -Inf -Inf</span></span>
-<span><span class="co">#&gt; [3,] -739 -669 -684 -Inf -Inf</span></span>
+<span><span class="co">#&gt; [1,] -729 -635 -642 -653 -Inf</span></span>
+<span><span class="co">#&gt; [2,] -733 -651 -668 -Inf -Inf</span></span>
+<span><span class="co">#&gt; [3,] -740 -686 -667 -Inf -Inf</span></span>
 <span><span class="co">#&gt; [4,] -Inf -Inf -Inf -Inf -Inf</span></span>
 <span><span class="co">#&gt; [5,] -Inf -Inf -Inf -Inf -Inf</span></span>
 <span><span class="co">#&gt; [6,] -Inf -Inf -Inf -Inf -Inf </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; BICL   : </span></span>
 <span><span class="co">#&gt;       [,1] [,2] [,3] [,4] [,5]</span></span>
-<span><span class="co">#&gt; [1,] -729 -635 -636 -Inf -Inf</span></span>
-<span><span class="co">#&gt; [2,] -731 -634 -636 -Inf -Inf</span></span>
-<span><span class="co">#&gt; [3,] -736 -636 -644 -Inf -Inf</span></span>
+<span><span class="co">#&gt; [1,] -729 -635 -636 -642 -Inf</span></span>
+<span><span class="co">#&gt; [2,] -730 -634 -636 -Inf -Inf</span></span>
+<span><span class="co">#&gt; [3,] -736 -638 -640 -Inf -Inf</span></span>
 <span><span class="co">#&gt; [4,] -Inf -Inf -Inf -Inf -Inf</span></span>
 <span><span class="co">#&gt; [5,] -Inf -Inf -Inf -Inf -Inf</span></span>
 <span><span class="co">#&gt; [6,] -Inf -Inf -Inf -Inf -Inf </span></span>
@@ -130,12 +130,12 @@ networks, using the <em>iid-colBiSBM</em> model.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ==== Best fits criterion for the 2 networks. Computed in 0.382 secs ====</span></span>
+<span><span class="co">#&gt; ==== Best fits criterion for the 2 networks. Computed in 0.36 secs ====</span></span>
 <span><span class="co">#&gt; Sep BiSBM total BICL:  -640.6602</span></span>
-<span><span class="co">#&gt; colBiSBM BICL: -633.9764</span></span>
+<span><span class="co">#&gt; colBiSBM BICL: -633.8671</span></span>
 <span><span class="co">#&gt; Joint modelisation preferred. With Q = ( 2, 2 ).</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ==== Full computation performed in 12.8 secs ====</span></span></code></pre></div>
+<span><span class="co">#&gt; ==== Full computation performed in 10.7 secs ====</span></span></code></pre></div>
 <p>The output indicates that the collection benefits from a joint
 modelisation</p>
 <blockquote>
@@ -164,7 +164,7 @@ State-space exploration
 <span><span class="co">#&gt; =====================================================================</span></span>
 <span><span class="co">#&gt; net_id = ( medan2002ld medan2002rb )</span></span>
 <span><span class="co">#&gt; Dimensions = ( c(45, 21), c(72, 23) ) - ( 2, 2 ) blocks.</span></span>
-<span><span class="co">#&gt; BICL =  -633.9764 </span></span>
+<span><span class="co">#&gt; BICL =  -633.8671 </span></span>
 <span><span class="co">#&gt; #Empty row blocks on all networks:  0  -- #Empty columns blocks on all networks:  0  </span></span>
 <span><span class="co">#&gt; * Useful fields </span></span>
 <span><span class="co">#&gt;   $distribution, $nb_nodes, $nb_blocks, $support, $prob_memberships </span></span>
@@ -177,24 +177,24 @@ State-space exploration
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">best_fit</span><span class="op">$</span><span class="va">parameters</span></span>
 <span><span class="co">#&gt; $alpha</span></span>
-<span><span class="co">#&gt;           [,1]         [,2]</span></span>
-<span><span class="co">#&gt; [1,] 0.5877104 1.373508e-05</span></span>
-<span><span class="co">#&gt; [2,] 0.2717843 8.324585e-02</span></span>
+<span><span class="co">#&gt;           [,1]       [,2]</span></span>
+<span><span class="co">#&gt; [1,] 0.2499130 0.18198053</span></span>
+<span><span class="co">#&gt; [2,] 0.4218242 0.03428153</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $pi</span></span>
 <span><span class="co">#&gt; $pi[[1]]</span></span>
-<span><span class="co">#&gt; [1] 0.5324849 0.4675151</span></span>
+<span><span class="co">#&gt; [1] 0.06654147 0.93345853</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $pi[[2]]</span></span>
-<span><span class="co">#&gt; [1] 0.5324849 0.4675151</span></span>
+<span><span class="co">#&gt; [1] 0.06654147 0.93345853</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $rho</span></span>
 <span><span class="co">#&gt; $rho[[1]]</span></span>
-<span><span class="co">#&gt; [1] 0.08383996 0.91616004</span></span>
+<span><span class="co">#&gt; [1] 0.08387959 0.91612041</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $rho[[2]]</span></span>
-<span><span class="co">#&gt; [1] 0.08383996 0.91616004</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.08387959 0.91612041</span></span></code></pre></div>
 <ul>
 <li>The block memberships:</li>
 </ul>
@@ -205,69 +205,69 @@ State-space exploration
 <span><span class="co">#&gt;     Coleoptera Buprestidae Buprestidae sp. </span></span>
 <span><span class="co">#&gt;                                          2 </span></span>
 <span><span class="co">#&gt;     Coleoptera Cantharidae Cantharidae sp. </span></span>
-<span><span class="co">#&gt;                                          1 </span></span>
+<span><span class="co">#&gt;                                          2 </span></span>
 <span><span class="co">#&gt;  Coleoptera Coccinellidae Coccinelidae sp1 </span></span>
-<span><span class="co">#&gt;                                          1 </span></span>
+<span><span class="co">#&gt;                                          2 </span></span>
 <span><span class="co">#&gt;  Coleoptera Coccinellidae Coccinelidae sp2 </span></span>
-<span><span class="co">#&gt;                                          1 </span></span>
+<span><span class="co">#&gt;                                          2 </span></span>
 <span><span class="co">#&gt;  Coleoptera Coccinellidae Coccinelidae sp3 </span></span>
-<span><span class="co">#&gt;                                          1 </span></span>
+<span><span class="co">#&gt;                                          2 </span></span>
 <span><span class="co">#&gt; Coleoptera Curculionidae Curculionidae sp. </span></span>
-<span><span class="co">#&gt;                                          1 </span></span>
+<span><span class="co">#&gt;                                          2 </span></span>
 <span><span class="co">#&gt;           Coleoptera Meloidae Epicauta sp. </span></span>
 <span><span class="co">#&gt;                                          2 </span></span>
 <span><span class="co">#&gt;     Coleoptera Mordellidae Mordellidae sp. </span></span>
-<span><span class="co">#&gt;                                          1 </span></span>
+<span><span class="co">#&gt;                                          2 </span></span>
 <span><span class="co">#&gt;      Diptera Anthomyiidae Anthomyiidae sp2 </span></span>
-<span><span class="co">#&gt;                                          1</span></span></code></pre></div>
+<span><span class="co">#&gt;                                          2</span></span></code></pre></div>
 <p>And their probabilities:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">best_fit</span><span class="op">$</span><span class="va">prob_memberships</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="fl">1</span><span class="op">]</span></span>
 <span><span class="co">#&gt;        Birds Trochilidae Sappho sparganura </span></span>
-<span><span class="co">#&gt;                               5.241083e-09 </span></span>
+<span><span class="co">#&gt;                               0.1369510749 </span></span>
 <span><span class="co">#&gt;     Coleoptera Buprestidae Buprestidae sp. </span></span>
-<span><span class="co">#&gt;                               4.167766e-04 </span></span>
+<span><span class="co">#&gt;                               0.0117576955 </span></span>
 <span><span class="co">#&gt;     Coleoptera Cantharidae Cantharidae sp. </span></span>
-<span><span class="co">#&gt;                               8.966707e-01 </span></span>
+<span><span class="co">#&gt;                               0.0019309149 </span></span>
 <span><span class="co">#&gt;  Coleoptera Coccinellidae Coccinelidae sp1 </span></span>
-<span><span class="co">#&gt;                               9.707347e-01 </span></span>
+<span><span class="co">#&gt;                               0.0008912515 </span></span>
 <span><span class="co">#&gt;  Coleoptera Coccinellidae Coccinelidae sp2 </span></span>
-<span><span class="co">#&gt;                               8.966707e-01 </span></span>
+<span><span class="co">#&gt;                               0.0019309149 </span></span>
 <span><span class="co">#&gt;  Coleoptera Coccinellidae Coccinelidae sp3 </span></span>
-<span><span class="co">#&gt;                               8.966707e-01 </span></span>
+<span><span class="co">#&gt;                               0.0019309149 </span></span>
 <span><span class="co">#&gt; Coleoptera Curculionidae Curculionidae sp. </span></span>
-<span><span class="co">#&gt;                               8.966707e-01 </span></span>
+<span><span class="co">#&gt;                               0.0019309149 </span></span>
 <span><span class="co">#&gt;           Coleoptera Meloidae Epicauta sp. </span></span>
-<span><span class="co">#&gt;                               1.090684e-04 </span></span>
+<span><span class="co">#&gt;                               0.0251541553 </span></span>
 <span><span class="co">#&gt;     Coleoptera Mordellidae Mordellidae sp. </span></span>
-<span><span class="co">#&gt;                               9.707347e-01 </span></span>
+<span><span class="co">#&gt;                               0.0008912515 </span></span>
 <span><span class="co">#&gt;      Diptera Anthomyiidae Anthomyiidae sp2 </span></span>
-<span><span class="co">#&gt;                               8.966707e-01</span></span></code></pre></div>
+<span><span class="co">#&gt;                               0.0019309149</span></span></code></pre></div>
 <ul>
 <li>The prediction for each dyads in the networks</li>
 </ul>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">best_fit</span><span class="op">$</span><span class="va">pred_dyads</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="fl">1</span><span class="op">]</span></span>
 <span><span class="co">#&gt;        Birds Trochilidae Sappho sparganura </span></span>
-<span><span class="co">#&gt;                                0.083245848 </span></span>
+<span><span class="co">#&gt;                                 0.05504518 </span></span>
 <span><span class="co">#&gt;     Coleoptera Buprestidae Buprestidae sp. </span></span>
-<span><span class="co">#&gt;                                0.083211159 </span></span>
+<span><span class="co">#&gt;                                 0.03661664 </span></span>
 <span><span class="co">#&gt;     Coleoptera Cantharidae Cantharidae sp. </span></span>
-<span><span class="co">#&gt;                                0.008614050 </span></span>
+<span><span class="co">#&gt;                                 0.03517014 </span></span>
 <span><span class="co">#&gt;  Coleoptera Coccinellidae Coccinelidae sp1 </span></span>
-<span><span class="co">#&gt;                                0.002449548 </span></span>
+<span><span class="co">#&gt;                                 0.03501710 </span></span>
 <span><span class="co">#&gt;  Coleoptera Coccinellidae Coccinelidae sp2 </span></span>
-<span><span class="co">#&gt;                                0.008614050 </span></span>
+<span><span class="co">#&gt;                                 0.03517014 </span></span>
 <span><span class="co">#&gt;  Coleoptera Coccinellidae Coccinelidae sp3 </span></span>
-<span><span class="co">#&gt;                                0.008614050 </span></span>
+<span><span class="co">#&gt;                                 0.03517014 </span></span>
 <span><span class="co">#&gt; Coleoptera Curculionidae Curculionidae sp. </span></span>
-<span><span class="co">#&gt;                                0.008614050 </span></span>
+<span><span class="co">#&gt;                                 0.03517014 </span></span>
 <span><span class="co">#&gt;           Coleoptera Meloidae Epicauta sp. </span></span>
-<span><span class="co">#&gt;                                0.083236771 </span></span>
+<span><span class="co">#&gt;                                 0.03858861 </span></span>
 <span><span class="co">#&gt;     Coleoptera Mordellidae Mordellidae sp. </span></span>
-<span><span class="co">#&gt;                                0.002449548 </span></span>
+<span><span class="co">#&gt;                                 0.03501710 </span></span>
 <span><span class="co">#&gt;      Diptera Anthomyiidae Anthomyiidae sp2 </span></span>
-<span><span class="co">#&gt;                                0.008614050</span></span></code></pre></div>
+<span><span class="co">#&gt;                                 0.03517014</span></span></code></pre></div>
 <p>We can also plot the networks individually:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res_pp_iid</span><span class="op">$</span><span class="va">best_fit</span>, type <span class="op">=</span> <span class="st">"block"</span>, net_id <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
@@ -317,12 +317,12 @@ olensen2002flo networks, using the <em>iid-colBiSBM</em> model.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ==== Best fits criterion for the 4 networks. Computed in 1.19 secs ====</span></span>
+<span><span class="co">#&gt; ==== Best fits criterion for the 4 networks. Computed in 1.07 secs ====</span></span>
 <span><span class="co">#&gt; Sep BiSBM total BICL:  -813.0666</span></span>
-<span><span class="co">#&gt; colBiSBM BICL: -817.0868</span></span>
+<span><span class="co">#&gt; colBiSBM BICL: -816.8325</span></span>
 <span><span class="co">#&gt; Separated modelisation preferred.</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ==== Full computation performed in 14.1 secs ====</span></span></code></pre></div>
+<span><span class="co">#&gt; ==== Full computation performed in 21.8 secs ====</span></span></code></pre></div>
 <p>The output indicates that the collection does not benefit from a
 joint modelisation.</p>
 <blockquote>
@@ -374,27 +374,20 @@ previously.</p>
 <span>    Q1_max <span class="op">=</span> <span class="fl">9L</span>,</span>
 <span>    Q2_max <span class="op">=</span> <span class="fl">9L</span></span>
 <span>  <span class="op">)</span>, <span class="co"># Max number of clusters</span></span>
-<span>  fit_opts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>max_vem_steps <span class="op">=</span> <span class="fl">1000L</span><span class="op">)</span></span>
+<span>  fit_opts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>max_vem_steps <span class="op">=</span> <span class="fl">2000L</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> A save file will be created at <span style="color: #0000BB;">"/tmp/RtmpGouKsn/file69c6c21cb2a.Rds"</span> and updated after each step</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Fitting the full collection</span> <span style="color: #00BBBB;">─────────────────────────────────────────────────</span></span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Beginning clustering</span> <span style="color: #00BBBB;">────────────────────────────────────────────────────────</span></span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">Trying to split the collection of </span><span style="color: #0000BB; font-weight: bold;">"medan2002ld"</span><span style="font-weight: bold;">, </span><span style="color: #0000BB; font-weight: bold;">"medan2002rb"</span><span style="font-weight: bold;">, </span><span style="color: #0000BB; font-weight: bold;">"olensen2002aig"</span><span style="font-weight: bold;">, </span><span style="color: #0000BB; font-weight: bold;">"olensen2002flo"</span><span style="font-weight: bold;">, </span><span style="color: #0000BB; font-weight: bold;">"sim1"</span><span style="font-weight: bold;">, and </span><span style="color: #0000BB; font-weight: bold;">"sim2"</span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Fitting a sub collection with : <span style="color: #0000BB;">"medan2002ld"</span>, <span style="color: #0000BB;">"medan2002rb"</span>, and <span style="color: #0000BB;">"olensen2002flo"</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; The window is (partially) out of domain !</span></span>
-<span><span class="co">#&gt; Trying to go from (1, 0) to (3, 2).</span></span>
-<span><span class="co">#&gt; Max window should be :</span></span>
-<span><span class="co">#&gt; (1, 9)---(9, 9)</span></span>
-<span><span class="co">#&gt;   ||       || </span></span>
-<span><span class="co">#&gt; (1, 1)---(9, 1)</span></span>
-<span><span class="co">#&gt; The window will work best on valid configurations</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; The window is (partially) out of domain !</span></span>
-<span><span class="co">#&gt; Trying to go from (1, 0) to (3, 2).</span></span>
-<span><span class="co">#&gt; Max window should be :</span></span>
-<span><span class="co">#&gt; (1, 9)---(9, 9)</span></span>
-<span><span class="co">#&gt;   ||       || </span></span>
-<span><span class="co">#&gt; (1, 1)---(9, 1)</span></span>
-<span><span class="co">#&gt; The window will work best on valid configurations</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; The window is (partially) out of domain !</span></span>
-<span><span class="co">#&gt; Trying to go from (1, 0) to (3, 2).</span></span>
+<span><span class="co">#&gt; Trying to go from (0, 1) to (2, 3).</span></span>
 <span><span class="co">#&gt; Max window should be :</span></span>
 <span><span class="co">#&gt; (1, 9)---(9, 9)</span></span>
 <span><span class="co">#&gt;   ||       || </span></span>
@@ -408,6 +401,26 @@ previously.</p>
 <span><span class="co">#&gt;   ||       || </span></span>
 <span><span class="co">#&gt; (1, 1)---(9, 1)</span></span>
 <span><span class="co">#&gt; The window will work best on valid configurations</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Fitting a sub collection with : <span style="color: #0000BB;">"olensen2002aig"</span>, <span style="color: #0000BB;">"sim1"</span>, and <span style="color: #0000BB;">"sim2"</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Splitting collections improved the BIC-L criterion</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">Trying to split the collection of </span><span style="color: #0000BB; font-weight: bold;">"medan2002ld"</span><span style="font-weight: bold;">, </span><span style="color: #0000BB; font-weight: bold;">"medan2002rb"</span><span style="font-weight: bold;">, and </span><span style="color: #0000BB; font-weight: bold;">"olensen2002flo"</span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Fitting a sub collection with : <span style="color: #0000BB;">"medan2002ld"</span> and <span style="color: #0000BB;">"medan2002rb"</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Fitting a sub collection with : <span style="color: #0000BB;">"olensen2002flo"</span></span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; The window is (partially) out of domain !</span></span>
+<span><span class="co">#&gt; Trying to go from (0, 0) to (2, 2).</span></span>
+<span><span class="co">#&gt; Max window should be :</span></span>
+<span><span class="co">#&gt; (1, 9)---(9, 9)</span></span>
+<span><span class="co">#&gt;   ||       || </span></span>
+<span><span class="co">#&gt; (1, 1)---(9, 1)</span></span>
+<span><span class="co">#&gt; The window will work best on valid configurations</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Splitting collections improved the BIC-L criterion</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">Trying to split the collection of </span><span style="color: #0000BB; font-weight: bold;">"olensen2002aig"</span><span style="font-weight: bold;">, </span><span style="color: #0000BB; font-weight: bold;">"sim1"</span><span style="font-weight: bold;">, and </span><span style="color: #0000BB; font-weight: bold;">"sim2"</span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Fitting a sub collection with : <span style="color: #0000BB;">"olensen2002aig"</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; The window is (partially) out of domain !</span></span>
 <span><span class="co">#&gt; Trying to go from (1, 0) to (3, 2).</span></span>
@@ -416,33 +429,38 @@ previously.</p>
 <span><span class="co">#&gt;   ||       || </span></span>
 <span><span class="co">#&gt; (1, 1)---(9, 1)</span></span>
 <span><span class="co">#&gt; The window will work best on valid configurations</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Fitting a sub collection with : <span style="color: #0000BB;">"sim1"</span> and <span style="color: #0000BB;">"sim2"</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Splitting collections improved the BIC-L criterion</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">Trying to split the collection of </span><span style="color: #0000BB; font-weight: bold;">"medan2002ld"</span><span style="font-weight: bold;"> and </span><span style="color: #0000BB; font-weight: bold;">"medan2002rb"</span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Fitting a sub collection with : <span style="color: #0000BB;">"medan2002ld"</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Fitting a sub collection with : <span style="color: #0000BB;">"medan2002rb"</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; The window is (partially) out of domain !</span></span>
-<span><span class="co">#&gt; Trying to go from (0, 0) to (2, 2).</span></span>
+<span><span class="co">#&gt; Trying to go from (0, 1) to (2, 3).</span></span>
 <span><span class="co">#&gt; Max window should be :</span></span>
 <span><span class="co">#&gt; (1, 9)---(9, 9)</span></span>
 <span><span class="co">#&gt;   ||       || </span></span>
 <span><span class="co">#&gt; (1, 1)---(9, 1)</span></span>
-<span><span class="co">#&gt; The window will work best on valid configurations</span></span></code></pre></div>
+<span><span class="co">#&gt; The window will work best on valid configurations</span></span>
+<span><span class="co">#&gt; <span style="color: #BB0000;">✖</span> Splitting collections <span style="font-style: italic;">decreased</span> the BIC-L criterion</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">Trying to split the collection of </span><span style="color: #0000BB; font-weight: bold;">"sim1"</span><span style="font-weight: bold;"> and </span><span style="color: #0000BB; font-weight: bold;">"sim2"</span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Fitting a sub collection with : <span style="color: #0000BB;">"sim1"</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Fitting a sub collection with : <span style="color: #0000BB;">"sim2"</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BB0000;">✖</span> Splitting collections <span style="font-style: italic;">decreased</span> the BIC-L criterion</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Finished clustering</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> The final results are saved at <span style="color: #0000BB;">"/tmp/RtmpGouKsn/file69c6c21cb2a.Rds"</span></span></span></code></pre></div>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">best_partition</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/extract_best_partition.html">extract_best_partition</a></span><span class="op">(</span><span class="va">net_clust</span><span class="op">)</span></span></code></pre></div>
-<p>We obtain a list of 3 tested collections. The lists are nested and
-reflect the sequential steps of clustering. The extraction of the best
-partition below reveals that our 2 simulated networks are considered as
-being part of the same collection and that the among the 4
-plant-pollinator networks there exists a difference leading to 2
+<code class="sourceCode R"><span><span class="va">best_partition</span> <span class="op">&lt;-</span> <span class="va">net_clust</span><span class="op">$</span><span class="va">partition</span></span></code></pre></div>
+<p>The obtained partition below reveals that our 2 simulated networks
+are considered as being part of the same collection and that the among
+the 4 plant-pollinator networks there exists a difference leading to 2
 collections that contains networks from the same authors.</p>
-<p>The plot of the mesoscale structure of the whole collection (ie
-before partitionning) is the following:</p>
+<p>The plot of the mesoscale structures of the 4 groups shows:</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">net_clust</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
-<img src="tutorial-bipartite_files/figure-html/unnamed-chunk-14-1.png" alt="Whole collection graphon type plot" width="576"><p class="caption">
-Whole collection graphon type plot
-</p>
-</div>
-<p>but then we can compare the mesoscale structures of the 3 groups:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">wrap_plots</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">best_partition</span>, <span class="kw">function</span><span class="op">(</span><span class="va">collection</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">collection</span>, type <span class="op">=</span> <span class="st">"graphon"</span><span class="op">)</span> <span class="op">+</span></span>
