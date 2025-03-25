@@ -564,6 +564,7 @@ adjust_colBiSBM <- function(
 #' @importFrom purrr map_dfr
 #' @importFrom dplyr bind_rows
 #' @importFrom cli cli_alert_info cli_text cli_abort
+#' @importFrom tibble rownames_to_column
 #'
 #' @export
 extract_nodes_groups <- function(fit, arg = rlang::caller_arg(fit)) {
@@ -583,25 +584,27 @@ extract_nodes_groups <- function(fit, arg = rlang::caller_arg(fit)) {
 
   if (inherits(fit, "fitSimpleSBMPop")) {
     cli::cli_text("Extracting nodes groups from a fitSimpleSBMPop object.")
+    names(fit$Z) <- fit$net_id
     fit$Z %>%
       purrr::map_dfr(~ {
         .x %>%
           data.frame(node_name = names(.), cluster = .) %>%
-          rownames_to_column(var = "network")
+          tibble::rownames_to_column(var = "network")
       }, .id = "network") -> out
     return(out)
   }
   if (inherits(fit, "fitBipartiteSBMPop")) {
     cli::cli_text("Extracting nodes groups from a fitBipartiteSBMPop object.")
+    names(fit$memberships) <- fit$net_id
     fit$memberships %>%
       purrr::map_dfr(~ {
         row_df <- .x$row %>%
           data.frame(node_name = names(.), cluster = ., node_type = "row") %>%
-          rownames_to_column(var = "network")
+          tibble::rownames_to_column(var = "network")
 
         col_df <- .x$col %>%
           data.frame(node_name = names(.), cluster = ., node_type = "col") %>%
-          rownames_to_column(var = "network")
+          tibble::rownames_to_column(var = "network")
 
         dplyr::bind_rows(row_df, col_df)
       }, .id = "network")
