@@ -190,31 +190,22 @@ net_clust <- clusterize_bipartite_networks(
     Q1_max = 9L,
     Q2_max = 9L
   ), # Max number of clusters
-  fit_opts = list(max_vem_steps = 1000L)
+  fit_opts = list(max_vem_steps = 2000L)
 )
 ```
 
 ```{r}
-best_partition <- extract_best_partition(net_clust)
+best_partition <- net_clust$partition
 ```
 
-We obtain a list of `r length(best_partition)` tested collections. The lists are nested and reflect the
-sequential steps of clustering.
-The extraction of the best partition below reveals that our `r length(sim_net)`
+The obtained partition below reveals that our `r length(sim_net)`
 simulated networks are considered as being part of the same collection and that
 the among the 4
 plant-pollinator networks there exists a difference leading to 2 collections that
 contains networks from the same authors.
 
-The plot of the mesoscale structure of the whole collection (ie before 
-partitionning) is the following:
-
-```{r, fig.cap="Whole collection graphon type plot"}
-plot(net_clust[[1]])
-```
-
-but then we can compare the mesoscale structures of the 
-`r length(best_partition)` groups:
+The plot of the mesoscale structures of the 
+`r length(best_partition)` groups shows:
 
 ```{r plot-part, fig.width = 8, fig.cap="Best partition graphon type plots"}
 wrap_plots(

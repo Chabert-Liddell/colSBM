@@ -1176,6 +1176,17 @@
       "Repository": "CRAN",
       "Hash": "a555924add98c99d2f411e37e7d25e9f"
     },
+    "precommit": {
+      "Package": "precommit",
+      "Version": "0.4.3.9002",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "lorenzwalthert",
+      "RemoteRepo": "precommit",
+      "RemoteRef": "main",
+      "RemoteSha": "20cbfa9c5b173a11b23fd19808789a5853bf37a3"
+    },
     "prettyunits": {
       "Package": "prettyunits",
       "Version": "1.2.0",

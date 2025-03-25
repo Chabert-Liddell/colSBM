@@ -1,6 +1,6 @@
 Package: colSBM
 Title: Stochastic Block Model for Collection of Networks
-Version: 0.4.1
+Version: 0.4.2
 Authors@R: c(
     person("Saint-Clair", "Chabert-Liddell", , "academic@chabert-liddell.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-5604-7308")),
@@ -21,26 +21,25 @@ Imports:
     cli,
     cluster,
     dplyr,
+    future.apply,
     ggplot2,
     gtools,
     magrittr,
     matrixStats,
     parallel,
     patchwork,
-    phylogram,
+    progressr,
     purrr,
     R6,
     reshape2,
     rlang,
     sbm,
     stats,
-    stringr,
     tibble,
     tidyr,
     utils
 Suggests:
     covr,
-    future.apply,
     knitr,
     rmarkdown,
     spelling,
@@ -48,6 +47,7 @@ Suggests:
 VignetteBuilder: 
     knitr
 Config/testthat/edition: 3
+Config/testthat/parallel: true
 Encoding: UTF-8
 Language: en-US
 LazyData: true

@@ -1,3 +1,10 @@
+# colSBM 0.4.2
+
+* Reworked clustering to have it de-recursified
+* Added a clustering function based on graphon distance
+* Added a `$cluster` vector to clustering output
+* Removing `extract_best_partition()` and `extract_clustering_dendrogram()`
+
 # colSBM 0.4.1
 
 * Reworking plot functions to be more flexible and customizable by not relying on R6 plot methods

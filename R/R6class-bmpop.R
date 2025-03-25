@@ -88,13 +88,13 @@ bmpop <- R6::R6Class(
                           Z_init = NULL,
                           global_opts = list(),
                           fit_opts = list()) {
-      self$A <- lapply(netlist, Matrix::Matrix, sparse = TRUE)
+      self$A <- netlist
       self$n <- vapply(self$A, nrow, FUN.VALUE = .1)
       self$M <- length(self$A)
       self$mask <- lapply(
         seq_along(self$A),
         function(m) {
-          mask <- Matrix::Matrix(diag(1, self$n[m]), sparse = TRUE)
+          mask <- diag(1, self$n[m])
           if (sum(is.na(self$A[[m]])) > 0) {
             mask[is.na(self$A[[m]])] <- 1
           }

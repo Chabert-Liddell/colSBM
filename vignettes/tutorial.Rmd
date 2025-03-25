@@ -151,7 +151,7 @@ sim_net <-
 ```{r results=FALSE}
 set.seed(1234)
 
-net_clust <- clusterize_networks(
+net_clust <- clusterize_unipartite_networks(
   netlist = c(foodwebs[1:3], sim_net), # A list of networks
   colsbm_model = "iid", # The name of the model
   directed = TRUE, # Foodwebs are directed networks
@@ -163,25 +163,21 @@ net_clust <- clusterize_networks(
       plot_details = 0, # Monitoring plot of the algorithm
       Q_max = 9, # Max number of clusters
       backend = "parallel" # Backend for parallel computing
-    )
+    ),
+  verbose = FALSE
 )
 ```
 
-
-We obtain a list of 3 models.
-The first one is for the full collection, and the second and third one are for
-the 3 foodwebs and the three collected networks. Here is a plot of the mesoscale structure obtained from the group of simulated networks. We can extract the best partition:
+We can extract the best partition:
 
 ```{r}
-best_partition <- extract_best_partition(net_clust)
+best_partition <- net_clust$partition
 ```
 
 The plot of the mesoscale structure of the whole collection is the following:
 
 ```{r}
-plot(net_clust[[1]],
-  ord = order(net_clust[[1]]$alpha %*% net_clust[[1]]$pi[[1]])
-)
+plot(best_partition[[1]])
 ```
 
 but then we can compare the mesoscale structures of the 2 groups:

@@ -12,6 +12,8 @@
 #' @param nb_run An integer, the number of run the algorithm do.
 #' @param global_opts Global options for the outer algorithm and the output
 #' @param fit_opts Fit options for the VEM algorithm
+#' @param Z_init An optional list of cluster memberships for q in 1:Q_max.
+#' Default to NULL.
 #' @param fit_init Do not use!
 #' Optional fit init from where initializing the algorithm.
 #'
@@ -19,7 +21,7 @@
 #' collection of networks
 #' @export
 #'
-#' @seealso [colSBM::clusterize_networks()], \code{\link[colSBM]{bmpop}},
+#' @seealso [colSBM::clusterize_unipartite_networks()], \code{\link[colSBM]{bmpop}},
 #' \code{\link[colSBM]{fitSimpleSBMPop}}, `browseVignettes("colSBM")`
 #' @import sbm
 #' @examples
@@ -50,6 +52,7 @@ estimate_colSBM <-
            nb_run = 3L,
            global_opts = list(),
            fit_opts = list(),
+           Z_init = NULL,
            fit_init = NULL) {
     switch(colsbm_model,
       "iid" = {
@@ -126,6 +129,7 @@ estimate_colSBM <-
               free_mixture = free_mixture,
               fit_sbm = fit_sbm,
               global_opts = global_opts,
+              Z_init = Z_init,
               fit_opts = fit_opts
             )
             tmp_fit$optimize()
@@ -202,7 +206,7 @@ estimate_colSBM <-
 #' "pirho".
 #' @param net_id A vector of string, the name of the networks.
 #' @param distribution A string, the emission distribution, either "bernoulli"
-#' (the default) or "poisson" (to be implemented)
+#' (the default) or "poisson".
 #' @param nb_run An integer, the number of run the algorithm do. Default to 3.
 #' @param global_opts Global options for the outer algorithm and the output.
 #' See details.
@@ -306,6 +310,19 @@ estimate_colBiSBM <-
            fit_opts = list(),
            Z_init = NULL,
            sep_BiSBM = NULL) {
+    # Sanity checks
+    check_networks_list(
+      networks_list = netlist,
+      min_length = 1L
+    )
+    check_bipartite_colsbm_models(
+      colsbm_model = colsbm_model
+    )
+    check_is_integer_over_thresh(
+      int = nb_run,
+      thresh = 1L
+    )
+
     switch(colsbm_model,
       "iid" = {
         free_mixture_row <- FALSE
@@ -322,11 +339,7 @@ estimate_colBiSBM <-
       "pirho" = {
         free_mixture_row <- TRUE
         free_mixture_col <- TRUE
-      },
-      stop(
-        "colsbm_model unknown.",
-        " Must be one of iid, pi, rho, pirho, delta or deltapi"
-      )
+      }
     )
     # Check if a netlist is provided, try to cast it if not
     if (!is.list(netlist)) {
@@ -338,12 +351,17 @@ estimate_colBiSBM <-
       "Distribution must be either 'bernoulli' or 'poisson'" =
         distribution %in% c("bernoulli", "poisson"),
       "Network list must be binary matrices if 'bernoulli' distribution is selected" =
-        (distribution == "bernoulli" & all(sapply(
+        (distribution == "poisson" | (distribution == "bernoulli" & all(sapply(
           netlist,
           function(net) {
             setequal(unique(net), c(0, 1)) || setequal(unique(net), c(0, 1, NA))
           }
-        )))
+        )))),
+      "Network list must be positive integer matrices if 'poisson' is selected" =
+        (distribution == "bernoulli" | (distribution == "poisson" &
+          all(sapply(netlist, function(mat) {
+            rlang::is_integerish(mat) & all(mat >= 0)
+          }))))
     )
 
     # Fit options

@@ -19,6 +19,7 @@ test_that("Estimate colSBM runs without problems", {
       "iid",
     global_opts = list(
       nb_cores = 2L,
+      backend = "no_mc",
       verbosity = 0L
     )
   ))
@@ -35,6 +36,7 @@ test_that("Wrong model raises an error", {
       "wrongmodel",
     global_opts = list(
       nb_cores = 2L,
+      backend = "no_mc",
       verbosity = 0L
     )
   ))
@@ -103,6 +105,38 @@ test_that("Estimate colBiSBM does not authorize non binary data for bernoulli di
   ))
 })
 
+test_that("Estimate colBiSBM does not authorize non integer data for poisson distribution", {
+  set.seed(1234L)
+  expect_error(estimate_colBiSBM(
+    netlist = list(
+      matrix(as.numeric(runif(100)), nrow = 10),
+      matrix(as.numeric(runif(100)), nrow = 10)
+    ),
+    distribution = "poisson",
+    colsbm_model = "iid",
+    global_opts = list(
+      nb_cores = 1L,
+      verbosity = 0L
+    )
+  ))
+})
+
+test_that("Estimate colBiSBM does not authorize negative integers for poisson distribution", {
+  set.seed(1234L)
+  expect_error(estimate_colBiSBM(
+    netlist = list(
+      matrix(as.numeric(-rpois(100, 5)), nrow = 10),
+      matrix(as.numeric(-rpois(100, 5)), nrow = 10)
+    ),
+    distribution = "poisson",
+    colsbm_model = "iid",
+    global_opts = list(
+      nb_cores = 1L,
+      verbosity = 0L
+    )
+  ))
+})
+
 test_that("Estimate colBiSBM runs without problems with verbosity", {
   set.seed(1234L)
   expect_no_error(estimate_colBiSBM(
@@ -113,6 +147,7 @@ test_that("Estimate colBiSBM runs without problems with verbosity", {
     colsbm_model = "iid",
     global_opts = list(
       nb_cores = 2L,
+      backend = "no_mc",
       verbosity = 4L,
       Q1_max = NULL,
       Q2_max = NULL
@@ -147,9 +182,10 @@ test_that("Estimate colBiSBM runs with pi, rho and pirho. With and without NA", 
     fit_iid <- estimate_colBiSBM(
       netlist = pirho_collection_na,
       colsbm_model = "iid",
-      nb_run = 1L,
+      nb_run = 2L,
       global_opts = list(
         nb_cores = 2L,
+        backend = "no_mc",
         verbosity = 0L,
         Q1_max = 10L,
         Q2_max = 10L
@@ -161,9 +197,10 @@ test_that("Estimate colBiSBM runs with pi, rho and pirho. With and without NA", 
     fit_iid <- estimate_colBiSBM(
       netlist = pirho_collection,
       colsbm_model = "iid",
-      nb_run = 1L,
+      nb_run = 2L,
       global_opts = list(
         nb_cores = 2L,
+        backend = "no_mc",
         verbosity = 0L,
         Q1_max = 10L,
         Q2_max = 10L
@@ -177,6 +214,7 @@ test_that("Estimate colBiSBM runs with pi, rho and pirho. With and without NA", 
       colsbm_model = "pi",
       global_opts = list(
         nb_cores = 2L,
+        backend = "no_mc",
         verbosity = 0L,
         Q1_max = 10L,
         Q2_max = 10L
@@ -190,6 +228,7 @@ test_that("Estimate colBiSBM runs with pi, rho and pirho. With and without NA", 
       colsbm_model = "rho",
       global_opts = list(
         nb_cores = 2L,
+        backend = "no_mc",
         verbosity = 0L,
         Q1_max = 10L,
         Q2_max = 10L
@@ -203,6 +242,7 @@ test_that("Estimate colBiSBM runs with pi, rho and pirho. With and without NA", 
       colsbm_model = "pirho",
       global_opts = list(
         nb_cores = 2L,
+        backend = "no_mc",
         verbosity = 0L,
         Q1_max = 10L,
         Q2_max = 10L
@@ -220,7 +260,7 @@ test_that("Estimate colBiSBM runs with pi, rho and pirho. With and without NA", 
 
 test_that("Check that LBM and colBiSBM with one network return the same", {
   set.seed(1234)
-  testNet <- colSBM:::generate_bipartite_network(
+  testNet <- generate_bipartite_network(
     nr = 60L, nc = 60L,
     pi = c(0.3, 0.7),
     rho = c(0.45, 0.55),
