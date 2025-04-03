@@ -10,11 +10,11 @@ clusterize_bipartite_networks_graphon(
   net_id = NULL,
   distribution = "bernoulli",
   nb_run = 3L,
-  fusions_per_step = 5L,
   global_opts = list(),
   fit_opts = list(),
   fit_init = NULL,
   full_inference = FALSE,
+  verbose = TRUE,
   temp_save_path = tempfile(fileext = ".Rds")
 )
 }
@@ -31,9 +31,6 @@ clusterize_bipartite_networks_graphon(
 
 \item{nb_run}{An integer, the number of run the algorithm do. Defaults to 3.}
 
-\item{fusions_per_step}{The number of fusions to try at each step. Defaults
-to 5.}
-
 \item{global_opts}{Global options for the outer algorithm and the output}
 
 \item{fit_opts}{Fit options for the VEM algorithm}
@@ -46,6 +43,9 @@ Optional fit init from where initializing the algorithm.}
 groups of networks does not improve the BICL criterion. If "TRUE", then
 continue to split groups until a trivial classification of one network per
 group.}
+
+\item{verbose}{A boolean, should the function be verbose or not. Default to
+TRUE.}
 
 \item{temp_save_path}{A string, the path where to save the temporary results.
 Defaults to a temporary file.}

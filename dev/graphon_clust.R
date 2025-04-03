@@ -10,17 +10,18 @@ options(future.globals.maxSize = Inf)
 devtools::load_all()
 
 
-data(dorebipartite)
-netlist <- dorebipartite[1:4]
-colsbm_model <- "iid"
-net_id <- NULL
-distribution <- "bernoulli"
-nb_run <- 3L
-global_opts <- list(backend = "no_mc", verbosity = 1L)
-fit_opts <- list()
-fusions_per_step <- 5L
-full_inference <- TRUE
+# data(dorebipartite)
+# netlist <- dorebipartite[1:7]
+# colsbm_model <- "iid"
+# net_id <- NULL
+# distribution <- "bernoulli"
+# nb_run <- 3L
+# global_opts <- list(backend = "no_mc", verbosity = 1L)
+# fit_opts <- list()
+# fusions_per_step <- 5L
+# full_inference <- FALSE
 
+# plan(tweak("callr", workers = parallelly::availableCores(omit = 2L)))
 # bbb <- clusterize_bipartite_networks_graphon(
 #     netlist,
 #     colsbm_model,
@@ -181,7 +182,7 @@ incidence_matrices <- append(
     disassortative_incidence
 )
 
-netids <- rep(c("as", "cp", "dis"), each = 3)
+netids <- paste0(rep(c("as", "cp", "dis"), each = 3), ".", seq(1, 3))
 
 
 netlist <- incidence_matrices
@@ -198,7 +199,6 @@ aaa <- clusterize_bipartite_networks_graphon(
     nb_run,
     global_opts,
     fit_opts,
-    fusions_per_step = 1L,
     fit_init = prefit
 )
 

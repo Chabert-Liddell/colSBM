@@ -639,8 +639,6 @@ partition_networks_list_from_dissimilarity <- function(
 #' @param distribution A string, the emission distribution, either "bernoulli"
 #' (the default) or "poisson"
 #' @param nb_run An integer, the number of run the algorithm do. Defaults to 3.
-#' @param fusions_per_step The number of fusions to try at each step. Defaults
-#' to 5.
 #' @param global_opts Global options for the outer algorithm and the output
 #' @param fit_opts Fit options for the VEM algorithm
 #' @param fit_init WIP A list of fitted collections from which to start the
@@ -650,6 +648,8 @@ partition_networks_list_from_dissimilarity <- function(
 #' groups of networks does not improve the BICL criterion. If "TRUE", then
 #' continue to split groups until a trivial classification of one network per
 #' group.
+#' @param verbose A boolean, should the function be verbose or not. Default to
+#' TRUE.
 #' @param temp_save_path A string, the path where to save the temporary results.
 #' Defaults to a temporary file.
 #'
@@ -667,85 +667,33 @@ clusterize_bipartite_networks_graphon <- function(
     net_id = NULL,
     distribution = "bernoulli",
     nb_run = 3L,
-    fusions_per_step = 5L,
     global_opts = list(),
     fit_opts = list(),
     fit_init = NULL, # Use this to store a list of fits from which to start clustering
     full_inference = FALSE,
+    verbose = TRUE,
     temp_save_path = tempfile(fileext = ".Rds")) {
-  # Adding default global_opts
-  # TODO Extract all these checks utils
-  switch(colsbm_model,
-    "iid" = {
-      free_mixture_row <- FALSE
-      free_mixture_col <- FALSE
-    },
-    "pi" = {
-      free_mixture_row <- TRUE
-      free_mixture_col <- FALSE
-    },
-    "rho" = {
-      free_mixture_row <- FALSE
-      free_mixture_col <- TRUE
-    },
-    "pirho" = {
-      free_mixture_row <- TRUE
-      free_mixture_col <- TRUE
-    },
-    stop(
-      "colsbm_model unknown.",
-      " Must be one of iid, pi, rho, pirho, delta or deltapi"
-    )
-  )
+  # Check the colSBM model
+  check_bipartite_colsbm_models(colsbm_model = colsbm_model)
+  stopifnot("Only iid model is implemented" = colsbm_model == "iid")
   # Check if a netlist is provided, try to cast it if not
-  if (!is.list(netlist)) {
-    netlist <- list(netlist)
-  }
-  if (is.null(net_id)) {
-    if (is.null(names(netlist))) {
-      net_id <- seq_along(netlist)
-    } else {
-      net_id <- names(netlist)
-    }
-  }
-  # go is used to temporarily store the default global_opts
-  go <- list(
-    Q1_min = 1L,
-    Q2_min = 1L,
-    Q1_max = floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2),
-    Q2_max = floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2),
-    nb_init = 10L,
-    nb_models = 5L,
-    backend = "future",
-    depth = 1L,
-    plot_details = 0L,
-    max_pass = 10L,
-    verbosity = 1L,
-    nb_cores = 1L
+  check_networks_list(networks_list = netlist)
+  net_id <- check_net_id_and_initialize(net_id = net_id, networks_list = netlist)
+  check_colsbm_emission_distribution(emission_distribution = distribution)
+  check_networks_list_match_emission_distribution(
+    networks_list = netlist,
+    emission_distribution = distribution
   )
+  go <- default_global_opts_bipartite(netlist = netlist)
   go <- utils::modifyList(go, global_opts)
   global_opts <- go
   fo <- default_fit_opts_bipartite()
   fo <- utils::modifyList(fo, fit_opts)
   fit_opts <- fo
 
-  if (is.null(global_opts$nb_cores)) {
-    global_opts$nb_cores <- 1L
+  if (verbose) {
+    cli::cli_text("Temporary results will be saved as {.val {temp_save_path}} after each step")
   }
-  if (is.null(global_opts$backend)) {
-    global_opts$backend <- "parallel"
-  }
-  if (is.null(global_opts$Q1_max)) {
-    Q1_max <- floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2)
-  } else {
-    Q1_max <- global_opts$Q1_max
-  }
-  if (is.null(global_opts$Q2_max)) {
-    Q2_max <- floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2)
-  } else {
-    Q2_max <- global_opts$Q2_max
-  }
-  cli::cli_text("Temporary results will be saved as {.val {temp_save}} after each step")
   if (is.null(fit_init)) {
     # Initializing separated collections
     cli::cli_h1("Beginning the clustering")
@@ -773,12 +721,22 @@ clusterize_bipartite_networks_graphon <- function(
     collections <- fit_init
   }
 
+  cluster <- seq_len(length(netlist))
+  names(cluster) <- net_id
+
+  if (!is.null(fit_init) & verbose) {
+    cli::cli_alert_info("Starting from a list of fits")
+    cli::cli_alert_warning("This feature is still experimental and cluster vector may not be accurate\n\n")
+  }
+
   compute_bicl_partition <- function(collections) {
     return(sum(sapply(collections, function(col) col$best_fit$BICL)))
   }
 
   # Historique des fusions
-  cli::cli_alert_info("Fully separated BIC-L is {.val {compute_bicl_partition(collections)}}")
+  if (verbose) {
+    cli::cli_alert_info("Fully separated BIC-L is {.val {compute_bicl_partition(collections)}}")
+  }
   bicl_history <- c(compute_bicl_partition(collections))
   fusion_history <- list(collections)
 
@@ -813,16 +771,18 @@ clusterize_bipartite_networks_graphon <- function(
   # Loop to merge collections
   while (length(collections) > 1 && (has_bicl_increased || full_inference)) {
     saveRDS(list(fusion_history = fusion_history, bicl_history = bicl_history), temp_save_path)
-    cli::cli_h2("Step {.val {step}} on a max of {.val {max_steps}} step{?s}")
-    cli::cli_alert_info("Computing distances between collections")
+    if (verbose) {
+      cli::cli_h2("Step {.val {step}} on a max of {.val {max_steps}} step{?s}")
+      cli::cli_alert_info("Computing distances between collections")
+    }
     dist_matrix <- compute_distances(collections)
     sorted_pairs <- generate_sorted_pairs(dist_matrix)
     sorted_pairs <- matrix(sorted_pairs, ncol = 2L)
     i <- sorted_pairs[1, 1]
     j <- sorted_pairs[1, 2]
-
-    cli::cli_alert_info("Try merging{cli::qty({collections[[i]]$net_id})} network{?s} {.val {collections[[i]]$net_id}} with{cli::qty({collections[[j]]$net_id})} network{?s} {.val {collections[[j]]$net_id}}")
-
+    if (verbose) {
+      cli::cli_alert_info("Try merging{cli::qty({collections[[i]]$net_id})} network{?s} {.val {collections[[i]]$net_id}} with{cli::qty({collections[[j]]$net_id})} network{?s} {.val {collections[[j]]$net_id}}")
+    }
     candidate_collection <- estimate_colBiSBM(
       netlist = c(collections[[i]]$A, collections[[j]]$A),
       net_id = c(collections[[i]]$net_id, collections[[j]]$net_id),
@@ -834,30 +794,52 @@ clusterize_bipartite_networks_graphon <- function(
     )
 
     new_collection <- candidate_collection
-
-    cli::cli_alert_success("After selection the best fusion is {.val {collections[[i]]$net_id}} with {.val {collections[[j]]$net_id}}")
-
-    has_bicl_increased <- compute_bicl_partition(collections[-c(i, j)]) +
-      new_collection$best_fit$BICL > bicl_history[step]
+    remaining_collections <- collections[-c(i, j)]
+    has_bicl_increased <-
+      # Test if there are remaining collections and compute their BICL or output 0
+      ifelse(length(remaining_collections) >= 1,
+        compute_bicl_partition(collections[-c(i, j)]),
+        0
+      ) +
+        new_collection$best_fit$BICL > bicl_history[step]
     if (has_bicl_increased || full_inference) {
       # Mettre à jour les collections
       collections <- collections[-c(i, j)]
       collections <- c(collections, list(new_collection))
       bicl_history <- c(bicl_history, compute_bicl_partition(collections))
       cli::cli_alert_info("Current collection BIC-L is {.val {compute_bicl_partition(collections)}}")
-      if (!has_bicl_increased && full_inference) {
+      if (!has_bicl_increased && full_inference && verbose) {
         cli::cli_alert_info("Full inference requested, clustering will continue, but BIC-L has not improved")
       }
+
+      net_id_to_merge <- new_collection$net_id
+      cluster_to_merge <- cluster[which(names(cluster) %in% net_id_to_merge)]
+
+      cluster[which(names(cluster) %in% net_id_to_merge)] <- rep(min(cluster_to_merge), length(cluster_to_merge))
+
+      cluster[cluster > max(cluster_to_merge)] <- cluster[cluster > max(cluster_to_merge)] - 1
+
       # Ajouter à l'historique des fusions
       fusion_history <- c(fusion_history, list(collections))
       step <- step + 1
-      cli::cli_alert_info("Collections updated, {length(collections)} remaining")
+      if (verbose) {
+        cli::cli_alert_info("Collections updated, {length(collections)} remaining")
+      }
     } else {
-      cli::cli_alert_info("No improvement in BIC-L, clustering will stop")
+      if (verbose) {
+        cli::cli_alert_info("No improvement in BIC-L, clustering will stop")
+      }
     }
   }
+  if (verbose) {
+    cli::cli_h1("Clustering of bipartite networks completed")
+  }
+  out <- list(
+    partition = tail(fusion_history, 1)[[1]],
+    cluster = cluster,
+    fusion_history = fusion_history,
+    bicl_history = bicl_history
+  )
 
-  cli::cli_h1("Clustering of bipartite networks completed")
-
-  return(list(fusion_history = fusion_history, bicl_history = bicl_history))
+  return(out)
 }
