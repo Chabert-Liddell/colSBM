@@ -722,7 +722,7 @@ clusterize_bipartite_networks_graphon <- function(
   }
 
   cluster <- seq_len(length(netlist))
-  names(cluster) <- names(netlist)
+  names(cluster) <- net_id
 
   if (!is.null(fit_init) & verbose) {
     cli::cli_alert_info("Starting from a list of fits")
@@ -794,9 +794,6 @@ clusterize_bipartite_networks_graphon <- function(
     )
 
     new_collection <- candidate_collection
-    if (verbose) {
-      cli::cli_alert_success("After selection the best fusion is {.val {collections[[i]]$net_id}} with {.val {collections[[j]]$net_id}}")
-    }
     remaining_collections <- collections[-c(i, j)]
     has_bicl_increased <-
       # Test if there are remaining collections and compute their BICL or output 0
@@ -814,8 +811,14 @@ clusterize_bipartite_networks_graphon <- function(
       if (!has_bicl_increased && full_inference && verbose) {
         cli::cli_alert_info("Full inference requested, clustering will continue, but BIC-L has not improved")
       }
-      cluster[c(i, j)] <- rep(min(cluster[c(i, j)]), 2)
-      cluster[cluster > max(c(i, j))] <- cluster[cluster > max(c(i, j))] - 1
+
+      net_id_to_merge <- new_collection$net_id
+      cluster_to_merge <- cluster[which(names(cluster) %in% net_id_to_merge)]
+
+      cluster[which(names(cluster) %in% net_id_to_merge)] <- rep(min(cluster_to_merge), length(cluster_to_merge))
+
+      cluster[cluster > max(cluster_to_merge)] <- cluster[cluster > max(cluster_to_merge)] - 1
+
       # Ajouter à l'historique des fusions
       fusion_history <- c(fusion_history, list(collections))
       step <- step + 1
