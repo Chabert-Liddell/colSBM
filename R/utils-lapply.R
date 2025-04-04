@@ -16,7 +16,7 @@
 #' future::plan(future::multisession)
 #' X <- seq(1, 5)
 #' colsbm_lapply(X, backend = "future", nb_cores = 2L)
-colsbm_lapply <- function(X, FUN, backend = "future",
+colsbm_lapply <- function(X, FUN, backend = "no_mc",
                           nb_cores = 1L,
                           ...) {
   if (!(backend %in% c("future", "parallel", "no_mc"))) {

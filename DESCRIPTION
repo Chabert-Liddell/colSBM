@@ -26,7 +26,6 @@ Imports:
     gtools,
     magrittr,
     matrixStats,
-    parallel,
     patchwork,
     progressr,
     purrr,
@@ -43,7 +42,8 @@ Suggests:
     knitr,
     rmarkdown,
     spelling,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    parallel
 VignetteBuilder: 
     knitr
 Config/testthat/edition: 3
