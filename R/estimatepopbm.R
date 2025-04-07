@@ -648,6 +648,9 @@ partition_networks_list_from_dissimilarity <- function(
 #' groups of networks does not improve the BICL criterion. If "TRUE", then
 #' continue to split groups until a trivial classification of one network per
 #' group.
+#' @param keep_history A boolean, should the function keep the history of the
+#' fusions or not. Default to FALSE to reduce file size.
+#' Note that the fusion history is saved in the temporary file.
 #' @param verbose A boolean, should the function be verbose or not. Default to
 #' TRUE.
 #' @param temp_save_path A string, the path where to save the temporary results.
@@ -671,6 +674,7 @@ clusterize_bipartite_networks_graphon <- function(
     fit_opts = list(),
     fit_init = NULL, # Use this to store a list of fits from which to start clustering
     full_inference = FALSE,
+    keep_history = FALSE,
     verbose = TRUE,
     temp_save_path = tempfile(fileext = ".Rds")) {
   # Check the colSBM model
@@ -837,9 +841,12 @@ clusterize_bipartite_networks_graphon <- function(
   out <- list(
     partition = tail(fusion_history, 1)[[1]],
     cluster = cluster,
-    fusion_history = fusion_history,
     bicl_history = bicl_history
   )
+
+  if (keep_history) {
+    out[["fusion_history"]] <- fusion_history
+  }
 
   return(out)
 }
