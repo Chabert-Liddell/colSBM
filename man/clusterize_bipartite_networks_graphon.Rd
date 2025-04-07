@@ -14,6 +14,7 @@ clusterize_bipartite_networks_graphon(
   fit_opts = list(),
   fit_init = NULL,
   full_inference = FALSE,
+  keep_history = FALSE,
   verbose = TRUE,
   temp_save_path = tempfile(fileext = ".Rds")
 )
@@ -43,6 +44,10 @@ Optional fit init from where initializing the algorithm.}
 groups of networks does not improve the BICL criterion. If "TRUE", then
 continue to split groups until a trivial classification of one network per
 group.}
+
+\item{keep_history}{A boolean, should the function keep the history of the
+fusions or not. Default to FALSE to reduce file size.
+Note that the fusion history is saved in the temporary file.}
 
 \item{verbose}{A boolean, should the function be verbose or not. Default to
 TRUE.}
