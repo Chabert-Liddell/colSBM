@@ -53,6 +53,7 @@
 <span>  fit_opts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  fit_init <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  full_inference <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  keep_history <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  temp_save_path <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span>fileext <span class="op">=</span> <span class="st">".Rds"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -103,6 +104,12 @@ Optional fit init from where initializing the algorithm.</p></dd>
 groups of networks does not improve the BICL criterion. If "TRUE", then
 continue to split groups until a trivial classification of one network per
 group.</p></dd>
+
+
+<dt id="arg-keep-history">keep_history<a class="anchor" aria-label="anchor" href="#arg-keep-history"></a></dt>
+<dd><p>A boolean, should the function keep the history of the
+fusions or not. Default to FALSE to reduce file size.
+Note that the fusion history is saved in the temporary file.</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
