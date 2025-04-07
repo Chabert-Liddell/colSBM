@@ -78,7 +78,7 @@ plot.fitSimpleSBMPop <- function(
         ) %>%
         ggplot2::ggplot(ggplot2::aes(
           xmin = xmin, ymin = ymin,
-          xmax = xmax, ymax = ymax, fill = value
+          xmax = xmax, ymax = ymax, fill = .data[["value"]]
         )) +
         ggplot2::geom_rect() +
         ggplot2::scale_fill_gradient2("alpha", low = "white", mid = "red", midpoint = 1) +
@@ -99,7 +99,7 @@ plot.fitSimpleSBMPop <- function(
       p_alpha <- x$alpha[ord, ord] %>%
         t() %>%
         reshape2::melt() %>%
-        ggplot2::ggplot(ggplot2::aes(x = Var1, y = Var2, fill = value)) +
+        ggplot2::ggplot(ggplot2::aes(x = .data[["Var1"]], y = .data[["Var2"]], fill = .data[["value"]])) +
         ggplot2::geom_tile() +
         ggplot2::scale_fill_gradient2("alpha", low = "white", high = "red") +
         ggplot2::geom_hline(yintercept = seq(x$Q) + .5) +
@@ -131,7 +131,7 @@ plot.fitSimpleSBMPop <- function(
           #    rename() %>%
           dplyr::mutate(q = seq(x$Q)) %>%
           tidyr::pivot_longer(cols = -c(q)) %>%
-          ggplot2::ggplot(ggplot2::aes(fill = as.factor(q), y = name, x = value)) +
+          ggplot2::ggplot(ggplot2::aes(fill = as.factor(q), y = .data[["name"]], x = .data[["value"]])) +
           ggplot2::geom_col() +
           ggplot2::coord_flip(expand = FALSE) +
           ggplot2::scale_fill_brewer("Block",
@@ -160,9 +160,9 @@ plot.fitSimpleSBMPop <- function(
           #  order(Z),
           #    order(Z)] %>%
           reshape2::melt() %>%
-          dplyr::pull(value)) %>%
-        ggplot2::ggplot(ggplot2::aes(x = as.factor(Var2), y = as.factor(Var1), fill = value, alpha = value)) +
-        ggplot2::geom_tile(ggplot2::aes(alpha = con),
+          dplyr::pull(.data[["value"]])) %>%
+        ggplot2::ggplot(ggplot2::aes(x = as.factor(.data[["Var2"]]), y = as.factor(.data[["Var1"]]), fill = .data[["value"]], alpha = .data[["value"]])) +
+        ggplot2::geom_tile(ggplot2::aes(alpha = .data[["con"]]),
           fill = "red", linewidth = 0, show.legend = FALSE
         ) +
         ggplot2::geom_tile(show.legend = FALSE) +
@@ -283,11 +283,11 @@ plot.bmpop <- function(x, type = "trace", ...) {
     tb %>% dplyr::mutate(SBM = x$ICL_sbm)
   }
   p <- tb %>%
-    tidyr::pivot_longer(cols = -Q, names_to = "Criterion") %>%
+    tidyr::pivot_longer(cols = -.data[["Q"]], names_to = "Criterion") %>%
     ggplot2::ggplot(ggplot2::aes(
-      x = Q, y = value,
-      linetype = Criterion, color = Criterion,
-      shape = Criterion
+      x = .data[["Q"]], y = .data[["value"]],
+      linetype = .data[["Criterion"]], color = .data[["Criterion"]],
+      shape = .data[["Criterion"]]
     )) +
     ggplot2::annotate(
       geom = "rect",
@@ -403,7 +403,7 @@ plot.fitBipartiteSBMPop <- function(
         ) |>
         ggplot2::ggplot(ggplot2::aes(
           xmin = xmin, ymin = ymin,
-          xmax = xmax, ymax = ymax, fill = value
+          xmax = xmax, ymax = ymax, fill = .data[["value"]]
         )) +
         ggplot2::geom_rect() +
         ggplot2::scale_fill_gradient2("alpha",
@@ -414,7 +414,7 @@ plot.fitBipartiteSBMPop <- function(
         ggplot2::geom_vline(xintercept = cumsum(x$pi[[net_id]][[2]][oCol][1:(x$Q[2] - 1)]), linewidth = .2)
       if (values) {
         p_graphon <- p_graphon +
-          ggplot2::geom_text(ggplot2::aes(x = (Var2 - min(Var2)) / max(Var2), y = (Var1 - 0.5 * min(Var1)) / max(Var1), label = round(value, 2)), color = "black")
+          ggplot2::geom_text(ggplot2::aes(x = (.data[["Var2"]] - min(.data[["Var2"]])) / max(.data[["Var2"]]), y = (.data[["Var1"]] - 0.5 * min(.data[["Var1"]])) / max(.data[["Var1"]]), label = round(.data[["value"]], 2)), color = "black")
       }
 
       p_graphon <- p_graphon +
@@ -448,7 +448,7 @@ plot.fitBipartiteSBMPop <- function(
       p_alpha <- x$alpha[oRow, oCol, drop = FALSE] |>
         t() |>
         reshape2::melt() |>
-        ggplot2::ggplot(ggplot2::aes(x = Var1, y = Var2, fill = value)) +
+        ggplot2::ggplot(ggplot2::aes(x = .data[["Var1"]], y = .data[["Var2"]], fill = .data[["value"]])) +
         ggplot2::geom_tile() +
         ggplot2::scale_fill_gradient2("alpha",
           low = "white",
@@ -469,7 +469,7 @@ plot.fitBipartiteSBMPop <- function(
 
       if (values) {
         p_alpha <- p_alpha +
-          ggplot2::geom_text(ggplot2::aes(label = round(value, 2)), color = "black")
+          ggplot2::geom_text(ggplot2::aes(label = round(.data[["value"]], 2)), color = "black")
       }
       #  scale_y_reverse()
       xl <- ""
@@ -486,12 +486,12 @@ plot.fitBipartiteSBMPop <- function(
         ) |>
           dplyr::mutate(q = seq(x$Q[1])) |>
           tidyr::pivot_longer(cols = -c(q)) |>
-          dplyr::mutate(Proportion = value)
+          dplyr::mutate(Proportion = .data[["value"]])
         p_pi <-
           df_pi |>
           ggplot2::ggplot(ggplot2::aes(
-            fill = as.factor(q), y = name,
-            x = Proportion
+            fill = as.factor(q), y = .data[["name"]],
+            x = .data[["Proportion"]]
           )) +
           ggplot2::geom_col() +
           ggplot2::coord_flip(expand = FALSE) +
@@ -523,11 +523,11 @@ plot.fitBipartiteSBMPop <- function(
         ) |>
           dplyr::mutate(q = seq(x$Q[2])) |>
           tidyr::pivot_longer(cols = -c(q)) |>
-          dplyr::mutate(Proportion = value)
+          dplyr::mutate(Proportion = .data[["value"]])
         p_rho <- df_rho |>
           ggplot2::ggplot(ggplot2::aes(
-            fill = as.factor(q), y = name,
-            x = Proportion
+            fill = as.factor(q), y = .data[["name"]],
+            x = .data[["Proportion"]]
           )) +
           ggplot2::geom_col() +
           # ggplot2::coord_flip(expand = FALSE) +
@@ -549,16 +549,16 @@ plot.fitBipartiteSBMPop <- function(
           ggplot2::theme_classic()
         if (values) {
           p_pi <- p_pi +
-            ggplot2::geom_text(ggplot2::aes(label = round(Proportion, 2)),
+            ggplot2::geom_text(ggplot2::aes(label = round(.data[["Proportion"]], 2)),
               position = ggplot2::position_stack(vjust = 0.5),
               color = "black",
-              data = subset(df_pi, round(Proportion, 2) > values_min)
+              data = subset(df_pi, round(.data[["Proportion"]], 2) > values_min)
             )
           p_rho <- p_rho +
-            ggplot2::geom_text(ggplot2::aes(label = round(Proportion, 2)),
+            ggplot2::geom_text(ggplot2::aes(label = round(.data[["Proportion"]], 2)),
               position = ggplot2::position_stack(vjust = 0.5),
               color = "black",
-              data = subset(df_rho, round(Proportion, 2) > values_min)
+              data = subset(df_rho, round(.data[["Proportion"]], 2) > values_min)
             )
         }
         # Merging the plots with patchwork
@@ -616,16 +616,16 @@ plot.fitBipartiteSBMPop <- function(
             col_order
           ] |>
             reshape2::melt() |>
-            dplyr::pull(value)
+            dplyr::pull(.data[["value"]])
         ) |>
         ggplot2::ggplot(ggplot2::aes(
-          x = Var2,
-          y = rev(Var1),
-          fill = value,
-          alpha = value
+          x = .data[["Var2"]],
+          y = rev(.data[["Var1"]]),
+          fill = .data[["value"]],
+          alpha = .data[["value"]]
         )) +
         ggplot2::geom_tile(show.legend = FALSE) +
-        ggplot2::geom_tile(ggplot2::aes(alpha = con),
+        ggplot2::geom_tile(ggplot2::aes(alpha = .data[["con"]]),
           fill = "red",
           linewidth = 0L,
           show.legend = FALSE
@@ -678,11 +678,11 @@ plot.bisbmpop <- function(x, criterion = "BICL", ...) {
   # One value of BIC-L per Q1 Q2
   criterion_df <- x[[criterion]] |>
     reshape2::melt(value.name = "criterion") |>
-    dplyr::rename(Q1 = Var1, Q2 = Var2) |>
-    dplyr::mutate(Q1 = as.factor(Q1), Q2 = as.factor(Q2)) |>
+    dplyr::rename(Q1 = .data[["Var1"]], Q2 = .data[["Var2"]]) |>
+    dplyr::mutate(Q1 = as.factor(.data[["Q1"]]), Q2 = as.factor(.data[["Q2"]])) |>
     # mutate(Q1 = as.factor(Q1), Q2 = as.factor(Q2)) |>
     # Remove -Inf values
-    dplyr::filter(criterion > -Inf)
+    dplyr::filter(.data[["criterion"]] > -Inf)
 
   Qmax <- dim(x$model_list)
   Q1max <- Qmax[1]
@@ -693,11 +693,11 @@ plot.bisbmpop <- function(x, criterion = "BICL", ...) {
   }))
   completeness_df <- completeness_mat |>
     reshape2::melt(value.name = "clustering_is_complete") |>
-    dplyr::rename(Q1 = Var1, Q2 = Var2) |>
-    dplyr::mutate(Q1 = as.factor(Q1), Q2 = as.factor(Q2)) |>
-    dplyr::select(Q1, Q2, clustering_is_complete) |>
-    dplyr::filter(!is.na(clustering_is_complete)) |>
-    dplyr::mutate(clustering_is_complete = ifelse(clustering_is_complete, "Yes", "No"))
+    dplyr::rename(Q1 = .data[["Var1"]], Q2 = .data[["Var2"]]) |>
+    dplyr::mutate(Q1 = as.factor(.data[["Q1"]]), Q2 = as.factor(.data[["Q2"]])) |>
+    dplyr::select(.data[["Q1"]], .data[["Q2"]], .data[["clustering_is_complete"]]) |>
+    dplyr::filter(!is.na(.data[["clustering_is_complete"]])) |>
+    dplyr::mutate(clustering_is_complete = ifelse(.data[["clustering_is_complete"]], "Yes", "No"))
 
   criterion_complete_df <- dplyr::left_join(x = criterion_df, completeness_df, by = c("Q1", "Q2"))
   criterion_complete_df$is_max <- criterion_complete_df$criterion == max(criterion_complete_df$criterion)
@@ -705,12 +705,12 @@ plot.bisbmpop <- function(x, criterion = "BICL", ...) {
   # Convert TRUE FALSE to factor
 
   p <- ggplot2::ggplot(data = criterion_complete_df) +
-    ggplot2::geom_tile(ggplot2::aes(x = Q2, y = Q1, fill = criterion)) +
+    ggplot2::geom_tile(ggplot2::aes(x = .data[["Q2"]], y = .data[["Q1"]], fill = .data[["criterion"]])) +
     ggplot2::geom_point(
       ggplot2::aes(
-        x = Q2, y = Q1,
-        fill = criterion, color = clustering_is_complete,
-        shape = is_max
+        x = .data[["Q2"]], y = .data[["Q1"]],
+        fill = .data[["criterion"]], color = .data[["clustering_is_complete"]],
+        shape = .data[["is_max"]]
       ),
       size = 8
     ) +
