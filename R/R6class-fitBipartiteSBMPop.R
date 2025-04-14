@@ -240,15 +240,7 @@ fitBipartiteSBMPop <- R6::R6Class(
       )
 
       # Setting default fit options
-      self$fit_opts <- list(
-        algo_ve = "fp",
-        max_vem_steps = 1000L,
-        minibatch = TRUE,
-        verbosity = 0,
-        tolerance = 1e-6,
-        greedy_exploration_max_steps = 50,
-        greedy_exploration_max_steps_without_improvement = 5
-      )
+      self$fit_opts <- default_fit_opts_bipartite()
       # If the user provided custom fit options they are applied here
       self$fit_opts <- utils::modifyList(self$fit_opts, fit_opts)
 
@@ -967,7 +959,9 @@ fitBipartiteSBMPop <- R6::R6Class(
               biclustering <- spectral_biclustering(
                 self$nonNAs[[m]] *
                   self$A[[m]],
-                self$Q
+                self$Q,
+                kmeans.nstart = self$fit_opts$kmeans_nstart,
+                kmeans.iter.max = self$fit_opts$kmeans_iter_max
               )
               row_clustering <- biclustering$row_clustering
               col_clustering <- biclustering$col_clustering
