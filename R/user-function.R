@@ -259,11 +259,15 @@ estimate_colSBM <-
 #' order. Default to TRUE.
 #' * `tolerance` a numeric, controlling the tolerance for which a criterion is
 #' considered converged. Default to 1e-6.
-#' `greedy_exploration_max_steps` the maximum number of iteration of
+#' * `greedy_exploration_max_steps` the maximum number of iteration of
 #' greedy exploration to perform. Defaults to 50.
-#' `greedy_exploration_max_steps_without_improvement` an integer indicating
+#' * `greedy_exploration_max_steps_without_improvement` an integer indicating
 #' for which number of steps the best model must not change to be end greedy
 #' exploration. Defaults to 5.
+#' * `kmeans_nstart` an integer indicating the number of random starts to use for
+#' kmeans in spectral clustering.
+#' * `kmeans_iter_max` an integer indicating the maximum number of iterations to
+#' use for kmeans in spectral clustering.
 #'
 #' @return A bisbmpop object listing a collection of models for the collection.
 #' of networks
