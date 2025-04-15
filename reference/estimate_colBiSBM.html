@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">colSBM</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -144,12 +144,16 @@ approach. If set to TRUE during the VEM the networks will be optimized in
 random orders. If set to FALSE they are optimized in the lexicographical
 order. Default to TRUE.</p></li>
 <li><p><code>tolerance</code> a numeric, controlling the tolerance for which a criterion is
-considered converged. Default to 1e-6.
-<code>greedy_exploration_max_steps</code> the maximum number of iteration of
-greedy exploration to perform. Defaults to 50.
-<code>greedy_exploration_max_steps_without_improvement</code> an integer indicating
+considered converged. Default to 1e-6.</p></li>
+<li><p><code>greedy_exploration_max_steps</code> the maximum number of iteration of
+greedy exploration to perform. Defaults to 50.</p></li>
+<li><p><code>greedy_exploration_max_steps_without_improvement</code> an integer indicating
 for which number of steps the best model must not change to be end greedy
 exploration. Defaults to 5.</p></li>
+<li><p><code>kmeans_nstart</code> an integer indicating the number of random starts to use for
+kmeans in spectral clustering.</p></li>
+<li><p><code>kmeans_iter_max</code> an integer indicating the maximum number of iterations to
+use for kmeans in spectral clustering.</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
