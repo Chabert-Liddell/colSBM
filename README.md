@@ -5,7 +5,7 @@
 
 <!-- badges: start -->
 
-[![](https://img.shields.io/badge/devel%20version-0.4.2-green.svg)](https://github.com/Chabert-Liddell/colSBM)
+[![](https://img.shields.io/badge/devel%20version-0.4.3-green.svg)](https://github.com/Chabert-Liddell/colSBM)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![](https://img.shields.io/github/last-commit/Chabert-Liddell/colSBM.svg)](https://github.com/Chabert-Liddell/colSBM/commits/main)
