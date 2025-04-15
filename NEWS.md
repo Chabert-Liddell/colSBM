@@ -1,3 +1,8 @@
+# colSBM 0.4.3
+
+* Adding `fit_opts$kmeans_iter` to control the number of iterations for kmeans in spectral clustering
+* Adding `fit_opts$kmeans_nstart` to control the number of random starts for kmeans in spectral_clustering
+
 # colSBM 0.4.2
 
 * Reworked clustering to have it de-recursified
