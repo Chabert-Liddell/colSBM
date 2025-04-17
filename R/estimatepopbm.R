@@ -324,12 +324,11 @@ clusterize_bipartite_networks <- function(netlist,
 
   # Fit the initial model on the full collection
   if (verbose & !is.null(temp_save_path)) {
-      cli::cli_alert_info("A save file will be created at {.val {temp_save_path}} and updated after each step")
-    }
+    cli::cli_alert_info("A save file will be created at {.val {temp_save_path}} and updated after each step")
   }
   start_time <- Sys.time()
   if (is.null(full_collection_init)) {
-        cli::cli_h1("Fitting the full collection")
+    cli::cli_h1("Fitting the full collection")
 
     my_bisbmpop <- estimate_colBiSBM(
       netlist = netlist,
@@ -483,6 +482,9 @@ clusterize_bipartite_networks <- function(netlist,
     clustering_history = clustering_history,
     full_collection = my_bisbmpop
   )
+  if (verbose) {
+    cli::cli_alert_info("After clustering the partition has a BIC-L of {.val {compute_bicl_partition(output_list$partition)}}")
+  }
   if (!is.null(temp_save_path)) {
     saveRDS(output_list, temp_save_path)
     if (verbose) {
@@ -753,10 +755,6 @@ clusterize_bipartite_networks_graphon <- function(
   if (!is.null(fit_init) & verbose) {
     cli::cli_alert_info("Starting from a list of fits")
     cli::cli_alert_warning("This feature is still experimental and cluster vector may not be accurate\n\n")
-  }
-
-  compute_bicl_partition <- function(collections) {
-    return(sum(sapply(collections, function(col) col$best_fit$BICL)))
   }
 
   # Historique des fusions
