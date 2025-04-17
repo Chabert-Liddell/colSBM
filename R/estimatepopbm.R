@@ -616,12 +616,7 @@ partition_networks_list_from_dissimilarity <- function(
   if (M >= 3L) {
     # If there is more than 3 networks they are splitted using partition around
     # K-medioids
-    cl <- cluster::pam(
-      x = sqrt(dissimilarity_matrix),
-      k = nb_groups,
-      diss = TRUE,
-      cluster.only = TRUE
-    )
+    cl <- cutree(hclust(as.dist(sqrt(dissimilarity_matrix)), method = "single"), k = nb_groups)
   } else {
     cl <- c(1L, 2L)
   }
