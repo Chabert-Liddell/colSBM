@@ -152,21 +152,7 @@ bisbmpop <- R6::R6Class(
       self$distribution <- distribution
       self$free_mixture_row <- free_mixture_row
       self$free_mixture_col <- free_mixture_col
-      self$global_opts <- list(
-        Q1_min = 1L,
-        Q1_max = floor(log(sum(self$n[[1]]))) + 2,
-        Q2_min = 1L,
-        Q2_max = floor(log(sum(self$n[[2]]))) + 2,
-        spectral_init = TRUE,
-        nb_models = 5L,
-        depth = 1L, # By default we set a small depth
-        plot_details = 1L,
-        max_pass = 10L,
-        verbosity = 0L,
-        nb_cores = 1L,
-        backend = "future",
-        compare_stored = TRUE
-      )
+      self$global_opts <- default_global_opts_bipartite(netlist = self$A)
       self$global_opts <- utils::modifyList(self$global_opts, global_opts)
       self$vbound <- matrix(
         rep(-Inf, self$global_opts$Q1_max * self$global_opts$Q2_max),
