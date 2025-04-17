@@ -1104,8 +1104,8 @@ bisbmpop <- R6::R6Class(
 
       # We fill the model_list from the Z_init provided
       # assuming that Z_init is a bi-dimensional list
-      for (q1 in seq.int(self$global_opts$Q1_max)) {
-        for (q2 in seq.int(self$global_opts$Q2_max)) {
+      for (q1 in seq.int(nrow(self$Z_init))) {
+        for (q2 in seq.int(ncol(self$Z_init))) {
           if (!is.null(self$Z_init[[q1, q2]])) {
             model_list[[q1, q2]] <- optimize_init(
               q1, q2, self$Z_init[[q1, q2]]
