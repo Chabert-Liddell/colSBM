@@ -606,7 +606,8 @@ default_global_opts_bipartite <- function(netlist) {
     plot_details = 1L,
     max_pass = 10L,
     verbosity = 1L,
-    nb_cores = 1L
+    nb_cores = 1L,
+    compare_stored = TRUE
   )
 }
 
