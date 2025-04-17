@@ -13,8 +13,10 @@ clusterize_bipartite_networks(
   nb_run = 3L,
   global_opts = list(),
   fit_opts = list(),
-  fit_init = NULL,
+  partition_init = NULL,
+  full_collection_init = NULL,
   full_inference = FALSE,
+  method = "single",
   verbose = TRUE,
   temp_save_path = tempfile(fileext = ".Rds")
 )
@@ -35,13 +37,22 @@ clusterize_bipartite_networks(
 
 \item{fit_opts}{Fit options for the VEM algorithm}
 
-\item{fit_init}{Do not use!
-Optional fit init from where initializing the algorithm.}
+\item{partition_init}{Optional partition list, a list of fitted collections
+(bisbmpop) from which to start partitioning}
+
+\item{full_collection_init}{Optional full collection, a bisbmpop object
+containing the fit of all the networks}
 
 \item{full_inference}{The default "FALSE", the algorithm stop once splitting
 groups of networks does not improve the BICL criterion. If "TRUE", then
 continue to split groups until a trivial classification of one network per
 group.}
+
+\item{method}{the agglomeration method to be used.  This should
+    be (an unambiguous abbreviation of) one of
+    \code{"ward.D"}, \code{"ward.D2"}, \code{"single"}, \code{"complete"},
+    \code{"average"} (= \abbr{UPGMA}), \code{"mcquitty"} (= \abbr{WPGMA}),
+    \code{"median"} (= \abbr{WPGMC}) or \code{"centroid"} (= \abbr{UPGMC}).}
 
 \item{verbose}{A boolean, should the function be verbose or not. Default to
 TRUE.}

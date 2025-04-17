@@ -252,6 +252,7 @@ clusterize_unipartite_networks <- function(netlist,
 #' groups of networks does not improve the BICL criterion. If "TRUE", then
 #' continue to split groups until a trivial classification of one network per
 #' group.
+#' @inheritParams stats::hclust
 #' @param verbose A boolean, should the function be verbose or not. Default to
 #' TRUE.
 #'
@@ -304,6 +305,7 @@ clusterize_bipartite_networks <- function(netlist,
                                           partition_init = NULL,
                                           full_collection_init = NULL,
                                           full_inference = FALSE,
+                                          method = "single",
                                           verbose = TRUE,
                                           temp_save_path = tempfile(fileext = ".Rds")) {
   check_bipartite_colsbm_models(colsbm_model = colsbm_model)
@@ -395,6 +397,7 @@ clusterize_bipartite_networks <- function(netlist,
     cl <- partition_networks_list_from_dissimilarity(
       networks_list = fit$A,
       dissimilarity_matrix = dist_bm,
+      method = method,
       nb_groups = 2L
     )
 
@@ -619,6 +622,7 @@ compute_dissimilarity_matrix.bmpop <- function(
 #' @param networks_list The list of networks to partition
 #' @param dissimilarity_matrix The dissimilarity matrix computed with
 #' `compute_dissimilarity_matrix`.
+#' @inheritParams stats::hclust
 #' @param nb_groups An integer, the number of groups. Defaults to 2
 #'
 #' @return A vector, eventually named according to `networks_list` names.
@@ -627,6 +631,7 @@ compute_dissimilarity_matrix.bmpop <- function(
 partition_networks_list_from_dissimilarity <- function(
     networks_list,
     dissimilarity_matrix,
+    method = "single",
     nb_groups = 2L) {
   # Sanity checks
   check_networks_list(networks_list)
@@ -645,7 +650,7 @@ partition_networks_list_from_dissimilarity <- function(
   if (M >= 3L) {
     # If there is more than 3 networks they are splitted using partition around
     # K-medioids
-    cl <- cutree(hclust(as.dist(sqrt(dissimilarity_matrix)), method = "single"), k = nb_groups)
+    cl <- cutree(hclust(as.dist(sqrt(dissimilarity_matrix)), method = method), k = nb_groups)
   } else {
     cl <- c(1L, 2L)
   }
