@@ -1,3 +1,8 @@
+# colSBM 0.4.4
+
+* Switching to using `hclust` in `colSBM::clusterize_bipartite_networks()` to give a more consistent clustering output
+* Extracting `colSBM::compute_bicl_partition()` to compute BIC-L for various objects
+
 # colSBM 0.4.3
 
 * Adding `fit_opts$kmeans_iter` to control the number of iterations for kmeans in spectral clustering

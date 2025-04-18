@@ -8,6 +8,7 @@
 partition_networks_list_from_dissimilarity(
   networks_list,
   dissimilarity_matrix,
+  method = "single",
   nb_groups = 2L
 )
 }
@@ -16,6 +17,12 @@ partition_networks_list_from_dissimilarity(
 
 \item{dissimilarity_matrix}{The dissimilarity matrix computed with
 \code{compute_dissimilarity_matrix}.}
+
+\item{method}{the agglomeration method to be used.  This should
+    be (an unambiguous abbreviation of) one of
+    \code{"ward.D"}, \code{"ward.D2"}, \code{"single"}, \code{"complete"},
+    \code{"average"} (= \abbr{UPGMA}), \code{"mcquitty"} (= \abbr{WPGMA}),
+    \code{"median"} (= \abbr{WPGMC}) or \code{"centroid"} (= \abbr{UPGMC}).}
 
 \item{nb_groups}{An integer, the number of groups. Defaults to 2}
 }

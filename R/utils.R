@@ -606,7 +606,8 @@ default_global_opts_bipartite <- function(netlist) {
     plot_details = 1L,
     max_pass = 10L,
     verbosity = 1L,
-    nb_cores = 1L
+    nb_cores = 1L,
+    compare_stored = TRUE
   )
 }
 
@@ -648,6 +649,35 @@ build_fold_matrix <- function(X, K) {
   return(fold_matrix)
 }
 
+#' Compute BIC-L of a provided partition (list of bmpop or bisbmpop)
+#'
+#' @param partition A list of bmpop or bisbmpop objects
+#'
+#' @return A numeric value, the BIC-L of the partition
+#' @noRd
+compute_bicl_partition <- function(partition) {
+  if (inherits(partition, "bmpop")) {
+    return(partition$best_fit$BICL)
+  }
+  if (inherits(partition, "bisbmpop")) {
+    return(partition$best_fit$BICL)
+  }
+  if (inherits(partition, "fitBipartiteSBMPop")) {
+    return(partition$BICL)
+  }
+  if (inherits(partition, "fitSimpleSBMPop")) {
+    return(partition$BICL)
+  }
+  if (inherits(partition, "list")) {
+    if (all(sapply(partition, inherits, "bmpop") | sapply(partition, inherits, "bisbmpop"))) {
+      return(sum(sapply(partition, function(col) col$best_fit$BICL)))
+    }
+    if (all(sapply(partition, inherits, "fitBipartiteSBMPop") | sapply(partition, inherits, "fitSimpleSBMPop"))) {
+      return(sum(sapply(partition, function(col) col$BICL)))
+    }
+  }
+  stop("The provided partition is not a valid object for BIC-L computation.")
+}
 
 .xlogx <- function(x) {
   ifelse(x < 2 * .Machine$double.eps, 0, x * log(x))

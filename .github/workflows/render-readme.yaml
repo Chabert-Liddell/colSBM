@@ -37,4 +37,3 @@ jobs:
         git add man/figures/README-* || echo "No images to add"
         git commit -m "Re-build README.md" || echo "No changes to commit"
         git push origin main || echo "No changes to commit"
-
