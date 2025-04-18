@@ -1,4 +1,5 @@
 ^LICENSE\.md$
+^Meta$
 ^README\.Rmd$
 ^\.Rproj\.user$
 ^\.github$
@@ -15,11 +16,10 @@
 ^data-raw$
 ^dev$
 ^dev$
+^doc$
 ^docs$
 ^pkgdown$
 ^references\.bib$
 ^renv$
 ^renv\.lock$
 ^tests/testthat\.R$
-^doc$
-^Meta$

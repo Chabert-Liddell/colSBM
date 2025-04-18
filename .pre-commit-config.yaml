@@ -13,26 +13,24 @@ repos:
       - id: roxygenize
         # roxygen requires loading pkg -> add dependencies from DESCRIPTION
         additional_dependencies:
-          - ape
           - aricode
+          - cli
           - cluster
           - dplyr
-          - ggnewscale
+          - future.apply
           - ggplot2
           - gtools
           - magrittr
           - matrixStats
-          - nloptr
           - parallel
-          - parallelly
           - patchwork
-          - phylogram
+          - progressr
           - purrr
           - R6
           - reshape2
+          - rlang
           - sbm
           - stats
-          - stringr
           - tibble
           - tidyr
           - utils

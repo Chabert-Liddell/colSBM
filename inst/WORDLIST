@@ -5,6 +5,7 @@ aeA
 aes
 AFO
 aG
+agroparistech
 aig
 aIV
 Aizen
@@ -22,6 +23,7 @@ Anakok
 anakokDisentanglingStructureEcological
 anthropogenic
 AO
+AOAS
 aq
 aQ
 archiveprefix
@@ -98,6 +100,7 @@ Choquebamba
 cincocerros
 citEntry
 citHeader
+cli
 cloneable
 clust
 clusterize
@@ -331,6 +334,7 @@ JN
 JNWRIYKG
 Jolls
 Joostenberg
+journaltitle
 JQg
 jS
 jV
@@ -350,6 +354,7 @@ Kj
 KJ
 KjG
 kk
+kmeans
 knitr
 KNP
 ko
@@ -364,6 +369,7 @@ Kܠ
 labrava
 lachata
 Lacoste
+lacoste
 Laibach
 langid
 lapaja
@@ -390,6 +396,7 @@ llao
 Llao
 Llimpa
 LM
+louis
 LQ
 Lundgren
 lv
@@ -515,6 +522,8 @@ preprint
 Preprint
 primaryclass
 programmingLanguage
+progressr
+projecteuclid
 PublicationIssue
 PublicationVolume
 Pumamarca
@@ -543,11 +552,13 @@ readme
 README
 realisation
 rect
+recursified
 refugio
 releaseNotes
 rF
 ri
 rj
+rlang
 rmangal
 Rmangal
 rmarkdown
@@ -605,6 +616,7 @@ subindex
 sublicense
 suivantes
 sW
+symmetrization
 SystemRequirements
 SZ
 taxonomie
@@ -657,6 +669,8 @@ undirected
 unicode
 unipartite
 UO
+UPGMA
+UPGMC
 UQ
 uQlT
 urldate
@@ -710,10 +724,13 @@ wether
 Wether
 wF
 whe
+WIP
 wl
 WLG
 WLU
 WO
+WPGMA
+WPGMC
 Wsv
 wX
 wZ
