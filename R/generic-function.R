@@ -147,7 +147,9 @@ plot.fitSimpleSBMPop <- function(
       return(p_alpha)
     },
     "block" = {
-      Z <- factor(x$Z[[net_id]], levels = rev(ord))
+      Z_ordered <- ordered(x$Z[[net_id]], levels = ord)
+      order <- order(Z_ordered)
+      Z <- factor(x$Z[[net_id]], levels = ord)
       as.matrix(x$A[[net_id]])[
         order(Z),
         order(Z)
@@ -167,11 +169,11 @@ plot.fitSimpleSBMPop <- function(
         ) +
         ggplot2::geom_tile(show.legend = FALSE) +
         ggplot2::geom_hline(
-          yintercept = cumsum(tabulate(Z)[1:(x$Q - 1)]) + .5,
+          yintercept = cumsum(stats::na.omit(tabulate(Z)[ord])) + .5,
           col = "red", linewidth = .5
         ) +
         ggplot2::geom_vline(
-          xintercept = cumsum(tabulate(Z)[ifelse(x$Q > 1, (x$Q):2, 1)]) + .5,
+          xintercept = cumsum(stats::na.omit(tabulate(Z)[ord][ifelse(x$Q > 1, (x$Q):2, 1)])) + .5,
           col = "red", linewidth = .5
         ) +
         ggplot2::scale_fill_gradient(low = "white", high = "black") +
@@ -632,7 +634,7 @@ plot.fitBipartiteSBMPop <- function(
         ) +
         # Order will need to reworked to allow to change tile order
         ggplot2::geom_hline(
-          yintercept = cumsum(stats::na.omit(tabulate(x$Z[[net_id]][[1]])[rev(oRow)][x$Q[1]:2])) + .5,
+          yintercept = cumsum(stats::na.omit(tabulate(x$Z[[net_id]][[1]])[rev(oRow)][ifelse(x$Q[1] > 1, x$Q[1]:2, 1)])) + .5,
           col = "red", linewidth = .5
         ) +
         ggplot2::geom_vline(
