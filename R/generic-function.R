@@ -571,7 +571,7 @@ plot.fitBipartiteSBMPop <- function(
                               RRAAAA
                               "
         p_alpha <- patchwork::wrap_plots(
-          R = p_pi, C = p_rho, A = (p_alpha),
+          R = p_pi, C = p_rho, A = p_alpha,
           design = mixture_layout
         ) +
           patchwork::plot_layout(
