@@ -510,7 +510,7 @@ plot.fitBipartiteSBMPop <- function(
           ggplot2::theme(axis.text.x = ggplot2::element_text(
             angle = 90, vjust = .5,
             hjust = 1
-          ))
+          ), aspect.ratio = 1 / x$Q[1])
 
         df_rho <- purrr::map_dfc(
           seq_along(x$net_id),
@@ -546,7 +546,8 @@ plot.fitBipartiteSBMPop <- function(
           ggplot2::ylab("") +
           ggplot2::ylab(xl) +
           ggplot2::xlab("Column proportions") +
-          ggplot2::theme_classic()
+          ggplot2::theme_classic() +
+          ggplot2::theme(aspect.ratio = 1 / x$Q[2])
         if (values) {
           p_pi <- p_pi +
             ggplot2::geom_text(ggplot2::aes(label = round(Proportion, 2)),
@@ -570,7 +571,7 @@ plot.fitBipartiteSBMPop <- function(
                               RRAAAA
                               "
         p_alpha <- patchwork::wrap_plots(
-          R = p_pi, C = p_rho, A = p_alpha,
+          R = p_pi, C = p_rho, A = (p_alpha),
           design = mixture_layout
         ) +
           patchwork::plot_layout(
