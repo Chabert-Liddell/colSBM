@@ -623,7 +623,8 @@ default_fit_opts_bipartite <- function() {
     greedy_exploration_max_steps = 50,
     greedy_exploration_max_steps_without_improvement = 5,
     kmeans_nstart = 400L,
-    kmeans_iter_max = 100L
+    kmeans_iter_max = 100L,
+    penalty_factor = 0.5
   )
 }
 

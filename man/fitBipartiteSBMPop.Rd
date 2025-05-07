@@ -345,9 +345,19 @@ Computes the penalty for the model
 \if{latex}{\out{\hypertarget{method-fitBipartiteSBMPop-compute_penalty}{}}}
 \subsection{Method \code{compute_penalty()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$compute_penalty()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$compute_penalty(
+  penalty_factor = self$fit_opts$penalty_factor
+)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{penalty_factor}}{The penalty factor, a numeric, defaults to
+self$fit_opts$penalty_factor, which is 0.5 by default.}
+}
+\if{html}{\out{</div>}}
+}
 \subsection{Returns}{
 the computed penalty using the formulae.
 Computes the ICL criterion
