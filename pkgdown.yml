@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   tutorial-bipartite: tutorial-bipartite.html
   tutorial: tutorial.html
-last_built: 2025-05-07T13:49Z
+last_built: 2025-05-15T15:28Z
 urls:
   reference: https://chabert-liddel.github.io/colSBM/reference
   article: https://chabert-liddel.github.io/colSBM/articles
