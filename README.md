@@ -42,7 +42,8 @@ devtools::install_github("GrossSBM/colSBM")
 
 # References
 
-<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="refs" class="references csl-bib-body hanging-indent"
+entry-spacing="0">
 
 <div id="ref-collection" class="csl-entry">
 
