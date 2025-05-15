@@ -529,22 +529,34 @@ compute_dissimilarity_matrix <- function(
     norm = "L2") {
   stopifnot(
     "Can't build the distance matrix, this is not a bmpop or bisbmpop object" =
-      (inherits(collection, "bisbmpop") | inherits(collection, "bmpop"))
+      (inherits(collection, "bisbmpop") | inherits(collection, "bmpop") | inherits(collection, "fitBipartiteSBMPop") | inherits(collection, "fitSimpleSBMPop"))
   )
 
   if (inherits(collection, "bisbmpop")) {
-    dist_matrix <- compute_dissimilarity_matrix.bisbmpop(collection,
+    dist_matrix <- compute_dissimilarity_matrix.bisbmpop(collection$best_fit,
       weight = weight,
       norm = norm
     )
   }
   if (inherits(collection, "bmpop")) {
-    dist_matrix <- compute_dissimilarity_matrix.bmpop(collection,
+    dist_matrix <- compute_dissimilarity_matrix.bmpop(collection$best_fit,
       weight = weight,
       norm = norm
     )
   }
 
+  if (inherits(collection, "fitBipartiteSBMPop")) {
+    dist_matrix <- compute_dissimilarity_matrix.bisbmpop(collection,
+      weight = weight,
+      norm = norm
+    )
+  }
+  if (inherits(collection, "fitSimpleSBMPop")) {
+    dist_matrix <- compute_dissimilarity_matrix.bmpop(collection,
+      weight = weight,
+      norm = norm
+    )
+  }
   return(dist_matrix)
 }
 
@@ -565,12 +577,12 @@ compute_dissimilarity_matrix.bisbmpop <- function(
       if (i == j) {
         return(0)
       }
-      pis <- lapply(collection$best_fit$pim[c(i, j)], function(list) list[[1]])
-      rhos <- lapply(collection$best_fit$pim[c(i, j)], function(list) list[[2]])
+      pis <- lapply(collection$pim[c(i, j)], function(list) list[[1]])
+      rhos <- lapply(collection$pim[c(i, j)], function(list) list[[2]])
 
       dist_bisbmpop_max(
         pi = pis, rho = rhos,
-        alpha = collection$best_fit$alpham[c(i, j)],
+        alpha = collection$alpham[c(i, j)],
         weight = weight,
         norm = norm
       )
@@ -596,12 +608,12 @@ compute_dissimilarity_matrix.bmpop <- function(
       if (i == j) {
         return(0)
       }
-      pis <- lapply(collection$best_fit$pim[c(i, j)], function(list) list)
+      pis <- lapply(collection$pim[c(i, j)], function(list) list)
 
       dist_bmpop_max(
         pi = pis,
-        alpha = collection$best_fit$alpham[c(i, j)],
-        delta = collection$best_fit$delta[c(i, j)],
+        alpha = collection$alpham[c(i, j)],
+        delta = collection$delta[c(i, j)],
         directed = collection$directed,
         weight = weight,
         norm = norm
