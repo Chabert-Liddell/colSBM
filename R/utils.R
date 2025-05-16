@@ -652,25 +652,33 @@ build_fold_matrix <- function(X, K) {
 
 #' Compute BIC-L of a provided partition (list of bmpop or bisbmpop)
 #'
-#' @param partition A list of bmpop or bisbmpop objects
+#' @param partition A list of (or a single) bmpop, bisbmpop, fitBipartiteSBMPop,
+#' fitSimpleSBMPop objects
+#'
+#' @param verbose A boolean, should the function print additional information.
+#' Defaults to TRUE.
 #'
 #' @return A numeric value, the BIC-L of the partition
 #' @noRd
-compute_bicl_partition <- function(partition) {
-  if (inherits(partition, "bmpop")) {
+compute_bicl_partition <- function(partition, verbose = TRUE) {
+  if (inherits(partition, "bmpop") | inherits(partition, "bisbmpop")) {
+    if (verbose) {
+      cli::cli_alert_info(
+        "A {.type {partition}} object was provided. The BIC-L is computed from the best fit."
+      )
+    }
     return(partition$best_fit$BICL)
   }
-  if (inherits(partition, "bisbmpop")) {
-    return(partition$best_fit$BICL)
-  }
-  if (inherits(partition, "fitBipartiteSBMPop")) {
-    return(partition$BICL)
-  }
-  if (inherits(partition, "fitSimpleSBMPop")) {
+  if (inherits(partition, "fitBipartiteSBMPop") | inherits(partition, "fitSimpleSBMPop")) {
     return(partition$BICL)
   }
   if (inherits(partition, "list")) {
     if (all(sapply(partition, inherits, "bmpop") | sapply(partition, inherits, "bisbmpop"))) {
+      if (verbose) {
+        cli::cli_alert_info(
+          "A list of {.type {partition[[1]]}} objects was provided. The BIC-L is computed from the best fit."
+        )
+      }
       return(sum(sapply(partition, function(col) col$best_fit$BICL)))
     }
     if (all(sapply(partition, inherits, "fitBipartiteSBMPop") | sapply(partition, inherits, "fitSimpleSBMPop"))) {
