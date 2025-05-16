@@ -654,7 +654,8 @@ build_fold_matrix <- function(X, K) {
 #'
 #' @param partition A list of (or a single) bmpop, bisbmpop, fitBipartiteSBMPop,
 #' fitSimpleSBMPop objects
-#'
+#' @param penalty_factor A numeric value, the penalty factor to use for the
+#' computation of the BIC-L. Defaults to 0.5.
 #' @param verbose A boolean, should the function print additional information.
 #' Defaults to TRUE.
 #'
