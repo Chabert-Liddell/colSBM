@@ -431,8 +431,11 @@ fitBipartiteSBMPop <- R6::R6Class(
     },
     #' Computes the penalty for the model
     #'
+    #' @param penalty_factor The penalty factor, a numeric, defaults to
+    #' self$fit_opts$penalty_factor, which is 0.5 by default.
+    #'
     #' @return the computed penalty using the formulae.
-    compute_penalty = function() {
+    compute_penalty = function(penalty_factor = self$fit_opts$penalty_factor) {
       Cpi <- list()
       if (self$free_mixture_row) {
         Cpi[[1]] <- self$Cpi[[1]]
@@ -475,7 +478,7 @@ fitBipartiteSBMPop <- R6::R6Class(
         # iid
         alpha_penalty <- self$Q[1] * self$Q[2] * log(N_M)
       }
-      self$penalty <- 0.5 * (pi1_penalty + pi2_penalty +
+      self$penalty <- penalty_factor * (pi1_penalty + pi2_penalty +
         alpha_penalty +
         S1_penalty + S2_penalty)
       if (is.infinite(self$penalty)) {
@@ -1425,7 +1428,7 @@ fitBipartiteSBMPop <- R6::R6Class(
         toString(self$Q), ") blocks.\n"
       )
       cat(
-        "BICL = ", self$BICL,
+        "BICL = ", self$BICL, "penalty factor = ", self$fit_opts$penalty_factor,
         "\n#Empty row blocks on all networks: ", sum(!self$Cpi[[1]]),
         " -- #Empty columns blocks on all networks: ", sum(!self$Cpi[[2]]), " \n"
       )

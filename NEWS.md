@@ -4,6 +4,7 @@
 * Setting dist_graphon[j,i] = dist_graphon[i,j]
 * `net_id` are now passed to separate BiSBM
 
+
 # colSBM 0.4.4
 
 * Switching to using `hclust` in `colSBM::clusterize_bipartite_networks()` to give a more consistent clustering output
