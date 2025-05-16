@@ -522,10 +522,13 @@ fitBipartiteSBMPop <- R6::R6Class(
     #' to FALSE.
     #' @return The BICL for the model.
     compute_BICL = function(MAP = TRUE,
-                            penalty_factor = self$fit_opts$penalty_factor) {
-      self$BICL <- self$compute_vbound() -
-        self$compute_penalty(penalty_factor = penalty_factor)
-      invisible(self$BICL)
+                            penalty_factor = self$fit_opts$penalty_factor,
+                            store = TRUE) {
+      BICL <- self$compute_vbound() - self$compute_penalty(penalty_factor = penalty_factor)
+      if (store) {
+        self$BICL <- BICL
+      }
+      invisible(BICL)
     },
 
     #' Updates the MAP parameters
