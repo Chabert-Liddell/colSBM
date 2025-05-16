@@ -652,29 +652,54 @@ build_fold_matrix <- function(X, K) {
 
 #' Compute BIC-L of a provided partition (list of bmpop or bisbmpop)
 #'
-#' @param partition A list of bmpop or bisbmpop objects
+#' @param partition A list of (or a single) bmpop, bisbmpop, fitBipartiteSBMPop,
+#' fitSimpleSBMPop objects
+#' @param penalty_factor A numeric value, the penalty factor to use for the
+#' computation of the BIC-L. Defaults to 0.5.
+#' @param verbose A boolean, should the function print additional information.
+#' Defaults to TRUE.
 #'
 #' @return A numeric value, the BIC-L of the partition
 #' @noRd
-compute_bicl_partition <- function(partition) {
-  if (inherits(partition, "bmpop")) {
-    return(partition$best_fit$BICL)
+compute_bicl_partition <- function(partition, penalty_factor = 0.5, verbose = TRUE) {
+  if (inherits(partition, "bmpop") | inherits(partition, "bisbmpop")) {
+    if (verbose) {
+      cli::cli_alert_info(
+        "A {.type {partition}} object was provided. The BIC-L is computed from the best fit."
+      )
+    }
+    return(partition$best_fit$compute_BICL(
+      penalty_factor = penalty_factor,
+      store = FALSE
+    ))
   }
-  if (inherits(partition, "bisbmpop")) {
-    return(partition$best_fit$BICL)
-  }
-  if (inherits(partition, "fitBipartiteSBMPop")) {
-    return(partition$BICL)
-  }
-  if (inherits(partition, "fitSimpleSBMPop")) {
-    return(partition$BICL)
+  if (inherits(partition, "fitBipartiteSBMPop") | inherits(partition, "fitSimpleSBMPop")) {
+    return(partition$compute_BICL(
+      penalty_factor = penalty_factor,
+      store = FALSE
+    ))
   }
   if (inherits(partition, "list")) {
     if (all(sapply(partition, inherits, "bmpop") | sapply(partition, inherits, "bisbmpop"))) {
-      return(sum(sapply(partition, function(col) col$best_fit$BICL)))
+      if (verbose) {
+        cli::cli_alert_info(
+          "A list of {.type {partition[[1]]}} objects was provided. The BIC-L is computed from the best fit."
+        )
+      }
+      return(sum(sapply(partition, function(col) {
+        col$best_fit$compute_BICL(
+          penalty_factor = penalty_factor,
+          store = FALSE
+        )
+      })))
     }
     if (all(sapply(partition, inherits, "fitBipartiteSBMPop") | sapply(partition, inherits, "fitSimpleSBMPop"))) {
-      return(sum(sapply(partition, function(col) col$BICL)))
+      return(sum(sapply(partition, function(col) {
+        col$compute_BICL(
+          penalty_factor = penalty_factor,
+          store = FALSE
+        )
+      })))
     }
   }
   stop("The provided partition is not a valid object for BIC-L computation.")

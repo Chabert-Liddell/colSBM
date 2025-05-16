@@ -402,7 +402,10 @@ Computes the BICL criterion
 \if{latex}{\out{\hypertarget{method-fitBipartiteSBMPop-compute_BICL}{}}}
 \subsection{Method \code{compute_BICL()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$compute_BICL(MAP = TRUE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{fitBipartiteSBMPop$compute_BICL(
+  MAP = TRUE,
+  penalty_factor = self$fit_opts$penalty_factor
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{

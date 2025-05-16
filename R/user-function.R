@@ -369,33 +369,14 @@ estimate_colBiSBM <-
     )
 
     # Fit options
-    fo <- list(
-      algo_ve = "fp",
-      max_vem_steps = 1000L,
-      minibatch = TRUE,
-      verbosity = 0L,
-      tolerance = 1e-6
-    )
+    fo <- default_fit_opts_bipartite()
 
     fo <- utils::modifyList(fo, fit_opts)
     fit_opts <- fo
 
     # Global options
     # go is used to temporarily store the default global_opts
-    go <- list(
-      Q1_min = 1L,
-      Q2_min = 1L,
-      Q1_max = floor(log(sum(sapply(netlist, function(A) nrow(A)))) + 2),
-      Q2_max = floor(log(sum(sapply(netlist, function(A) ncol(A)))) + 2),
-      nb_init = 10L,
-      nb_models = 5L,
-      backend = "no_mc",
-      depth = 1L,
-      plot_details = 1L,
-      max_pass = 10L,
-      verbosity = 1L,
-      nb_cores = 1L
-    )
+    go <- default_global_opts_bipartite(netlist = netlist)
 
     go <- utils::modifyList(go, global_opts)
     global_opts <- go

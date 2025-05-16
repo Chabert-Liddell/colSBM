@@ -1,9 +1,14 @@
+# colSBM 0.4.6
+
+* Added `colSBM::compute_bicl_partition()` to compute BIC-L for various objects
+* Added `penalty_factor` to various functions to allow for different impact
+of penalties
+
 # colSBM 0.4.5
 
 * Setting aspect ratio to 1:Q in `plot.fitBipartiteSBMPop(mixture = TRUE)`
 * Setting dist_graphon[j,i] = dist_graphon[i,j]
 * `net_id` are now passed to separate BiSBM
-
 
 # colSBM 0.4.4
 
