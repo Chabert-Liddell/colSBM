@@ -780,6 +780,7 @@ clusterize_bipartite_networks_graphon <- function(
           rhos = list(collections[[i]]$best_fit$parameters$rho[[1]], collections[[j]]$best_fit$parameters$rho[[1]]),
           alphas = list(collections[[i]]$best_fit$parameters$alpha, collections[[j]]$best_fit$parameters$alpha)
         )
+        dist_matrix[j, i] <- dist_matrix[i, j]
       }
     }
     return(dist_matrix)

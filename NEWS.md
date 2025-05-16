@@ -1,3 +1,9 @@
+# colSBM 0.4.5
+
+* Setting aspect ratio to 1:Q in `plot.fitBipartiteSBMPop(mixture = TRUE)`
+* Setting dist_graphon[j,i] = dist_graphon[i,j]
+* Rem parentheses
+
 # colSBM 0.4.4
 
 * Switching to using `hclust` in `colSBM::clusterize_bipartite_networks()` to give a more consistent clustering output
