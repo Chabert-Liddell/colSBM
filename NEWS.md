@@ -1,3 +1,11 @@
+# colSBM 0.4.6
+
+* Added `colSBM::compute_bicl_partition()` to compute BIC-L for various objects
+* Added `penalty_factor` to various functions to allow for different impact
+of penalties
+
+# colSBM 0.4.5
+
 # colSBM 0.4.4
 
 * Switching to using `hclust` in `colSBM::clusterize_bipartite_networks()` to give a more consistent clustering output
