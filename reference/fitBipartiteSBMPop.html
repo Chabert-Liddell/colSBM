@@ -13,7 +13,7 @@ once $optimize() is done"></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">colSBM</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -585,7 +585,10 @@ Computes the BICL criterion</p>
 
 <div class="section">
 <h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitBipartiteSBMPop</span><span class="op">$</span><span class="fu">compute_BICL</span><span class="op">(</span>MAP <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">fitBipartiteSBMPop</span><span class="op">$</span><span class="fu">compute_BICL</span><span class="op">(</span></span>
+<span>  MAP <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  penalty_factor <span class="op">=</span> <span class="va">self</span><span class="op">$</span><span class="va">fit_opts</span><span class="op">$</span><span class="va">penalty_factor</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
