@@ -2,7 +2,7 @@
 
 * Setting aspect ratio to 1:Q in `plot.fitBipartiteSBMPop(mixture = TRUE)`
 * Setting dist_graphon[j,i] = dist_graphon[i,j]
-* Rem parentheses
+* `net_id` are now passed to separate BiSBM
 
 # colSBM 0.4.4
 
