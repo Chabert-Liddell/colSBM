@@ -2045,6 +2045,7 @@ bisbmpop <- R6::R6Class(
             # Using lbm as init we fit the model with our VEM
             sep_BiSBM <- fitBipartiteSBMPop$new(
               A = list(self[["A"]][[m]]),
+              net_id = c(self[["net_id"]][[m]]),
               Q = init_lbm[["nbBlocks"]],
               free_mixture_row = FALSE,
               free_mixture_col = FALSE,
