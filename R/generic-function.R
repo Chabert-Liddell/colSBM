@@ -616,19 +616,19 @@ plot.fitBipartiteSBMPop <- function(
         xmin <- rep(c(0, cumsum(tabulate(x$Z[[net_id]][[2]])[oCol][1:(x$Q[2] - 1)])), x$Q[1]) + 0.5
         xmax <- rep(cumsum(tabulate(x$Z[[net_id]][[2]])[oCol]), x$Q[1]) + 0.5
       }
-
-      connection_df <- x$alpha[oRow, oCol] |>
-        t() |>
-        reshape2::melt()
-      connection_df <- connection_df |>
-        dplyr::arrange(desc(Var2), Var1) |>
-        dplyr::mutate(
-          xmin = xmin,
-          ymin = ymin,
-          xmax = xmax,
-          ymax = ymax
-        )
-
+      if (values) {
+        connection_df <- x$alpha[oRow, oCol] |>
+          t() |>
+          reshape2::melt()
+        connection_df <- connection_df |>
+          dplyr::arrange(desc(Var2), Var1) |>
+          dplyr::mutate(
+            xmin = xmin,
+            ymin = ymin,
+            xmax = xmax,
+            ymax = ymax
+          )
+      }
       Z1_ordered <- ordered(x$Z[[net_id]][[1]], levels = oRow)
       Z2_ordered <- ordered(x$Z[[net_id]][[2]], levels = oCol)
       row_order <- order(Z1_ordered)
@@ -657,13 +657,7 @@ plot.fitBipartiteSBMPop <- function(
           xintercept = cumsum(stats::na.omit(tabulate(x$Z[[net_id]][[2]])[oCol][1:(x$Q[2] - 1)])) + .5,
           col = "red", linewidth = .5
         ) +
-        ggplot2::scale_fill_gradient2(high = "red", mid = "white", low = "transparent") +
-        ggplot2::geom_rect(ggplot2::aes(
-          xmin = xmin, ymin = ymin,
-          xmax = xmax, ymax = ymax, alpha = .data$value
-        ), fill = "red", data = connection_df) +
-        ggplot2::scale_alpha(range = c(0.1, 1)) +
-        ggplot2::guides(alpha = ggplot2::guide_legend(title = "α")) +
+        ggplot2::scale_fill_gradient2(high = "black", mid = "white", low = "transparent") +
         ggplot2::ylab("") +
         ggplot2::xlab(x$net_id[net_id]) +
         ggplot2::scale_x_discrete(
@@ -677,6 +671,14 @@ plot.fitBipartiteSBMPop <- function(
         ggplot2::coord_equal(expand = FALSE) +
         ggplot2::theme_bw(base_size = 15) +
         ggplot2::theme(axis.ticks = ggplot2::element_blank())
+      if (values) {
+        p_block <- p_block +
+          ggplot2::geom_rect(ggplot2::aes(
+            xmin = xmin, ymin = ymin,
+            xmax = xmax, ymax = ymax, alpha = value
+          ), fill = "red", data = connection_df) +
+          ggplot2::guides(alpha = ggplot2::guide_legend(title = "α"))
+      }
       return(p_block)
     }
   )
