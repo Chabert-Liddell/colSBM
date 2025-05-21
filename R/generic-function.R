@@ -410,6 +410,7 @@ plot.fitBipartiteSBMPop <- function(
           low = "white", mid = "red",
           midpoint = 1, limits = c(0, ifelse(x$distribution == "bernoulli", 1, max(x$alpha)))
         ) +
+        ggplot2::guides(fill = ggplot2::guide_legend(title = "α")) +
         ggplot2::geom_hline(yintercept = cumsum(x$pi[[net_id]][[1]][oRow][1:(x$Q[1] - 1)]), linewidth = .2) +
         ggplot2::geom_vline(xintercept = cumsum(x$pi[[net_id]][[2]][oCol][1:(x$Q[2] - 1)]), linewidth = .2)
       if (values) {
@@ -589,7 +590,7 @@ plot.fitBipartiteSBMPop <- function(
         mean_rho <- x[["pi"]][[net_id]][[2]]
       }
       if (is.null(oRow)) {
-        oRow <- order(x$alpham[[net_id]] %*% mean_rho, decreasing = FALSE)
+        oRow <- order(x$alpham[[net_id]] %*% mean_rho, decreasing = TRUE)
       }
       #  Once order of tile in block will be fix, need to go back in nullity cond
       if (x$Q[1] == 1) {
@@ -601,36 +602,52 @@ plot.fitBipartiteSBMPop <- function(
         oCol <- order(mean_pi %*% x$alpham[[net_id]], decreasing = TRUE)
       }
 
+      if (x$Q[1] == 1) {
+        ymin <- rep(0, each = x$Q[2])
+        ymax <- rep(1, each = x$Q[2])
+      } else {
+        ymin <- rep(c(0, cumsum(tabulate(x$Z[[net_id]][[1]])[oRow][1:(x$Q[1] - 1)])), each = x$Q[2]) + 0.5
+        ymax <- rep(c(cumsum(tabulate(x$Z[[net_id]][[1]])[oRow])), each = x$Q[2]) + 0.5
+      }
+      if (x$Q[2] == 1) {
+        xmin <- rep(0, x$Q[1])
+        xmax <- rep(1, x$Q[1])
+      } else {
+        xmin <- rep(c(0, cumsum(tabulate(x$Z[[net_id]][[2]])[oCol][1:(x$Q[2] - 1)])), x$Q[1]) + 0.5
+        xmax <- rep(cumsum(tabulate(x$Z[[net_id]][[2]])[oCol]), x$Q[1]) + 0.5
+      }
+
+      connection_df <- x$alpha[oRow, oCol] |>
+        t() |>
+        reshape2::melt()
+      connection_df <- connection_df |>
+        dplyr::arrange(desc(Var2), Var1) |>
+        dplyr::mutate(
+          xmin = xmin,
+          ymin = ymin,
+          xmax = xmax,
+          ymax = ymax
+        )
+
       Z1_ordered <- ordered(x$Z[[net_id]][[1]], levels = oRow)
       Z2_ordered <- ordered(x$Z[[net_id]][[2]], levels = oCol)
       row_order <- order(Z1_ordered)
       col_order <- order(Z2_ordered)
 
-      as.matrix(x$A[[net_id]])[
+      block_df <- as.matrix(x$A[[net_id]])[
         row_order,
         col_order
       ] |>
-        reshape2::melt() |>
-        dplyr::mutate(
-          con = x$alpha[x$Z[[net_id]][[1]], x$Z[[net_id]][[2]]][
-            row_order,
-            col_order
-          ] |>
-            reshape2::melt() |>
-            dplyr::pull(value)
-        ) |>
-        ggplot2::ggplot(ggplot2::aes(
-          x = Var2,
-          y = rev(Var1),
-          fill = value,
-          alpha = value
-        )) +
+        reshape2::melt()
+
+      p_block <- ggplot2::ggplot(
+        data = block_df, ggplot2::aes(
+          x = .data$Var2,
+          y = rev(.data$Var1),
+          fill = .data$value
+        )
+      ) +
         ggplot2::geom_tile(show.legend = FALSE) +
-        ggplot2::geom_tile(ggplot2::aes(alpha = con),
-          fill = "red",
-          linewidth = 0L,
-          show.legend = FALSE
-        ) +
         # Order will need to reworked to allow to change tile order
         ggplot2::geom_hline(
           yintercept = cumsum(stats::na.omit(tabulate(x$Z[[net_id]][[1]])[rev(oRow)][x$Q[1]:2])) + .5,
@@ -640,7 +657,13 @@ plot.fitBipartiteSBMPop <- function(
           xintercept = cumsum(stats::na.omit(tabulate(x$Z[[net_id]][[2]])[oCol][1:(x$Q[2] - 1)])) + .5,
           col = "red", linewidth = .5
         ) +
-        ggplot2::scale_fill_gradient(low = "white", high = "black", na.value = "transparent") +
+        ggplot2::scale_fill_gradient2(high = "red", mid = "white", low = "transparent") +
+        ggplot2::geom_rect(ggplot2::aes(
+          xmin = xmin, ymin = ymin,
+          xmax = xmax, ymax = ymax, alpha = .data$value
+        ), fill = "red", data = connection_df) +
+        ggplot2::scale_alpha(range = c(0.1, 1)) +
+        ggplot2::guides(alpha = ggplot2::guide_legend(title = "α")) +
         ggplot2::ylab("") +
         ggplot2::xlab(x$net_id[net_id]) +
         ggplot2::scale_x_discrete(
@@ -654,6 +677,7 @@ plot.fitBipartiteSBMPop <- function(
         ggplot2::coord_equal(expand = FALSE) +
         ggplot2::theme_bw(base_size = 15) +
         ggplot2::theme(axis.ticks = ggplot2::element_blank())
+      return(p_block)
     }
   )
   return(p)
