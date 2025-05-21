@@ -677,7 +677,8 @@ plot.fitBipartiteSBMPop <- function(
             xmin = xmin, ymin = ymin,
             xmax = xmax, ymax = ymax, alpha = value
           ), fill = "red", data = connection_df) +
-          ggplot2::guides(alpha = ggplot2::guide_legend(title = "α"))
+          ggplot2::guides(alpha = ggplot2::guide_legend(title = "α")) +
+          scale_alpha_continuous(limits = c(0, max(x$alpha)))
       }
       return(p_block)
     }
