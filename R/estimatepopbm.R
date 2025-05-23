@@ -888,3 +888,17 @@ clusterize_bipartite_networks_graphon <- function(
 
   return(out)
 }
+
+clusterize_bipartite_networks_d_a <- function(
+    netlist,
+    colsbm_model,
+    net_id = NULL,
+    distribution = "bernoulli",
+    nb_run = 3L,
+    global_opts = list(),
+    fit_opts = list(),
+    fit_init = NULL, # Use this to store a list of fits from which to start clustering
+    full_inference = FALSE,
+    keep_history = FALSE,
+    verbose = TRUE,
+    temp_save_path = tempfile(fileext = ".Rds")) {}
