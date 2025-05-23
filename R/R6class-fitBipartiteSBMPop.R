@@ -1231,7 +1231,10 @@ fitBipartiteSBMPop <- R6::R6Class(
         )
 
         self$alpha <- matrix(sum(self$emqr) / sum(self$nmqr), 1, 1)
-
+        self$pim <- lapply(
+          seq(self$M),
+          function(m) list(matrix(1), matrix(1))
+        )
         self$alpham <- lapply(
           seq(self$M),
           function(m) {
