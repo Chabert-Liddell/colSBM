@@ -459,6 +459,7 @@ plot.fitBipartiteSBMPop <- function(
             ifelse(x$distribution == "bernoulli", 1, max(x$alpha))
           )
         ) +
+        ggplot2::guides(fill = ggplot2::guide_legend(title = "α")) +
         ggplot2::geom_hline(yintercept = seq(x$Q[1]) + .5) +
         ggplot2::geom_vline(xintercept = seq(x$Q[2]) + .5) +
         ggplot2::scale_x_continuous(breaks = seq(x$Q[2])) +
@@ -657,7 +658,17 @@ plot.fitBipartiteSBMPop <- function(
           xintercept = cumsum(stats::na.omit(tabulate(x$Z[[net_id]][[2]])[oCol][1:(x$Q[2] - 1)])) + .5,
           col = "red", linewidth = .5
         ) +
-        ggplot2::scale_fill_gradient2(high = "black", mid = "white", low = "transparent") +
+        ggplot2::scale_fill_gradient2(high = "black", mid = "white", low = "transparent")
+      if (values) {
+        p_block <- p_block +
+          ggplot2::geom_rect(ggplot2::aes(
+            xmin = xmin, ymin = ymin,
+            xmax = xmax, ymax = ymax, alpha = value
+          ), fill = "red", data = connection_df) +
+          ggplot2::guides(alpha = ggplot2::guide_legend(title = "α")) +
+          scale_alpha_continuous(limits = c(0, max(x$alpha)))
+      }
+      p_block <- p_block +
         ggplot2::ylab("") +
         ggplot2::xlab(x$net_id[net_id]) +
         ggplot2::scale_x_discrete(
@@ -671,15 +682,6 @@ plot.fitBipartiteSBMPop <- function(
         ggplot2::coord_equal(expand = FALSE) +
         ggplot2::theme_bw(base_size = 15) +
         ggplot2::theme(axis.ticks = ggplot2::element_blank())
-      if (values) {
-        p_block <- p_block +
-          ggplot2::geom_rect(ggplot2::aes(
-            xmin = xmin, ymin = ymin,
-            xmax = xmax, ymax = ymax, alpha = value
-          ), fill = "red", data = connection_df) +
-          ggplot2::guides(alpha = ggplot2::guide_legend(title = "α")) +
-          scale_alpha_continuous(limits = c(0, max(x$alpha)))
-      }
       return(p_block)
     }
   )
