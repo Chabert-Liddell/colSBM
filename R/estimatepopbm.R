@@ -580,12 +580,12 @@ compute_dissimilarity_matrix.bisbmpop <- function(
       pis <- lapply(collection$pim[c(i, j)], function(list) list[[1]])
       rhos <- lapply(collection$pim[c(i, j)], function(list) list[[2]])
 
-      dist_bisbmpop_max(
+      return(dist_bisbmpop_max(
         pi = pis, rho = rhos,
         alpha = collection$alpham[c(i, j)],
         weight = weight,
         norm = norm
-      )
+      ))
     })
   )
 
